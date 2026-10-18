@@ -615,6 +615,7 @@ class Expense(models.Model):
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Account'))
     linked_physical_asset = models.ForeignKey('PhysicalAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Linked Physical Asset'))
+    import_batch = models.ForeignKey('ImportBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Import'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -3271,6 +3272,39 @@ class LoanScheduleInstallment(models.Model):
 
     def __str__(self):
         return f"Installment {self.installment_no} for {self.loan.name}"
+
+class ImportBatch(models.Model):
+    """One file imported into one account. Every expense it created points back here, so an import can be listed,
+    its skipped rows downloaded, and the whole import undone."""
+    ACTIVE, UNDOING, UNDONE = 'ACTIVE', 'UNDOING', 'UNDONE'
+    STATUS_CHOICES = [(ACTIVE, _('Imported')), (UNDOING, _('Being undone')), (UNDONE, _('Undone'))]
+
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='import_batches')
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='import_batches')
+    file_name = models.CharField(max_length=255)
+    file_hash = models.CharField(max_length=64, blank=True)
+    currency = models.CharField(max_length=5)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=ACTIVE)
+    created_at = models.DateTimeField(default=timezone.now)
+    undone_at = models.DateTimeField(null=True, blank=True)
+    total_rows = models.PositiveIntegerField(default=0)
+    created_count = models.PositiveIntegerField(default=0)
+    duplicate_count = models.PositiveIntegerField(default=0)
+    credit_count = models.PositiveIntegerField(default=0)
+    error_count = models.PositiveIntegerField(default=0)
+    limit_count = models.PositiveIntegerField(default=0)
+    excluded_count = models.PositiveIntegerField(default=0)
+    total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    report = models.JSONField(default=list, blank=True)     # the rows that were not imported, and why
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['user', '-created_at'], name='importbatch_user_created_idx')]
+
+    def __str__(self):
+        return f"{self.file_name} ({self.created_at:%Y-%m-%d})"
+
 
 class FinancialAuditLog(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)

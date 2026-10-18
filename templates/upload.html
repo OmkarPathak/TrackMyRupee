@@ -3,9 +3,10 @@
 
 {% block settings_content %}
 <div class="fade-in">
-    <div class="py-3 mb-3">
-        <h2 class="h4 mb-0 fw-bold">{% trans "Upload Expenses" %}</h2>
+    <div class="py-3 mb-2">
+        <h2 class="h4 mb-0 fw-bold">{% trans "Import expenses" %}</h2>
     </div>
+    {% include 'expenses/partials/_import_tabs.html' %}
     <div>
         <p class="text-muted mb-4 small">
             {% blocktrans %}
@@ -33,7 +34,7 @@
         <div class="card border-0 shadow-sm mb-4 fade-in">
             <div class="card-body">
                 <h5 class="card-title fw-bold mb-3 text-primary">
-                    <i class="bi bi-bar-chart me-2"></i>{% trans "Upload Summary" %}
+                    <i class="bi bi-bar-chart me-2"></i>{% trans "Import summary" %}
                 </h5>
                 <div class="row g-3">
                     <div class="col-6 col-md-3">
@@ -87,11 +88,20 @@
                 </div>
                 {% endif %}
 
+                {% if results.batch_uuid %}
+                <div class="mt-3 d-flex flex-wrap gap-3 small">
+                    <a href="{% url 'import-history' %}"><i class="bi bi-clock-history me-1"></i>{% trans "See this import in your history, where you can undo it" %}</a>
+                    {% if results.error_count or results.duplicate_count or results.credit_skipped or results.limit_skipped %}
+                    <a href="{% url 'import-report' results.batch_uuid %}"><i class="bi bi-download me-1"></i>{% trans "Download the skipped rows (CSV)" %}</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 {% if results.errors %}
                 <div class="mt-4">
                     <h6 class="fw-bold text-danger mb-3">
                         <i class="bi bi-exclamation-triangle me-2"></i>{% trans "Error Details" %}
-                        <small class="text-muted fw-normal">({% trans "Showing first 15 errors" %})</small>
+                        <small class="text-muted fw-normal">({% trans "Showing first 15 errors. The download has them all." %})</small>
                     </h6>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover small">
@@ -128,7 +138,7 @@
         </div>
         {% endif %}
 
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="import-form">
             {% csrf_token %}
             <div class="mb-3">
                 <label for="account" class="form-label">{% trans "Account" %}</label>
@@ -162,9 +172,17 @@
                     accept=".xlsx, .xls, .csv" required {% if not accounts %}disabled{% endif %}>
             </div>
 
-            <button type="submit" class="btn btn-primary px-4" {% if not accounts %}disabled{% endif %}>
-                <i class="bi bi-cloud-arrow-up me-2"></i>{% trans "Upload & Process" %}
-            </button>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-primary px-4" {% if not accounts %}disabled{% endif %}
+                        hx-post="{% url 'upload-preview' %}" hx-encoding="multipart/form-data"
+                        hx-target="#import-preview" hx-swap="innerHTML" hx-disabled-elt="this">
+                    <i class="bi bi-eye me-2"></i>{% trans "Preview" %}
+                </button>
+                <button type="submit" class="btn btn-action-cancel" {% if not accounts %}disabled{% endif %}>
+                    <i class="bi bi-cloud-arrow-up me-2"></i>{% trans "Import without preview" %}
+                </button>
+            </div>
+            <div id="import-preview" class="mt-4"></div>
         </form>
     </div>
     <div class="text-muted small py-3 mt-3">

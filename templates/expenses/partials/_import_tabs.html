@@ -1,0 +1,20 @@
+{% load i18n %}
+<style>
+    /* flex centres the label whatever minimum height the global .nav-link rule gives it */
+    .import-tabs .nav-link { display: inline-flex; align-items: center; justify-content: center; border-radius: 50rem; font-weight: 600; font-size: 0.9rem; }
+    /* the app's global .nav-link.active colour is !important, so the white text has to be too */
+    .import-tabs .nav-link.active,
+    .import-tabs .nav-link.active:hover { background-color: var(--color-secondary, #0F7657); color: #ffffff !important; }
+</style>
+<ul class="nav nav-pills import-tabs mb-3 gap-1" aria-label="{% trans 'Import' %}">
+    <li class="nav-item">
+        <a class="nav-link py-1 px-3 {% if request.resolver_match.url_name == 'upload' %}active{% endif %}" href="{% url 'upload' %}">
+            <i class="bi bi-cloud-arrow-up me-1"></i>{% trans "New import" %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link py-1 px-3 {% if request.resolver_match.url_name == 'import-history' %}active{% endif %}" href="{% url 'import-history' %}">
+            <i class="bi bi-clock-history me-1"></i>{% trans "History" %}
+        </a>
+    </li>
+</ul>

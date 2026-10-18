@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TrackMyRupee\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-18 14:41+0530\n"
+"POT-Creation-Date: 2026-10-18 14:35+0530\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: TrackMyRupee\n"
 "Language-Team: mr\n"
@@ -430,7 +430,7 @@ msgstr "योगदानाचे वेळापत्रक"
 
 #: expenses/flows/base.py:314 expenses/flows/loan.py:95
 #: expenses/flows/loan.py:100 expenses/flows/loan.py:145
-#: expenses/models.py:1504 expenses/models.py:2462
+#: expenses/models.py:1505 expenses/models.py:2463
 #: templates/expenses/recurring_transaction_form.html:305
 msgid "Loan"
 msgstr "कर्ज"
@@ -685,7 +685,8 @@ msgstr "खरेदी किंमत"
 msgid "investment"
 msgstr "गुंतवणूक"
 
-#: expenses/flows/base.py:598 templates/expenses/account_detail.html:101
+#: expenses/flows/base.py:598 expenses/views/imports.py:46
+#: templates/expenses/account_detail.html:101
 #: templates/expenses/loan_detail.html:696
 #: templates/expenses/partials/_account_list.html:408
 #: templates/expenses/partials/_loan_schedule_tab.html:20
@@ -864,7 +865,7 @@ msgstr ""
 "सुरू होण्याची तारीख भूतकाळातील असल्यास, सेटअप दरम्यान चुकलेल्या पगाराच्या "
 "नोंदी लगेच तयार केल्या जातील."
 
-#: expenses/flows/income.py:63 expenses/models.py:1007
+#: expenses/flows/income.py:63 expenses/models.py:1008
 #: templates/expenses/income_list.html:195
 msgid "Salary"
 msgstr "पगार"
@@ -1768,7 +1769,7 @@ msgstr "उदा. कंपनीकडून पगार, फ्रीला�
 msgid "Make this a recurring income"
 msgstr "हे आवर्ती उत्पन्न बनवा"
 
-#: expenses/forms.py:240 expenses/forms.py:1687 expenses/models.py:1523
+#: expenses/forms.py:240 expenses/forms.py:1687 expenses/models.py:1524
 #: templates/expenses/income_list.html:229
 #: templates/expenses/loan_detail.html:363
 #: templates/expenses/partials/_recurring_transaction_list.html:154
@@ -1778,14 +1779,15 @@ msgstr "हे आवर्ती उत्पन्न बनवा"
 msgid "Frequency"
 msgstr "वारंवारता"
 
-#: expenses/forms.py:254 expenses/models.py:1032
+#: expenses/forms.py:254 expenses/models.py:1033
 #: templates/expenses/income_list.html:193
 #: templates/expenses/partials/_income_list.html:139
 msgid "Source Type"
 msgstr "स्रोताचा प्रकार"
 
-#: expenses/forms.py:256 expenses/models.py:598 expenses/models.py:1026
-#: expenses/models.py:1245 expenses/models.py:1491
+#: expenses/forms.py:256 expenses/models.py:598 expenses/models.py:1027
+#: expenses/models.py:1246 expenses/models.py:1492
+#: expenses/views/imports.py:45 expenses/views/imports.py:149
 #: templates/components/expense_composer_card.html:50
 #: templates/components/expense_composer_card.html:143
 #: templates/expenses/expense_form.html:47
@@ -1793,6 +1795,7 @@ msgstr "स्रोताचा प्रकार"
 #: templates/expenses/income_list.html:208
 #: templates/expenses/partials/_account_detail.html:358
 #: templates/expenses/partials/_expense_list.html:410
+#: templates/expenses/partials/_import_preview.html:90
 #: templates/expenses/partials/_income_list.html:140
 #: templates/expenses/partials/_recurring_transaction_list.html:554
 #: templates/expenses/partials/_transaction_list.html:204
@@ -1815,7 +1818,7 @@ msgid "e.g. Salary, Rent"
 msgstr "उदा. पगार, भाडे"
 
 #: expenses/forms.py:353 expenses/models.py:397 expenses/models.py:432
-#: expenses/models.py:1480 expenses/views/accounts.py:1638
+#: expenses/models.py:1481 expenses/views/accounts.py:1638
 #: expenses/views/export.py:66 templates/expenses/analytics.html:710
 #: templates/expenses/partials/_calendar_content.html:51
 #: templates/expenses/partials/_recurring_transaction_list.html:583
@@ -1825,7 +1828,7 @@ msgid "Expense"
 msgstr "खर्च"
 
 #: expenses/forms.py:354 expenses/models.py:396 expenses/models.py:433
-#: expenses/models.py:1481 expenses/views/accounts.py:1639
+#: expenses/models.py:1482 expenses/views/accounts.py:1639
 #: expenses/views/dashboard.py:2125 expenses/views/dashboard.py:2853
 #: expenses/views/flows.py:104 templates/components/navbar.html:423
 #: templates/components/sidebar.html:83 templates/components/sidebar.html:85
@@ -1844,7 +1847,7 @@ msgstr "खर्च"
 msgid "Income"
 msgstr "उत्पन्न"
 
-#: expenses/forms.py:355 expenses/models.py:434 expenses/models.py:1482
+#: expenses/forms.py:355 expenses/models.py:434 expenses/models.py:1483
 #: expenses/views/accounts.py:1640 expenses/views/accounts.py:1641
 #: expenses/views/dashboard.py:2157
 #: templates/expenses/partials/_account_detail.html:126
@@ -1857,13 +1860,13 @@ msgstr "उत्पन्न"
 msgid "Transfer"
 msgstr "ट्रान्सफर"
 
-#: expenses/forms.py:356 expenses/models.py:435 expenses/models.py:1483
+#: expenses/forms.py:356 expenses/models.py:435 expenses/models.py:1484
 #: expenses/views/accounts.py:1643
 #: templates/expenses/partials/_transaction_list.html:236
 msgid "Loan Repayment"
 msgstr "लोन परतफेड"
 
-#: expenses/forms.py:357 expenses/models.py:438 expenses/models.py:1484
+#: expenses/forms.py:357 expenses/models.py:438 expenses/models.py:1485
 #: expenses/views/accounts.py:1644
 #: templates/expenses/partials/_recurring_transaction_list.html:193
 #: templates/expenses/partials/_recurring_transaction_list.html:401
@@ -1872,7 +1875,7 @@ msgstr "लोन परतफेड"
 msgid "Capital Event"
 msgstr "भांडवली घटना"
 
-#: expenses/forms.py:358 expenses/models.py:1485
+#: expenses/forms.py:358 expenses/models.py:1486
 msgid "Insurance Premium"
 msgstr "विमा प्रीमियम"
 
@@ -1900,7 +1903,7 @@ msgstr "ट्रान्सफरसाठी 'कोणत्या खात
 msgid "To account is required for transfers."
 msgstr "ट्रान्सफरसाठी 'कोणत्या खात्यात' आवश्यक आहे."
 
-#: expenses/forms.py:473 expenses/forms.py:1579 expenses/models.py:1268
+#: expenses/forms.py:473 expenses/forms.py:1579 expenses/models.py:1269
 msgid "Source and destination accounts must be different."
 msgstr "स्रोत खाते आणि गंतव्य खाते वेगवेगळे असावेत."
 
@@ -1947,7 +1950,7 @@ msgstr ""
 msgid "Email Address"
 msgstr "ईमेल पत्ता"
 
-#: expenses/forms.py:615 expenses/models.py:1759
+#: expenses/forms.py:615 expenses/models.py:1760
 #: templates/expenses/profile_settings.html:51
 msgid "Daily Expense Reminder"
 msgstr "दैनिक खर्च रिमाइंडर"
@@ -2014,8 +2017,9 @@ msgstr "यादीतील रंगांपैकी एक निवडा
 
 #: expenses/forms.py:841 expenses/holdings_service.py:63
 #: expenses/holdings_service.py:281 expenses/holdings_service.py:560
-#: expenses/models.py:597 expenses/models.py:1025 expenses/models.py:1243
-#: expenses/models.py:1490 expenses/models.py:2685
+#: expenses/models.py:597 expenses/models.py:1026 expenses/models.py:1244
+#: expenses/models.py:1491 expenses/models.py:2686
+#: expenses/views/imports.py:45 expenses/views/imports.py:149
 #: templates/components/expense_composer_card.html:48
 #: templates/components/expense_composer_card.html:115
 #: templates/expenses/expense_form.html:34
@@ -2023,12 +2027,14 @@ msgstr "यादीतील रंगांपैकी एक निवडा
 #: templates/expenses/goal_detail.html:726
 #: templates/expenses/goalcontribution_confirm_delete.html:19
 #: templates/expenses/holding_detail.html:189
+#: templates/expenses/import_history.html:23
 #: templates/expenses/income_list.html:186
 #: templates/expenses/partials/_account_detail.html:363
 #: templates/expenses/partials/_capital_event_list.html:62
 #: templates/expenses/partials/_expense_list.html:416
 #: templates/expenses/partials/_expense_list.html:418
 #: templates/expenses/partials/_expense_list.html:420
+#: templates/expenses/partials/_import_preview.html:91
 #: templates/expenses/partials/_income_list.html:144
 #: templates/expenses/partials/_income_list.html:146
 #: templates/expenses/partials/_income_list.html:148
@@ -2057,7 +2063,7 @@ msgstr "योगदानाची रक्कम शून्यापेक�
 msgid "Contribution date cannot be in the future."
 msgstr "योगदानाची तारीख भविष्यात असू शकत नाही."
 
-#: expenses/forms.py:881 expenses/models.py:829
+#: expenses/forms.py:881 expenses/models.py:830
 msgid "Category Name"
 msgstr "श्रेणीचे नाव"
 
@@ -2078,7 +2084,7 @@ msgid "This category is locked on your plan, so its limit cannot be changed."
 msgstr ""
 "ही श्रेणी तुमच्या प्लॅनमध्ये लॉक आहे, त्यामुळे तिची मर्यादा बदलता येत नाही."
 
-#: expenses/forms.py:924 expenses/models.py:198 expenses/models.py:2705
+#: expenses/forms.py:924 expenses/models.py:198 expenses/models.py:2706
 #: templates/expenses/account_form.html:147
 #: templates/expenses/partials/_capital_event_list.html:65
 msgid "Linked Loan"
@@ -2101,7 +2107,7 @@ msgstr "— जोडलेले लोन नाही —"
 msgid "Deposit Principal"
 msgstr "ठेवीची मुद्दल"
 
-#: expenses/forms.py:942 expenses/models.py:228 expenses/models.py:2379
+#: expenses/forms.py:942 expenses/models.py:228 expenses/models.py:2380
 msgid "Annual Interest Rate (%)"
 msgstr "वार्षिक व्याजदर (%)"
 
@@ -2207,41 +2213,41 @@ msgstr "संपादन खर्च / खरेदी किंमत"
 msgid "Acquisition / Purchase Date"
 msgstr "संपादन / खरेदीची तारीख"
 
-#: expenses/forms.py:1036 expenses/models.py:3146
+#: expenses/forms.py:1036 expenses/models.py:3147
 #: templates/expenses/account_form.html:631
 msgid "Policy Number"
 msgstr "पॉलिसी क्रमांक"
 
-#: expenses/forms.py:1043 expenses/models.py:3147
+#: expenses/forms.py:1043 expenses/models.py:3148
 #: templates/expenses/account_form.html:656
 msgid "Premium Amount"
 msgstr "प्रीमियम रक्कम"
 
-#: expenses/forms.py:1048 expenses/models.py:3149
+#: expenses/forms.py:1048 expenses/models.py:3150
 msgid "Annual"
 msgstr "वार्षिक"
 
-#: expenses/forms.py:1049 expenses/models.py:3150
+#: expenses/forms.py:1049 expenses/models.py:3151
 msgid "Semi-Annual"
 msgstr "सहामाही"
 
-#: expenses/forms.py:1050 expenses/models.py:3151
+#: expenses/forms.py:1050 expenses/models.py:3152
 #: templates/expenses/income_list.html:234
 msgid "Quarterly"
 msgstr "त्रैमासिक"
 
-#: expenses/forms.py:1051 expenses/models.py:1474 expenses/models.py:3152
+#: expenses/forms.py:1051 expenses/models.py:1475 expenses/models.py:3153
 #: templates/expenses/income_list.html:233 templates/expenses/pricing.html:292
 #: templates/landing.html:2229
 msgid "Monthly"
 msgstr "मासिक"
 
-#: expenses/forms.py:1055 expenses/models.py:3156
+#: expenses/forms.py:1055 expenses/models.py:3157
 #: templates/expenses/account_form.html:664
 msgid "Premium Frequency"
 msgstr "प्रीमियमची वारंवारता"
 
-#: expenses/forms.py:1060 expenses/models.py:3158
+#: expenses/forms.py:1060 expenses/models.py:3159
 #: templates/expenses/account_form.html:639
 msgid "Policy Start Date"
 msgstr "पॉलिसी प्रारंभ तारीख"
@@ -2254,7 +2260,7 @@ msgstr "विमा रक्कम (फक्त दाखवण्यास�
 msgid "Premium Payment Account"
 msgstr "प्रीमियम पेमेंट खाते"
 
-#: expenses/forms.py:1082 expenses/models.py:3165
+#: expenses/forms.py:1082 expenses/models.py:3166
 #: templates/expenses/account_form.html:622
 msgid "Policy Type"
 msgstr "पॉलिसीचा प्रकार"
@@ -2397,15 +2403,15 @@ msgstr "ही आवर्ती लोन परतफेड बनवा"
 msgid "Repayment date cannot be in the future."
 msgstr "परतफेडीची तारीख भविष्यातील असू शकत नाही."
 
-#: expenses/forms.py:1787 expenses/models.py:2467
+#: expenses/forms.py:1787 expenses/models.py:2468
 msgid "Repayment amount must be greater than zero."
 msgstr "परतफेडीची रक्कम शून्यापेक्षा जास्त असावी."
 
-#: expenses/forms.py:1796 expenses/models.py:2470
+#: expenses/forms.py:1796 expenses/models.py:2471
 msgid "Principal portion cannot be negative."
 msgstr "मुद्दलाचा भाग ऋण (उणे) असू शकत नाही."
 
-#: expenses/forms.py:1798 expenses/models.py:2473
+#: expenses/forms.py:1798 expenses/models.py:2474
 msgid "Interest portion cannot be negative."
 msgstr "व्याजाचा भाग ऋण (उणे) असू शकत नाही."
 
@@ -2425,8 +2431,9 @@ msgstr "एकूण रक्कम मुद्दलाचा भाग आ�
 msgid "Please select a recurring frequency."
 msgstr "कृपया पुनरावृत्तीची वारंवारता निवडा."
 
-#: expenses/forms.py:1872 expenses/models.py:599 expenses/models.py:1492
-#: expenses/models.py:2696 templates/components/expense_composer_card.html:51
+#: expenses/forms.py:1872 expenses/models.py:599 expenses/models.py:1493
+#: expenses/models.py:2697 expenses/views/imports.py:47
+#: templates/components/expense_composer_card.html:51
 #: templates/components/expense_composer_card.html:151
 #: templates/expenses/budget_dashboard.html:78
 #: templates/expenses/expense_form.html:40
@@ -2434,6 +2441,7 @@ msgstr "कृपया पुनरावृत्तीची वारंव�
 #: templates/expenses/partials/_category_list.html:138
 #: templates/expenses/partials/_expense_list.html:160
 #: templates/expenses/partials/_expense_list.html:411
+#: templates/expenses/partials/_import_preview.html:92
 #: templates/expenses/partials/_recurring_transaction_list.html:153
 #: templates/expenses/partials/_recurring_transaction_list.html:361
 #: templates/expenses/recurring_transaction_form.html:360
@@ -2485,10 +2493,10 @@ msgstr ""
 "खाते या अॅपमध्ये जसे दिसते तसेच टाका: क्रेडिट कार्डवर तुमची देणी असलेली "
 "रक्कम ऋण (उणे) असते."
 
-#: expenses/forms.py:1960 expenses/models.py:2693
+#: expenses/forms.py:1960 expenses/models.py:2694
 #: templates/email/account_deleted_email.html:15
 #: templates/expenses/partials/_capital_event_list.html:63
-#: templates/privacy_policy.html:283 templates/upload.html:25
+#: templates/privacy_policy.html:283 templates/upload.html:26
 msgid "Note"
 msgstr "नोंद"
 
@@ -2695,33 +2703,49 @@ msgstr ""
 "Microsoft Excel, Google Sheets किंवा LibreOffice मध्ये उघडून नवीन .xlsx "
 "स्वरूपात जतन करा, मग पुन्हा अपलोड करण्याचा प्रयत्न करा."
 
-#: expenses/importing/rows.py:93
+#: expenses/importing/rows.py:94
 msgid "Both a debit and a credit amount"
 msgstr "डेबिट आणि क्रेडिट, दोन्ही रक्कम दिलेली आहे"
 
-#: expenses/importing/rows.py:107
+#: expenses/importing/rows.py:108
 msgid "Invalid amount format: "
 msgstr "रकमेचे स्वरूप अवैध आहे: "
 
-#: expenses/importing/rows.py:118
+#: expenses/importing/rows.py:119
 msgid "Invalid date format: "
 msgstr "तारखेचे स्वरूप अवैध आहे: "
 
-#: expenses/importing/rows.py:120
+#: expenses/importing/rows.py:121
 msgid "Amount is too large: "
 msgstr "रक्कम खूप मोठी आहे: "
 
-#: expenses/importing/rows.py:125
+#: expenses/importing/rows.py:126
 msgid "Missing description"
 msgstr "वर्णन नाही"
 
-#: expenses/importing/service.py:87
+#: expenses/importing/service.py:131
 msgid ""
 "This file has more than 5,000 rows. Split it into smaller files and import "
 "them one at a time."
 msgstr ""
 "या फाइलमध्ये 5,000 पेक्षा जास्त ओळी आहेत. तिचे लहान फाइलींमध्ये विभाजन करा "
 "आणि एकेक करून इम्पोर्ट करा."
+
+#: expenses/importing/service.py:183
+msgid "Money coming in, not spending"
+msgstr "खर्च नाही, येणारे पैसे"
+
+#: expenses/importing/service.py:204
+msgid "Already imported or entered"
+msgstr "आधीच इम्पोर्ट केलेले किंवा नोंदवलेले"
+
+#: expenses/importing/service.py:207
+msgid "Left out by you"
+msgstr "तुम्ही वगळलेले"
+
+#: expenses/importing/service.py:213
+msgid "Over your plan's monthly expense limit"
+msgstr "तुमच्या प्लॅनच्या मासिक खर्च मर्यादेपेक्षा जास्त"
 
 #: expenses/management/commands/send_monthly_report.py:203
 #, python-brace-format
@@ -2800,7 +2824,7 @@ msgstr "मिळालेली भेट"
 msgid "Investment Lump Sum"
 msgstr "गुंतवणुकीची एकरकमी रक्कम"
 
-#: expenses/models.py:47 expenses/models.py:1014 expenses/models.py:2313
+#: expenses/models.py:47 expenses/models.py:1015 expenses/models.py:2314
 #: templates/expenses/income_list.html:202
 #: templates/expenses/transfer_form.html:144 templates/onboarding.html:851
 #: templates/onboarding.html:886
@@ -2825,9 +2849,9 @@ msgstr "खात्याचा प्रकार"
 msgid "Current Balance"
 msgstr "सध्याची शिल्लक"
 
-#: expenses/models.py:182 expenses/models.py:612 expenses/models.py:1037
-#: expenses/models.py:1499 expenses/models.py:2042 expenses/models.py:2336
-#: expenses/models.py:2708 templates/components/expense_composer_card.html:118
+#: expenses/models.py:182 expenses/models.py:612 expenses/models.py:1038
+#: expenses/models.py:1500 expenses/models.py:2043 expenses/models.py:2337
+#: expenses/models.py:2709 templates/components/expense_composer_card.html:118
 #: templates/components/sidebar.html:437
 #: templates/expenses/account_form.html:329
 #: templates/expenses/expense_form.html:67
@@ -2837,7 +2861,7 @@ msgstr "सध्याची शिल्लक"
 #: templates/expenses/settings_base.html:17
 #: templates/expenses/settings_home.html:127
 #: templates/expenses/settings_home.html:320
-#: templates/expenses/transfer_form.html:148 templates/upload.html:150
+#: templates/expenses/transfer_form.html:148 templates/upload.html:160
 msgid "Currency"
 msgstr "चलन"
 
@@ -2977,8 +3001,9 @@ msgstr "खुले ठेवलेले"
 msgid "Kept app balance"
 msgstr "अॅपमध्ये ठेवलेली शिल्लक"
 
-#: expenses/models.py:596 expenses/models.py:1024 expenses/models.py:1244
-#: expenses/models.py:2109 expenses/models.py:2686
+#: expenses/models.py:596 expenses/models.py:1025 expenses/models.py:1245
+#: expenses/models.py:2110 expenses/models.py:2687
+#: expenses/views/imports.py:45 expenses/views/imports.py:149
 #: templates/components/expense_composer_card.html:49
 #: templates/components/expense_composer_card.html:127
 #: templates/expenses/expense_form.html:61
@@ -2990,6 +3015,7 @@ msgstr "अॅपमध्ये ठेवलेली शिल्लक"
 #: templates/expenses/partials/_account_detail.html:356
 #: templates/expenses/partials/_capital_event_list.html:60
 #: templates/expenses/partials/_expense_list.html:409
+#: templates/expenses/partials/_import_preview.html:89
 #: templates/expenses/partials/_income_list.html:138
 #: templates/expenses/partials/_loan_history_tab.html:17
 #: templates/expenses/partials/_transaction_list.html:202
@@ -3000,11 +3026,11 @@ msgstr "अॅपमध्ये ठेवलेली शिल्लक"
 msgid "Date"
 msgstr "दिनांक"
 
-#: expenses/models.py:600 expenses/models.py:1493
+#: expenses/models.py:600 expenses/models.py:1494
 msgid "Category FK"
 msgstr "श्रेणी FK"
 
-#: expenses/models.py:601 expenses/models.py:1035 expenses/models.py:1246
+#: expenses/models.py:601 expenses/models.py:1036 expenses/models.py:1247
 msgid "Client Deduplication Key"
 msgstr "क्लायंट डुप्लिकेशन की"
 
@@ -3045,7 +3071,7 @@ msgstr "यूपीआई"
 msgid "NetBanking"
 msgstr "नेटबँकिंग"
 
-#: expenses/models.py:610 expenses/models.py:1497
+#: expenses/models.py:610 expenses/models.py:1498
 #: templates/expenses/expense_form.html:74
 #: templates/expenses/expense_list.html:317
 #: templates/expenses/partials/_expense_list.html:168
@@ -3053,23 +3079,24 @@ msgstr "नेटबँकिंग"
 msgid "Payment Method"
 msgstr "पेमेंट पद्धत"
 
-#: expenses/models.py:613 expenses/models.py:1038 expenses/models.py:1250
-#: expenses/models.py:1500 expenses/models.py:2444 expenses/models.py:2709
+#: expenses/models.py:613 expenses/models.py:1039 expenses/models.py:1251
+#: expenses/models.py:1501 expenses/models.py:2445 expenses/models.py:2710
 msgid "Exchange Rate"
 msgstr "विनिमय दर"
 
-#: expenses/models.py:614 expenses/models.py:1039 expenses/models.py:1251
-#: expenses/models.py:1501 expenses/models.py:2445 expenses/models.py:2710
+#: expenses/models.py:614 expenses/models.py:1040 expenses/models.py:1252
+#: expenses/models.py:1502 expenses/models.py:2446 expenses/models.py:2711
 msgid "Amount in Base Currency"
 msgstr "मूळ चलनातील रक्कम"
 
-#: expenses/models.py:616 expenses/models.py:1041 expenses/models.py:1503
-#: expenses/models.py:2718 templates/components/expense_composer_card.html:52
+#: expenses/models.py:616 expenses/models.py:1042 expenses/models.py:1504
+#: expenses/models.py:2719 templates/components/expense_composer_card.html:52
 #: templates/components/expense_composer_card.html:159
 #: templates/expenses/expense_form.html:54
 #: templates/expenses/goal_detail.html:734
 #: templates/expenses/goalcontribution_confirm_delete.html:27
 #: templates/expenses/holding_list.html:92
+#: templates/expenses/import_history.html:20
 #: templates/expenses/income_list.html:213
 #: templates/expenses/partials/_account_list.html:405
 #: templates/expenses/partials/_capital_event_list.html:64
@@ -3081,125 +3108,133 @@ msgstr "मूळ चलनातील रक्कम"
 #: templates/expenses/partials/_recurring_transaction_list.html:363
 #: templates/expenses/partials/_transaction_list.html:206
 #: templates/expenses/recurring_transaction_form.html:297
-#: templates/expenses/settings_home.html:122 templates/upload.html:134
+#: templates/expenses/settings_home.html:122 templates/upload.html:144
 msgid "Account"
 msgstr "खाते"
 
-#: expenses/models.py:830 expenses/models.py:2038
+#: expenses/models.py:618 templates/components/sidebar.html:453
+#: templates/expenses/partials/_import_tabs.html:2
+#: templates/expenses/settings_base.html:23
+#: templates/expenses/settings_home.html:108
+#: templates/expenses/settings_home.html:282
+msgid "Import"
+msgstr "इम्पोर्ट"
+
+#: expenses/models.py:831 expenses/models.py:2039
 #: templates/expenses/category_list.html:295
 msgid "Icon"
 msgstr "आयकॉन"
 
-#: expenses/models.py:831 templates/expenses/partials/_category_list.html:51
+#: expenses/models.py:832 templates/expenses/partials/_category_list.html:51
 #: templates/expenses/partials/_category_list.html:150
 msgid "Monthly Limit"
 msgstr "मासिक मर्यादा"
 
-#: expenses/models.py:832
+#: expenses/models.py:833
 msgid "Is Interest Category"
 msgstr "व्याज श्रेणी आहे"
 
-#: expenses/models.py:1008 templates/expenses/income_list.html:196
+#: expenses/models.py:1009 templates/expenses/income_list.html:196
 msgid "Freelance / Consulting"
 msgstr "फ्रीलान्स / कन्सल्टिंग"
 
-#: expenses/models.py:1009 templates/expenses/income_list.html:197
+#: expenses/models.py:1010 templates/expenses/income_list.html:197
 msgid "Business"
 msgstr "व्यवसाय"
 
-#: expenses/models.py:1010 templates/expenses/income_list.html:198
+#: expenses/models.py:1011 templates/expenses/income_list.html:198
 msgid "Investment Returns"
 msgstr "गुंतवणूक परतावा"
 
-#: expenses/models.py:1011 templates/expenses/income_list.html:199
+#: expenses/models.py:1012 templates/expenses/income_list.html:199
 msgid "Rental Income"
 msgstr "भाड्यातून उत्पन्न"
 
-#: expenses/models.py:1012 templates/expenses/income_list.html:200
+#: expenses/models.py:1013 templates/expenses/income_list.html:200
 msgid "Cashback & Rewards"
 msgstr "कॅशबॅक आणि रिवॉर्ड"
 
-#: expenses/models.py:1013 templates/expenses/income_list.html:201
+#: expenses/models.py:1014 templates/expenses/income_list.html:201
 msgid "Refund / Reimbursement"
 msgstr "रिफंड / परतफेड"
 
-#: expenses/models.py:1027 expenses/models.py:1494
+#: expenses/models.py:1028 expenses/models.py:1495
 msgid "Source"
 msgstr "स्रोत"
 
-#: expenses/models.py:1034 expenses/models.py:1495
+#: expenses/models.py:1035 expenses/models.py:1496
 msgid "Source FK"
 msgstr "स्रोत FK"
 
-#: expenses/models.py:1241 expenses/models.py:1520 expenses/models.py:2107
+#: expenses/models.py:1242 expenses/models.py:1521 expenses/models.py:2108
 #: templates/expenses/recurring_transaction_form.html:327
 msgid "From Account"
 msgstr "कोणत्या खात्यातून"
 
-#: expenses/models.py:1242 expenses/models.py:1521
+#: expenses/models.py:1243 expenses/models.py:1522
 #: templates/expenses/recurring_transaction_form.html:335
 msgid "To Account"
 msgstr "ज्या खात्यात पाठवायचे"
 
-#: expenses/models.py:1271
+#: expenses/models.py:1272
 msgid "From account must belong to the current user."
 msgstr "'कोणत्या खात्यातून' हे खाते सध्याच्या वापरकर्त्याचेच असले पाहिजे."
 
-#: expenses/models.py:1274
+#: expenses/models.py:1275
 msgid "To account must belong to the current user."
 msgstr "ज्या खात्यात पाठवायचे ते सध्याच्या वापरकर्त्याचे असले पाहिजे."
 
-#: expenses/models.py:1471 templates/expenses/income_list.html:231
+#: expenses/models.py:1472 templates/expenses/income_list.html:231
 msgid "Daily"
 msgstr "दैनिक"
 
-#: expenses/models.py:1472 templates/expenses/income_list.html:232
+#: expenses/models.py:1473 templates/expenses/income_list.html:232
 msgid "Weekly"
 msgstr "साप्ताहिक"
 
-#: expenses/models.py:1473
+#: expenses/models.py:1474
 msgid "Bi-Weekly (Every 2 Weeks)"
 msgstr "द्वै-साप्ताहिक (दर 2 आठवड्यांनी)"
 
-#: expenses/models.py:1475
+#: expenses/models.py:1476
 msgid "Quarterly (Every 3 Months)"
 msgstr "त्रैमासिक (दर 3 महिन्यांनी)"
 
-#: expenses/models.py:1476
+#: expenses/models.py:1477
 msgid "Semi-Annually (Every 6 Months)"
 msgstr "सहामाही (दर 6 महिन्यांनी)"
 
-#: expenses/models.py:1477 templates/expenses/income_list.html:235
+#: expenses/models.py:1478 templates/expenses/income_list.html:235
 #: templates/expenses/pricing.html:296 templates/landing.html:2232
 msgid "Yearly"
 msgstr "वार्षिक"
 
-#: expenses/models.py:1489
+#: expenses/models.py:1490
 #: templates/expenses/recurring_transaction_form.html:110
 msgid "Transaction Type"
 msgstr "व्यवहाराचा प्रकार"
 
-#: expenses/models.py:1505
+#: expenses/models.py:1506
 msgid "Insurance Policy"
 msgstr "विमा पॉलिसी"
 
-#: expenses/models.py:1513
+#: expenses/models.py:1514
 msgid "Capital Event Subtype"
 msgstr "कॅपिटल इव्हेंटचा उप-प्रकार"
 
-#: expenses/models.py:1515 expenses/models.py:2722
+#: expenses/models.py:1516 expenses/models.py:2723
 msgid "Exclude from Averages & Trends"
 msgstr "सरासरी आणि ट्रेंडमधून वगळा"
 
-#: expenses/models.py:1516 expenses/models.py:2723
+#: expenses/models.py:1517 expenses/models.py:2724
 msgid "Exclude from Budget"
 msgstr "बजेटमधून वगळा"
 
-#: expenses/models.py:1517 expenses/models.py:2724
+#: expenses/models.py:1518 expenses/models.py:2725
 msgid "Include in Cash Flow / Net Worth"
 msgstr "कॅश फ्लो / एकूण संपत्तीत समाविष्ट करा"
 
-#: expenses/models.py:1524 expenses/models.py:2335
+#: expenses/models.py:1525 expenses/models.py:2336
 #: templates/expenses/loan_form.html:72
 #: templates/expenses/partials/_expense_list.html:146
 #: templates/expenses/partials/_expense_list.html:147
@@ -3207,196 +3242,196 @@ msgstr "कॅश फ्लो / एकूण संपत्तीत समा
 msgid "Start Date"
 msgstr "प्रारंभ तारीख"
 
-#: expenses/models.py:1525 templates/expenses/partials/_expense_list.html:150
+#: expenses/models.py:1526 templates/expenses/partials/_expense_list.html:150
 #: templates/expenses/partials/_expense_list.html:151
 msgid "End Date"
 msgstr "समाप्ती तारीख"
 
-#: expenses/models.py:1526
+#: expenses/models.py:1527
 msgid "Repeat on last day of month"
 msgstr "महिन्याच्या शेवटच्या दिवशी पुन्हा करा"
 
-#: expenses/models.py:1527
+#: expenses/models.py:1528
 msgid "Repeat on last working day of month"
 msgstr "महिन्याच्या शेवटच्या कामाच्या दिवशी पुन्हा करा"
 
-#: expenses/models.py:1529
+#: expenses/models.py:1530
 msgid "Next Due Date"
 msgstr "पुढील देय तारीख"
 
-#: expenses/models.py:1541
+#: expenses/models.py:1542
 msgid "Another recurring transaction already uses this source."
 msgstr "हा स्रोत आधीच दुसरा आवर्ती व्यवहार वापरत आहे."
 
-#: expenses/models.py:1765
+#: expenses/models.py:1766
 msgid ""
 "Day of month when salary is received (1-31). Default is 1st of every month."
 msgstr ""
 "महिन्यातील ज्या दिवशी पगार मिळतो तो दिवस (1-31). डिफॉल्ट प्रत्येक महिन्याची "
 "1 तारीख आहे."
 
-#: expenses/models.py:2004
+#: expenses/models.py:2005
 msgid "Recurring Transaction"
 msgstr "आवर्ती व्यवहार"
 
-#: expenses/models.py:2005
+#: expenses/models.py:2006
 msgid "AI Analytics/Insights"
 msgstr "AI विश्लेषण/इनसाइट्स"
 
-#: expenses/models.py:2006
+#: expenses/models.py:2007
 msgid "Financial Milestone"
 msgstr "आर्थिक टप्पा"
 
-#: expenses/models.py:2007
+#: expenses/models.py:2008
 msgid "System/Subscription Alert"
 msgstr "सिस्टम/सबस्क्रिप्शन इशारा"
 
-#: expenses/models.py:2014
+#: expenses/models.py:2015
 msgid "Used for deduplication (same slug shouldn't repeat in a month)"
 msgstr "पुनरावृत्ती टाळण्यासाठी (एकच स्लग महिन्यात पुन्हा येऊ नये)"
 
-#: expenses/models.py:2015
+#: expenses/models.py:2016
 msgid "URL for redirection when clicked"
 msgstr "क्लिक केल्यावर उघडणारा URL"
 
-#: expenses/models.py:2034
+#: expenses/models.py:2035
 msgid "Goal Name"
 msgstr "उद्दिष्टाचे नाव"
 
-#: expenses/models.py:2035
+#: expenses/models.py:2036
 msgid "Target Amount"
 msgstr "उद्दिष्ट रक्कम"
 
-#: expenses/models.py:2036
+#: expenses/models.py:2037
 msgid "Current Amount"
 msgstr "सध्याची रक्कम"
 
-#: expenses/models.py:2037
+#: expenses/models.py:2038
 #: templates/expenses/savingsgoal_confirm_delete.html:31
 msgid "Target Date"
 msgstr "उद्दिष्ट तारीख"
 
-#: expenses/models.py:2039
+#: expenses/models.py:2040
 msgid "Color Theme"
 msgstr "रंग थीम"
 
-#: expenses/models.py:2108
+#: expenses/models.py:2109
 msgid "Contribution Amount"
 msgstr "योगदान रक्कम"
 
-#: expenses/models.py:2308
+#: expenses/models.py:2309
 msgid "Home Loan"
 msgstr "होम लोन"
 
-#: expenses/models.py:2309
+#: expenses/models.py:2310
 msgid "Car Loan"
 msgstr "कार लोन"
 
-#: expenses/models.py:2310
+#: expenses/models.py:2311
 msgid "Personal Loan"
 msgstr "पर्सनल लोन"
 
-#: expenses/models.py:2311
+#: expenses/models.py:2312
 msgid "Education Loan"
 msgstr "एज्युकेशन लोन"
 
-#: expenses/models.py:2312
+#: expenses/models.py:2313
 msgid "Business Loan"
 msgstr "बिझनेस लोन"
 
-#: expenses/models.py:2316 templates/expenses/loan_form.html:34
+#: expenses/models.py:2317 templates/expenses/loan_form.html:34
 msgid "Loan Name"
 msgstr "लोनचे नाव"
 
-#: expenses/models.py:2317 templates/expenses/loan_form.html:41
+#: expenses/models.py:2318 templates/expenses/loan_form.html:41
 msgid "Loan Type"
 msgstr "लोनचा प्रकार"
 
-#: expenses/models.py:2319
+#: expenses/models.py:2320
 msgid "EMI Amortizing"
 msgstr "EMI सह कमी होणारे"
 
-#: expenses/models.py:2320
+#: expenses/models.py:2321
 msgid "Bullet Repayment"
 msgstr "एकरकमी परतफेड"
 
-#: expenses/models.py:2321
+#: expenses/models.py:2322
 msgid "Interest Only"
 msgstr "फक्त व्याज"
 
-#: expenses/models.py:2325
+#: expenses/models.py:2326
 msgid "Repayment Type"
 msgstr "परतफेडीचा प्रकार"
 
-#: expenses/models.py:2327
+#: expenses/models.py:2328
 msgid "Initial Principal Amount"
 msgstr "सुरुवातीची मुद्दल रक्कम"
 
-#: expenses/models.py:2332
+#: expenses/models.py:2333
 msgid "Principal already paid before tracking started (mid-tenure entry)."
 msgstr ""
 "ट्रॅकिंग सुरू होण्यापूर्वी भरलेली मूळ रक्कम (कालावधीच्या मध्यात केलेली "
 "नोंद)."
 
-#: expenses/models.py:2334 templates/expenses/loan_form.html:67
+#: expenses/models.py:2335 templates/expenses/loan_form.html:67
 msgid "Duration (Months)"
 msgstr "कालावधी (महिने)"
 
-#: expenses/models.py:2337
+#: expenses/models.py:2338
 msgid "Is Active"
 msgstr "सक्रिय आहे"
 
-#: expenses/models.py:2380
+#: expenses/models.py:2381
 msgid "Effective Date"
 msgstr "प्रभावी तारीख"
 
-#: expenses/models.py:2437
+#: expenses/models.py:2438
 msgid "Paid From Account"
 msgstr "ज्या खात्यातून पेमेंट झाले"
 
-#: expenses/models.py:2438
+#: expenses/models.py:2439
 msgid "Total Amount Paid (EMI)"
 msgstr "भरलेली एकूण रक्कम (EMI)"
 
-#: expenses/models.py:2439
+#: expenses/models.py:2440
 msgid "Principal Portion"
 msgstr "मूळ रकमेचा भाग"
 
-#: expenses/models.py:2440
+#: expenses/models.py:2441
 msgid "Interest Portion"
 msgstr "व्याजाचा भाग"
 
-#: expenses/models.py:2441 templates/expenses/loan_detail.html:348
+#: expenses/models.py:2442 templates/expenses/loan_detail.html:348
 msgid "Payment Date"
 msgstr "पेमेंटची तारीख"
 
-#: expenses/models.py:2476
+#: expenses/models.py:2477
 msgid "Repayment must equal principal portion plus interest portion."
 msgstr ""
 "परतफेड ही मूळ रकमेचा भाग आणि व्याजाचा भाग यांच्या बेरजेइतकी असली पाहिजे."
 
-#: expenses/models.py:2479
+#: expenses/models.py:2480
 msgid "Selected account does not belong to this user."
 msgstr "निवडलेले खाते या वापरकर्त्याचे नाही."
 
-#: expenses/models.py:2495
+#: expenses/models.py:2496
 msgid "Principal portion cannot exceed remaining principal."
 msgstr "मूळ रकमेचा भाग उरलेल्या मूळ रकमेपेक्षा जास्त असू शकत नाही."
 
-#: expenses/models.py:2691
+#: expenses/models.py:2692
 #: templates/expenses/recurring_transaction_form.html:386
 msgid "Subtype"
 msgstr "उप-प्रकार"
 
-#: expenses/models.py:3160
+#: expenses/models.py:3161
 msgid "Savings / endowment (pays back on maturity)"
 msgstr "बचत / एंडोमेंट (मुदतपूर्तीनंतर पैसे परत मिळतात)"
 
-#: expenses/models.py:3161
+#: expenses/models.py:3162
 msgid "Pure protection (term / health, no payout)"
 msgstr "फक्त सुरक्षा (टर्म / हेल्थ, कोणताही परतावा नाही)"
 
-#: expenses/models.py:3166
+#: expenses/models.py:3167
 msgid ""
 "Savings policies count the premiums paid as their value; pure protection "
 "policies are worth nothing."
@@ -3404,9 +3439,21 @@ msgstr ""
 "बचत पॉलिसींचे मूल्य भरलेल्या प्रीमियमइतके धरले जाते; फक्त सुरक्षा देणाऱ्या "
 "पॉलिसींचे काहीही मूल्य नसते."
 
-#: expenses/models.py:3168 templates/expenses/account_form.html:648
+#: expenses/models.py:3169 templates/expenses/account_form.html:648
 msgid "Sum Assured"
 msgstr "विमा रक्कम"
+
+#: expenses/models.py:3280 templates/expenses/import_history.html:42
+msgid "Imported"
+msgstr "इम्पोर्ट केले"
+
+#: expenses/models.py:3280 templates/expenses/import_history.html:43
+msgid "Being undone"
+msgstr "पूर्ववत होत आहे"
+
+#: expenses/models.py:3280 templates/expenses/import_history.html:44
+msgid "Undone"
+msgstr "पूर्ववत केले"
 
 #: expenses/onboarding_v2.py:336 expenses/views/auth.py:215
 msgid "Enter an amount greater than zero."
@@ -4976,7 +5023,7 @@ msgstr "नाव आवश्यक आहे."
 msgid "Category limit reached."
 msgstr "श्रेणी मर्यादा पूर्ण झाली आहे."
 
-#: expenses/views/categories.py:115 templates/base.html:1154
+#: expenses/views/categories.py:115 templates/base.html:1160
 #: templates/expenses/pricing.html:672
 #: templates/expenses/transfer_form.html:246
 msgid "Something went wrong. Please try again."
@@ -6074,6 +6121,106 @@ msgstr "योगदान यशस्वीरित्या अपडेट 
 msgid "Contribution deleted successfully!"
 msgstr "योगदान यशस्वीरित्या हटवले!"
 
+#: expenses/views/imports.py:46
+msgid "Debit (money out)"
+msgstr "डेबिट (जाणारे पैसे)"
+
+#: expenses/views/imports.py:46
+msgid "Credit (money in)"
+msgstr "क्रेडिट (येणारे पैसे)"
+
+#: expenses/views/imports.py:47
+msgid "Reference"
+msgstr "संदर्भ"
+
+#: expenses/views/imports.py:53
+msgid "none"
+msgstr "काहीही नाही"
+
+#: expenses/views/imports.py:75 expenses/views/misc.py:209
+msgid ""
+"An import is already running. Wait for it to finish, then upload again."
+msgstr ""
+"एक इम्पोर्ट आधीच सुरू आहे. तो पूर्ण होईपर्यंत थांबा, मग पुन्हा अपलोड करा."
+
+#: expenses/views/imports.py:87 expenses/views/misc.py:258
+msgid ""
+"We could not read this file. Check that it is a valid Excel or CSV file with"
+" Date, Amount and Description columns, then try again."
+msgstr ""
+"आम्ही ही फाइल वाचू शकलो नाही. ती Date, Amount आणि Description कॉलम असलेली "
+"वैध Excel किंवा CSV फाइल आहे का ते तपासा, मग पुन्हा प्रयत्न करा."
+
+#: expenses/views/imports.py:90 expenses/views/misc.py:233
+msgid ""
+"Could not detect required columns (Date, Amount, Description). Please check "
+"your file."
+msgstr ""
+"आवश्यक कॉलम (Date, Amount, Description) सापडले नाहीत. कृपया तुमची फाइल "
+"तपासा."
+
+#: expenses/views/imports.py:124
+msgid "This import has already been undone."
+msgstr "हे इम्पोर्ट आधीच पूर्ववत केले आहे."
+
+#: expenses/views/imports.py:129
+msgid "This import is already being undone. Give it a moment."
+msgstr "हे इम्पोर्ट आधीच पूर्ववत होत आहे. थोडा वेळ थांबा."
+
+#: expenses/views/imports.py:132
+#, python-format
+msgid ""
+"Undoing this import: %(left)s expenses to go. This page continues by itself."
+msgstr ""
+"हे इम्पोर्ट पूर्ववत होत आहे: आणखी %(left)s खर्च बाकी आहेत. हे पान आपोआप पुढे"
+" चालू राहील."
+
+#: expenses/views/imports.py:134
+msgid ""
+"The import was undone: its expenses were removed and your balances restored."
+msgstr ""
+"इम्पोर्ट पूर्ववत केले: त्यातील खर्च काढून टाकले आणि तुमची शिल्लक पूर्वीसारखी"
+" केली."
+
+#: expenses/views/imports.py:144
+#: templates/expenses/partials/_import_preview.html:114
+msgid "Error"
+msgstr "त्रुटी"
+
+#: expenses/views/imports.py:144
+#: templates/expenses/partials/_import_preview.html:112
+msgid "Duplicate"
+msgstr "डुप्लिकेट"
+
+#: expenses/views/imports.py:144
+#: templates/expenses/partials/_import_preview.html:19
+#: templates/expenses/partials/_import_preview.html:113
+msgid "Money in"
+msgstr "येणारे पैसे"
+
+#: expenses/views/imports.py:144
+#: templates/expenses/partials/_import_preview.html:115
+msgid "Over plan limit"
+msgstr "प्लॅन मर्यादेपेक्षा जास्त"
+
+#: expenses/views/imports.py:149
+#: templates/expenses/partials/_import_preview.html:88
+#: templates/upload.html:110
+msgid "Row"
+msgstr "ओळ"
+
+#: expenses/views/imports.py:149
+#: templates/expenses/account_reconciliation_history.html:38
+#: templates/expenses/import_history.html:24
+#: templates/expenses/partials/_recurring_transaction_list.html:557
+#: templates/expenses/payment_history.html:87
+msgid "Status"
+msgstr "स्थिती"
+
+#: expenses/views/imports.py:149 templates/upload.html:111
+msgid "Reason"
+msgstr "कारण"
+
 #: expenses/views/income.py:197
 msgid ""
 "Your income was saved, but a recurring schedule with the same amount, "
@@ -6258,11 +6405,15 @@ msgstr ""
 "गेल्या. हे उलटे असल्यास, हे खर्च हटवा आणि डेबिट/क्रेडिट किंवा शिल्लक कॉलमसह "
 "पुन्हा इम्पोर्ट करा."
 
-#: expenses/views/misc.py:165
+#: expenses/views/misc.py:155
+msgid "Please choose a file to upload."
+msgstr "कृपया अपलोड करण्यासाठी फाइल निवडा."
+
+#: expenses/views/misc.py:159
 msgid "Please upload an Excel (.xlsx) or CSV (.csv) file."
 msgstr "कृपया Excel (.xlsx) किंवा CSV (.csv) फाइल अपलोड करा."
 
-#: expenses/views/misc.py:167
+#: expenses/views/misc.py:161
 msgid ""
 "This file is too large to import (the limit is 5 MB). Split it into smaller "
 "files."
@@ -6270,72 +6421,58 @@ msgstr ""
 "ही फाइल इम्पोर्ट करण्यासाठी खूप मोठी आहे (मर्यादा 5 MB आहे). तिचे लहान "
 "फाइलींमध्ये विभाजन करा."
 
-#: expenses/views/misc.py:169
+#: expenses/views/misc.py:163
 msgid "This spreadsheet is too large to import. Split it into smaller files."
 msgstr ""
 "ही स्प्रेडशीट इम्पोर्ट करण्यासाठी खूप मोठी आहे. तिचे लहान फाइलींमध्ये विभाजन"
 " करा."
 
-#: expenses/views/misc.py:174
+#: expenses/views/misc.py:171
 msgid "Please create an account before importing expenses."
 msgstr "खर्च इम्पोर्ट करण्यापूर्वी कृपया एक खाते तयार करा."
 
-#: expenses/views/misc.py:179
+#: expenses/views/misc.py:177
 msgid ""
 "Selected account is invalid. Please choose one of your active accounts."
 msgstr "निवडलेले खाते अवैध आहे. कृपया तुमच्या सक्रिय खात्यांपैकी एक निवडा."
 
-#: expenses/views/misc.py:185
+#: expenses/views/misc.py:235
 msgid ""
-"An import is already running. Wait for it to finish, then upload again."
+"The file you chose is not the one you previewed. Preview it again before "
+"importing."
 msgstr ""
-"एक इम्पोर्ट आधीच सुरू आहे. तो पूर्ण होईपर्यंत थांबा, मग पुन्हा अपलोड करा."
+"तुम्ही निवडलेली फाइल पूर्वावलोकनात पाहिलेली फाइल नाही. इम्पोर्ट करण्यापूर्वी"
+" ती पुन्हा पाहा."
 
-#: expenses/views/misc.py:203
-msgid ""
-"Could not detect required columns (Date, Amount, Description). Please check "
-"your file."
-msgstr ""
-"आवश्यक कॉलम (Date, Amount, Description) सापडले नाहीत. कृपया तुमची फाइल "
-"तपासा."
-
-#: expenses/views/misc.py:209
+#: expenses/views/misc.py:243
 msgid "Processing complete! See summary below."
 msgstr "प्रोसेसिंग पूर्ण झाले! खाली सारांश पहा."
 
-#: expenses/views/misc.py:217
+#: expenses/views/misc.py:251
 msgid "Processing complete. No new expenses were added."
 msgstr "प्रोसेसिंग पूर्ण झाले. कोणताही नवीन खर्च जोडला गेला नाही."
 
-#: expenses/views/misc.py:224
-msgid ""
-"We could not read this file. Check that it is a valid Excel or CSV file with"
-" Date, Amount and Description columns, then try again."
-msgstr ""
-"आम्ही ही फाइल वाचू शकलो नाही. ती Date, Amount आणि Description कॉलम असलेली "
-"वैध Excel किंवा CSV फाइल आहे का ते तपासा, मग पुन्हा प्रयत्न करा."
-
-#: expenses/views/misc.py:241
+#: expenses/views/misc.py:275
 msgid "AI Insights is a paid feature."
 msgstr "AI इनसाइट्स हे सशुल्क वैशिष्ट्य आहे."
 
-#: expenses/views/misc.py:269
+#: expenses/views/misc.py:303
 msgid "Your message has been sent!"
 msgstr "तुमचा संदेश पाठवला गेला आहे!"
 
-#: expenses/views/misc.py:275
+#: expenses/views/misc.py:309
 msgid "Submission limit reached."
 msgstr "सबमिशन मर्यादा पूर्ण झाली आहे."
 
-#: expenses/views/misc.py:280
+#: expenses/views/misc.py:314
 msgid "Your message was flagged as potential spam."
 msgstr "तुमचा संदेश संभाव्य स्पॅम म्हणून चिन्हांकित केला गेला."
 
-#: expenses/views/misc.py:284
+#: expenses/views/misc.py:318
 msgid "Please use a permanent email address."
 msgstr "कृपया कायमचा ईमेल पत्ता वापरा."
 
-#: expenses/views/misc.py:288
+#: expenses/views/misc.py:322
 msgid ""
 "We couldn't send your message right now. Please email us directly or try "
 "again later."
@@ -6343,28 +6480,28 @@ msgstr ""
 "आम्ही सध्या तुमचा संदेश पाठवू शकलो नाही. कृपया आम्हाला थेट ईमेल करा किंवा "
 "नंतर पुन्हा प्रयत्न करा."
 
-#: expenses/views/misc.py:291
+#: expenses/views/misc.py:325
 msgid "Your message has been sent! We'll get back to you shortly."
 msgstr "तुमचा संदेश पाठवला गेला आहे! आम्ही लवकरच तुमच्याशी संपर्क साधू."
 
-#: expenses/views/misc.py:405
+#: expenses/views/misc.py:439
 msgid "Thank you for your consent. You can now use TrackMyRupee."
 msgstr "तुमच्या संमतीबद्दल धन्यवाद. आता तुम्ही TrackMyRupee वापरू शकता."
 
-#: expenses/views/misc.py:409
+#: expenses/views/misc.py:443
 msgid ""
 "You must confirm that you are 18 years of age or older to use TrackMyRupee."
 msgstr ""
 "TrackMyRupee वापरण्यासाठी कृपया पुष्टी करा की तुमचे वय 18 वर्षे किंवा "
 "त्याहून अधिक आहे."
 
-#: expenses/views/misc.py:411
+#: expenses/views/misc.py:445
 msgid "You must agree to all data collection terms to use TrackMyRupee."
 msgstr ""
 "TrackMyRupee वापरण्यासाठी तुम्हाला डेटा संकलनाच्या सर्व अटींशी सहमत व्हावे "
 "लागेल."
 
-#: expenses/views/misc.py:414 templates/expenses/dpdp_consent.html:4
+#: expenses/views/misc.py:448 templates/expenses/dpdp_consent.html:4
 #: templates/expenses/dpdp_consent.html:11
 msgid "Data Consent Required"
 msgstr "डेटा संमती आवश्यक आहे"
@@ -7032,6 +7169,7 @@ msgstr "आजच साइन अप करा."
 
 #: templates/account/login.html:64 templates/account/login.html:121
 #: templates/account/signup.html:257
+#: templates/expenses/partials/_import_preview.html:70
 msgid "Show"
 msgstr "दाखवा"
 
@@ -7166,7 +7304,7 @@ msgstr "तुमचा पासवर्ड बदलला गेला आ�
 #: templates/account/signup.html:4 templates/account/signup.html:17
 #: templates/expenses/transfer_form.html:250
 #: templates/partials/savings_modal.html:160
-#: templates/partials/savings_modal.html:453 templates/upload.html:127
+#: templates/partials/savings_modal.html:453 templates/upload.html:137
 msgid "Create Account"
 msgstr "खाते तयार करा"
 
@@ -7331,8 +7469,8 @@ msgid "Resend Verification"
 msgstr "पडताळणी पुन्हा पाठवा"
 
 #: templates/account/verification_sent.html:57 templates/base.html:829
-#: templates/base.html:869 templates/base.html:966 templates/base.html:1183
-#: templates/base.html:1446 templates/base.html:1683
+#: templates/base.html:869 templates/base.html:966 templates/base.html:1189
+#: templates/base.html:1452 templates/base.html:1689
 #: templates/components/compare_plans_modal.html:6
 #: templates/components/navbar.html:290 templates/components/navbar.html:353
 #: templates/components/navbar.html:570 templates/components/sidebar.html:296
@@ -7652,13 +7790,14 @@ msgstr "इन्स्टॉल"
 msgid "Confirm Delete"
 msgstr "हटवण्याची पुष्टी करा"
 
-#: templates/base.html:969 templates/base.html:1005
+#: templates/base.html:969 templates/base.html:1011
 msgid ""
 "Are you sure you want to delete this item? This action cannot be undone."
 msgstr ""
 "तुम्हाला खरोखर हा घटक हटवायचा आहे का? ही क्रिया पूर्ववत करता येणार नाही."
 
-#: templates/base.html:975 templates/expenses/account_delete_confirm.html:32
+#: templates/base.html:975 templates/base.html:1006
+#: templates/expenses/account_delete_confirm.html:32
 #: templates/expenses/capital_event_confirm_delete.html:25
 #: templates/expenses/category_confirm_delete.html:22
 #: templates/expenses/expense_confirm_delete.html:20
@@ -7711,15 +7850,15 @@ msgstr ""
 msgid "Delete"
 msgstr "हटवा"
 
-#: templates/base.html:1127
+#: templates/base.html:1133
 msgid "Start your 7-Day Pro Free Trial? No credit card required."
 msgstr "7 दिवसांचा Pro मोफत ट्रायल सुरू करायचा? क्रेडिट कार्डची गरज नाही."
 
-#: templates/base.html:1395
+#: templates/base.html:1401
 msgid "Support TrackMyRupee"
 msgstr "TrackMyRupee ला पाठिंबा द्या"
 
-#: templates/base.html:1400
+#: templates/base.html:1406
 msgid ""
 "If TrackMyRupee helped you understand your money better, consider supporting"
 " its development."
@@ -7727,15 +7866,15 @@ msgstr ""
 "जर TrackMyRupee मुळे तुम्हाला तुमचे पैसे अधिक चांगल्या प्रकारे समजून घेण्यास"
 " मदत झाली असेल, तर त्याच्या विकासाला पाठिंबा देण्याचा विचार करा."
 
-#: templates/base.html:1402
+#: templates/base.html:1408
 msgid "Donate Now"
 msgstr "आता दान करा"
 
-#: templates/base.html:1445
+#: templates/base.html:1451
 msgid "Cancel Subscription?"
 msgstr "सबस्क्रिप्शन रद्द करायचे?"
 
-#: templates/base.html:1455
+#: templates/base.html:1461
 #, python-format
 msgid ""
 "\n"
@@ -7746,19 +7885,19 @@ msgstr ""
 "                        तुम्हाला खरोखर रद्द करायचे आहे का? तुमचे सध्याचे चक्र <strong>%(date)s</strong> रोजी संपेपर्यंत तुमची <strong>Pro वैशिष्ट्ये</strong> कायम राहतील.\n"
 "                        "
 
-#: templates/base.html:1461
+#: templates/base.html:1467
 msgid "Keep it"
 msgstr "हे ठेवा"
 
-#: templates/base.html:1462
+#: templates/base.html:1468
 msgid "Yes, Cancel"
 msgstr "हो, रद्द करा"
 
-#: templates/base.html:1494
+#: templates/base.html:1500
 msgid "Request failed"
 msgstr "विनंती अयशस्वी झाली"
 
-#: templates/base.html:1700 templates/expenses/budget_dashboard.html:135
+#: templates/base.html:1706 templates/expenses/budget_dashboard.html:135
 #: templates/expenses/partials/_account_list.html:268 templates/home.html:692
 #: templates/home.html:705
 msgid "Dismiss"
@@ -7997,6 +8136,7 @@ msgid "Added {summary}"
 msgstr "जोडले {summary}"
 
 #: templates/components/expense_composer.html:13
+#: templates/expenses/import_history.html:54
 msgid "Undo"
 msgstr "पूर्ववत करा"
 
@@ -8905,6 +9045,9 @@ msgstr "आढावा"
 
 #: templates/components/sidebar.html:44
 #: templates/expenses/partials/_budget_dashboard_content.html:24
+#: templates/expenses/partials/_import_preview.html:17
+#: templates/expenses/partials/_import_preview.html:73
+#: templates/expenses/partials/_import_preview.html:111
 #: templates/expenses/partials/_notification_list.html:54
 #: templates/expenses/partials/_notification_list.html:112
 msgid "New"
@@ -9055,11 +9198,6 @@ msgstr "भाषा"
 #: templates/components/sidebar.html:446
 msgid "Select your preferred display language"
 msgstr "तुमची पसंतीची प्रदर्शन भाषा निवडा"
-
-#: templates/components/sidebar.html:453
-#: templates/expenses/settings_base.html:23
-msgid "Upload"
-msgstr "अपलोड करा"
 
 #: templates/components/sidebar.html:454
 msgid "Import transactions from a CSV file"
@@ -9637,6 +9775,7 @@ msgstr "%(name)s तुमच्या बँक किंवा कार्ड
 #: templates/expenses/account_reconcile.html:21
 #: templates/expenses/loan_detail.html:81
 #: templates/expenses/partials/_account_list.html:243
+#: templates/expenses/partials/_import_tabs.html:10
 msgid "History"
 msgstr "इतिहास"
 
@@ -9650,6 +9789,7 @@ msgid "Compare"
 msgstr "तुलना करा"
 
 #: templates/expenses/account_reconcile.html:62
+#: templates/expenses/partials/_import_preview.html:93
 msgid "Result"
 msgstr "निकाल"
 
@@ -9796,12 +9936,6 @@ msgstr "पुन्हा मेळ घाला"
 #: templates/expenses/account_reconciliation_history.html:37
 msgid "App"
 msgstr "अ‍ॅप"
-
-#: templates/expenses/account_reconciliation_history.html:38
-#: templates/expenses/partials/_recurring_transaction_list.html:557
-#: templates/expenses/payment_history.html:87
-msgid "Status"
-msgstr "स्थिती"
 
 #: templates/expenses/account_reconciliation_history.html:40
 msgid "Notes"
@@ -11546,6 +11680,67 @@ msgstr "6 अंकी AMFI कोड, उदा. 122639"
 msgid "Avg Purchase Price"
 msgstr "सरासरी खरेदी मूल्य"
 
+#: templates/expenses/import_history.html:7 templates/upload.html:7
+#| msgid "expenses"
+msgid "Import expenses"
+msgstr "खर्च इम्पोर्ट करा"
+
+#: templates/expenses/import_history.html:10
+msgid ""
+"Every file you import is listed here. Undo removes the expenses that import "
+"created and puts your account balances back, as if you had deleted each one "
+"yourself."
+msgstr ""
+"तुम्ही इम्पोर्ट केलेल्या प्रत्येक फाइलची यादी इथे आहे. पूर्ववत केल्यावर त्या"
+" इम्पोर्टमधून तयार झालेले खर्च काढले जातात आणि तुमच्या खात्यांची शिल्लक "
+"पूर्ववत होते, जणू तुम्ही प्रत्येक खर्च स्वतः हटवला आहे."
+
+#: templates/expenses/import_history.html:18
+msgid "When"
+msgstr "कधी"
+
+#: templates/expenses/import_history.html:19
+msgid "File"
+msgstr "फाइल"
+
+#: templates/expenses/import_history.html:21
+msgid "Added"
+msgstr "जोडले"
+
+#: templates/expenses/import_history.html:22
+#: templates/expenses/partials/_import_preview.html:74
+msgid "Skipped"
+msgstr "वगळलेल्या"
+
+#: templates/expenses/import_history.html:38
+msgid "Download the skipped rows"
+msgstr "वगळलेल्या ओळी डाउनलोड करा"
+
+#: templates/expenses/import_history.html:51
+msgid "Undo this import?"
+msgstr "हे इम्पोर्ट पूर्ववत करायचे?"
+
+#: templates/expenses/import_history.html:52
+msgid "Undo import"
+msgstr "इम्पोर्ट पूर्ववत करा"
+
+#: templates/expenses/import_history.html:53
+#, python-format
+msgid ""
+"This removes the %(count)s expenses imported from %(name)s, including any "
+"you have edited since, and puts your account balance back."
+msgstr ""
+"यामुळे %(name)s मधून इम्पोर्ट केलेले %(count)s खर्च काढले जातील, तुम्ही नंतर"
+" बदललेले खर्चही, आणि तुमच्या खात्याची शिल्लक पूर्ववत होईल."
+
+#: templates/expenses/import_history.html:68
+msgid "You have not imported any files yet."
+msgstr "तुम्ही अजून एकही फाइल इम्पोर्ट केलेली नाही."
+
+#: templates/expenses/import_history.html:69
+msgid "Import a file"
+msgstr "फाइल इम्पोर्ट करा"
+
 #: templates/expenses/income_confirm_delete.html:12
 msgid "Delete Income?"
 msgstr "उत्पन्न हटवायचे?"
@@ -13244,6 +13439,116 @@ msgstr ""
 "मूल्य म्हणजे तुमची युनिट्स गुणिले ही किंमत, त्यामुळे नंतर युनिट्स जोडल्यासही"
 " ते बरोबर राहते."
 
+#: templates/expenses/partials/_import_preview.html:7
+#: templates/upload.html:179
+msgid "Preview"
+msgstr "पूर्वावलोकन"
+
+#: templates/expenses/partials/_import_preview.html:9
+#, python-format
+msgid ""
+"Nothing has been saved yet. Check what will happen, then import into "
+"%(name)s."
+msgstr ""
+"अजून काहीही सेव्ह झालेले नाही. काय होईल ते तपासा, मग %(name)s मध्ये इम्पोर्ट"
+" करा."
+
+#: templates/expenses/partials/_import_preview.html:18
+#: templates/upload.html:54
+msgid "Duplicates"
+msgstr "डुप्लिकेट"
+
+#: templates/expenses/partials/_import_preview.html:20
+#: templates/expenses/partials/_import_preview.html:75
+#: templates/upload.html:79
+msgid "Errors"
+msgstr "त्रुटी"
+
+#: templates/expenses/partials/_import_preview.html:22
+#: templates/expenses/partials/_import_preview.html:116
+msgid "Left out"
+msgstr "वगळले"
+
+#: templates/expenses/partials/_import_preview.html:27
+msgid "Check how the file was read"
+msgstr "फाइल कशी वाचली ते तपासा"
+
+#: templates/expenses/partials/_import_preview.html:29
+msgid "If a column was picked wrongly, choose the right one and check again."
+msgstr ""
+"एखादा स्तंभ चुकीचा निवडला गेला असेल तर योग्य स्तंभ निवडा आणि पुन्हा तपासा."
+
+#: templates/expenses/partials/_import_preview.html:35
+msgid "As detected"
+msgstr "आढळल्याप्रमाणे"
+
+#: templates/expenses/partials/_import_preview.html:36
+msgid "Not used"
+msgstr "वापरलेले नाही"
+
+#: templates/expenses/partials/_import_preview.html:45
+msgid "Which amounts are spending?"
+msgstr "कोणत्या रकमा खर्च आहेत?"
+
+#: templates/expenses/partials/_import_preview.html:47
+#: templates/expenses/partials/_import_preview.html:56
+msgid "Work it out"
+msgstr "हिशोब करा"
+
+#: templates/expenses/partials/_import_preview.html:48
+msgid "Positive amounts are spending"
+msgstr "धन रकमा खर्च आहेत"
+
+#: templates/expenses/partials/_import_preview.html:49
+msgid "Negative amounts are spending"
+msgstr "ऋण रकमा खर्च आहेत"
+
+#: templates/expenses/partials/_import_preview.html:54
+msgid "Dates are written"
+msgstr "तारखा अशा लिहिलेल्या आहेत"
+
+#: templates/expenses/partials/_import_preview.html:57
+msgid "Day first (03/04 is 3 April)"
+msgstr "आधी दिवस (०३/०४ म्हणजे ३ एप्रिल)"
+
+#: templates/expenses/partials/_import_preview.html:58
+msgid "Month first (03/04 is March 4)"
+msgstr "आधी महिना (०३/०४ म्हणजे ४ मार्च)"
+
+#: templates/expenses/partials/_import_preview.html:64
+msgid "Check again"
+msgstr "पुन्हा तपासा"
+
+#: templates/expenses/partials/_import_preview.html:72
+msgid "All rows"
+msgstr "सर्व ओळी"
+
+#: templates/expenses/partials/_import_preview.html:79
+msgid "Select all new rows"
+msgstr "सर्व नवीन ओळी निवडा"
+
+#: templates/expenses/partials/_import_preview.html:102
+msgid "Import this row"
+msgstr "ही ओळ इम्पोर्ट करा"
+
+#: templates/expenses/partials/_import_preview.html:125
+#, python-format
+msgid ""
+"Showing the first 1,000 rows. The other %(count)s are imported as the counts"
+" above say."
+msgstr ""
+"पहिल्या १,००० ओळी दाखवत आहोत. उर्वरित %(count)s वरील संख्यांनुसार इम्पोर्ट "
+"केल्या जातात."
+
+#: templates/expenses/partials/_import_preview.html:134
+#, python-format
+msgid "Import <span id=\"import-count\">%(count)s</span> expenses"
+msgstr "<span id=\"import-count\">%(count)s</span> खर्च इम्पोर्ट करा"
+
+#: templates/expenses/partials/_import_tabs.html:5
+msgid "New import"
+msgstr "नवीन इम्पोर्ट"
+
 #: templates/expenses/partials/_income_list.html:19
 #: templates/expenses/partials/_income_list.html:32
 msgid "records"
@@ -14364,10 +14669,6 @@ msgstr ""
 msgid "Tools"
 msgstr "टूल्स"
 
-#: templates/expenses/settings_home.html:108
-msgid "Upload Data"
-msgstr "डेटा अपलोड करा"
-
 #: templates/expenses/settings_home.html:148
 msgid "Support"
 msgstr "सपोर्ट"
@@ -14429,10 +14730,6 @@ msgstr "डेटा आणि टूल्स"
 #: templates/expenses/settings_home.html:272
 msgid "Customize your expense and income categories."
 msgstr "तुमच्या खर्च आणि उत्पन्न श्रेणी तुमच्या पद्धतीने सानुकूल करा."
-
-#: templates/expenses/settings_home.html:282
-msgid "Bulk Upload"
-msgstr "बल्क अपलोड"
 
 #: templates/expenses/settings_home.html:283
 msgid "Import your transactions from CSV or Excel files."
@@ -19093,11 +19390,7 @@ msgstr ""
 "                            तुम्हाला या सेवा अटींबद्दल काही प्रश्न असल्यास, कृपया आमच्याशी येथे संपर्क साधा:\n"
 "                            "
 
-#: templates/upload.html:7
-msgid "Upload Expenses"
-msgstr "खर्च अपलोड करा"
-
-#: templates/upload.html:11
+#: templates/upload.html:12
 msgid ""
 "\n"
 "            Upload your Excel or CSV file to update your expense records. For Excel, please ensure you have only one sheet.\n"
@@ -19107,11 +19400,11 @@ msgstr ""
 "            तुमचे खर्च रेकॉर्ड अपडेट करण्यासाठी तुमची Excel किंवा CSV फाइल अपलोड करा. Excel साठी, कृपया फाइलमध्ये फक्त एकच शीट असल्याची खात्री करा.\n"
 "            "
 
-#: templates/upload.html:17
+#: templates/upload.html:18
 msgid "Flexible Matching"
 msgstr "लवचिक जुळवणी"
 
-#: templates/upload.html:19
+#: templates/upload.html:20
 msgid ""
 "\n"
 "                Our parser automatically detects columns for <b>Date</b>, <b>Amount</b>, <b>Description</b>, and <b>Category</b>.\n"
@@ -19122,7 +19415,7 @@ msgstr ""
 "                आमचा पार्सर <b>दिनांक</b>, <b>रक्कम</b>, <b>वर्णन</b> आणि <b>श्रेणी</b> यांचे कॉलम आपोआप ओळखतो. तुमच्या कॉलमची नावे योग्य असल्यास, ती बदलण्याची गरज नाही.\n"
 "                "
 
-#: templates/upload.html:26
+#: templates/upload.html:27
 msgid ""
 "\n"
 "                If a <b>Category</b> is provided in the file, we'll use it. Otherwise, we'll automatically categorize expenses for you.\n"
@@ -19132,28 +19425,21 @@ msgstr ""
 "                फाइलमध्ये <b>श्रेणी</b> दिली असल्यास, आम्ही ती वापरू. अन्यथा, आम्ही तुमच्यासाठी खर्चांचे आपोआप वर्गीकरण करू.\n"
 "                "
 
-#: templates/upload.html:36
-msgid "Upload Summary"
-msgstr "अपलोड सारांश"
+#: templates/upload.html:37
+#| msgid "Month summary"
+msgid "Import summary"
+msgstr "इम्पोर्ट सारांश"
 
-#: templates/upload.html:41
+#: templates/upload.html:42
 msgid "Processed"
 msgstr "प्रोसेस केलेले"
 
-#: templates/upload.html:47
+#: templates/upload.html:48
 msgid "Created"
 msgstr "तयार केले"
 
-#: templates/upload.html:53
-msgid "Duplicates"
-msgstr "डुप्लिकेट"
-
-#: templates/upload.html:60
+#: templates/upload.html:61
 #, python-format
-#| msgid ""
-#| "%(count)s rows were left out because they have the opposite sign to most of "
-#| "your amounts (credits, salary or refunds in a bank statement), so they are "
-#| "not spending."
 msgid ""
 "%(count)s rows were left out because they are money coming in (credits, "
 "salary or refunds in a bank statement), not spending."
@@ -19161,10 +19447,7 @@ msgstr ""
 "%(count)s ओळी वगळल्या गेल्या कारण त्या येणारे पैसे आहेत (बँक स्टेटमेंटमधील "
 "क्रेडिट, पगार किंवा रिफंड), खर्च नाही."
 
-#: templates/upload.html:66
-#| msgid ""
-#| "Duplicates are rows already imported before, or repeated identically (same "
-#| "date, amount and description) earlier in this file."
+#: templates/upload.html:67
 msgid ""
 "Duplicates are rows you already have, imported or typed in, with the same "
 "date, amount and description, or a reference number that appears twice in "
@@ -19174,7 +19457,7 @@ msgstr ""
 "असोत किंवा हाताने नोंदवलेल्या, आणि ज्यांची तारीख, रक्कम आणि वर्णन तेच आहे, "
 "किंवा ज्यांचा संदर्भ क्रमांक या फाइलमध्ये दोनदा आला आहे."
 
-#: templates/upload.html:72
+#: templates/upload.html:73
 #, python-format
 msgid ""
 "%(count)s rows from this month were not imported because your plan's monthly"
@@ -19183,35 +19466,31 @@ msgstr ""
 "या महिन्यातील %(count)s ओळी इम्पोर्ट झाल्या नाहीत कारण तुमच्या प्लानची मासिक"
 " खर्च मर्यादा पूर्ण झाली आहे. त्या इम्पोर्ट करण्यासाठी अपग्रेड करा."
 
-#: templates/upload.html:78
-msgid "Errors"
-msgstr "त्रुटी"
-
-#: templates/upload.html:85
+#: templates/upload.html:86
 msgid "Total Amount Imported"
 msgstr "इम्पोर्ट केलेली एकूण रक्कम"
 
 #: templates/upload.html:93
+msgid "See this import in your history, where you can undo it"
+msgstr "हे इम्पोर्ट तुमच्या इतिहासात पाहा, तिथे तुम्ही ते पूर्ववत करू शकता"
+
+#: templates/upload.html:95
+msgid "Download the skipped rows (CSV)"
+msgstr "वगळलेल्या ओळी डाउनलोड करा (CSV)"
+
+#: templates/upload.html:103
 msgid "Error Details"
 msgstr "त्रुटींचा तपशील"
 
-#: templates/upload.html:94
-msgid "Showing first 15 errors"
-msgstr "पहिल्या १५ त्रुटी दाखवल्या आहेत"
+#: templates/upload.html:104
+msgid "Showing first 15 errors. The download has them all."
+msgstr "पहिल्या १५ त्रुटी दाखवत आहोत. डाउनलोडमध्ये सर्व आहेत."
 
-#: templates/upload.html:100
-msgid "Row"
-msgstr "ओळ"
-
-#: templates/upload.html:101
-msgid "Reason"
-msgstr "कारण"
-
-#: templates/upload.html:124
+#: templates/upload.html:134
 msgid "Create an account first"
 msgstr "आधी एक खाते तयार करा"
 
-#: templates/upload.html:126
+#: templates/upload.html:136
 msgid ""
 "You need at least one TrackMyRupee account to upload expenses. Imported "
 "entries are linked to an account for balance tracking and ledger posting."
@@ -19220,11 +19499,11 @@ msgstr ""
 "इम्पोर्ट केलेल्या नोंदी बॅलन्स ट्रॅकिंग आणि लेजर पोस्टिंगसाठी एका खात्याशी "
 "जोडल्या जातात."
 
-#: templates/upload.html:143
+#: templates/upload.html:153
 msgid "No active accounts found for your profile."
 msgstr "तुमच्या प्रोफाइलसाठी कोणतेही सक्रिय खाते आढळले नाही."
 
-#: templates/upload.html:145
+#: templates/upload.html:155
 msgid ""
 "Only your TrackMyRupee accounts are shown. Imported expenses will be linked "
 "to this account."
@@ -19232,18 +19511,18 @@ msgstr ""
 "फक्त तुमची TrackMyRupee खाती दाखवली आहेत. इम्पोर्ट केलेले खर्च या खात्याशी "
 "जोडले जातील."
 
-#: templates/upload.html:156
+#: templates/upload.html:166
 msgid "Currency for the uploaded amounts."
 msgstr "अपलोड केलेल्या रकमांचे चलन."
 
-#: templates/upload.html:160
+#: templates/upload.html:170
 msgid "Excel or CSV File (.xlsx, .xls, .csv)"
 msgstr "Excel किंवा CSV फाइल (.xlsx, .xls, .csv)"
 
-#: templates/upload.html:166
-msgid "Upload & Process"
-msgstr "अपलोड आणि प्रक्रिया करा"
+#: templates/upload.html:182
+msgid "Import without preview"
+msgstr "पूर्वावलोकनाशिवाय इम्पोर्ट करा"
 
-#: templates/upload.html:171
+#: templates/upload.html:189
 msgid "Supported formats: .xlsx, .xls, .csv, up to 5 MB and 5,000 rows"
 msgstr "समर्थित फॉरमॅट: .xlsx, .xls, .csv, कमाल 5 MB आणि 5,000 ओळी"

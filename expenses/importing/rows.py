@@ -32,6 +32,7 @@ _CREDIT_NARRATION = re.compile(
 @dataclass
 class ParsedRow:
     number: int
+    sheet: int = 0
     date: Optional[date] = None
     amount: Decimal = Decimal('0')              # always positive
     signed: Optional[Decimal] = None            # as written, when it came from a single amount column
@@ -165,12 +166,21 @@ def _credit_share(rows):
     return sum(1 for r in rows if _CREDIT_NARRATION.search(r.description)) / len(rows) if rows else 0.0
 
 
-def assign_directions(rows: List[ParsedRow]):
-    """Set `direction` on every readable row. Returns notes for the person to be told about (codes, see the view)."""
+def assign_directions(rows: List[ParsedRow], force=None):
+    """Set `direction` on every readable row. Returns notes for the person to be told about (codes, see the view).
+
+    `force` is the person's own answer for a single signed amount column: 'positive' means positive amounts are
+    expenses, 'negative' the other way round. Rows the file itself marks as debit or credit keep what it says."""
     notes = []
     for row in rows:
         if row.hint and not row.error:
             row.direction = row.hint
+    if force in ('positive', 'negative'):
+        expense_sign = 1 if force == 'positive' else -1
+        for row in rows:
+            if row.direction is None and not row.error:
+                row.direction = DEBIT if row.signed is None or (1 if row.signed > 0 else -1) == expense_sign else CREDIT
+        return notes
     _from_balance(rows)
 
     rest = [r for r in rows if r.direction is None and not r.error]

@@ -1000,6 +1000,12 @@
                         modalTitle.textContent = title || "{% trans 'Confirm Delete' %}";
                     }
 
+                    // A button can name what the confirm button should say ("Undo import"); the default is Delete.
+                    var confirmButton = deleteModal.querySelector('#deleteModalConfirmBtn');
+                    if (confirmButton) {
+                        confirmButton.textContent = button.getAttribute('data-confirm-label') || "{% trans 'Delete' %}";
+                    }
+
                     var modalBody = deleteModal.querySelector('#deleteModalBody');
                     if (modalBody) {
                         modalBody.textContent = message || "{% trans 'Are you sure you want to delete this item? This action cannot be undone.' %}";

@@ -29,6 +29,7 @@ class DemoReadOnlyMiddleware:
                 whitelisted_paths = [
                     reverse('account_logout'),
                     reverse('parse-expense'),
+                    reverse('upload-preview'),     # only reads the file and shows what an import would do
                     reverse('predict-category'),
                     reverse('onboarding')
                 ]

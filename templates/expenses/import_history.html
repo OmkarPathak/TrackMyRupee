@@ -1,0 +1,81 @@
+{% extends 'expenses/settings_base.html' %}
+{% load i18n digit_filters %}
+
+{% block settings_content %}
+<div class="fade-in">
+    <div class="py-3 mb-2">
+        <h2 class="h4 mb-0 fw-bold">{% trans "Import expenses" %}</h2>
+    </div>
+    {% include 'expenses/partials/_import_tabs.html' %}
+    <p class="text-muted small mb-4">{% trans "Every file you import is listed here. Undo removes the expenses that import created and puts your account balances back, as if you had deleted each one yourself." %}</p>
+
+    {% if rows %}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle small mb-0">
+                <thead>
+                    <tr>
+                        <th>{% trans "When" %}</th>
+                        <th>{% trans "File" %}</th>
+                        <th>{% trans "Account" %}</th>
+                        <th class="text-end">{% trans "Added" %}</th>
+                        <th class="text-end">{% trans "Skipped" %}</th>
+                        <th class="text-end">{% trans "Amount" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rows %}
+                    {% with batch=r.batch %}
+                    <tr>
+                        <td class="text-nowrap">{{ batch.created_at|date:"d M Y, H:i" }}</td>
+                        <td class="text-break">{{ batch.file_name }}</td>
+                        <td>{{ batch.account.name|default:"-" }}</td>
+                        <td class="text-end fw-semibold">{{ batch.created_count }}</td>
+                        <td class="text-end">
+                            {{ batch.duplicate_count|add:batch.credit_count|add:batch.error_count|add:batch.limit_count }}
+                            {% if batch.report %}<a href="{% url 'import-report' batch.uuid %}" class="ms-1" title="{% trans 'Download the skipped rows' %}"><i class="bi bi-download"></i></a>{% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">{{ batch.total_amount|money_exact:batch.currency }}</td>
+                        <td>
+                            {% if batch.status == 'ACTIVE' %}<span class="badge badge-soft badge-soft-success">{% trans "Imported" %}</span>
+                            {% elif batch.status == 'UNDOING' %}<span class="badge badge-soft badge-soft-warning">{% trans "Being undone" %}: {{ r.live }}</span>
+                            {% else %}<span class="badge badge-soft badge-soft-secondary">{% trans "Undone" %}</span>{% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if batch.status != 'UNDONE' and r.live %}
+                            <button type="button" class="btn btn-action-danger btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                    data-url="{% url 'import-undo' batch.uuid %}" data-reload-page="true"
+                                    data-title="{% trans 'Undo this import?' %}"
+                                    data-confirm-label="{% trans 'Undo import' %}"
+                                    data-message="{% blocktrans with count=r.live name=batch.file_name %}This removes the {{ count }} expenses imported from {{ name }}, including any you have edited since, and puts your account balance back.{% endblocktrans %}">
+                                {% trans "Undo" %}
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-clock-history display-5 d-block mb-3"></i>
+        <p class="mb-3">{% trans "You have not imported any files yet." %}</p>
+        <a href="{% url 'upload' %}" class="btn btn-action-primary">{% trans "Import a file" %}</a>
+    </div>
+    {% endif %}
+</div>
+
+{% if resume %}
+<form id="undo-continue" method="post" action="{% url 'import-undo' resume.uuid %}" class="d-none">{% csrf_token %}</form>
+<script>
+    // An undo that did not finish inside one request keeps going by itself.
+    setTimeout(function () { document.getElementById('undo-continue').submit(); }, 600);
+</script>
+{% endif %}
+{% endblock %}

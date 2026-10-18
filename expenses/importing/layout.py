@@ -59,6 +59,8 @@ class Layout:
     columns: Dict[str, int] = field(default_factory=dict)       # role -> column index
     start: int = 0                                              # index of the first row after the header
     has_header: bool = True
+    header: List[str] = field(default_factory=list)             # the header cells as text, for showing them back
+    width: int = 0                                              # how many columns the sheet has
 
     @property
     def has_money_columns(self):
@@ -121,11 +123,48 @@ def detect_layout(rows) -> Optional[Layout]:
             continue
         columns = _header_columns(row)
         if _qualifies(columns):
-            return Layout(columns=columns, start=index + 1, has_header=True)
+            return Layout(columns=columns, start=index + 1, has_header=True,
+                          header=['' if c is None else str(c).strip() for c in row], width=_width(rows))
     columns = _infer_columns(rows[:HEADERLESS_SCAN_ROWS])
     if columns:
-        return Layout(columns=columns, start=0, has_header=False)
+        return Layout(columns=columns, start=0, has_header=False, width=_width(rows))
     return None
+
+
+def _width(rows):
+    return max((len(r) for r in rows[:HEADER_SCAN_ROWS + 40] if r), default=0)
+
+
+def column_label(layout, index):
+    """"B: Narration" for the column picker."""
+    letter = ''
+    n = index
+    while True:
+        letter = chr(ord('A') + n % 26) + letter
+        n = n // 26 - 1
+        if n < 0:
+            break
+    name = layout.header[index] if index < len(layout.header) else ''
+    return f"{letter}: {name}" if name else letter
+
+
+def apply_overrides(layout, overrides):
+    """The layout with the person's own column choices applied: {role: column index}, or -1 for "not used".
+    Returns None if what is left cannot make a transaction (no date, no money column or no description)."""
+    if not overrides:
+        return layout
+    columns = dict(layout.columns)
+    for role, index in overrides.items():
+        if role not in ROLES:
+            continue
+        if index is None or index < 0:
+            columns.pop(role, None)
+        else:
+            columns[role] = index
+    if not _qualifies(columns):
+        return None
+    return Layout(columns=columns, start=layout.start, has_header=layout.has_header,
+                  header=layout.header, width=layout.width)
 
 
 def _is_header_row(row, layout):

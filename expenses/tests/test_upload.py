@@ -389,8 +389,9 @@ class UploadViewTest(TestCase):
         # global_badge_data (the upload saves the Account, which invalidates that cache).
         # (+1 query: the plan's monthly expense cap is counted once before the loop)
         # (+2 queries: the audit-log rows an import now writes, as a typed expense does, and one query that counts
-        # the matching expenses already stored. Still constant however many rows the file has.)
-        with self.assertNumQueries(22):
+        # the matching expenses already stored. +2 more for the import record that makes it listable and undoable:
+        # created, then updated with the counts. Still constant however many rows the file has.)
+        with self.assertNumQueries(24):
             response = self.client.post(reverse('upload'), {
                 'account': self.account.id,
                 'currency': '₹',

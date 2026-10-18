@@ -1,0 +1,161 @@
+{% load i18n digit_filters %}
+{% if error %}
+<div class="alert alert-danger border-0 small mb-0" role="alert"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</div>
+{% else %}
+<div class="card border-0 shadow-sm fade-in">
+    <div class="card-body">
+        <h5 class="card-title fw-bold mb-1"><i class="bi bi-eye me-2"></i>{% trans "Preview" %}</h5>
+        <p class="text-muted small mb-3">
+            {% blocktrans with name=upload.account.name %}Nothing has been saved yet. Check what will happen, then import into {{ name }}.{% endblocktrans %}
+        </p>
+
+        {% for note in notes %}
+        <div class="alert alert-warning border-0 small"><i class="bi bi-info-circle me-2"></i>{{ note }}</div>
+        {% endfor %}
+
+        <div class="row g-2 mb-3 text-center">
+            <div class="col-6 col-md"><div class="p-2 rounded bg-success bg-opacity-10"><div class="small text-success">{% trans "New" %}</div><div class="h5 mb-0 fw-bold text-success">{{ counts.new }}</div></div></div>
+            <div class="col-6 col-md"><div class="p-2 rounded bg-warning bg-opacity-10"><div class="small text-warning">{% trans "Duplicates" %}</div><div class="h5 mb-0 fw-bold text-warning">{{ counts.duplicate }}</div></div></div>
+            <div class="col-6 col-md"><div class="p-2 rounded bg-info bg-opacity-10"><div class="small text-info">{% trans "Money in" %}</div><div class="h5 mb-0 fw-bold text-info">{{ counts.credit }}</div></div></div>
+            <div class="col-6 col-md"><div class="p-2 rounded bg-danger bg-opacity-10"><div class="small text-danger">{% trans "Errors" %}</div><div class="h5 mb-0 fw-bold text-danger">{{ counts.error }}</div></div></div>
+            {% if counts.limit or counts.excluded %}
+            <div class="col-6 col-md"><div class="p-2 rounded bg-secondary bg-opacity-10"><div class="small text-secondary">{% trans "Left out" %}</div><div class="h5 mb-0 fw-bold text-secondary">{{ counts.limit|add:counts.excluded }}</div></div></div>
+            {% endif %}
+        </div>
+
+        <details class="mb-3">
+            <summary class="small fw-semibold text-primary" style="cursor: pointer;">{% trans "Check how the file was read" %}</summary>
+            <div class="mt-3">
+                <p class="text-muted small">{% trans "If a column was picked wrongly, choose the right one and check again." %}</p>
+                <div class="row g-2">
+                    {% for r in roles %}
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small mb-1" for="map_{{ r.role }}">{{ r.name }}</label>
+                        <select class="form-select form-select-sm" name="map_{{ r.role }}" id="map_{{ r.role }}">
+                            <option value="">{% trans "As detected" %}: {{ r.detected_label }}</option>
+                            <option value="-1" {% if r.chosen == -1 %}selected{% endif %}>{% trans "Not used" %}</option>
+                            {% for index, label in column_choices %}
+                            <option value="{{ index }}" {% if r.chosen == index %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endfor %}
+                    {% if single_amount_column %}
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small mb-1" for="sign_mode">{% trans "Which amounts are spending?" %}</label>
+                        <select class="form-select form-select-sm" name="sign_mode" id="sign_mode">
+                            <option value="auto" {% if options.sign_mode == 'auto' %}selected{% endif %}>{% trans "Work it out" %}</option>
+                            <option value="positive" {% if options.sign_mode == 'positive' %}selected{% endif %}>{% trans "Positive amounts are spending" %}</option>
+                            <option value="negative" {% if options.sign_mode == 'negative' %}selected{% endif %}>{% trans "Negative amounts are spending" %}</option>
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small mb-1" for="date_order">{% trans "Dates are written" %}</label>
+                        <select class="form-select form-select-sm" name="date_order" id="date_order">
+                            <option value="auto" {% if options.date_order == 'auto' %}selected{% endif %}>{% trans "Work it out" %}</option>
+                            <option value="day" {% if options.date_order == 'day' %}selected{% endif %}>{% trans "Day first (03/04 is 3 April)" %}</option>
+                            <option value="month" {% if options.date_order == 'month' %}selected{% endif %}>{% trans "Month first (03/04 is March 4)" %}</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-action-cancel btn-sm mt-3"
+                        hx-post="{% url 'upload-preview' %}" hx-encoding="multipart/form-data" hx-target="#import-preview" hx-swap="innerHTML">
+                    <i class="bi bi-arrow-repeat me-1"></i>{% trans "Check again" %}
+                </button>
+            </div>
+        </details>
+
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+            <label class="small text-muted mb-0" for="import-filter">{% trans "Show" %}</label>
+            <select class="form-select form-select-sm w-auto" id="import-filter" onchange="importPreviewFilter(this.value)">
+                <option value="">{% trans "All rows" %}</option>
+                <option value="new">{% trans "New" %}</option>
+                <option value="skipped">{% trans "Skipped" %}</option>
+                <option value="error">{% trans "Errors" %}</option>
+            </select>
+            <div class="form-check ms-auto mb-0">
+                <input class="form-check-input" type="checkbox" id="import-select-all" checked onchange="importPreviewSelectAll(this.checked)">
+                <label class="form-check-label small" for="import-select-all">{% trans "Select all new rows" %}</label>
+            </div>
+        </div>
+
+        <div class="table-responsive border rounded" style="max-height: 420px;">
+            <table class="table table-sm table-hover small mb-0 align-middle">
+                <thead style="position: sticky; top: 0; background: var(--bs-body-bg);">
+                    <tr>
+                        <th style="width: 36px;"></th>
+                        <th>{% trans "Row" %}</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Description" %}</th>
+                        <th class="text-end">{% trans "Amount" %}</th>
+                        <th>{% trans "Category" %}</th>
+                        <th>{% trans "Result" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in rows %}
+                    <tr class="import-row" data-status="{{ d.status }}">
+                        <td>
+                            {% if d.status == 'new' or d.status == 'excluded' %}
+                            <input type="checkbox" class="form-check-input import-include" name="include" value="{{ d.row_id }}" {% if d.status == 'new' %}checked{% endif %}
+                                   aria-label="{% trans 'Import this row' %}">
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">#{{ d.row.number }}</td>
+                        <td class="text-nowrap">{{ d.row.date|date:"d M Y" }}</td>
+                        <td>{{ d.row.description|truncatechars:60 }}</td>
+                        <td class="text-end text-nowrap">{{ d.row.amount|money_exact:upload.currency }}</td>
+                        <td>{% if d.status == 'new' or d.status == 'excluded' %}{{ d.category }}{% endif %}</td>
+                        <td>
+                            {% if d.status == 'new' %}<span class="badge badge-soft badge-soft-success">{% trans "New" %}</span>
+                            {% elif d.status == 'duplicate' %}<span class="badge badge-soft badge-soft-warning">{% trans "Duplicate" %}</span>
+                            {% elif d.status == 'credit' %}<span class="badge badge-soft badge-soft-info">{% trans "Money in" %}</span>
+                            {% elif d.status == 'error' %}<span class="badge badge-soft badge-soft-danger">{% trans "Error" %}</span> <span class="text-danger">{{ d.reason }}</span>
+                            {% elif d.status == 'limit' %}<span class="badge badge-soft badge-soft-secondary">{% trans "Over plan limit" %}</span>
+                            {% else %}<span class="badge badge-soft badge-soft-secondary">{% trans "Left out" %}</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if truncated %}
+        <p class="text-muted small mt-2 mb-0">
+            {% blocktrans with count=truncated %}Showing the first 1,000 rows. The other {{ count }} are imported as the counts above say.{% endblocktrans %}
+        </p>
+        {% endif %}
+
+        <input type="hidden" name="file_hash" value="{{ analysis.file_hash }}">
+        <input type="hidden" name="shown" value="{{ shown_ids }}">
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+            <button type="submit" class="btn btn-primary px-4" id="import-submit" {% if not counts.new %}disabled{% endif %}>
+                <i class="bi bi-check2-circle me-2"></i><span>{% blocktrans with count=counts.new %}Import <span id="import-count">{{ count }}</span> expenses{% endblocktrans %}</span>
+            </button>
+        </div>
+    </div>
+</div>
+<script>
+    function importPreviewFilter(value) {
+        document.querySelectorAll('.import-row').forEach(function (row) {
+            var s = row.dataset.status, show = true;
+            if (value === 'new') show = s === 'new';
+            else if (value === 'skipped') show = s !== 'new';
+            else if (value === 'error') show = s === 'error';
+            row.style.display = show ? '' : 'none';
+        });
+    }
+    function importPreviewCount() {
+        var n = document.querySelectorAll('.import-include:checked').length;
+        var label = document.getElementById('import-count'), button = document.getElementById('import-submit');
+        if (label) label.textContent = n;
+        if (button) button.disabled = n === 0;
+    }
+    function importPreviewSelectAll(checked) {
+        document.querySelectorAll('.import-include').forEach(function (box) { box.checked = checked; });
+        importPreviewCount();
+    }
+    document.querySelectorAll('.import-include').forEach(function (box) { box.addEventListener('change', importPreviewCount); });
+</script>
+{% endif %}

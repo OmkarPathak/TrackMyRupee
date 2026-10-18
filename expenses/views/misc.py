@@ -136,6 +136,52 @@ _IMPORT_NOTES = {
 }
 
 
+class _Upload:
+    """What a POST to the upload or preview view carries, checked: the file, its account and currency, or an error."""
+    def __init__(self, **kw):
+        self.error = None
+        self.file = self.file_name = self.currency = self.account = None
+        self.selected_account_id = None
+        self.__dict__.update(kw)
+
+
+def read_upload(request):
+    """Validate an uploaded statement and its account and currency (shared by the preview and the import)."""
+    accounts_qs = Account.objects.filter(user=request.user, is_active=True)
+    uploaded_file = request.FILES.get('file')
+    selected_account_id = request.POST.get('account')
+    upload = _Upload(selected_account_id=selected_account_id)
+    if not uploaded_file:
+        upload.error = _("Please choose a file to upload.")
+        return upload
+    file_name = (uploaded_file.name or '').lower()
+    if not file_name.endswith(('.xlsx', '.xls', '.csv')):
+        upload.error = _("Please upload an Excel (.xlsx) or CSV (.csv) file.")
+    elif uploaded_file.size > MAX_IMPORT_BYTES:
+        upload.error = _("This file is too large to import (the limit is 5 MB). Split it into smaller files.")
+    elif file_name.endswith(('.xlsx', '.xls')) and _xlsx_expands_too_much(uploaded_file):
+        upload.error = _("This spreadsheet is too large to import. Split it into smaller files.")
+    if upload.error:
+        return upload
+
+    if not selected_account_id and accounts_qs.exists():
+        selected_account_id = str(accounts_qs.order_by('name').first().id)
+        upload.selected_account_id = selected_account_id
+    if not selected_account_id:
+        upload.error = _("Please create an account before importing expenses.")
+        upload.selected_account_id = None
+        return upload
+    try:
+        upload.account = accounts_qs.get(pk=selected_account_id)
+    except (Account.DoesNotExist, ValueError):
+        upload.error = _("Selected account is invalid. Please choose one of your active accounts.")
+        upload.selected_account_id = None
+        return upload
+    upload.file, upload.file_name = uploaded_file, file_name
+    upload.currency = request.POST.get('currency', request.user.profile.currency)
+    return upload
+
+
 @login_required
 def upload_view(request):
     """Import expenses from an Excel or CSV statement (the work is in expenses.importing)."""
@@ -152,56 +198,44 @@ def upload_view(request):
         })
 
     if request.method == 'POST' and request.FILES.get('file'):
-        uploaded_file = request.FILES['file']
-        selected_currency = request.POST.get('currency', request.user.profile.currency)
-        selected_account_id = request.POST.get('account')
-
-        def reject(message):
-            messages.error(request, message)
-            return page(selected_account_id)
-
-        file_name = (uploaded_file.name or '').lower()
-        if not file_name.endswith(('.xlsx', '.xls', '.csv')):
-            return reject(_("Please upload an Excel (.xlsx) or CSV (.csv) file."))
-        if uploaded_file.size > MAX_IMPORT_BYTES:
-            return reject(_("This file is too large to import (the limit is 5 MB). Split it into smaller files."))
-        if file_name.endswith(('.xlsx', '.xls')) and _xlsx_expands_too_much(uploaded_file):
-            return reject(_("This spreadsheet is too large to import. Split it into smaller files."))
-
-        if not selected_account_id and accounts_qs.exists():
-            selected_account_id = str(accounts_qs.first().id)
-        if not selected_account_id:
-            messages.error(request, _("Please create an account before importing expenses."))
-            return page(None)
-        try:
-            selected_account = accounts_qs.get(pk=selected_account_id)
-        except Account.DoesNotExist:
-            messages.error(request, _("Selected account is invalid. Please choose one of your active accounts."))
-            return page(None)
+        upload = read_upload(request)
+        if upload.error:
+            messages.error(request, upload.error)
+            return page(upload.selected_account_id)
 
         # One import at a time per user: a double click would otherwise run twice and import every row twice.
         upload_lock = f'expense_import_lock_{request.user.id}'
         if not cache.add(upload_lock, 1, timeout=300):
-            return reject(_("An import is already running. Wait for it to finish, then upload again."))
+            messages.error(request, _("An import is already running. Wait for it to finish, then upload again."))
+            return page(upload.selected_account_id)
 
         from finance_tracker.plans import get_limit as _plan_limit
-        from ..importing import ImportFileError, run_import
+        from ..importing import ImportFileError, analyse, commit
         from . import predict_category_ai
+        from .imports import options_from_post
 
+        options, excluded = options_from_post(request.POST)
         try:
-            summary = run_import(
+            analysis = analyse(
                 user=request.user,
-                uploaded_file=uploaded_file,
-                file_name=file_name,
-                account=selected_account,
-                currency=selected_currency,
+                uploaded_file=upload.file,
+                file_name=upload.file_name,
+                account=upload.account,
+                currency=upload.currency,
                 predict_category=predict_category_ai,
                 plan_cap=_plan_limit(request.user.profile.active_tier, 'expenses_per_month'),
                 max_rows=MAX_IMPORT_ROWS,
+                options=options,
+                excluded=excluded,
             )
-            if summary is None:
+            posted_hash = request.POST.get('file_hash', '')
+            if analysis is None:
                 messages.warning(request, _("Could not detect required columns (Date, Amount, Description). Please check your file."))
+            elif posted_hash and posted_hash != analysis.file_hash:
+                messages.error(request, _("The file you chose is not the one you previewed. Preview it again before importing."))
             else:
+                summary = commit(analysis, user=request.user, account=upload.account,
+                                 currency=upload.currency, file_name=upload.file_name)
                 results = summary
                 for note in summary['notes']:
                     messages.warning(request, _IMPORT_NOTES[note])
@@ -216,7 +250,7 @@ def upload_view(request):
                 else:
                     messages.info(request, _("Processing complete. No new expenses were added."))
         except TooManyRows as error:
-            return reject(str(error))
+            messages.error(request, str(error))
         except ImportFileError as error:
             messages.error(request, str(error))
         except Exception:
