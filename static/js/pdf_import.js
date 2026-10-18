@@ -2,7 +2,7 @@
 // password) never leave the device. Loaded only on the import page; pdf.js itself is fetched only when a PDF is chosen.
 (function () {
     var input = document.getElementById('formFile');
-    if (!input) return;
+    window.TMRPdfStatement = {pagesToCsv: function () { return pagesToCsv.apply(null, arguments); }};
     var note = document.getElementById('pdf-import-note');
     var msg = function (k) { return (note && note.dataset[k]) || ''; };
     var DATE = /^\d{1,2}[\/\-. ](?:[A-Za-z]{3,9}|\d{1,2})[\/\-. ]\d{2,4}$/;
@@ -48,16 +48,30 @@
         return lines;
     }
 
-    // Header words that sit next to each other (e.g. "Value" "Date") are joined into one column.
-    function headerCells(line) {
+    // The heading row, plus any heading words stacked just above or below it ("Value" over "Date"), as columns.
+    // Words that overlap sideways belong to one column; words that merely sit next to each other are joined.
+    function headerCells(lines, at) {
+        var words = [];
+        lines.forEach(function (l) {
+            if (Math.abs(l.y - lines[at].y) <= 9) l.items.forEach(function (it) { words.push({s: it.s, x: it.x, w: it.w, y: it.y}); });
+        });
+        words.sort(function (a, b) { return a.x - b.x; });
         var cells = [];
-        line.items.forEach(function (it) {
+        words.forEach(function (it) {
             var last = cells[cells.length - 1];
-            if (last && it.x - (last.x + last.w) < 6) {
-                last.s += ' ' + it.s; last.w = it.x + it.w - last.x;
+            if (last && it.x < last.x + last.w + 1) {                       // stacked words
+                last.parts.push(it);
+                last.w = Math.max(last.x + last.w, it.x + it.w) - last.x;
+            } else if (last && it.x - (last.x + last.w) < 6 && Math.abs(it.y - last.parts[0].y) <= 3) {   // side by side
+                last.parts.push(it);
+                last.w = it.x + it.w - last.x;
             } else {
-                cells.push({s: it.s, x: it.x, w: it.w});
+                cells.push({x: it.x, w: it.w, parts: [it]});
             }
+        });
+        cells.forEach(function (c) {
+            c.parts.sort(function (a, b) { return b.y - a.y || a.x - b.x; });
+            c.s = c.parts.map(function (p) { return p.s; }).join(' ');
         });
         return cells;
     }
@@ -67,13 +81,20 @@
         return hits >= 3 && /date/i.test(line.items.map(function (i) { return i.s; }).join(' '));
     }
 
+    // Amounts may be aligned left, centred or right under their heading, so they go to the closest heading by any edge.
+    // Text is left-aligned: it belongs to the last column that starts at or before it.
     function nearest(cols, it) {
-        var c = it.x + it.w / 2, best = 0, d = Infinity;
-        cols.forEach(function (col, n) {
-            var dist = Math.min(Math.abs(c - (col.x + col.w / 2)), Math.abs(it.x - col.x), Math.abs(it.x + it.w - col.x - col.w));
-            if (dist < d) { d = dist; best = n; }
-        });
-        return best;
+        if (/^-?[\d,]*\d[.,]\d+(?:\s?(?:Dr|Cr))?$/i.test(it.s)) {
+            var c = it.x + it.w / 2, best = 0, d = Infinity;
+            cols.forEach(function (col, n) {
+                var dist = Math.min(Math.abs(c - (col.x + col.w / 2)), Math.abs(it.x - col.x), Math.abs(it.x + it.w - col.x - col.w));
+                if (dist < d) { d = dist; best = n; }
+            });
+            return best;
+        }
+        var at = 0;
+        cols.forEach(function (col, n) { if (it.x >= col.x - 6) at = n; });
+        return at;
     }
 
     function csvCell(v) {
@@ -81,32 +102,65 @@
         return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
     }
 
-    async function toCsv(doc) {
-        var cols = null, rows = [];
-        for (var p = 1; p <= doc.numPages; p++) {
-            var lines = await pageLines(await doc.getPage(p));
-            for (var l = 0; l < lines.length; l++) {
-                var line = lines[l];
-                if (isHeader(line)) {
-                    if (!cols) cols = headerCells(line);
-                    continue;
+    var NUMBER = /^-?[\d,]+(?:\.\d+)?(?:\s?(?:Dr|Cr))?$/i;
+    var CARRIED = /^(balance (?:b\/f|c\/f|forward|brought forward|carried forward)|brought forward|carried forward|b\/f|c\/f|opening balance|closing balance)\b/i;
+
+    function colIndex(cols, test, avoid) {
+        for (var n = 0; n < cols.length; n++) if (test.test(cols[n].s) && !(avoid && avoid.test(cols[n].s))) return n;
+        return -1;
+    }
+
+    // pages: an array of pages, each an array of lines ({y, items:[{s, x, w, y}]}, top to bottom). Returns CSV text or null.
+    function pagesToCsv(pages) {
+        var cols = null, rows = [], dateAt = 0, descAt = 1, balAt = 0;
+        pages.forEach(function (lines) {
+            var skip = [];
+            lines.forEach(function (line, l) {
+                if (!isHeader(line)) return;
+                if (!cols) {
+                    cols = headerCells(lines, l);
+                    dateAt = Math.max(colIndex(cols, /date/i, /value/i), 0);
+                    descAt = Math.max(colIndex(cols, /narration|description|particulars|details|remarks/i), 0);
+                    balAt = colIndex(cols, /balance/i);
+                    if (balAt < 0) balAt = cols.length - 1;
                 }
-                if (!cols) continue;
+                lines.forEach(function (o) { if (Math.abs(o.y - line.y) <= 9) skip.push(o); });
+            });
+            if (!cols) return;
+            var lastY = null, ended = false;                 // a TOTAL line closes the table on this page
+            lines.forEach(function (line) {
+                if (ended || skip.indexOf(line) >= 0) return;
                 var cells = cols.map(function () { return []; });
                 line.items.forEach(function (it) { cells[nearest(cols, it)].push(it.s); });
                 cells = cells.map(function (c) { return c.join(' '); });
-                if (DATE.test(cells[0])) rows.push(cells);
-                else if (rows.length && cells[0] === '') {          // a narration that wrapped onto a second line
+                if (cells.some(function (c) { return /^total$/i.test(c); })) { ended = true; return; }
+                var dated = DATE.test(cells[dateAt]);
+                // Banks leave the date off a row when it repeats the one above, so a row with a description and a balance starts one too.
+                var undated = !cells[dateAt] && cells[descAt] && NUMBER.test(cells[balAt]) && rows.length;
+                if (dated || undated) {
+                    if (undated) cells[dateAt] = rows[rows.length - 1][dateAt];
+                    cells.drop = CARRIED.test(cells[descAt]);        // a balance carried over is not a transaction
+                    rows.push(cells);
+                    lastY = line.y;
+                } else if (!cells[dateAt] && cells[descAt] && rows.length && lastY !== null && lastY - line.y <= 20) {   // a narration that wrapped
                     var prev = rows[rows.length - 1];
-                    cells.forEach(function (c, n) { if (c && !/^[\d,.\-]+(?:\s?(?:Dr|Cr))?$/i.test(c)) prev[n] = (prev[n] + ' ' + c).trim(); });
+                    prev[descAt] = (prev[descAt] + ' ' + cells[descAt]).trim();
+                    lastY = line.y;
                 }
-            }
-        }
+            });
+        });
+        rows = rows.filter(function (r) { return !r.drop; });
         if (!cols || !rows.length) return null;
         return [cols.map(function (c) { return c.s; })].concat(rows).map(function (r) { return r.map(csvCell).join(','); }).join('\n');
     }
 
-    input.addEventListener('change', async function () {
+    async function toCsv(doc) {
+        var pages = [];
+        for (var p = 1; p <= doc.numPages; p++) pages.push(await pageLines(await doc.getPage(p)));
+        return pagesToCsv(pages);
+    }
+
+    if (input) input.addEventListener('change', async function () {
         var file = input.files && input.files[0];
         if (!file || !/\.pdf$/i.test(file.name)) return;
         say(msg('reading'));

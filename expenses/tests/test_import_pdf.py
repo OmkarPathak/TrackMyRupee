@@ -38,3 +38,16 @@ class ImportPdfTests(TestCase):
             'account': self.account.id, 'currency': 'INR',
             'file': SimpleUploadedFile('s.pdf', b'%PDF-1.4', content_type='application/pdf')})
         self.assertContains(resp, 'could not be read')
+
+    def test_a_bank_pdf_table_keeps_the_posting_date_and_undated_rows(self):
+        """What the browser builds from a statement with a Value Date column and no date on repeated-day rows."""
+        csv = ('Date,Value Date,Description,Cheque,Deposit,Withdrawal,Balance\n'
+               '17 Jun 19,16 Jun 19,ATM WITHDRAWAL SELF-SWITCH AT NFS,,,"1,500.00","112,953.65"\n'
+               '17 Jun 19,,PURCHASE ANANDA VILAS HOTEL CHENNAI,,,966.00,"111,987.65"\n'
+               '18 Jun 19,18 Jun 19,CREDIT OF INTEREST,,797.00,,"112,784.65"\n')
+        resp = self.client.post(reverse('upload-preview'), {
+            'account': self.account.id, 'currency': 'INR',
+            'file': SimpleUploadedFile('s.csv', csv.encode(), content_type='text/csv')})
+        self.assertContains(resp, 'A: Date')
+        self.assertEqual(resp.context['counts']['new'], 2)
+        self.assertEqual(resp.context['counts']['credit'], 1)
