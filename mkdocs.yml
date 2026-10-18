@@ -112,6 +112,7 @@ nav:
       - Accrued vs Invested View: 02-accounts/accrued-vs-invested.md
   - Transactions:
       - Adding Expenses: 03-transactions-expenses/index.md
+      - Importing a Statement: 03-transactions-expenses/importing.md
       - Adding Income: 04-transactions-income/index.md
       - Recurring & Subscriptions: 05-transactions-recurring/index.md
       - Transfers: 06-transfers/index.md
