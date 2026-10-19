@@ -84,7 +84,6 @@ const shots = [
   { file: '14-filters-and-search/img/time-period-menu-desktop.webp', url: '/expenses/', before: `document.getElementById('tmr-time-dropdown-btn').click();` },
   { file: '14-filters-and-search/img/filter-menu-desktop.webp', url: '/expenses/', before: `document.getElementById('tmr-add-filter-btn').click();` },
   { file: '14-filters-and-search/img/page-finder-desktop.webp', url: '/dashboard/', before: `document.getElementById('sidebarSearchTrigger').click();`, wait: 1200 },
-  { file: '11-analytics-and-health/img/trends-desktop.webp', url: '/analytics/mom/', wait: 2200 },
   { file: '09-capital-events/img/trend-markers-desktop.webp', url: '/dashboard/?time_period=last_3_months', wait: 2600, clipTo: '#trendChart', clipClosest: '.card' },
   { file: '12-goals/img/goal-detail-desktop.webp', url: '/goals/', before: `
       const link = [...document.querySelectorAll('a')].find(a => /\\/goals\\/[0-9a-f-]{8,}\\/?$/.test(a.getAttribute('href') || ''));
@@ -103,7 +102,9 @@ const shots = [
   { file: '09-capital-events/img/capital-events-all-desktop.webp', url: '/capital-events/' },
   { file: '09-capital-events/img/add-capital-event-desktop.webp', url: '/capital-events/add/', fullPage: true },
   { file: '10-calendar/img/calendar-desktop.webp', url: '/calendar/' },
-  { file: '11-analytics-and-health/img/analytics-desktop.webp', url: '/analytics/' },
+  { file: '11-analytics-and-health/img/analytics-desktop.webp', url: '/analytics/', wait: 2200 },
+  { file: '11-analytics-and-health/img/cashflow-desktop.webp', url: '/analytics/cashflow/', wait: 2600 },
+  { file: '11-analytics-and-health/img/net-worth-desktop.webp', url: '/analytics/net-worth/', wait: 2600 },
   { file: '12-goals/img/goals-list-desktop.webp', url: '/goals/' },
   { file: '12-goals/img/add-goal-desktop.webp', url: '/goals/add/' },
   { file: '13-tmr-flows/img/flows-landing-desktop.webp', url: '/flows/landing/' },

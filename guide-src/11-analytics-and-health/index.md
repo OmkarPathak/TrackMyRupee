@@ -53,6 +53,8 @@ Every tile, bar, row and block opens **All Transactions** for exactly the days a
 
 ## 3. The Cashflow Tab
 
+![Cashflow](img/cashflow-desktop.webp){ loading=lazy }
+
 - **Where your money went**: a flow diagram. Your income splits into living costs, loan interest, investing and what you kept as cash. Living costs split into your biggest categories, and investing into the accounts the money went to. If you spent more than you earned, the difference shows as **Spent more than earned**. Click a block or a flow to see its transactions. A short list underneath gives the same numbers, and a few plain sentences say what stands out.
 - **Health check**: four numbers instead of one score, each with what it measures:
 
@@ -68,6 +70,8 @@ Every tile, bar, row and block opens **All Transactions** for exactly the days a
 ---
 
 ## 4. The Net Worth Tab
+
+![Net worth](img/net-worth-desktop.webp){ loading=lazy }
 
 - **Net worth**: your net worth at the end of each step of the period, with how much it changed over the period. Each point is your balances as they stood that day (later transactions are taken back out), deposits accrued only up to then, holdings and property at their latest value on or before it, and loans at what was still owed. Click a point to see what changed up to it. The chart shows at most 12 points, evenly spaced.
 - **What it's made of**: the same points split by account type: cash and bank, fixed income, investments, property and insurance, and what you owe on loans and cards (shown below the line). **Other** is money set aside for goals and loans that are not tied to an account.
