@@ -12,7 +12,7 @@
         .analytics-tabs .nav-link .bi { display: none; }
     }
 </style>
-<ul class="nav nav-pills analytics-tabs mb-3 gap-1 flex-wrap" aria-label="{% trans 'Analytics' %}">
+<ul class="nav nav-pills analytics-tabs {% if flush %}mb-0{% else %}mb-3{% endif %} gap-1 flex-wrap" aria-label="{% trans 'Analytics' %}">
     <li class="nav-item">
         <a class="nav-link py-1 px-3 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" href="{% url 'analytics' %}" {% if request.resolver_match.url_name == 'analytics' %}aria-current="page"{% endif %}>
             <i class="bi bi-pie-chart me-1"></i>{% trans "Spending & cashflow" %}

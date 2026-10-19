@@ -69,7 +69,17 @@ class AnalyticsTabsTests(TestCase):
         for name, html in pages.items():
             with self.subTest(page=name):
                 title = html.index('fw-bold mb-1">Analytics<')
-                self.assertLess(title, html.index('analytics-tabs mb-3'))
+                self.assertLess(title, html.index('<ul class="nav nav-pills analytics-tabs'))
+
+    def test_the_filters_sit_with_the_tabs_not_above_the_title(self):
+        html = self.client.get(ANALYTICS).content.decode()
+        title = html.index('fw-bold mb-1">Analytics<')
+        tabs = html.index('<ul class="nav nav-pills analytics-tabs')
+        self.assertLess(title, tabs)
+        self.assertLess(tabs, html.index('id="analyticsYear"'))
+        self.assertLess(tabs, html.index('id="includeCapitalEvents"'))
+        # the year and capital-events filters belong to the spending tab only
+        self.assertNotIn('id="analyticsYear"', self.client.get(TRENDS).content.decode())
 
     def test_both_pages_are_titled_analytics(self):
         for url in (ANALYTICS, TRENDS):
