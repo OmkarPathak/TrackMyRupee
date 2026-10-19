@@ -9,6 +9,7 @@ from .capital_events import *
 from .budgets_api import budgets_dismiss_suggestion, budgets_page, budgets_rebalance, budgets_reset, budgets_set_limit, budgets_set_limits, budgets_suggestion_fragment
 from .categories import *
 from .composer import *
+from .analytics import *
 from .dashboard import *
 from .expenses import *
 from .export import *
@@ -21,7 +22,6 @@ from .loans import *
 from .misc import *
 from .imports import *
 from .mixins import *
-from .mom_view import *
 from .notifications import *
 from .reconciliation import *
 from .recurring import *

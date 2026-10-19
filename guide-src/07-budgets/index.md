@@ -124,4 +124,4 @@ Use the arrows or the drop-down at the top to move between months. The page upda
 
 ## Related Links
 - [Adding Expenses](../03-transactions-expenses/index.md)
-- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)
+- [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)

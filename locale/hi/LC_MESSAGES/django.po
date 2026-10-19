@@ -5800,128 +5800,6 @@ msgstr ""
 "ऐसा लगता है कि {desc} हर महीने दोहराया जाता है। क्या इसे आवर्ती लेनदेन बनाना"
 " चाहेंगे?"
 
-#: expenses/views/dashboard.py:2856
-msgid "Deficit (Overspending)"
-msgstr "घाटा (अधिक खर्च)"
-
-#: expenses/views/dashboard.py:2880 expenses/views/dashboard.py:2887
-#: expenses/views/dashboard.py:2892
-msgid "Living Expenses"
-msgstr "रहन-सहन का खर्च"
-
-#: expenses/views/dashboard.py:2892 templates/expenses/analytics.html:840
-msgid "Other Expenses"
-msgstr "अन्य खर्च"
-
-#: expenses/views/dashboard.py:2933
-msgid "At Risk"
-msgstr "जोखिम में"
-
-#: expenses/views/dashboard.py:2936
-#, python-format
-msgid ""
-"You spent %(currency)s%(expense)s against %(currency)s%(income)s income "
-"(%(pct)s%% overspend)."
-msgstr ""
-"आपने %(currency)s%(income)s की आय के मुकाबले %(currency)s%(expense)s खर्च "
-"किए (%(pct)s%% अधिक खर्च)।"
-
-#: expenses/views/dashboard.py:2943
-#, python-format
-msgid "Review '%(cat)s' which accounts for %(cat_pct)s%% of your spending."
-msgstr "'%(cat)s' की समीक्षा करें जो आपके खर्च का %(cat_pct)s%% है।"
-
-#: expenses/views/dashboard.py:2950
-msgid "Caution"
-msgstr "सावधानी"
-
-#: expenses/views/dashboard.py:2952 expenses/views/dashboard.py:2971
-#, python-format
-msgid ""
-"You saved %(currency)s%(savings)s out of %(currency)s%(income)s "
-"(%(rate)s%%)."
-msgstr ""
-"आपने %(currency)s%(income)s में से %(currency)s%(savings)s बचाए "
-"(%(rate)s%%)।"
-
-#: expenses/views/dashboard.py:2960
-#, python-format
-msgid "Cutting '%(cat)s' by 20%% could save %(currency)s%(amount)s more."
-msgstr ""
-"'%(cat)s' में 20%% की कटौती से आप %(currency)s%(amount)s और बचा सकते हैं।"
-
-#: expenses/views/dashboard.py:2968
-msgid "Stable"
-msgstr "स्थिर"
-
-#: expenses/views/dashboard.py:2978
-#, python-format
-msgid "Just %(currency)s%(gap)s more to hit the 30%% savings benchmark."
-msgstr "30%% बचत के मानक तक पहुँचने के लिए बस %(currency)s%(gap)s और चाहिए।"
-
-#: expenses/views/dashboard.py:2985
-msgid "Wealth Builder"
-msgstr "संपत्ति निर्माता"
-
-#: expenses/views/dashboard.py:2988
-#, python-format
-msgid ""
-"You saved %(currency)s%(savings)s out of %(currency)s%(income)s "
-"(%(rate)s%%). That's top-tier financial discipline."
-msgstr ""
-"आपने %(currency)s%(income)s में से %(currency)s%(savings)s बचाए "
-"(%(rate)s%%)। यह बेहतरीन वित्तीय अनुशासन है।"
-
-#: expenses/views/dashboard.py:3003
-#, python-format
-msgid ""
-"'%(cat)s' is consuming %(pct)s%% of your income (%(currency)s%(amount)s). "
-"Consider setting a budget limit."
-msgstr ""
-"'%(cat)s' आपकी आय का %(pct)s%% (%(currency)s%(amount)s) खर्च कर रहा है। बजट "
-"सीमा तय करने पर विचार करें।"
-
-#: expenses/views/dashboard.py:3024
-#, python-format
-msgid ""
-"Spending is trending %(pct)s%% above your 3-month average. %(month)s may "
-"reach %(currency)s%(projected)s at this pace."
-msgstr ""
-"खर्च आपके 3 महीने के औसत से %(pct)s%% ऊपर चल रहा है। इसी रफ़्तार से "
-"%(month)s में यह %(currency)s%(projected)s तक पहुँच सकता है।"
-
-#: expenses/views/dashboard.py:3045 templates/expenses/analytics.html:283
-#: templates/mom_analysis.html:57 templates/mom_analysis.html:318
-msgid "Savings Rate"
-msgstr "बचत दर"
-
-#: expenses/views/dashboard.py:3069
-msgid "Expense Growth"
-msgstr "खर्च में वृद्धि"
-
-#: expenses/views/dashboard.py:3087
-msgid "Consistency"
-msgstr "निरंतरता"
-
-#: expenses/views/dashboard.py:3106
-msgid "Risk Buffer"
-msgstr "जोखिम बफर"
-
-#: expenses/views/dashboard.py:3107
-#, python-format
-msgid "%(months)s months"
-msgstr "%(months)s महीने"
-
-#: expenses/views/dashboard.py:3119
-#, python-format
-msgid "Your %(label)s is excellent."
-msgstr "आपका %(label)s उत्कृष्ट है।"
-
-#: expenses/views/dashboard.py:3121
-#, python-format
-msgid "However, %(label)s needs attention (%(value)s)."
-msgstr "हालाँकि, %(label)s पर ध्यान देने की आवश्यकता है (%(value)s)।"
-
 #: expenses/views/dashboard.py:3141
 #: templates/expenses/partials/_calendar_content.html:65
 msgid "Sun"
@@ -5956,10 +5834,6 @@ msgstr "शुक्र"
 #: templates/expenses/partials/_calendar_content.html:65
 msgid "Sat"
 msgstr "शनि"
-
-#: expenses/views/dashboard.py:3223
-msgid "One-time"
-msgstr "एक बार"
 
 #: expenses/views/dashboard.py:3297
 msgid "over budget"
@@ -9169,10 +9043,6 @@ msgstr "एक ही चरण में अपने वित्त सेट
 msgid "Category distribution and insights"
 msgstr "श्रेणी वितरण और जानकारी"
 
-#: templates/components/sidebar.html:329
-msgid "Month-over-month income and expense trends"
-msgstr "महीने-दर-महीने आय और खर्च के रुझान"
-
 #: templates/components/sidebar.html:337
 msgid "Complete ledger of all transactions"
 msgstr "सभी लेन-देन की पूरी बही"
@@ -10013,10 +9883,6 @@ msgstr "पुराना"
 msgid "No reconciliations yet."
 msgstr "अभी तक कोई मिलान नहीं हुआ।"
 
-#: templates/expenses/analytics.html:13
-msgid "Visualizing your financial journey over the year."
-msgstr "पूरे साल की आपकी वित्तीय यात्रा की झलक।"
-
 #: templates/expenses/analytics.html:17
 #: templates/expenses/partials/_notification_list.html:66
 msgid "View"
@@ -10027,18 +9893,6 @@ msgstr "देखें"
 msgid "Wrapped"
 msgstr "रैप्ड"
 
-#: templates/expenses/analytics.html:20
-msgid ""
-"Add one-off capital events (a laptop, a down payment) to the monthly bars "
-"and the category chart"
-msgstr ""
-"मासिक बार और श्रेणी चार्ट में एक बार के कैपिटल इवेंट (जैसे लैपटॉप, डाउन "
-"पेमेंट) जोड़ें"
-
-#: templates/expenses/analytics.html:23
-msgid "Include capital events"
-msgstr "कैपिटल इवेंट शामिल करें"
-
 #: templates/expenses/analytics.html:27 templates/expenses/pricing.html:562
 msgid "Year"
 msgstr "वर्ष"
@@ -10046,30 +9900,6 @@ msgstr "वर्ष"
 #: templates/expenses/analytics.html:45 templates/home.html:2154
 msgid "Financial Health"
 msgstr "वित्तीय स्वास्थ्य"
-
-#: templates/expenses/analytics.html:47
-msgid ""
-"An overview of your overall fiscal strength, balance rates, and core income "
-"vs. spending trends."
-msgstr ""
-"आपकी समग्र वित्तीय मज़बूती, बचत दर और आय बनाम खर्च के मुख्य रुझानों का "
-"अवलोकन।"
-
-#: templates/expenses/analytics.html:150
-msgid "Health Score"
-msgstr "हेल्थ स्कोर"
-
-#: templates/expenses/analytics.html:162
-msgid "Personalized Insights"
-msgstr "आपके लिए इनसाइट"
-
-#: templates/expenses/analytics.html:175
-msgid "Analyze your trends to see insights here."
-msgstr "यहाँ इनसाइट देखने के लिए अपने रुझानों का विश्लेषण करें।"
-
-#: templates/expenses/analytics.html:187
-msgid "View Breakdown"
-msgstr "विवरण देखें"
 
 #: templates/expenses/analytics.html:228 templates/home.html:1183
 msgid "Total Income"
@@ -10080,192 +9910,13 @@ msgstr "कुल आय"
 msgid "Total Expenses"
 msgstr "कुल खर्च"
 
-#: templates/expenses/analytics.html:264
-msgid "Total Invested"
-msgstr "कुल निवेश"
-
-#: templates/expenses/analytics.html:270
-msgid "Proactive wealth building"
-msgstr "पहले से योजना बनाकर संपत्ति निर्माण"
-
-#: templates/expenses/analytics.html:289
-msgid "Percentage of income unspent/invested"
-msgstr "खर्च न की गई/निवेश की गई आय का प्रतिशत"
-
-#: templates/expenses/analytics.html:300 templates/mom_analysis.html:315
-msgid "Income vs Expenses"
-msgstr "आय बनाम खर्च"
-
-#: templates/expenses/analytics.html:311
-msgid ""
-"Comparison of your total earnings against your total spending over time. "
-"Ideally, income should always stay above expenses."
-msgstr ""
-"समय के साथ आपकी कुल कमाई और कुल खर्च की तुलना। आदर्श रूप से आय हमेशा खर्च से"
-" ऊपर रहनी चाहिए।"
-
-#: templates/expenses/analytics.html:319
-#, python-format
-msgid "Balance Rate Trend (%%)"
-msgstr "शेष दर का रुझान (%%)"
-
-#: templates/expenses/analytics.html:328
-msgid ""
-"The percentage of income you managed to save each period. A consistent or "
-"rising line indicates improving financial health."
-msgstr ""
-"हर अवधि में आप आय का कितना प्रतिशत बचा पाए। लगातार या बढ़ती रेखा बेहतर होती "
-"वित्तीय सेहत दिखाती है।"
-
-#: templates/expenses/analytics.html:342
-msgid "Spending Behavior"
-msgstr "खर्च का व्यवहार"
-
-#: templates/expenses/analytics.html:344
-msgid ""
-"Analyze where your money goes by category and identify patterns in your "
-"daily spending habits."
-msgstr ""
-"श्रेणी के अनुसार जानें कि आपका पैसा कहाँ जाता है और अपने रोज़ के खर्च की "
-"आदतों के पैटर्न पहचानें।"
-
 #: templates/expenses/analytics.html:351 templates/home.html:2385
 msgid "Category Distribution"
 msgstr "श्रेणी वितरण"
 
-#: templates/expenses/analytics.html:351
-msgid "incl. capital events"
-msgstr "कैपिटल इवेंट सहित"
-
-#: templates/expenses/analytics.html:354
-msgid "Donut"
-msgstr "डोनट"
-
-#: templates/expenses/analytics.html:357
-msgid "Bar"
-msgstr "बार"
-
-#: templates/expenses/analytics.html:370
-msgid "Show previous"
-msgstr "पिछला दिखाएँ"
-
-#: templates/expenses/analytics.html:373
-msgid "Show more categories"
-msgstr "और श्रेणियाँ दिखाएँ"
-
-#: templates/expenses/analytics.html:386
-msgid ""
-"A breakdown of your spending by category. Identify your biggest spending "
-"areas and where you can potentially cut back."
-msgstr ""
-"श्रेणी के अनुसार आपके खर्च का विवरण। जानें कि आपका सबसे ज़्यादा खर्च कहाँ "
-"होता है और कहाँ कटौती की जा सकती है।"
-
-#: templates/expenses/analytics.html:395
-msgid "Day-of-Week Spending"
-msgstr "सप्ताह के दिन के अनुसार खर्च"
-
-#: templates/expenses/analytics.html:404
-msgid ""
-"Understand your spending habits based on the day of the week. Do you spend "
-"more on weekends or weekdays?"
-msgstr ""
-"सप्ताह के दिन के अनुसार अपनी खर्च की आदतें समझें। क्या आप सप्ताहांत में "
-"ज़्यादा खर्च करते हैं या कार्यदिवसों में?"
-
 #: templates/expenses/analytics.html:418
 msgid "Cashflow"
 msgstr "कैशफ़्लो"
-
-#: templates/expenses/analytics.html:420
-msgid ""
-"Trace the flow of your income into various buckets and understand your fixed"
-" vs. variable commitments."
-msgstr ""
-"देखें कि आपकी आय अलग-अलग हिस्सों में कैसे बँटती है और अपनी तय बनाम बदलती "
-"प्रतिबद्धताओं को समझें।"
-
-#: templates/expenses/analytics.html:426
-msgid "Income Flow"
-msgstr "आय का प्रवाह"
-
-#: templates/expenses/analytics.html:433
-msgid ""
-"Visualize how your income is distributed across different categories, "
-"investments, and remaining balance."
-msgstr ""
-"देखें कि आपकी आय अलग-अलग श्रेणियों, निवेशों और बचे हुए शेष में कैसे वितरित "
-"है।"
-
-#: templates/expenses/analytics.html:441
-msgid "Recurring Split"
-msgstr "आवर्ती बनाम अन्य"
-
-#: templates/expenses/analytics.html:450
-msgid ""
-"The portion of your spending that goes towards fixed recurring transactions "
-"versus one-time flexible expenses."
-msgstr ""
-"आपके खर्च का वह हिस्सा जो तय आवर्ती लेनदेन में जाता है, बनाम एक बार के लचीले"
-" खर्च।"
-
-#: templates/expenses/analytics.html:465
-msgid "Forecast"
-msgstr "पूर्वानुमान"
-
-#: templates/expenses/analytics.html:467
-msgid ""
-"Predict your end-of-month spending based on your current pace and remaining "
-"budget."
-msgstr ""
-"अपनी मौजूदा रफ़्तार और बचे हुए बजट के आधार पर महीने के अंत तक का खर्च "
-"अनुमानित करें।"
-
-#: templates/expenses/analytics.html:473
-msgid "Cumulative Spending Burn-down"
-msgstr "संचयी खर्च बर्न-डाउन"
-
-#: templates/expenses/analytics.html:482
-msgid ""
-"Monitor your cumulative spending throughout the month relative to your "
-"budget. Helps you pace your spending to avoid overshooting."
-msgstr ""
-"अपने बजट के मुकाबले पूरे महीने का संचयी खर्च देखें। इससे खर्च की रफ़्तार "
-"संतुलित रखने और सीमा से ज़्यादा खर्च से बचने में मदद मिलती है।"
-
-#: templates/expenses/analytics.html:519
-msgid "Not enough data to map flow."
-msgstr "प्रवाह दिखाने के लिए पर्याप्त डेटा नहीं है।"
-
-#: templates/expenses/analytics.html:726
-#, python-format
-msgid "Savings Rate (%%)"
-msgstr "बचत दर (%%)"
-
-#: templates/expenses/analytics.html:927
-msgid "Category Spending"
-msgstr "श्रेणी के अनुसार खर्च"
-
-#: templates/expenses/analytics.html:1085
-#, python-format
-msgid "Balance Rate (%%)"
-msgstr "शेष दर (%%)"
-
-#: templates/expenses/analytics.html:1143
-msgid "Total Spend"
-msgstr "कुल खर्च"
-
-#: templates/expenses/analytics.html:1224
-msgid "Cumulative Spent"
-msgstr "संचयी खर्च"
-
-#: templates/expenses/analytics.html:1246
-msgid "Projected Path"
-msgstr "अनुमानित मार्ग"
-
-#: templates/expenses/analytics.html:1256
-msgid "Ideal Budget Line"
-msgstr "आदर्श बजट रेखा"
 
 #: templates/expenses/analytics.html:1317
 msgid "Analytics is a Pro Feature"
@@ -10283,10 +9934,6 @@ msgstr ""
 #: templates/expenses/payment_history.html:57
 msgid "Upgrade to Pro"
 msgstr "Pro में अपग्रेड करें"
-
-#: templates/expenses/analytics.html:1326
-msgid "Go Back"
-msgstr "वापस जाएँ"
 
 #: templates/expenses/budget_dashboard.html:26
 #: templates/expenses/budget_dashboard.html:157
@@ -16793,224 +16440,10 @@ msgstr ""
 "आप पिछले %(limit)s महीने देख रहे हैं। अपनी पूरी वित्तीय यात्रा और रुझान "
 "देखने के लिए अपग्रेड करें।"
 
-#: templates/mom_analysis.html:43
-msgid "Current total value across all your accounts."
-msgstr "आपके सभी खातों में कुल मौजूदा मूल्य।"
-
-#: templates/mom_analysis.html:58
-msgid "Percentage of income saved. (Savings / Income) x 100."
-msgstr "बचाई गई आय का प्रतिशत। (बचत / आय) x 100।"
-
-#: templates/mom_analysis.html:62
-msgid "Great"
-msgstr "बहुत बढ़िया"
-
-#: templates/mom_analysis.html:72
-msgid "Top Expense"
-msgstr "सबसे बड़ा खर्च"
-
-#: templates/mom_analysis.html:73
-msgid "The category where you spent the most money this month."
-msgstr "इस महीने जिस श्रेणी में आपने सबसे ज़्यादा पैसा खर्च किया।"
-
-#: templates/mom_analysis.html:87
-msgid "Smart Insight"
-msgstr "स्मार्ट इनसाइट"
-
-#: templates/mom_analysis.html:88
-msgid ""
-"AI-powered highlights based on your recent spending and saving patterns."
-msgstr "आपके हाल के खर्च और बचत के पैटर्न पर आधारित AI-संचालित मुख्य बातें।"
-
-#: templates/mom_analysis.html:92
-msgid "You're on a"
-msgstr "आप चल रहे हैं"
-
-#: templates/mom_analysis.html:92
-msgid "month savings streak! Keep it up!"
-msgstr "महीने की बचत की लगातार कड़ी! ऐसे ही जारी रखें!"
-
-#: templates/mom_analysis.html:94
-msgid "You're saving aggressively this month — great progress!"
-msgstr "इस महीने आप ज़ोरदार बचत कर रहे हैं — बहुत बढ़िया प्रगति!"
-
-#: templates/mom_analysis.html:96
-msgid "Consistent spending habits observed. You're staying on track!"
-msgstr "खर्च की आदतें स्थिर दिख रही हैं। आप सही राह पर हैं!"
-
-#: templates/mom_analysis.html:113
-msgid "Category Creep Detection"
-msgstr "श्रेणी में बढ़त की पहचान"
-
-#: templates/mom_analysis.html:117
-msgid "Categories growing consistently month-over-month, not yet over budget"
-msgstr ""
-"वे श्रेणियाँ जो हर महीने लगातार बढ़ रही हैं, पर अभी बजट से ऊपर नहीं हैं"
-
-#: templates/mom_analysis.html:138
-msgid "No monthly spending creep detected!"
-msgstr "मासिक खर्च में कोई बढ़त नहीं मिली!"
-
-#: templates/mom_analysis.html:139
-msgid "Your category expenses are well-contained or on a downward trend."
-msgstr "आपकी श्रेणियों के खर्च नियंत्रण में हैं या घट रहे हैं।"
-
-#: templates/mom_analysis.html:146
-msgid "More data points needed"
-msgstr "और डेटा की ज़रूरत है"
-
-#: templates/mom_analysis.html:148
-msgid ""
-"We need at least 3 consecutive months of recorded expenses to detect "
-"spending creep trends."
-msgstr ""
-"खर्च में बढ़त के रुझान पहचानने के लिए लगातार कम से कम 3 महीनों के दर्ज खर्च "
-"चाहिए।"
-
-#: templates/mom_analysis.html:162
-msgid "Asset Allocation Health"
-msgstr "एसेट आवंटन की सेहत"
-
-#: templates/mom_analysis.html:166
-msgid "Current distribution of liquid vs growing assets"
-msgstr "तरल बनाम बढ़ती संपत्ति का मौजूदा वितरण"
-
-#: templates/mom_analysis.html:171
-msgid ""
-"Add an account with a balance to see how your money is spread between bank "
-"and investments."
-msgstr ""
-"बैलेंस वाला खाता जोड़ें और देखें कि आपका पैसा बैंक और निवेश में कैसे बँटा "
-"है।"
-
 #: templates/mom_analysis.html:177 templates/partials/guide_accounts.html:65
 #: templates/partials/savings_modal.html:139
 msgid "Bank Accounts"
 msgstr "बैंक खाते"
-
-#: templates/mom_analysis.html:188
-msgid "Cash & Bank"
-msgstr "नकद और बैंक"
-
-#: templates/mom_analysis.html:192
-msgid "sitting in bank — not growing"
-msgstr "बैंक में पड़ा है — बढ़ नहीं रहा"
-
-#: templates/mom_analysis.html:214
-#, python-format
-msgid "Healthy target: 20-30%% in growing assets"
-msgstr "स्वस्थ लक्ष्य: बढ़ती संपत्ति में 20-30%%"
-
-#: templates/mom_analysis.html:223
-#, python-format
-msgid ""
-"If you invested just %(sip)s/month from idle bank balance, you'd add %(sum)s"
-" in 3 years (at 12%% CAGR)"
-msgstr ""
-"अगर आप बैंक में पड़े खाली बैलेंस से सिर्फ़ %(sip)s/माह निवेश करें, तो 3 साल "
-"में (12%% CAGR पर) %(sum)s जुड़ जाएंगे"
-
-#: templates/mom_analysis.html:240
-msgid "Net Worth Trend"
-msgstr "कुल संपत्ति का रुझान"
-
-#: templates/mom_analysis.html:241
-msgid ""
-"Track your total asset value over time. History is reconstructed using "
-"monthly cashflows."
-msgstr ""
-"समय के साथ अपनी कुल संपत्ति का मूल्य ट्रैक करें। इतिहास मासिक कैशफ़्लो से "
-"दोबारा बनाया जाता है।"
-
-#: templates/mom_analysis.html:244
-msgid "since Jan"
-msgstr "जनवरी से"
-
-#: templates/mom_analysis.html:249
-msgid "Highest net worth ever recorded for you!"
-msgstr "आपकी अब तक की सबसे ऊँची कुल संपत्ति दर्ज हुई!"
-
-#: templates/mom_analysis.html:251
-msgid "Growing steadily towards your goals."
-msgstr "आप अपने लक्ष्यों की ओर लगातार बढ़ रहे हैं।"
-
-#: templates/mom_analysis.html:265
-msgid "No data to show trends yet."
-msgstr "रुझान दिखाने के लिए अभी कोई डेटा नहीं।"
-
-#: templates/mom_analysis.html:277
-msgid "Monthly Savings"
-msgstr "मासिक बचत"
-
-#: templates/mom_analysis.html:278
-msgid "The money left over after all expenses each month. Positive is growth!"
-msgstr "हर महीने सारे खर्च के बाद बचा पैसा। सकारात्मक होना यानी वृद्धि!"
-
-#: templates/mom_analysis.html:281
-msgid "month streak"
-msgstr "महीने की लगातार कड़ी"
-
-#: templates/mom_analysis.html:286
-msgid "This is your best savings month ever!"
-msgstr "यह आपका अब तक का सबसे अच्छा बचत महीना है!"
-
-#: templates/mom_analysis.html:288
-msgid "Your financial discipline is paying off."
-msgstr "आपका वित्तीय अनुशासन रंग ला रहा है।"
-
-#: templates/mom_analysis.html:302
-msgid "Start saving to see your progress!"
-msgstr "अपनी प्रगति देखने के लिए बचत शुरू करें!"
-
-#: templates/mom_analysis.html:316
-msgid "A direct monthly comparison of what you earned versus what you spent."
-msgstr "आपकी कमाई और खर्च की सीधी मासिक तुलना।"
-
-#: templates/mom_analysis.html:322
-#, python-format
-msgid ""
-"Expenses dropped by %(currency_symbol)s%(amount)s (%(pct)s%%) from last "
-"month! Excellent!"
-msgstr ""
-"खर्च पिछले महीने से %(currency_symbol)s%(amount)s (%(pct)s%%) घटा! बहुत "
-"बढ़िया!"
-
-#: templates/mom_analysis.html:324
-#, python-format
-msgid ""
-"Expenses increased by %(currency_symbol)s%(amount)s (%(pct)s%%) from last "
-"month."
-msgstr "खर्च पिछले महीने से %(currency_symbol)s%(amount)s (%(pct)s%%) बढ़ा।"
-
-#: templates/mom_analysis.html:326
-msgid "Monitor your spending to maintain your savings rate."
-msgstr "अपनी बचत दर बनाए रखने के लिए अपने खर्च पर नज़र रखें।"
-
-#: templates/mom_analysis.html:340
-msgid "Track income and expenses for better comparison."
-msgstr "बेहतर तुलना के लिए आय और खर्च ट्रैक करें।"
-
-#: templates/mom_analysis.html:354
-msgid ""
-"Average daily spending. Calculated as: Total Monthly Expenses / Days in "
-"Month (or current day)."
-msgstr "औसत दैनिक खर्च। गणना: कुल मासिक खर्च / महीने के दिन (या वर्तमान दिन)।"
-
-#: templates/mom_analysis.html:362
-msgid "Your daily spending is lower than last month! Great control!"
-msgstr "आपका दैनिक खर्च पिछले महीने से कम है! बहुत बढ़िया नियंत्रण!"
-
-#: templates/mom_analysis.html:364
-msgid "Your daily burn rate is slightly up. Keep an eye on small spends."
-msgstr "आपका दैनिक खर्च दर थोड़ा बढ़ा है। छोटे खर्चों पर नज़र रखें।"
-
-#: templates/mom_analysis.html:378
-msgid "Analyze your spending pace here."
-msgstr "यहाँ अपने खर्च की गति का विश्लेषण करें।"
-
-#: templates/mom_analysis.html:554
-msgid "Daily Burn"
-msgstr "दैनिक खर्च दर"
 
 #: templates/offline.html:5
 msgid "You are offline"
@@ -19663,15 +19096,422 @@ msgstr ""
 "समर्थित फ़ॉर्मैट: .pdf (आपके डिवाइस पर पढ़ी जाती है), .xlsx, .xls, .csv, "
 "अधिकतम 5 MB और 5,000 पंक्तियाँ"
 
-#: templates/expenses/partials/_analytics_tabs.html:12
-msgid "Spending & cashflow"
-msgstr "खर्च और कैशफ़्लो"
+#: expenses/analytics/cashflow.py:223
+msgid "%(a)s against %(b)s."
+msgstr "%(a)s की तुलना %(b)s से।"
 
-#: templates/components/sidebar.html:322
-#: templates/expenses/partials/_analytics_tabs.html:17
-msgid "Net worth & trends"
-msgstr "कुल संपत्ति और रुझान"
+#: expenses/analytics/cashflow.py:190
+msgid "%(a)s of %(b)s"
+msgstr "%(b)s में से %(a)s"
 
-#: templates/mom_analysis.html:11
-msgid "How your net worth, savings and spending are moving, month by month."
-msgstr "आपकी कुल संपत्ति, बचत और खर्च महीने-दर-महीने कैसे बदल रहे हैं।"
+#: templates/expenses/partials/_analytics_spend.html:61
+msgid "%(amount)s less than the comparison period at this point."
+msgstr "इस बिंदु पर तुलना वाली अवधि से %(amount)s कम।"
+
+#: templates/expenses/partials/_analytics_spend.html:61
+msgid "%(amount)s more than the comparison period at this point."
+msgstr "इस बिंदु पर तुलना वाली अवधि से %(amount)s ज़्यादा।"
+
+#: expenses/analytics/cashflow.py:177
+msgid "%(n)s months"
+msgstr "%(n)s महीने"
+
+#: expenses/analytics/cashflow.py:130
+msgid "%(name)s is your biggest cost: %(amount)s, %(pct)s of your income."
+msgstr "%(name)s आपका सबसे बड़ा खर्च है: %(amount)s, यानी आपकी आय का %(pct)s।"
+
+#: expenses/analytics/cashflow.py:144
+msgid "%(name)s went down by %(amount)s compared with %(then)s."
+msgstr "%(then)s की तुलना में %(name)s पर %(amount)s कम खर्च हुआ।"
+
+#: expenses/analytics/cashflow.py:143
+msgid "%(name)s went up by %(amount)s compared with %(then)s."
+msgstr "%(then)s की तुलना में %(name)s पर %(amount)s ज़्यादा खर्च हुआ।"
+
+#: expenses/analytics/common.py:147
+msgid "%(pct)s of income"
+msgstr "आय का %(pct)s"
+
+#: templates/expenses/partials/_analytics_networth.html:75
+msgid "+%(pct)s a month"
+msgstr "+%(pct)s हर महीने"
+
+#: expenses/analytics/cashflow.py:166
+msgid "Against %(then)s."
+msgstr "%(then)s की तुलना में।"
+
+#: templates/expenses/partials/_analytics_networth.html:20
+msgid "At the end of each step in the period."
+msgstr "अवधि के हर चरण के अंत में।"
+
+#: templates/expenses/partials/_analytics_spend.html:78
+#: templates/expenses/partials/_analytics_spend.html:84
+msgid "Biggest categories over time"
+msgstr "समय के साथ सबसे बड़ी श्रेणियाँ"
+
+#: expenses/analytics/spending.py:103
+#: templates/expenses/partials/_analytics_spend.html:68
+msgid "Budget pace"
+msgstr "बजट की गति"
+
+#: expenses/analytics/networth.py:26
+msgid "Cash & bank"
+msgstr "नकद और बैंक"
+
+#: expenses/analytics/cashflow.py:176
+msgid "Cash and bank balances, in months of your spending."
+msgstr "नकद और बैंक का शेष, आपके खर्च के महीनों में।"
+
+#: templates/expenses/partials/_analytics_networth.html:68
+msgid "Categories creeping up"
+msgstr "बढ़ती हुई श्रेणियाँ"
+
+#: templates/expenses/partials/_analytics_shell.html:39
+msgid ""
+"Category filters narrow spending only; income and savings stay as they are."
+msgstr ""
+"श्रेणी फ़िल्टर केवल खर्च को सीमित करते हैं; आय और बचत जैसी हैं वैसी ही रहती "
+"हैं।"
+
+#: expenses/analytics/cashflow.py:119
+msgid "Change"
+msgstr "बदलाव"
+
+#: templates/expenses/partials/_analytics_spend.html:20
+msgid "Click a bar to see every transaction in it."
+msgstr "किसी बार पर क्लिक करें और उसके सभी लेन-देन देखें।"
+
+#: templates/expenses/partials/_analytics_cashflow.html:19
+msgid "Click a block or a flow to see every transaction behind it."
+msgstr "किसी ब्लॉक या प्रवाह पर क्लिक करें और उसके पीछे के सभी लेन-देन देखें।"
+
+#: templates/expenses/partials/_analytics_networth.html:29
+msgid "Click a point to see what changed up to it."
+msgstr "किसी बिंदु पर क्लिक करें और देखें कि वहाँ तक क्या बदला।"
+
+#: templates/expenses/partials/_analytics_shell.html:2
+msgid "Click to view transactions"
+msgstr "लेन-देन देखने के लिए क्लिक करें"
+
+#: expenses/analytics/cashflow.py:215 expenses/analytics/spending.py:101
+#: templates/expenses/partials/_analytics_cashflow.html:64
+#: templates/expenses/partials/_analytics_spend.html:67
+msgid "Comparison"
+msgstr "तुलना"
+
+#: expenses/analytics/cashflow.py:176 expenses/analytics/cashflow.py:181
+msgid "Emergency fund"
+msgstr "आपातकालीन निधि"
+
+#: expenses/analytics/spending.py:68
+msgid "Everything else"
+msgstr "बाकी सब"
+
+#: templates/expenses/partials/_analytics_shell.html:40
+msgid "Filters apply to the Spending and Cashflow tabs."
+msgstr "फ़िल्टर खर्च और कैशफ़्लो टैब पर लागू होते हैं।"
+
+#: expenses/analytics/networth.py:27
+msgid "Fixed income"
+msgstr "फ़िक्स्ड इनकम"
+
+#: templates/expenses/partials/_analytics_cashflow.html:42
+msgid "Four plain numbers instead of one score."
+msgstr "एक स्कोर की जगह चार सीधे-सादे आँकड़े।"
+
+#: expenses/analytics/wealth.py:125
+msgid "Growing (invested)"
+msgstr "बढ़ रहा (निवेश किया)"
+
+#: templates/expenses/partials/_analytics_cashflow.html:39
+msgid "Health check"
+msgstr "सेहत की जाँच"
+
+#: expenses/analytics/cashflow.py:156
+msgid "How much of your income you kept."
+msgstr "आपने अपनी आय का कितना हिस्सा बचाया।"
+
+#: expenses/analytics/wealth.py:122
+msgid "Idle in bank accounts"
+msgstr "बैंक खातों में पड़ा"
+
+#: templates/expenses/partials/_analytics_networth.html:52
+msgid "Idle vs growing"
+msgstr "पड़ा हुआ बनाम बढ़ता हुआ"
+
+#: templates/expenses/partials/_analytics_spend.html:18
+msgid "Income and spending over the period"
+msgstr "अवधि में आय और खर्च"
+
+#: templates/expenses/partials/_analytics_spend.html:21
+msgid "Income arrives in lumps, so it shows by month on longer periods."
+msgstr "आय एक साथ आती है, इसलिए लंबी अवधि में यह महीने के हिसाब से दिखती है।"
+
+#: templates/expenses/partials/_analytics_cashflow.html:18
+msgid "Income flowing into spending, interest, investing and savings"
+msgstr "आय का खर्च, ब्याज, निवेश और बचत में प्रवाह"
+
+#: templates/expenses/partials/_analytics_spend.html:8
+msgid "Income vs spending"
+msgstr "आय बनाम खर्च"
+
+#: templates/expenses/partials/_analytics_spend.html:80
+msgid "Is something creeping up? Each colour is a category."
+msgstr "क्या कुछ बढ़ता जा रहा है? हर रंग एक श्रेणी है।"
+
+#: expenses/analytics/spending.py:44
+msgid "Kept"
+msgstr "बचा"
+
+#: expenses/analytics/cashflow.py:69
+msgid "Kept as cash"
+msgstr "नकद में बचा"
+
+#: expenses/analytics/cashflow.py:59
+msgid "Living costs"
+msgstr "रोज़मर्रा का खर्च"
+
+#: expenses/analytics/cashflow.py:62
+msgid "Loan interest"
+msgstr "लोन का ब्याज"
+
+#: expenses/analytics/networth.py:30
+msgid "Loans & cards"
+msgstr "लोन और कार्ड"
+
+#: expenses/analytics/cashflow.py:189 expenses/analytics/cashflow.py:194
+msgid "Months in the black"
+msgstr "फ़ायदे वाले महीने"
+
+#: expenses/analytics/cashflow.py:189
+msgid "Months you spent less than you earned."
+msgstr "वे महीने जब आपने कमाई से कम खर्च किया।"
+
+#: expenses/analytics/cashflow.py:162
+msgid "Needs an earlier period to compare with."
+msgstr "तुलना के लिए पहले की अवधि चाहिए।"
+
+#: expenses/analytics/cashflow.py:194
+msgid "Needs at least two months of activity."
+msgstr "कम से कम दो महीने की गतिविधि चाहिए।"
+
+#: expenses/analytics/cashflow.py:181
+msgid "Needs some spending in this period."
+msgstr "इस अवधि में कुछ खर्च होना ज़रूरी है।"
+
+#: templates/expenses/partials/_analytics_networth.html:43
+msgid "Net worth by account type"
+msgstr "खाते के प्रकार के अनुसार कुल संपत्ति"
+
+#: templates/expenses/partials/_analytics_networth.html:28
+msgid "Net worth over the period"
+msgstr "अवधि में कुल संपत्ति"
+
+#: templates/components/sidebar.html:331
+msgid "Net worth over time and what it is made of"
+msgstr "समय के साथ कुल संपत्ति और वह किससे बनी है"
+
+#: expenses/analytics/common.py:156
+msgid "No income was recorded in this period."
+msgstr "इस अवधि में कोई आय दर्ज नहीं हुई।"
+
+#: templates/expenses/partials/_analytics_spend.html:45
+msgid "No spending in this period."
+msgstr "इस अवधि में कोई खर्च नहीं।"
+
+#: templates/expenses/partials/_analytics_networth.html:79
+msgid "Nothing is creeping up. Nice."
+msgstr "कुछ भी बढ़ता नहीं दिख रहा। बढ़िया।"
+
+#: templates/expenses/partials/_analytics_empty.html:5
+msgid "Nothing to show for this period"
+msgstr "इस अवधि के लिए दिखाने को कुछ नहीं"
+
+#: expenses/analytics/cashflow.py:225
+msgid "Nothing was recorded in the period to compare with."
+msgstr "तुलना वाली अवधि में कुछ दर्ज नहीं हुआ।"
+
+#: expenses/analytics/cashflow.py:106
+msgid "Other accounts"
+msgstr "अन्य खाते"
+
+#: expenses/analytics/cashflow.py:95
+msgid "Other costs"
+msgstr "अन्य खर्च"
+
+#: templates/expenses/partials/_analytics_networth.html:44
+msgid ""
+"Other is money set aside for goals and loans that are not tied to an "
+"account."
+msgstr ""
+"\"अन्य\" वह रकम है जो लक्ष्यों के लिए अलग रखी है और वे लोन जो किसी खाते से "
+"जुड़े नहीं हैं।"
+
+#: templates/expenses/partials/_analytics_empty.html:6
+msgid "Pick a longer period or clear the filters above."
+msgstr "लंबी अवधि चुनें या ऊपर के फ़िल्टर हटाएँ।"
+
+#: expenses/analytics/networth.py:29
+msgid "Property & insurance"
+msgstr "संपत्ति और बीमा"
+
+#: templates/expenses/partials/_analytics_networth.html:72
+msgid "Rising three full months in a row, whatever period you picked."
+msgstr "लगातार तीन पूरे महीनों से बढ़ रहे, आपने कोई भी अवधि चुनी हो।"
+
+#: expenses/analytics/wealth.py:49
+msgid "See what changed"
+msgstr "देखें क्या बदला"
+
+#: expenses/analytics/cashflow.py:119
+msgid "Share of income"
+msgstr "आय में हिस्सा"
+
+#: expenses/analytics/common.py:144 expenses/analytics/spending.py:41
+#: expenses/views/analytics.py:23
+#: templates/expenses/partials/_analytics_spend.html:8
+#: templates/expenses/partials/_analytics_spend.html:16
+msgid "Spending"
+msgstr "खर्च"
+
+#: templates/expenses/partials/_analytics_spend.html:70
+msgid "Spending adding up over the period"
+msgstr "अवधि में जुड़ता खर्च"
+
+#: templates/expenses/partials/_analytics_cashflow.html:66
+msgid "Spending against the comparison period"
+msgstr "तुलना वाली अवधि के मुकाबले खर्च"
+
+#: templates/expenses/partials/_analytics_spend.html:55
+msgid "Spending as it adds up"
+msgstr "जुड़ता हुआ खर्च"
+
+#: expenses/analytics/cashflow.py:219
+msgid "Spending over the period"
+msgstr "अवधि में खर्च"
+
+#: expenses/analytics/cashflow.py:162 expenses/analytics/cashflow.py:166
+msgid "Spending trend"
+msgstr "खर्च का रुझान"
+
+#: templates/expenses/partials/_analytics_spend.html:59
+msgid "Spent %(spent)s over %(days)s days."
+msgstr "%(days)s दिनों में %(spent)s खर्च हुआ।"
+
+#: expenses/analytics/spending.py:99
+msgid "Spent so far"
+msgstr "अब तक खर्च"
+
+#: expenses/analytics/common.py:160
+msgid "That is ahead of the comparison period (%(rate)s)."
+msgstr "यह तुलना वाली अवधि (%(rate)s) से बेहतर है।"
+
+#: expenses/analytics/common.py:161
+msgid "That is behind the comparison period (%(rate)s)."
+msgstr "यह तुलना वाली अवधि (%(rate)s) से पीछे है।"
+
+#: expenses/analytics/cashflow.py:226
+msgid "There is no earlier period to compare with."
+msgstr "तुलना के लिए कोई पहले की अवधि नहीं है।"
+
+#: expenses/analytics/cashflow.py:218
+msgid "This month against last month"
+msgstr "इस महीने की पिछले महीने से तुलना"
+
+#: expenses/analytics/cashflow.py:219
+msgid "This period against the one before"
+msgstr "इस अवधि की पिछली अवधि से तुलना"
+
+#: expenses/analytics/cashflow.py:218
+msgid "This year against last year"
+msgstr "इस साल की पिछले साल से तुलना"
+
+#: expenses/analytics/cashflow.py:120 expenses/analytics/cashflow.py:206
+#: expenses/analytics/spending.py:35 expenses/analytics/spending.py:97
+#: expenses/analytics/spending.py:143
+msgid "View transactions"
+msgstr "लेन-देन देखें"
+
+#: templates/expenses/partials/_analytics_networth.html:37
+msgid "What it's made of"
+msgstr "यह किससे बना है"
+
+#: templates/expenses/partials/_analytics_spend.html:31
+msgid "Where it went"
+msgstr "पैसा कहाँ गया"
+
+#: templates/expenses/partials/_analytics_shell.html:14
+msgid "Where your money comes from, where it goes, and what it adds up to."
+msgstr "आपका पैसा कहाँ से आता है, कहाँ जाता है, और कुल कितना बनता है।"
+
+#: templates/expenses/partials/_analytics_cashflow.html:10
+msgid "Where your money went"
+msgstr "आपका पैसा कहाँ गया"
+
+#: templates/components/sidebar.html:323
+msgid "Where your money went, as a flow"
+msgstr "आपका पैसा कहाँ गया, प्रवाह के रूप में"
+
+#: expenses/analytics/cashflow.py:135
+msgid "You invested %(invested)s and kept %(kept)s of your income as cash."
+msgstr "आपने आय का %(invested)s निवेश किया और %(kept)s नकद में बचाया।"
+
+#: expenses/analytics/common.py:157
+msgid "You kept %(saved)s of %(income)s (%(rate)s)."
+msgstr "आपने %(income)s में से %(saved)s बचाए (%(rate)s)।"
+
+#: expenses/analytics/cashflow.py:133
+msgid "You spent %(amount)s more than you earned in this period."
+msgstr "इस अवधि में आपने कमाई से %(amount)s ज़्यादा खर्च किया।"
+
+#: templates/expenses/partials/_analytics_spend.html:63
+msgid "Your budget for the month is %(total)s."
+msgstr "इस महीने का आपका बजट %(total)s है।"
+
+#: templates/expenses/partials/_analytics_spend.html:10
+msgid "by day"
+msgstr "दिन के अनुसार"
+
+#: templates/expenses/partials/_analytics_spend.html:10
+msgid "by month"
+msgstr "महीने के अनुसार"
+
+#: templates/expenses/partials/_analytics_spend.html:10
+msgid "by quarter"
+msgstr "तिमाही के अनुसार"
+
+#: templates/expenses/partials/_analytics_spend.html:10
+msgid "by week"
+msgstr "सप्ताह के अनुसार"
+
+#: templates/expenses/partials/_analytics_shell.html:38
+msgid "compared with"
+msgstr "तुलना:"
+
+#: expenses/analytics/common.py:137
+msgid "pts"
+msgstr "अंक"
+
+#: expenses/analytics/common.py:88
+msgid "the period before"
+msgstr "उससे पहले की अवधि"
+
+#: expenses/analytics/common.py:87
+msgid "the same dates last year"
+msgstr "पिछले साल की उन्हीं तारीख़ों"
+
+#: expenses/analytics/common.py:87
+msgid "the same days last month"
+msgstr "पिछले महीने के उन्हीं दिनों"
+
+#: expenses/analytics/cashflow.py:0
+msgid "Paid from savings"
+msgstr "बचत से चुकाया"
+
+#: expenses/analytics/cashflow.py:0
+msgid ""
+"Your costs and investing came to %(amount)s more than your income, paid from"
+" savings you already had."
+msgstr ""
+"आपके खर्च और निवेश आपकी आय से %(amount)s ज़्यादा रहे, जो पहले से जमा बचत से "
+"चुकाए गए।"

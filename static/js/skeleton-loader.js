@@ -13,8 +13,7 @@
     { pattern: /^\/dashboard\/?$/,                 type: 'dashboard' },
 
     // Analytics
-    { pattern: /^\/analytics\/?$/,                 type: 'analytics' },
-    { pattern: /^\/analytics\/mom\/?$/,            type: 'analytics' },
+    { pattern: /^\/analytics\/(cashflow\/|net-worth\/|mom\/)?$/, type: 'analytics' },
     { pattern: /^\/year-in-review/,                type: 'analytics' },
 
     // Calendar

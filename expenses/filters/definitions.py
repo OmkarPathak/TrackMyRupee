@@ -421,6 +421,13 @@ ALL_TRANSACTIONS_FILTERS = FilterSetConfig(
             lookup_expr="in",
         ),
         FilterDef(
+            key="category",
+            label="Category",
+            type="multi_select",
+            source="dynamic",
+            options_fn=get_user_categories,
+        ),
+        FilterDef(
             key="amount_range",
             label="Amount",
             type="single_select",
@@ -777,6 +784,44 @@ DASHBOARD_FILTERS = FilterSetConfig(
     supports_search=False,
     supports_sort=False,
     external_chip_row=True,
+)
+
+
+ANALYTICS_FILTERS = FilterSetConfig(
+    page_key="analytics",
+    filters=[
+        FilterDef(
+            key="category",
+            label="Category",
+            type="multi_select",
+            source="dynamic",
+            options_fn=get_user_categories,
+            field_name="category",
+            lookup_expr="in",
+        ),
+        FilterDef(
+            key="account",
+            label="Account",
+            type="multi_select",
+            source="dynamic",
+            options_fn=get_user_accounts,
+            field_name="account_id",
+            lookup_expr="in",
+        ),
+        FilterDef(
+            key="capital_events",
+            label="Capital events",
+            type="single_select",
+            source="static",
+            options=[{"value": "include", "label": "Include in spending"}],
+        ),
+    ],
+    sort_options=[],
+    default_sort="",
+    default_time_range="this_year",
+    supports_time_period=True,
+    supports_search=False,
+    supports_sort=False,
 )
 
 

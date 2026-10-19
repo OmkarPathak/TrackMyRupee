@@ -81,4 +81,4 @@ Type a word such as a merchant, a category, a source, a loan name or an investme
 - [Adding Expenses](../03-transactions-expenses/index.md)
 - [Recurring Transactions and Subscriptions](../05-transactions-recurring/index.md)
 - [Capital Events](../09-capital-events/index.md)
-- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)
+- [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)

@@ -105,4 +105,4 @@ To delete, use the delete action on the income detail screen and confirm the pro
 ## Related Links
 - [Adding Expenses](../03-transactions-expenses/index.md)
 - [Recurring Transactions and Subscriptions](../05-transactions-recurring/index.md)
-- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)
+- [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)

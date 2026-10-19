@@ -184,4 +184,4 @@ The sparkline walks back from today's figure by each earlier month's savings, so
 - [Accrued vs Invested Balance View](accrued-vs-invested.md)
 - [Getting Started](../01-getting-started/index.md)
 - [Transfers](../06-transfers/index.md)
-- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)
+- [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)

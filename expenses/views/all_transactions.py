@@ -140,6 +140,15 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             loan_repayments = loan_repayments.filter(from_account_id__in=selected_accounts)
             capital_events = capital_events.filter(account_id__in=selected_accounts)
 
+        # Only expenses and capital events have a category, so a category filter leaves just those two
+        selected_categories = [c for c in self.request.GET.getlist('category') if c]
+        if selected_categories:
+            expenses = expenses.filter(category__in=selected_categories)
+            capital_events = capital_events.filter(category__in=selected_categories)
+            incomes = incomes.none()
+            transfers = transfers.none()
+            loan_repayments = loan_repayments.none()
+
         if selected_amounts:
             from ..filters.definitions import filter_amount_range
             expenses = filter_amount_range(expenses, selected_amounts)
@@ -239,6 +248,9 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             applied_filters['type'] = selected_types
         if selected_accounts:
             applied_filters['account'] = selected_accounts
+        selected_categories = [c for c in self.request.GET.getlist('category') if c]
+        if selected_categories:
+            applied_filters['category'] = selected_categories
         if selected_amounts:
             applied_filters['amount_range'] = selected_amounts
 

@@ -1,0 +1,83 @@
+{% load i18n digit_filters %}
+{% include 'expenses/partials/_analytics_tiles.html' %}
+
+{% if not has_flow %}
+    {% include 'expenses/partials/_analytics_empty.html' %}
+{% else %}
+<!-- Where income went: a Sankey you can click -->
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-diagram-3 me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{% trans "Where your money went" %}</span>
+            </div>
+        </div>
+    <div class="card-body">
+        {% if sankey.takeaways %}
+        <ul class="anx-takeaways list-unstyled mb-3">
+            {% for line in sankey.takeaways %}<li>{{ line }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        <div class="anx-sankey" id="anx-sankey" role="img" aria-label="{% trans 'Income flowing into spending, interest, investing and savings' %}"></div>
+        <p class="text-muted small mb-3 mt-2">{% trans "Click a block or a flow to see every transaction behind it." %}</p>
+
+        <div class="anx-flows">
+            {% for node in sankey.rows %}
+            <a href="{{ node.href|default:'#' }}" class="anx-flow-row anx-flow-row--l{{ node.level }} text-body">
+                <span class="anx-flow-name"><i class="anx-dot" data-tone="{{ node.tone }}"></i>{{ node.label }}</span>
+                <span class="anx-flow-amount">{{ node.value_text }}
+                    <small class="text-muted">{{ node.share_text }}</small>
+                    {% if node.delta.text %}<small class="anx-delta anx-delta--{{ node.delta.tone }}">{{ node.delta.text }}</small>{% endif %}
+                </span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-heart-pulse me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{% trans "Health check" %}</span>
+            </div>
+        </div>
+            <div class="card-body">
+                <p class="text-muted small mb-2">{% trans "Four plain numbers instead of one score." %}</p>
+                <div class="anx-health">
+                    {% for row in health %}
+                    <a href="{{ row.href }}" class="anx-health-row text-body">
+                        <i class="anx-status anx-status--{{ row.tone }}" aria-hidden="true"></i>
+                        <span class="anx-health-text"><strong>{{ row.label }}</strong><small class="text-muted d-block">{{ row.hint }}</small></span>
+                        <span class="anx-health-value">{{ row.value }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-arrow-left-right me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{{ comparison.title }}</span>
+            </div>
+        </div>
+            <div class="card-body">
+                <p class="text-muted small mb-2">{{ comparison.hint }}</p>
+                <ul class="anx-legend list-unstyled d-flex flex-wrap gap-3 small text-muted mb-2">
+                    <li><i class="anx-dot" data-tone="income"></i>{% trans "This period" %}</li>
+                    {% if comparison.compare %}<li><i class="anx-dot" data-tone="muted"></i>{% trans "Comparison" %}</li>{% endif %}
+                </ul>
+                <div class="anx-chart"><canvas id="anx-cmp" role="img" aria-label="{% trans 'Spending against the comparison period' %}"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ sankey|json_script:"anx-data-sankey" }}
+{{ comparison|json_script:"anx-data-cmp" }}
+{% endif %}

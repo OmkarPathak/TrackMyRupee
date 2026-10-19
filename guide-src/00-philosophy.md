@@ -48,4 +48,4 @@ Every feature in TrackMyRupee, including budgets, loans, transfers, and capital 
 ## Related Links
 - [Getting Started](./01-getting-started/index.md)
 - [Accounts and Net Worth](./02-accounts/index.md)
-- [Analytics, Trends and Financial Health](./11-analytics-and-health/index.md)
+- [Analytics: Spending, Cashflow and Net Worth](./11-analytics-and-health/index.md)

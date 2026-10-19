@@ -29,7 +29,7 @@ Use the period picker to switch to last month, the last 3 or 6 months, this year
 | **Savings rate** | Saved divided by income, leaving cashback and refunds out of the income used for the rate |
 | **Invested** | Money you moved by transfer into investment accounts. It is shown separately and is **not** taken off Saved |
 
-The loan principal you repay is not spending: your cash goes down and your debt goes down by the same amount, so only the interest reduces your savings. This is the same definition used everywhere else in the app. See [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md) for a worked example.
+The loan principal you repay is not spending: your cash goes down and your debt goes down by the same amount, so only the interest reduces your savings. This is the same definition used everywhere else in the app. See [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md) for a worked example.
 
 ### Compared with last month
 
@@ -68,7 +68,7 @@ When you are saving, the Dashboard can tell you where you would end the year if 
 ---
 
 ## Related Links
-- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)
+- [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)
 - [Budgets](../07-budgets/index.md)
 - [Accounts and Net Worth](../02-accounts/index.md)
 - [Capital Events](../09-capital-events/index.md)
