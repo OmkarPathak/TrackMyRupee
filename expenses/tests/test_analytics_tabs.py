@@ -81,6 +81,30 @@ class AnalyticsTabsTests(TestCase):
         # the year and capital-events filters belong to the spending tab only
         self.assertNotIn('id="analyticsYear"', self.client.get(TRENDS).content.decode())
 
+    def test_title_tabs_and_sections_share_one_content_column(self):
+        # A stray closing tag once ended the page's content column after the header, so on wide screens the
+        # section titles sat further left than the title and tabs. Everything must live in the same column.
+        from bs4 import BeautifulSoup
+        for url, anchors in ((ANALYTICS, ['Financial Health', 'Spending Behavior', 'Cashflow']),
+                             (TRENDS, [])):
+            with self.subTest(url=url):
+                soup = BeautifulSoup(self.client.get(url).content, 'html.parser')
+                column = soup.select_one('main .main-content-container')
+                self.assertIsNotNone(column)
+                self.assertIsNotNone(column.select_one('[data-analytics-title]'))
+                self.assertIsNotNone(column.select_one('.analytics-tabs'))
+                for text in anchors:
+                    heading = next((h for h in soup.find_all('h2') if h.get_text(strip=True) == text), None)
+                    self.assertIsNotNone(heading, text)
+                    self.assertIn(column, heading.parents, f'"{text}" is outside the content column')
+
+    def test_the_trends_page_has_no_extra_centring_wrapper(self):
+        # an inner .container would re-centre the content, so it jumped sideways when switching tabs
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(self.client.get(TRENDS).content, 'html.parser')
+        column = soup.select_one('main .main-content-container')
+        self.assertIsNone(column.select_one('.container'))
+
     def test_both_pages_are_titled_analytics(self):
         for url in (ANALYTICS, TRENDS):
             with self.subTest(url=url):
