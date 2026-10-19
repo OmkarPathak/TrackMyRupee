@@ -1,7 +1,6 @@
 """Audit of the ledger and of the analytics built on it: net worth on a past date really is the net worth on
 that date, the monthly numbers follow from it, and every posting is balanced, repeatable and consistent."""
 import datetime
-import json
 from decimal import Decimal
 from io import StringIO
 
@@ -10,7 +9,6 @@ from django.core.cache import cache
 from django.core.management import call_command
 from django.db.models import Sum
 from django.test import TestCase
-from django.urls import reverse
 from django.utils import timezone
 
 from expenses.ledger_read_service import LedgerReadService
@@ -34,7 +32,6 @@ from expenses.models import (
     PhysicalAsset,
     SavingsGoal,
     Transfer,
-    UserProfile,
     Valuation,
 )
 
@@ -230,75 +227,6 @@ class MonthlyReportNetWorthTests(Base):
         self.expense(500, first, card)                    # owed later: not part of last month's card dues
         data = MonthlyReport().get_report_data(self.user, start, end)
         self.assertEqual(data['credit_card_pending'], D('800.00'))
-
-
-class MonthOnMonthPageTests(Base):
-    def series(self):
-        r = self.client.get(reverse('analytics-mom'))
-        self.assertEqual(r.status_code, 200)
-        return r, json.loads(r.context['nw_data'])
-
-    def test_each_months_net_worth_follows_the_ledger_not_a_cashflow_guess(self):
-        bank = self.account(balance='10000')
-        loan = Loan.objects.create(user=self.user, name='L', loan_type='HOME', initial_principal=D('5000'),
-                                   duration_months=12, start_date=ago(200), is_active=True)
-        first = today().replace(day=1)
-        prev_mid = (first - datetime.timedelta(days=1)).replace(day=15)
-        # Repaying principal moves money from cash to debt: net worth must not move by the principal
-        LoanRepayment.objects.create(loan=loan, from_account=bank, date=prev_mid, amount=D('1000'),
-                                     principal_portion=D('1000'), interest_portion=D('0'))
-        _r, nw = self.series()
-        self.assertEqual(len(nw), 12)
-        self.assertEqual(nw[-1], nw[-2])           # unchanged by the principal repayment
-        self.assertEqual(nw[-1], 10000 - 1000 - 4000)
-
-    def test_the_series_ends_with_the_current_net_worth(self):
-        bank = self.account(balance='10000')
-        self.expense(250, today(), bank)
-        _r, nw = self.series()
-        self.assertEqual(nw[-1], float(self.nw()))
-
-    def test_a_free_account_sees_two_months(self):
-        UserProfile.objects.filter(user=self.user).update(tier='FREE')
-        self.account()
-        _r, nw = self.series()
-        self.assertEqual(len(nw), 2)
-
-    def test_a_new_user_with_nothing_sees_an_empty_page_not_invented_numbers(self):
-        r, _nw = self.series()
-        alloc = r.context['asset_allocation']
-        self.assertFalse(alloc['has_data'])
-        self.assertEqual((alloc['bank_pct'], alloc['inv_pct']), (0, 0))
-        self.assertNotContains(r, '88.4')
-        self.assertNotContains(r, '13.8')
-
-    def test_allocation_is_worked_out_from_what_you_hold(self):
-        self.account('Bank', 'SAVINGS_ACCOUNT', '80000')
-        self.account('MF', 'MUTUAL_FUND', '20000')
-        r, _ = self.series()
-        alloc = r.context['asset_allocation']
-        self.assertTrue(alloc['has_data'])
-        self.assertEqual((alloc['bank_pct'], alloc['inv_pct']), (80.0, 20.0))
-
-    def test_cards_loans_and_overdrafts_are_not_part_of_what_you_hold(self):
-        self.account('Bank', 'SAVINGS_ACCOUNT', '50000')
-        self.account('Card', 'CREDIT_CARD', '-30000')
-        self.account('Overdrawn', 'SAVINGS_ACCOUNT', '-9000')
-        r, _ = self.series()
-        alloc = r.context['asset_allocation']
-        self.assertEqual((alloc['bank_pct'], alloc['inv_pct']), (100.0, 0.0))
-
-    def test_a_dollar_account_counts_at_its_value_in_your_currency(self):
-        self.fx(80)
-        self.account('Bank', 'SAVINGS_ACCOUNT', '80000')
-        self.account('US', 'MUTUAL_FUND', '250', currency='$')     # 250 * 80 = 20,000
-        r, _ = self.series()
-        alloc = r.context['asset_allocation']
-        self.assertEqual((alloc['bank_pct'], alloc['inv_pct']), (80.0, 20.0))
-
-    def test_login_is_required(self):
-        self.client.logout()
-        self.assertEqual(self.client.get(reverse('analytics-mom')).status_code, 302)
 
 
 class YearInReviewGoalsTests(Base):

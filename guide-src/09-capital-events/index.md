@@ -126,5 +126,5 @@ Open an event to edit any field. To delete one, confirm the prompt. The account 
 
 ## Related Links
 - [Loans](../08-loans/index.md)
-- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)
+- [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)
 - [Budgets](../07-budgets/index.md)

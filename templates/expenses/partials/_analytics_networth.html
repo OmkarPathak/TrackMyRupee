@@ -1,0 +1,97 @@
+{% load i18n digit_filters %}
+{% if limited %}
+<!-- Free plans look back a limited way; this is the nudge -->
+<div class="alert bg-primary-subtle border-0 rounded-4 d-flex align-items-center justify-content-between gap-3 p-3 mb-3">
+    <div>
+        <h2 class="h6 fw-bold mb-0 text-primary-emphasis">{% trans "Viewing limited financial history" %}</h2>
+        <p class="mb-0 small text-muted">{% blocktrans with limit=limit_months|translate_digits %}You're seeing the last {{ limit }} months. Upgrade to see your full financial journey and trends.{% endblocktrans %}</p>
+    </div>
+    <a href="{% url 'pricing' %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold flex-shrink-0">{% trans "Upgrade" %}</a>
+</div>
+{% endif %}
+
+{% if not has_data %}
+    {% include 'expenses/partials/_analytics_empty.html' %}
+{% else %}
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-graph-up-arrow me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{% trans "Net worth" %}
+                    <span class="text-muted fw-normal d-none d-sm-inline">&middot; {% trans "At the end of each step in the period." %}</span></span>
+            </div>
+            <div class="text-end lh-sm">
+                <div class="anx-nw-now">{{ net_worth }}</div>
+                <small class="anx-delta anx-delta--{{ change.tone }} fw-bold">{{ change.text }}</small>
+            </div>
+        </div>
+    <div class="card-body">
+        <div class="anx-chart anx-chart--tall"><canvas id="anx-nw" role="img" aria-label="{% trans 'Net worth over the period' %}"></canvas></div>
+        <p class="text-muted small mb-0 mt-2">{% trans "Click a point to see what changed up to it." %}</p>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-layers me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{% trans "What it's made of" %}</span>
+            </div>
+        </div>
+            <div class="card-body">
+                <ul class="anx-legend list-unstyled d-flex flex-wrap gap-3 small text-muted mb-2">
+                    {% for g in series.groups %}<li><i class="anx-dot" data-tone="{{ g.key }}"></i>{{ g.label }}</li>{% endfor %}
+                </ul>
+                <div class="anx-chart"><canvas id="anx-mix" role="img" aria-label="{% trans 'Net worth by account type' %}"></canvas></div>
+                <p class="text-muted small mb-0 mt-2">{% trans "Other is money set aside for goals and loans that are not tied to an account." %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        {% if allocation %}
+        <div class="card border-0 shadow-sm rounded-4 mb-3">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-pie-chart me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{% trans "Idle vs growing" %}</span>
+            </div>
+        </div>
+            <div class="card-body">
+                <div class="anx-split mb-2">
+                    {% for row in allocation %}<a href="{{ row.href }}" class="anx-split-part" data-tone="{{ row.tone }}" style="flex: {{ row.share|floatformat:1 }} 1 0" title="{{ row.label }}: {{ row.amount }}">{% if row.share >= 12 %}{{ row.share_text }}{% endif %}</a>{% endfor %}
+                </div>
+                <div class="anx-flows">
+                    {% for row in allocation %}
+                    <a href="{{ row.href }}" class="anx-flow-row text-body"><span class="anx-flow-name"><i class="anx-dot" data-tone="{{ row.tone }}"></i>{{ row.label }}</span><span class="anx-flow-amount">{{ row.amount }} <small class="text-muted">{{ row.share_text }}</small></span></a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-arrow-up-right-circle me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{% trans "Categories creeping up" %}</span>
+            </div>
+        </div>
+            <div class="card-body">
+                {% if rising %}
+                <p class="text-muted small mb-2">{% trans "Rising three full months in a row, whatever period you picked." %}</p>
+                <div class="anx-flows">
+                    {% for row in rising %}
+                    <a href="{{ row.href }}" class="anx-flow-row text-body"><span class="anx-flow-name">{{ row.name }}</span><span class="anx-flow-amount"><small class="anx-delta anx-delta--{{ row.tone }}">{% blocktrans with pct=row.pct %}+{{ pct }} a month{% endblocktrans %}</small></span></a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">{% trans "Nothing is creeping up. Nice." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ series|json_script:"anx-data-nw" }}
+{% endif %}

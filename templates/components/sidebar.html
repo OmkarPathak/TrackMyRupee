@@ -45,16 +45,10 @@
                 </span>
             </a>
 
-            <!-- Analytics -->
-            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" title="{% trans 'Analytics' %}">
+            <!-- Analytics (Spending & cashflow, and Net worth & trends, are tabs inside it) -->
+            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Analytics' %}">
                 <i class="bi bi-pie-chart fs-5"></i>
                 <span class="nav-text">{% trans "Analytics" %}</span>
-            </a>
-
-            <!-- Trends -->
-            <a href="{% url 'analytics-mom' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'analytics-mom' %}active{% endif %}" title="{% trans 'Trends' %}">
-                <i class="bi bi-graph-up-arrow fs-5"></i>
-                <span class="nav-text">{% trans "Trends" %}</span>
             </a>
 
             <!-- Cash Flow Section -->
@@ -322,11 +316,19 @@
                         </div>
                         <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
                     </a>
-                    <a href="{% url 'analytics-mom' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                    <a href="{% url 'analytics-cashflow' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
+                        <i class="bi bi-diagram-3 fs-5 text-success"></i>
+                        <div>
+                            <div class="fw-semibold text-body">{% trans "Cashflow" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Where your money went, as a flow" %}</small>
+                        </div>
+                        <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
+                    </a>
+                    <a href="{% url 'analytics-networth' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
                         <i class="bi bi-graph-up-arrow fs-5 text-success"></i>
                         <div>
-                            <div class="fw-semibold text-body">{% trans "Trends" %}</div>
-                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Month-over-month income and expense trends" %}</small>
+                            <div class="fw-semibold text-body">{% trans "Net worth" %}</div>
+                            <small class="text-muted" style="font-size: 0.75rem;">{% trans "Net worth over time and what it is made of" %}</small>
                         </div>
                         <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
                     </a>

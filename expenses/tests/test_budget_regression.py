@@ -88,11 +88,13 @@ class HomeDashboardTests(Scenario):
 
 
 class AnalyticsTests(Scenario):
-    def test_burn_down_budget_line_ends_at_the_total_of_all_limits(self):
-        resp = self.client.get(reverse('analytics'))
-        line = resp.context['burn_down_budget']
-        self.assertEqual(line[-1], 17000.0)          # 5000 + 2000 + 10000, a full month of budget
-        self.assertEqual(len(line), len(resp.context['burn_down_labels']))
+    def test_the_budget_pace_is_the_total_of_all_limits_spread_over_the_month(self):
+        resp = self.client.get(reverse('analytics'), {'time_period': 'this_month'})
+        chart = resp.context['cumulative']
+        self.assertEqual(chart['budget_total'], '₹17,000')          # 5000 + 2000 + 10000, a full month of budget
+        self.assertEqual(len(chart['budget']), len(chart['current']))
+        month_days = calendar.monthrange(date.today().year, date.today().month)[1]
+        self.assertAlmostEqual(chart['budget'][-1], 17000.0 * date.today().day / month_days, places=1)
 
 
 class BudgetPageTests(Scenario):

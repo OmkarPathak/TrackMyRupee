@@ -285,6 +285,9 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# How long a finished Analytics tab is kept (seconds). Any write by the user clears it sooner; tests turn it off.
+ANALYTICS_CACHE_SECONDS = 0 if IS_TESTING else 300
+
 # ---------------------------------------------------------------------------
 # Cache — single definition that handles all environments.
 # Priority: test → Redis (if REDIS_URL set) → LocMemCache

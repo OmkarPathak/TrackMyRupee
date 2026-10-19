@@ -200,4 +200,4 @@ def rename_category_history(user, old_name, new_name, category=None):
 def _invalidate(user):
     from django.core.cache import cache
     cache.delete_many([f'budget_dashboard_{user.id}', f'budget_suggestion_rows_{user.id}', f'home_default_data_{user.id}',
-                       f'analytics_default_data_{user.id}'])
+                       f'analytics_version_{user.id}', f'analytics_nw_points_{user.id}'])

@@ -5,7 +5,6 @@ from django.views.generic import RedirectView, TemplateView
 
 from . import views, views_payment
 from .converters import UUIDOrIntConverter
-from .views.mom_view import mom_analysis_view
 
 register_converter(UUIDOrIntConverter, 'uuid_or_int')
 
@@ -24,10 +23,14 @@ urlpatterns = [
     path('api/budgets/reset/', views.budgets_reset, name='budgets-api-reset'),
     path('api/budgets/suggestion/', views.budgets_suggestion_fragment, name='budgets-api-suggestion'),
     path('api/budgets/suggestion/dismiss/', views.budgets_dismiss_suggestion, name='budgets-api-dismiss'),
-    path('analytics/', views.AnalyticsView.as_view(), name='analytics'),
+    path('analytics/', views.AnalyticsView.as_view(tab='spend'), name='analytics'),
+    path('analytics/cashflow/', views.AnalyticsView.as_view(tab='cashflow'), name='analytics-cashflow'),
+    path('analytics/net-worth/', views.AnalyticsView.as_view(tab='networth'), name='analytics-networth'),
     path('year-in-review/', views.YearInReviewView.as_view(), name='year_in_review_default'),
     path('year-in-review/<int:year>/', views.YearInReviewView.as_view(), name='year_in_review'),
-    path('analytics/mom/', mom_analysis_view, name='analytics-mom'),
+    # the old Trends address, kept so bookmarks still work
+    path('analytics/mom/', RedirectView.as_view(pattern_name='analytics-networth', query_string=True, permanent=True),
+         name='analytics-mom'),
     path('demo/', views.demo_login, name='demo_login'),
     path('demo-signup/', views.demo_signup, name='demo_signup'),
     path('upload/', views.upload_view, name='upload'),

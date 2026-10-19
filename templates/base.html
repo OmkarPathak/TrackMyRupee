@@ -1122,7 +1122,7 @@
     {% block extra_js %}{% endblock %}
 
     <!-- Skeleton Loader JS — deferred so it doesn't block first paint -->
-    <script defer src="{% static 'js/skeleton-loader.js' %}?v=1.4"></script>
+    <script defer src="{% static 'js/skeleton-loader.js' %}?v=1.5"></script>
     {% if user.is_authenticated %}<script defer src="{% static 'js/expense_toast.js' %}?v=1.0"></script>{% endif %}
     <script defer src="{% static 'vendor/htmx/htmx-2.0.4.min.js' %}"></script>
     <script defer src="{% static 'vendor/alpine/alpine-3.14.9.min.js' %}"></script>

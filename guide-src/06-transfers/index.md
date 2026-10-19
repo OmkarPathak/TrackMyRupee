@@ -105,4 +105,4 @@ Every month, money automatically moves from your bank account balance into your 
 - [Holdings and Mutual Funds Portfolio](../02-accounts/holdings.md)
 - [Accounts and Net Worth](../02-accounts/index.md)
 - [Adding Expenses](../03-transactions-expenses/index.md)
-- [Analytics, Trends and Financial Health](../11-analytics-and-health/index.md)
+- [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)

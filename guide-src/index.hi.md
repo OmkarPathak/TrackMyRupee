@@ -34,13 +34,13 @@
 
     [:octicons-arrow-right-24: व्यय](03-transactions-expenses/index.md)
 
--   :material-chart-line:{ .lg .middle } **विश्लेषण और वित्तीय स्वास्थ्य**
+-   :material-chart-line:{ .lg .middle } **Analytics**
 
     ---
 
-    अपनी बचत दर, खर्च पैटर्न और 4-मीट्रिक वित्तीय स्वास्थ्य स्कोर को समझें।
+    देखें कि पैसा कहाँ जाता है, बचत दर कैसे बदलती है और कुल संपत्ति कैसे बढ़ती है। किसी भी चीज़ पर क्लिक करके उसके लेन-देन देखें।
 
-    [:octicons-arrow-right-24: विश्लेषण](11-analytics-and-health/index.md)
+    [:octicons-arrow-right-24: Analytics](11-analytics-and-health/index.md)
 
 -   :material-wallet:{ .lg .middle } **बजट**
 
@@ -77,7 +77,7 @@
 | [लोन](08-loans/index.md) | EMI पूर्वावलोकन और भुगतान |
 | [कैपिटल इवेंट्स](09-capital-events/index.md) | बड़े एकमुश्त भुगतान |
 | [कैलेंडर](10-calendar/index.md) | दैनिक ऑडिट ट्रेल |
-| [विश्लेषण](11-analytics-and-health/index.md) | स्वास्थ्य स्कोर और ट्रेंड्स |
+| [Analytics](11-analytics-and-health/index.md) | खर्च, कैशफ़्लो, कुल संपत्ति, बचत दर |
 | [बचत लक्ष्य](12-goals/index.md) | प्रगति बार और लक्ष्य |
 | [मोबाइल ऐप](20-mobile-app/index.md) | iOS ऐप गाइड |
 | [स्व-होस्टिंग](21-self-hosting/index.md) | Docker पर सेटअप |

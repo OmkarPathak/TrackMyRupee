@@ -283,27 +283,29 @@ class TestEveryScreenReportsTheSameRate(SavingsDbBase):
         self.assertEqual(hero['saved'], D('8600.00'))
         self.assertEqual(hero['spent'], D('2100.00'))
 
-    def test_analytics_monthly_series_and_ytd(self):
+    def test_analytics_totals_and_rate(self):
         response = self.client.get(reverse('analytics'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['balance_rate_data'][-1], self.EXPECTED_RATE)
-        self.assertEqual(response.context['avg_balance_rate'], self.EXPECTED_RATE)
+        tiles = {t['key']: t['value'] for t in response.context['tiles']}
+        self.assertEqual(tiles['rate'], f'{self.EXPECTED_RATE}%')
+        self.assertEqual((tiles['income'], tiles['spending']), ('₹10,700', '₹2,100'))
 
     def test_analytics_capital_toggle_adds_the_excluded_events(self):
-        response = self.client.get(reverse('analytics'), {'include_capital_events': '1'})
+        response = self.client.get(reverse('analytics'), {'capital_events': 'include'})
         self.assertEqual(response.status_code, 200)
-        with_toggle = response.context['balance_rate_data'][-1]
+        tiles = {t['key']: t['value'] for t in response.context['tiles']}
         # 8,600 minus the 9,000 excluded-from-averages event = -400 -> -4.0%
-        self.assertEqual(with_toggle, -4.0)
-        # ...and the YTD average (which has no toggle) is unaffected
-        self.assertEqual(response.context['avg_balance_rate'], self.EXPECTED_RATE)
+        self.assertEqual(tiles['rate'], '-4.0%')
+        self.assertEqual(tiles['spending'], '₹11,100')
+        # ...and without the switch the same events stay out
+        plain = {t['key']: t['value'] for t in self.client.get(reverse('analytics')).context['tiles']}
+        self.assertEqual(plain['rate'], f'{self.EXPECTED_RATE}%')
 
-    def test_month_on_month_view(self):
-        response = self.client.get(reverse('analytics-mom'))
+    def test_analytics_cashflow_health_check(self):
+        response = self.client.get(reverse('analytics-cashflow'))
         self.assertEqual(response.status_code, 200)
-        summary = response.context['summary']
-        self.assertEqual(summary['savings_rate'], self.EXPECTED_RATE)
-        self.assertEqual(summary['total_savings'], 8600.0)
+        rate = next(row for row in response.context['health'] if row['label'] == 'Savings rate')
+        self.assertEqual(rate['value'], '86%')
 
     def test_transactions_page(self):
         response = self.client.get(reverse('all-transactions'))

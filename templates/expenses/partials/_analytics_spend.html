@@ -1,0 +1,102 @@
+{% load i18n digit_filters %}
+{% include 'expenses/partials/_analytics_tiles.html' %}
+
+<!-- Income against spending, by day / week / month / quarter -->
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-bar-chart-line me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{% if in_out.income %}{% trans "Income vs spending" %}{% else %}{% trans "Spending" %}{% endif %}
+                    <span class="text-muted fw-normal">&middot; {% if granularity == 'day' %}{% trans "by day" %}{% elif granularity == 'week' %}{% trans "by week" %}{% elif granularity == 'month' %}{% trans "by month" %}{% else %}{% trans "by quarter" %}{% endif %}</span></span>
+            </div>
+        </div>
+    <div class="card-body">
+        <ul class="anx-legend list-unstyled d-flex flex-wrap gap-3 small text-muted mb-2">
+            {% if in_out.income %}<li><i class="anx-dot" data-tone="income"></i>{% trans "Income" %}</li>{% endif %}
+            <li><i class="anx-dot" data-tone="spend"></i>{% trans "Spending" %}</li>
+        </ul>
+        <div class="anx-chart"><canvas id="anx-in-out" role="img" aria-label="{% trans 'Income and spending over the period' %}"></canvas></div>
+        <p class="text-muted small mb-0 mt-2">
+            {% trans "Click a bar to see every transaction in it." %}
+            {% if not in_out.income %}{% trans "Income arrives in lumps, so it shows by month on longer periods." %}{% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <!-- Where it went: plain links, one row per category -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-list-ol me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{% trans "Where it went" %}</span>
+            </div>
+        </div>
+            <div class="card-body">
+                {% if categories %}
+                <div class="anx-rank">
+                    {% for row in categories %}
+                    <a href="{{ row.href }}" class="anx-rank-row text-body">
+                        <span class="anx-rank-name">{{ row.name }}<span class="anx-rank-pct">{{ row.share_text }}</span></span>
+                        <span class="anx-rank-amount">{{ row.amount }}{% if row.delta.text %} <small class="anx-delta anx-delta--{{ row.delta.tone }}">{{ row.delta.text }}</small>{% endif %}</span>
+                        <span class="anx-rank-bar"><i style="width: {{ row.width|floatformat:1 }}%"></i></span>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">{% trans "No spending in this period." %}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Spending adding up, against the comparison period -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+            <div class="d-inline-flex align-items-center">
+                <i class="bi bi-graph-up me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+                <span class="card-title-text">{% trans "Spending as it adds up" %}</span>
+            </div>
+        </div>
+            <div class="card-body">
+                <p class="text-muted small mb-2">
+                    {% blocktrans with spent=cumulative.spent days=cumulative.days|translate_digits %}Spent {{ spent }} over {{ days }} days.{% endblocktrans %}
+                    {% if cumulative.gap %}
+                        {% if cumulative.gap.less %}{% blocktrans with amount=cumulative.gap.amount %}{{ amount }} less than the comparison period at this point.{% endblocktrans %}{% else %}{% blocktrans with amount=cumulative.gap.amount %}{{ amount }} more than the comparison period at this point.{% endblocktrans %}{% endif %}
+                    {% endif %}
+                    {% if cumulative.budget_total %}{% blocktrans with total=cumulative.budget_total %}Your budget for the month is {{ total }}.{% endblocktrans %}{% endif %}
+                </p>
+                <ul class="anx-legend list-unstyled d-flex flex-wrap gap-3 small text-muted mb-2">
+                    <li><i class="anx-dot" data-tone="income"></i>{% trans "This period" %}</li>
+                    {% if cumulative.compare %}<li><i class="anx-dot" data-tone="muted"></i>{% trans "Comparison" %}</li>{% endif %}
+                    {% if cumulative.budget %}<li><i class="anx-dot" data-tone="budget"></i>{% trans "Budget pace" %}</li>{% endif %}
+                </ul>
+                <div class="anx-chart"><canvas id="anx-cum" role="img" aria-label="{% trans 'Spending adding up over the period' %}"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if trend.series %}
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold anx-head">
+        <div class="d-inline-flex align-items-center">
+            <i class="bi bi-bar-chart-steps me-2 text-muted anx-head-icon" aria-hidden="true"></i>
+            <span class="card-title-text">{% trans "Biggest categories over time" %}</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small mb-2">{% trans "Is something creeping up? Each colour is a category." %}</p>
+        <ul class="anx-legend list-unstyled d-flex flex-wrap gap-3 small text-muted mb-2">
+            {% for name in trend.names %}<li><i class="anx-dot" data-tone="cat{{ forloop.counter0 }}"></i>{{ name }}</li>{% endfor %}
+        </ul>
+        <div class="anx-chart anx-chart--tall"><canvas id="anx-trend" role="img" aria-label="{% trans 'Biggest categories over time' %}"></canvas></div>
+    </div>
+</div>
+{% endif %}
+
+{{ in_out|json_script:"anx-data-in-out" }}
+{{ cumulative|json_script:"anx-data-cum" }}
+{{ trend|json_script:"anx-data-trend" }}

@@ -42,11 +42,11 @@ This guide walks you through every feature, step by step.
 
     [:octicons-arrow-right-24: Expenses](03-transactions-expenses/index.md)
 
--   :material-chart-line:{ .lg .middle } **Analytics & Health Score**
+-   :material-chart-line:{ .lg .middle } **Analytics**
 
     ---
 
-    Understand your savings rate, spending patterns, and 4-metric Financial Health score.
+    See where your money goes, how your savings rate moves, and how your net worth grows. Click anything to see the transactions behind it.
 
     [:octicons-arrow-right-24: Analytics](11-analytics-and-health/index.md)
 
@@ -94,7 +94,7 @@ This guide walks you through every feature, step by step.
 | [Loans](08-loans/index.md) | EMI preview, repayments, auto-close |
 | [Capital Events](09-capital-events/index.md) | Large one-off payments |
 | [Calendar](10-calendar/index.md) | Day-by-day audit trail |
-| [Analytics & Health](11-analytics-and-health/index.md) | Health score, trends, category creep |
+| [Analytics](11-analytics-and-health/index.md) | Spending, cashflow, net worth, savings rate |
 | [Savings Goals](12-goals/index.md) | Progress bars, milestones |
 | [Search and Filters](14-filters-and-search/index.md) | Time periods, filter chips, sorting, quick page search |
 | [Mobile App](20-mobile-app/index.md) | iOS build with Capacitor |

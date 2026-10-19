@@ -120,10 +120,11 @@ class BudgetAndDashboardTests(Base):
 
 
 class AnalyticsSwitchTests(Base):
+    """The Analytics "Capital events: Include in spending" filter adds events under their category or type."""
+
     def cats(self, **params):
-        params.setdefault('year', today().year)
         context = self.client.get(reverse('analytics'), params).context
-        return dict(zip(context['cat_labels'], context['cat_data'])), context
+        return {row['name']: row['amount'] for row in context['categories']}, context
 
     def setUp(self):
         super().setUp()
@@ -133,41 +134,36 @@ class AnalyticsSwitchTests(Base):
         self.event(amount=90000, category='Electronics', when=when)
         self.event(amount=15000, subtype='medical_lump_sum', when=when)
 
-    def test_switch_off_leaves_capital_events_out_of_the_category_chart(self):
+    def test_switch_off_leaves_capital_events_out_of_the_category_ranking(self):
         cats, context = self.cats()
-        self.assertEqual(cats, {'Electronics': 2000.0})
-        self.assertFalse(context['include_capital_events'])
+        self.assertEqual(cats, {'Electronics': '₹2,000'})
+        self.assertNotIn('include', context['applied_state']['filters'].get('capital_events', []))
 
     def test_switch_on_adds_them_under_their_category_or_event_type(self):
-        cats, context = self.cats(include_capital_events='1')
-        self.assertEqual(cats['Electronics'], 92000.0)          # expense and event share one slice
-        self.assertEqual(cats['Medical Lump Sum'], 15000.0)     # no category: reported under the event type
-        self.assertTrue(context['include_capital_events'])
+        cats, context = self.cats(capital_events='include')
+        self.assertEqual(cats['Electronics'], '₹92,000')          # expense and event share one row
+        self.assertEqual(cats['Medical Lump Sum'], '₹15,000')     # no category: reported under the event type
+        self.assertEqual(context['applied_state']['filters']['capital_events'], ['include'])
 
-    def test_largest_slice_comes_first(self):
-        _cats, context = self.cats(include_capital_events='1')
-        self.assertEqual(context['cat_labels'][0], 'Electronics')
+    def test_largest_row_comes_first(self):
+        _cats, context = self.cats(capital_events='include')
+        self.assertEqual(context['categories'][0]['name'], 'Electronics')
 
-    def test_deleted_events_and_other_years_are_ignored(self):
+    def test_deleted_events_and_other_periods_are_ignored(self):
         CapitalEvent.objects.filter(subtype='medical_lump_sum').update(is_deleted=True)
         self.event(amount=777, category='Food', when=datetime.date(today().year - 1, 3, 3))
-        cats, _context = self.cats(include_capital_events='1')
+        cats, _context = self.cats(capital_events='include')
         self.assertNotIn('Medical Lump Sum', cats)
         self.assertNotIn('Food', cats)
 
-    def test_header_controls_are_matching_pills_and_the_year_uses_the_standard_searchable_dropdown(self):
-        html = self.client.get(reverse('analytics'), {'year': today().year}).content.decode()
-        self.assertIn('class="tmr-toggle-chip', html)
-        self.assertIn('class="tmr-year-pill"', html)
-        # a plain form-select is what the app's searchable dropdown (with its search box) attaches to
-        self.assertRegex(html, r'<select id="analyticsYear" name="year" class="form-select[^"]*"')
+    def test_the_switch_is_one_of_the_toolbar_filters(self):
+        context = self.client.get(reverse('analytics')).context
+        capital = context['filter_config'].get_filter('capital_events')
+        self.assertEqual([o['value'] for o in capital.get_options_list()], ['include'])
 
-    def test_the_page_has_the_switch(self):
-        html = self.client.get(reverse('analytics'), {'year': today().year}).content.decode()
-        self.assertIn('name="include_capital_events"', html)
-        on = self.client.get(reverse('analytics'), {'year': today().year, 'include_capital_events': '1'}).content.decode()
-        self.assertRegex(on, r'id="includeCapitalEvents"[^>]*checked')
-        self.assertIn('incl. capital events', on)
+    def test_the_toolbar_knows_the_switch_is_on(self):
+        html = self.client.get(reverse('analytics'), {'capital_events': 'include'}).content.decode()
+        self.assertIn('"capital_events": ["include"]', html)
 
 
 class ListAndConversionTests(Base):

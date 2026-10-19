@@ -34,13 +34,13 @@
 
     [:octicons-arrow-right-24: खर्च](03-transactions-expenses/index.md)
 
--   :material-chart-line:{ .lg .middle } **विश्लेषण आणि आर्थिक आरोग्य**
+-   :material-chart-line:{ .lg .middle } **Analytics**
 
     ---
 
-    तुमचा बचत दर, खर्चाचा पॅटर्न आणि ४-मेट्रिक आर्थिक आरोग्य स्कोअर समजून घ्या.
+    पैसे कुठे जातात, बचत दर कसा बदलतो आणि एकूण संपत्ती कशी वाढते ते पाहा. कोणत्याही गोष्टीवर क्लिक करून त्यामागील व्यवहार पाहा.
 
-    [:octicons-arrow-right-24: विश्लेषण](11-analytics-and-health/index.md)
+    [:octicons-arrow-right-24: Analytics](11-analytics-and-health/index.md)
 
 -   :material-wallet:{ .lg .middle } **बजेट**
 
@@ -77,7 +77,7 @@
 | [कर्जे](08-loans/index.md) | EMI पूर्वदृश्य आणि हप्ते |
 | [कॅपिटल इव्हेंट्स](09-capital-events/index.md) | मोठे एकरकमी व्यवहार |
 | [कॅलेंडर](10-calendar/index.md) | दैनिक ऑडिट ट्रेल |
-| [विश्लेषण](11-analytics-and-health/index.md) | आरोग्य स्कोअर आणि ट्रेंड्स |
+| [Analytics](11-analytics-and-health/index.md) | खर्च, कॅशफ्लो, एकूण संपत्ती, बचत दर |
 | [बचत ध्येये](12-goals/index.md) | प्रगती बार आणि टप्पे |
 | [मोबाइल ॲप](20-mobile-app/index.md) | iOS ॲप मार्गदर्शक |
 | [स्व-होस्टिंग](21-self-hosting/index.md) | Docker वर सेटअप |

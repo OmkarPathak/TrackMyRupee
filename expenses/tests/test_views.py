@@ -1,11 +1,10 @@
 import json
 from datetime import date, timedelta
 from decimal import Decimal
-from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.test import Client, TestCase
+from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from expenses.models import (
@@ -396,104 +395,79 @@ class BulkActionTest(BaseViewTest):
         self.assertIn(f'year={date.today().year}', response.url)
 
 class AnalyticsViewTest(BaseViewTest):
+    """The page itself is covered in test_analytics_page.py; these are the view-level basics."""
+
+    def pro(self):
+        self.user.profile.tier = 'PRO'
+        self.user.profile.is_lifetime = True
+        self.user.profile.save()
+
     def test_analytics_access(self):
-        # Assuming URL name is 'analytics' (verified in implementation plan / memory)
-        try:
-            url = reverse('analytics')
-        except:
-             return 
-
-        self.user.profile.tier = 'PRO'
-        self.user.profile.is_lifetime = True
-        self.user.profile.save()
-
-        response = self.client.get(url)
+        self.pro()
+        response = self.client.get(reverse('analytics'))
         self.assertEqual(response.status_code, 200)
-        self.assertIn('income_data', response.context)
-        self.assertIn('expense_data', response.context)
+        self.assertIn('in_out', response.context)
+        self.assertIn('tiles', response.context)
 
-    def test_analytics_caching_default_view_hit_and_miss(self):
-        from expenses.views.dashboard import AnalyticsView
+    def test_a_finished_tab_is_kept_and_served_from_the_cache(self):
+        from django.test import override_settings
+
+        from expenses.analytics.common import cache_key
+        from expenses.views.analytics import Page
+        self.pro()
         url = reverse('analytics')
-        self.user.profile.tier = 'PRO'
-        self.user.profile.is_lifetime = True
-        self.user.profile.save()
+        with override_settings(ANALYTICS_CACHE_SECONDS=300):
+            self.assertEqual(self.client.get(url).status_code, 200)
+            request = RequestFactory().get(url)
+            request.user = self.user
+            key = cache_key(Page(request, 'spend'))
+            cached = cache.get(key)
+            self.assertIsNotNone(cached)
 
-        cache_key = f'analytics_default_data_{self.user.id}'
-        cache.delete(cache_key)
-        self.assertIsNone(cache.get(cache_key))
+            cached['test_cache_hit_marker'] = True          # proves the next visit is served from the cache
+            cache.set(key, cached, 300)
+            self.assertTrue(self.client.get(url).context.get('test_cache_hit_marker'))
 
-        with patch.object(AnalyticsView, '_force_cache_in_testing', True):
-            # 1. Miss / Cold load
-            response = self.client.get(url)
-            self.assertEqual(response.status_code, 200)
-            cached_data = cache.get(cache_key)
-            self.assertIsNotNone(cached_data)
-
-            # 2. Inject marker to prove cache hit serves from cache
-            cached_data['test_cache_hit_marker'] = True
-            cache.set(cache_key, cached_data, 300)
-
-            response2 = self.client.get(url)
-            self.assertEqual(response2.status_code, 200)
-            self.assertTrue(response2.context.get('test_cache_hit_marker'))
-
-            # 3. Filtered load bypasses cache
-            response3 = self.client.get(f"{url}?year={date.today().year - 1}")
-            self.assertEqual(response3.status_code, 200)
-            self.assertNotIn('test_cache_hit_marker', response3.context)
+            # another period is another entry, so it does not see the marker
+            other = self.client.get(f"{url}?time_period=last_month")
+            self.assertNotIn('test_cache_hit_marker', other.context)
 
     def test_analytics_cache_invalidation_on_mutation(self):
-        cache_key = f'analytics_default_data_{self.user.id}'
-        cache.set(cache_key, {'dummy': True}, 300)
-        self.assertIsNotNone(cache.get(cache_key))
+        version_key = f'analytics_version_{self.user.id}'
+        points_key = f'analytics_nw_points_{self.user.id}'
+        cache.set(version_key, 'v1', 300)
+        cache.set(points_key, {'2026-01-01': {}}, 300)
 
         # Mutation: creating an Expense triggers invalidate_dashboard_cache
         account = Account.objects.create(user=self.user, name='Bank', balance=1000)
-        Expense.objects.create(
-            user=self.user,
-            account=account,
-            amount=50,
-            category='Food',
-            description='Test Snack',
-            date=date.today()
-        )
-        self.assertIsNone(cache.get(cache_key))
+        cache.set(version_key, 'v1', 300)
+        cache.set(points_key, {'2026-01-01': {}}, 300)
+        Expense.objects.create(user=self.user, account=account, amount=50, category='Food', description='Test Snack',
+                               date=date.today())
+        self.assertIsNone(cache.get(version_key))
+        self.assertIsNone(cache.get(points_key))
 
-        # Re-set cache, delete expense -> should invalidate again
-        cache.set(cache_key, {'dummy': True}, 300)
-        self.assertIsNotNone(cache.get(cache_key))
+        # deleting clears them again
+        cache.set(version_key, 'v1', 300)
         Expense.objects.filter(user=self.user).delete()
-        self.assertIsNone(cache.get(cache_key))
+        self.assertIsNone(cache.get(version_key))
 
-    def test_mom_analysis_access(self):
-        url = reverse('analytics-mom')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('creep_categories', response.context)
-        self.assertIn('asset_allocation', response.context)
-        self.assertIn('labels', response.context)
-        self.assertFalse(response.context['has_enough_creep_data'])
+    def test_the_old_trends_address_goes_to_the_net_worth_tab(self):
+        response = self.client.get(reverse('analytics-mom'))
+        self.assertRedirects(response, reverse('analytics-networth'), status_code=301, fetch_redirect_response=False)
 
-    def test_mom_analysis_with_enough_data(self):
-        # Create expenses in last 3 months
+    def test_the_net_worth_tab_lists_a_category_that_rose_three_months_running(self):
+        Category.objects.get_or_create(user=self.user, name='Food')
         today = date.today()
-        # Month 1 (current)
-        Expense.objects.create(user=self.user, date=today, amount=200, category='Food', currency='₹')
-        # Month 2 (previous)
-        m2_date = today.replace(day=1) - timedelta(days=5)
-        Expense.objects.create(user=self.user, date=m2_date, amount=150, category='Food', currency='₹')
-        # Month 3 (2 months ago)
-        m3_date = m2_date.replace(day=1) - timedelta(days=5)
-        Expense.objects.create(user=self.user, date=m3_date, amount=100, category='Food', currency='₹')
-
-        url = reverse('analytics-mom')
-        response = self.client.get(url)
+        first = today.replace(day=1)
+        for months_back, amount in ((3, 100), (2, 150), (1, 200)):
+            index = first.year * 12 + first.month - 1 - months_back
+            Expense.objects.create(user=self.user, amount=amount, category='Food', currency='₹',
+                                   date=date(index // 12, index % 12 + 1, 1))
+        response = self.client.get(reverse('analytics-networth'))
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context['has_enough_creep_data'])
-        # Also check that creep is detected (amount increased 100 -> 150 -> 200)
-        self.assertEqual(len(response.context['creep_categories']), 1)
-        self.assertEqual(response.context['creep_categories'][0]['name'], 'Food')
+        self.assertEqual([row['name'] for row in response.context['rising']], ['Food'])
+
 
 class RecurringTransactionMixinTest(BaseViewTest):
     def test_recurring_expense_generation(self):

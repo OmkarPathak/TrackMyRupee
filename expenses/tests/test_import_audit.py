@@ -288,15 +288,13 @@ class MoneyTests(Base):
         self.assertEqual(self.bank.balance, D('9700.00'))
 
     def test_the_dashboard_figures_move_at_once_after_an_import(self):
-        from expenses.views.dashboard import AnalyticsView
-        AnalyticsView._force_cache_in_testing = True
-        try:
-            first = self.client.get(reverse('analytics')).context['total_expense_ytd']
+        from django.test import override_settings
+        with override_settings(ANALYTICS_CACHE_SECONDS=300):
+            first = self.client.get(reverse('analytics')).context['tiles'][1]['value']
             self.results(csv_file([['Date', 'Description', 'Amount'], [today().isoformat(), 'new', 500]]))
-            second = self.client.get(reverse('analytics')).context['total_expense_ytd']
-            self.assertEqual(second, first + 500)
-        finally:
-            AnalyticsView._force_cache_in_testing = False
+            second = self.client.get(reverse('analytics')).context['tiles'][1]['value']
+        self.assertNotEqual(first, second)
+        self.assertEqual(second, f"₹{int(first.replace('₹', '').replace(',', '')) + 500:,}")
 
 
 class PlanLimitTests(Base):

@@ -1,0 +1,51 @@
+{% load i18n digit_filters filter_tags %}
+<div id="analytics-shell" class="anx fade-in pb-4" data-tab="{{ tab }}" data-currency="{{ currency_symbol|default:'₹' }}" data-hint="{% trans 'Click to view transactions' %}" aria-busy="false">
+{% if is_locked %}
+    <div class="text-center py-5 mx-auto" style="max-width: 36rem;">
+        <h1 class="h3 fw-bold mb-2" data-analytics-title>{% trans "Analytics is a Pro Feature" %}</h1>
+        <p class="text-muted mb-4">{% trans "Unlock detailed insights, cashflow forecasting, and monthly trends with a Pro subscription." %}</p>
+        <a href="{% url 'pricing' %}" class="btn btn-primary rounded-pill px-4">{% trans "Upgrade to Pro" %}</a>
+    </div>
+{% else %}
+    <!-- Header: title and the year-in-review shortcut -->
+    <header class="anx-header">
+        <div>
+            <h1 class="h3 fw-bold mb-0" data-analytics-title>{% trans "Analytics" %}</h1>
+            <p class="text-muted small mb-0 d-none d-sm-block">{% trans "Where your money comes from, where it goes, and what it adds up to." %}</p>
+        </div>
+        <a href="{% url 'year_in_review' year=wrapped_year %}" class="header-action-btn btn-primary d-inline-flex align-items-center gap-1 text-nowrap">
+            <i class="bi bi-stars" aria-hidden="true"></i>
+            <span><span class="d-none d-sm-inline">{% trans "View" %} </span>{{ wrapped_year|translate_digits }} {% trans "Wrapped" %}</span>
+        </a>
+    </header>
+
+    <!-- Tabs: each is its own page, swapped in over htmx -->
+    <ul class="nav anx-tabs mb-3" aria-label="{% trans 'Analytics' %}">
+        {% for t in tabs %}
+        <li class="nav-item">
+            <a class="nav-link no-loader {% if t.active %}active{% endif %}" href="{{ t.url }}"
+               {% if t.active %}aria-current="page"{% endif %}
+               hx-get="{{ t.url }}" hx-target="#analytics-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
+                {% if t.key == 'spend' %}<i class="bi bi-pie-chart me-1" aria-hidden="true"></i>{% elif t.key == 'cashflow' %}<i class="bi bi-diagram-3 me-1" aria-hidden="true"></i>{% else %}<i class="bi bi-graph-up-arrow me-1" aria-hidden="true"></i>{% endif %}{{ t.label }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% render_filter_toolbar filter_config applied_state %}
+
+    <p class="anx-range text-muted small mb-3">
+        {{ range_text }}{% if tab != 'networth' and compare_text %} &middot; {% trans "compared with" %} {{ compare_text }}{% endif %}
+        {% if filters_active and tab != 'networth' %}<span class="d-block">{% trans "Category filters narrow spending only; income and savings stay as they are." %}</span>{% endif %}
+        {% if filters_active and tab == 'networth' %}<span class="d-block">{% trans "Filters apply to the Spending and Cashflow tabs." %}</span>{% endif %}
+    </p>
+
+    {% if tab == 'spend' %}
+        {% include 'expenses/partials/_analytics_spend.html' %}
+    {% elif tab == 'cashflow' %}
+        {% include 'expenses/partials/_analytics_cashflow.html' %}
+    {% else %}
+        {% include 'expenses/partials/_analytics_networth.html' %}
+    {% endif %}
+{% endif %}
+</div>
