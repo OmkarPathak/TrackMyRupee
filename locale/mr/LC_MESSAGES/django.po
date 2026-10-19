@@ -9126,11 +9126,6 @@ msgstr "आढावा"
 msgid "New"
 msgstr "नवीन"
 
-#: templates/components/sidebar.html:55 templates/components/sidebar.html:57
-#: templates/components/sidebar.html:328
-msgid "Trends"
-msgstr "ट्रेंड्स"
-
 #: templates/components/sidebar.html:64
 #: templates/expenses/partials/_transaction_list.html:17
 msgid "All Transactions"
@@ -10038,10 +10033,6 @@ msgstr "जुने"
 #: templates/expenses/account_reconciliation_history.html:75
 msgid "No reconciliations yet."
 msgstr "अजून कोणताही मेळ घातलेला नाही."
-
-#: templates/expenses/analytics.html:12
-msgid "Analytics & Trends"
-msgstr "विश्लेषण आणि ट्रेंड"
 
 #: templates/expenses/analytics.html:13
 msgid "Visualizing your financial journey over the year."
@@ -19735,3 +19726,16 @@ msgid ""
 msgstr ""
 "समर्थित फॉरमॅट: .pdf (तुमच्या डिव्हाइसवर वाचली जाते), .xlsx, .xls, .csv, "
 "कमाल 5 MB आणि 5,000 ओळी"
+
+#: templates/expenses/partials/_analytics_tabs.html:12
+msgid "Spending & cashflow"
+msgstr "खर्च आणि कॅशफ्लो"
+
+#: templates/components/sidebar.html:322
+#: templates/expenses/partials/_analytics_tabs.html:17
+msgid "Net worth & trends"
+msgstr "एकूण संपत्ती आणि ट्रेंड"
+
+#: templates/mom_analysis.html:11
+msgid "How your net worth, savings and spending are moving, month by month."
+msgstr "तुमची एकूण संपत्ती, बचत आणि खर्च महिन्यागणिक कसे बदलत आहेत."

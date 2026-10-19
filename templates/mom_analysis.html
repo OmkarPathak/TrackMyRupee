@@ -1,8 +1,16 @@
 {% extends 'base.html' %}
 {% load i18n humanize currency_filters digit_filters %}
 
+{% block title %}{% trans "Analytics" %} - TrackMyRupee{% endblock %}
+
 {% block content %}
 <div class="container">
+
+    <div class="mb-3">
+        <h1 class="h3 fw-bold mb-1">{% trans "Analytics" %}</h1>
+        <p class="text-muted mb-3">{% trans "How your net worth, savings and spending are moving, month by month." %}</p>
+        {% include 'expenses/partials/_analytics_tabs.html' %}
+    </div>
 
     {% if is_history_limited %}
     <!-- Subtle Upgrade Banner -->

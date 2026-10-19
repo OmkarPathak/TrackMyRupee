@@ -6,7 +6,7 @@ Understand your savings rate, spending patterns, and overall financial health wi
 
 ## 1. Opening Analytics
 
-Navigate to **Sidebar → Analytics** on desktop, or go to **More → Analytics** on mobile (URL: `/analytics/`).
+Navigate to **Sidebar → Analytics** on desktop, or go to **More → Analytics** on mobile (URL: `/analytics/`). The page has two tabs at the top: **Spending & cashflow** (this section) and **Net worth & trends** (section 5).
 
 
 ![The Analytics page](img/analytics-desktop.webp){ loading=lazy }
@@ -89,7 +89,7 @@ These are factual summaries of the data you have logged. They are not prediction
 
 ## 5. Reading the Trends Page
 
-Navigate to **Sidebar → Trends** on desktop, or go to **More → Trends** on mobile (URL: `/analytics/mom/`).
+Open **Analytics** and choose the **Net worth & trends** tab (URL: `/analytics/mom/`).
 
 
 ![The Trends page](img/trends-desktop.webp){ loading=lazy }

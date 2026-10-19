@@ -6,10 +6,10 @@
 
 {% block content %}
 {% if not is_locked %}
-<div class="row mb-4 animate__animated animate__fadeIn">
+<div class="row mb-3 animate__animated animate__fadeIn">
     <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
-            <h1 class="h3 fw-bold mb-1">{% trans "Analytics & Trends" %}</h1>
+            <h1 class="h3 fw-bold mb-1">{% trans "Analytics" %}</h1>
             <p class="text-muted mb-0">{% trans "Visualizing your financial journey over the year." %}</p>
         </div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -34,6 +34,7 @@
         </div>
     </div>
 </div>
+{% include 'expenses/partials/_analytics_tabs.html' %}
 </div>
 
 <!-- SECTION 1: FINANCIAL HEALTH -->
@@ -1307,6 +1308,9 @@
 </script>
 
 {% else %}
+    <p class="h3 fw-bold mb-1">{% trans "Analytics" %}</p>
+    <p class="text-muted mb-3">{% trans "Visualizing your financial journey over the year." %}</p>
+    {% include 'expenses/partials/_analytics_tabs.html' %}
     <!-- Locked Content State -->
     <div class="row align-items-center justify-content-center animate__animated animate__fadeIn" style="min-height: 60vh;">
         <div class="col-md-8 text-center">

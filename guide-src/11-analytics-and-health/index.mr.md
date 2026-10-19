@@ -6,7 +6,7 @@
 
 ## 1. Analytics उघडणे
 
-डेस्कटॉपवर **Sidebar → Analytics** वर जा, किंवा मोबाईलवर **More → Analytics** वर जा (URL: `/analytics/`).
+डेस्कटॉपवर **Sidebar → Analytics** वर जा, किंवा मोबाईलवर **More → Analytics** वर जा (URL: `/analytics/`). पेजच्या वरच्या बाजूला दोन टॅब आहेत: **खर्च आणि कॅशफ्लो** (हा भाग) आणि **एकूण संपत्ती आणि ट्रेंड** (भाग 3).
 
 ---
 
@@ -32,7 +32,7 @@ Analytics पेजच्या वरच्या बाजूला **Health S
 
 ## 3. Trends पेज
 
-**Sidebar → Trends** वर जा (URL: `/trends/`).
+**Analytics** उघडा आणि **एकूण संपत्ती आणि ट्रेंड** टॅब निवडा (URL: `/analytics/mom/`).
 
 - **Category Creep Detection**: कोणत्या वर्गवारीत खर्च अचानक वाढला आहे हे शोधते.
 - **Asset Allocation Health**: तुमची संपत्ती रोख, एफडी आणि शेअर्समध्ये कशी विभागली आहे हे दाखवते.

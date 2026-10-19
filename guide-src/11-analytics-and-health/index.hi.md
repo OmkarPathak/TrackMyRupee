@@ -6,7 +6,7 @@
 
 ## 1. Analytics खोलना
 
-डेस्कटॉप पर **Sidebar → Analytics** पर जाएं, या मोबाइल पर **More → Analytics** पर जाएं (URL: `/analytics/`)।
+डेस्कटॉप पर **Sidebar → Analytics** पर जाएं, या मोबाइल पर **More → Analytics** पर जाएं (URL: `/analytics/`)। पृष्ठ के ऊपर दो टैब हैं: **खर्च और कैशफ़्लो** (यह खंड) और **कुल संपत्ति और रुझान** (खंड 4)।
 
 ---
 
@@ -38,7 +38,7 @@ Analytics पृष्ठ आय, व्यय और निवेश की ग
 
 ## 4. Trends पृष्ठ पढ़ना
 
-डेस्कटॉप पर **Sidebar → Trends** पर जाएं, या मोबाइल पर **More → Analytics → Trends** पर जाएं (URL: `/trends/`)।
+**Analytics** खोलें और **कुल संपत्ति और रुझान** टैब चुनें (URL: `/analytics/mom/`)।
 
 Trends पृष्ठ दो मुख्य विश्लेषण दिखाता है:
 
