@@ -68,12 +68,12 @@ class AnalyticsTabsTests(TestCase):
                  'trends': self.client.get(TRENDS).content.decode(), 'locked': locked}
         for name, html in pages.items():
             with self.subTest(page=name):
-                title = html.index('fw-bold mb-1">Analytics<')
+                title = html.index('data-analytics-title')
                 self.assertLess(title, html.index('<ul class="nav nav-pills analytics-tabs'))
 
     def test_the_filters_sit_with_the_tabs_not_above_the_title(self):
         html = self.client.get(ANALYTICS).content.decode()
-        title = html.index('fw-bold mb-1">Analytics<')
+        title = html.index('data-analytics-title')
         tabs = html.index('<ul class="nav nav-pills analytics-tabs')
         self.assertLess(title, tabs)
         self.assertLess(tabs, html.index('id="analyticsYear"'))

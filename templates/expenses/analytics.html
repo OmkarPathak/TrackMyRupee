@@ -11,15 +11,13 @@
     .analytics-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-bottom: 1rem; }
     @media (max-width: 575.98px) { .analytics-toolbar > .analytics-tabs { flex: 1 1 100%; } }
 </style>
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 animate__animated animate__fadeIn">
-    <div>
-        <h1 class="h3 fw-bold mb-1">{% trans "Analytics" %}</h1>
-        <p class="text-muted mb-0">{% trans "Visualizing your financial journey over the year." %}</p>
-    </div>
+<div class="d-flex justify-content-between align-items-center gap-2 mb-1 mb-sm-0 animate__animated animate__fadeIn">
+    <h1 class="h3 fw-bold mb-0" data-analytics-title>{% trans "Analytics" %}</h1>
     <a href="{% url 'year_in_review' year=selected_year %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm d-flex align-items-center gap-2 transition-all text-nowrap flex-shrink-0">
         <i class="bi bi-stars"></i> <span><span class="d-none d-sm-inline">{% trans "View" %} </span>{{ selected_year }} {% trans "Wrapped" %}</span>
     </a>
 </div>
+<p class="text-muted mb-3 d-none d-sm-block">{% trans "Visualizing your financial journey over the year." %}</p>
 <div class="analytics-toolbar">
     {% include 'expenses/partials/_analytics_tabs.html' with flush=True %}
     <form method="get" class="d-flex align-items-center gap-2">
@@ -43,9 +41,6 @@
 <!-- SECTION 1: FINANCIAL HEALTH -->
 <div class="mb-4">
     <div class="d-flex align-items-center gap-2 mb-3 mt-4">
-        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-            <i class="bi bi-heart-pulse-fill text-primary"></i>
-        </div>
         <h2 class="h4 fw-bold mb-0">{% trans "Financial Health" %}</h2>
     </div>
     <p class="text-muted small mb-4">{% trans "An overview of your overall fiscal strength, balance rates, and core income vs. spending trends." %}</p>
@@ -340,9 +335,6 @@
 <!-- SECTION 2: SPENDING BEHAVIOR -->
 <div class="mb-4">
     <div class="d-flex align-items-center gap-2 mb-3">
-        <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-            <i class="bi bi-pie-chart-fill text-warning"></i>
-        </div>
         <h2 class="h4 fw-bold mb-0">{% trans "Spending Behavior" %}</h2>
     </div>
     <p class="text-muted small mb-4">{% trans "Analyze where your money goes by category and identify patterns in your daily spending habits." %}</p>
@@ -416,9 +408,6 @@
 <!-- SECTION 3: CASHFLOW -->
 <div class="mb-5">
     <div class="d-flex align-items-center gap-2 mb-3 mt-5">
-        <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-            <i class="bi bi-water text-success"></i>
-        </div>
         <h2 class="h4 fw-bold mb-0">{% trans "Cashflow" %}</h2>
     </div>
     <p class="text-muted small mb-4">{% trans "Trace the flow of your income into various buckets and understand your fixed vs. variable commitments." %}</p>
@@ -463,9 +452,6 @@
 {% if burn_down_spent %}
 <div class="mb-5">
     <div class="d-flex align-items-center gap-2 mb-3 mt-5">
-        <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-            <i class="bi bi-hourglass-split text-info"></i>
-        </div>
         <h2 class="h4 fw-bold mb-0">{% trans "Forecast" %}</h2>
     </div>
     <p class="text-muted small mb-4">{% trans "Predict your end-of-month spending based on your current pace and remaining budget." %}</p>
@@ -1311,8 +1297,8 @@
 </script>
 
 {% else %}
-    <p class="h3 fw-bold mb-1">{% trans "Analytics" %}</p>
-    <p class="text-muted mb-3">{% trans "Visualizing your financial journey over the year." %}</p>
+    <p class="h3 fw-bold mb-1" data-analytics-title>{% trans "Analytics" %}</p>
+    <p class="text-muted mb-3 d-none d-sm-block">{% trans "Visualizing your financial journey over the year." %}</p>
     {% include 'expenses/partials/_analytics_tabs.html' %}
     <!-- Locked Content State -->
     <div class="row align-items-center justify-content-center animate__animated animate__fadeIn" style="min-height: 60vh;">
