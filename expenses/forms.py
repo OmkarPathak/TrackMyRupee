@@ -1076,7 +1076,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     )
 
     policy_type = forms.ChoiceField(
-        choices=PhysicalAsset.POLICY_TYPE_CHOICES,
+        choices=PhysicalAsset.POLICY_TYPE_SHORT_CHOICES,
         initial='SAVINGS',
         required=False,
         label=_('Policy Type'),

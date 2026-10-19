@@ -19576,3 +19576,11 @@ msgid ""
 msgstr ""
 "तुमचा खर्च आणि गुंतवणूक तुमच्या उत्पन्नापेक्षा %(amount)s जास्त झाली, जी "
 "आधीच्या बचतीतून भरली गेली."
+
+#: templates/expenses/partials/_account_detail.html:181
+msgid ""
+"Premiums are paid from your other accounts, so they appear in those "
+"accounts' transaction history."
+msgstr ""
+"प्रीमियम तुमच्या इतर खात्यांमधून भरले जातात, म्हणून ते त्या खात्यांच्या "
+"व्यवहार इतिहासात दिसतात."

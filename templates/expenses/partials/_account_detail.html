@@ -178,7 +178,7 @@
                     </div>
 
                     {% if account.is_protection %}
-                        <div class="text-body-secondary mb-2" style="font-size: 0.78rem;">{% trans "Pure protection cover: not counted in your net worth." %}</div>
+                        <div class="text-body-secondary mb-2" style="font-size: 0.78rem;">{% trans "Pure protection cover: not counted in your net worth." %}{% if total_transactions == 0 %} {% trans "Premiums are paid from your other accounts, so they appear in those accounts' transaction history." %}{% endif %}</div>
                     {% endif %}
 
                     <!-- Bottom Specs Bar: Context-Specific Info -->

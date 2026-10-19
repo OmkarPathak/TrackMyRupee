@@ -3163,6 +3163,11 @@ class PhysicalAsset(models.Model):
         ('SAVINGS', _('Savings / endowment (pays back on maturity)')),
         ('PROTECTION', _('Pure protection (term / health, no payout)')),
     ]
+    # the same two choices in words short enough for a phone-width select
+    POLICY_TYPE_SHORT_CHOICES = [
+        ('SAVINGS', _('Savings / endowment')),
+        ('PROTECTION', _('Pure protection')),
+    ]
     policy_type = models.CharField(
         max_length=12, choices=POLICY_TYPE_CHOICES, default='SAVINGS',
         verbose_name=_('Policy Type'),

@@ -13,7 +13,7 @@ from .registry import register_flow
 
 class InsuranceFlowForm(forms.Form):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Policy or plan name.'))
-    policy_type = forms.ChoiceField(choices=PhysicalAsset.POLICY_TYPE_CHOICES, initial='PROTECTION', required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Term and health cover is a cost, not an asset. Choose Savings / endowment only if the policy pays back on maturity: its premiums then count as its value.'))
+    policy_type = forms.ChoiceField(choices=PhysicalAsset.POLICY_TYPE_SHORT_CHOICES, initial='PROTECTION', required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Term and health cover is a cost, not an asset. Choose Savings / endowment only if the policy pays back on maturity: its premiums then count as its value.'))
     premium_amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Amount of each premium payment.'))
     premium_frequency = forms.ChoiceField(choices=PhysicalAsset.PREMIUM_FREQUENCY_CHOICES, initial='ANNUAL', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('How often the premium is paid.'))
     policy_number = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Optional policy reference number.'))

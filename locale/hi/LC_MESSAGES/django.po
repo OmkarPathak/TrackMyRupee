@@ -19515,3 +19515,11 @@ msgid ""
 msgstr ""
 "आपके खर्च और निवेश आपकी आय से %(amount)s ज़्यादा रहे, जो पहले से जमा बचत से "
 "चुकाए गए।"
+
+#: templates/expenses/partials/_account_detail.html:181
+msgid ""
+"Premiums are paid from your other accounts, so they appear in those "
+"accounts' transaction history."
+msgstr ""
+"प्रीमियम आपके दूसरे खातों से भरे जाते हैं, इसलिए वे उन खातों के लेन-देन "
+"इतिहास में दिखते हैं।"

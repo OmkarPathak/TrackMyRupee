@@ -108,6 +108,11 @@
         flex: 1;
         text-align: center;
         white-space: nowrap;
+        min-width: 0;
+    }
+    @media (max-width: 575.98px) {
+        .chart-toggle-pill .btn-toggle { padding: 7px 8px; }
+        .chart-toggle-pill .btn-toggle .bi { display: none; }
     }
     .chart-toggle-pill .btn-toggle:hover:not(.active) {
         color: #343a40;
