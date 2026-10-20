@@ -727,6 +727,11 @@ class TestBudgetAlerts(BudgetBase):
         self.assertEqual([a.title for a in alerts], ['Budget Exceeded: Food'])
         self.assertIn('exceeded', alerts[0].message)
 
+    def test_the_link_to_the_category_survives_names_with_symbols(self):
+        self.cat('R&D #1', 1000)
+        self.spend('R&D #1', 900)
+        self.assertEqual(self.run_alerts()[0].link, '/expenses/?category=R%26D%20%231')
+
     def test_alerts_are_sent_once_per_month_per_state(self):
         self.cat('Food', 1000)
         self.spend('Food', 900)

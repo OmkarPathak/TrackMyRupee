@@ -117,6 +117,9 @@ When a category has reached its limit and another category has used **under 10 p
 
 Use the arrows or the drop-down at the top to move between months. The page updates in place without reloading. The sort menu orders categories by urgency, amount spent, limit or name. The budget is always one calendar month at a time.
 
+!!! note "If you set a salary day"
+    The Budget page and the budget alerts always use calendar months (1st to the end of the month), even when you have a salary day in your profile. The Dashboard follows your salary cycle for **This month**, so its budget bars can show a different spent amount for the same category until the two periods line up.
+
 !!! example "Real-world use case"
     Mid-month, Pooja sees her Dining Out card has reached 210 percent of its Rs. 5,000 limit. It is a special month, so she taps **Adjust limit**, enters Rs. 10,000 and keeps **This month only**. Next month Dining Out is back at Rs. 5,000 on its own, and last month still looks exactly as it did. Later she decides the higher amount is the new normal, edits it again and picks **Every month**.
 

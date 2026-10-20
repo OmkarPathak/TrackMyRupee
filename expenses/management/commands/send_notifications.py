@@ -1,5 +1,6 @@
 
 from datetime import timedelta
+from urllib.parse import quote
 from decimal import Decimal
 
 from django.conf import settings
@@ -288,13 +289,13 @@ class Command(BaseCommand):
                 slug = f"budget-exceeded-{cat.id}-{self.today.year}-{self.today.month}"
                 title = f"Budget Exceeded: {cat.name}"
                 message = f"You have exceeded your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{limit})"
-                link = f"/expenses/?category={cat.name}"
+                link = f"/expenses/?category={quote(cat.name, safe='')}"
                 self._create_notification(user, title, message, 'ANALYTICS', slug=slug, link=link)
             elif status == 'limit':
                 slug = f"budget-warning-{cat.id}-{self.today.year}-{self.today.month}"
                 title = f"Budget Alert: {cat.name}"
                 message = f"You have used {percent_used(spent, limit):.0f}% of your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{limit})"
-                link = f"/expenses/?category={cat.name}"
+                link = f"/expenses/?category={quote(cat.name, safe='')}"
                 self._create_notification(user, title, message, 'ANALYTICS', slug=slug, link=link)
 
     def _process_milestone_alerts(self, user):
