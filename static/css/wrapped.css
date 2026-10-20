@@ -7,7 +7,8 @@
 .wr-page .mobile-bottom-nav, .wr-page .fab-container { display: none !important; }
 .wr-page main, .wr-page .main-content-container, .wr-page .container-fluid, .wr-page .container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
 
-.wr { --wr-teal: #1d9e75; --wr-teal-d: #0f5f47; --wr-ink: #0d1512;
+.wr-sheet, .wr { --wr-teal: #1d9e75; --wr-teal-d: #0f5f47; --wr-ink: #0d1512; }
+.wr {
       position: fixed; inset: 0; z-index: 1500; overflow-y: auto; background: #0b1210;
       min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 12px;
       padding: 12px 12px calc(16px + env(safe-area-inset-bottom)); font-family: 'DM Sans', system-ui, sans-serif; }
@@ -107,11 +108,18 @@ body:has(.demo-banner) .wr { padding-top: 64px; --wr-extra: 52px; }
 .wr-panel h2 { font-size: 1.15rem; font-weight: 800; margin: 0 0 2px; }
 .wr-panel p { margin: 0 0 12px; color: #667; font-size: .9rem; }
 .wr-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 10px; }
+/* the little card previews use the card colours */
+.wr-thumb.c1 { background: radial-gradient(circle at 85% 8%, #3fd1a0 0%, #1d9e75 38%, #0f5f47 100%); }
+.wr-thumb.c2 { background: linear-gradient(160deg, #1b2a4a 0%, #0d1512 100%); }
+.wr-thumb.c3 { background: linear-gradient(165deg, #f4a261 0%, #e76f51 100%); }
+.wr-thumb.c4 { background: linear-gradient(160deg, #17332a 0%, #0d1512 100%); }
+.wr-thumb.c5 { background: linear-gradient(165deg, #2a6fdb 0%, #14306b 100%); }
+.wr-thumb.c6 { background: linear-gradient(160deg, #3a2a52 0%, #15101f 100%); }
 .wr-thumb { flex: none; width: 54px; height: 96px; border-radius: 8px; border: 0; padding: 0; cursor: pointer; position: relative; opacity: .45; }
 .wr-thumb.sel { opacity: 1; outline: 3px solid var(--wr-teal); outline-offset: 2px; }
 .wr-thumb.money::after { content: "🔒"; position: absolute; right: 3px; bottom: 3px; font-size: .75rem; }
 .wr-opt { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-top: 1px solid #e8e8e4; }
-.wr-opt small { display: block; color: #778; }
+.wr-opt small { display: block; color: #667; font-weight: 400; }
 .wr-opt label { font-weight: 700; margin: 0; }
 .wr-panel .form-check-input { width: 2.6em; height: 1.4em; flex: none; }
 .wr-panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
