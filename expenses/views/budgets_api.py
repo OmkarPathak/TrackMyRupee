@@ -24,6 +24,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from .. import budget_writes as writes
+from ..budget_cycle import current_budget_month
 from ..budget_page import build_budget_page
 from ..models import Category
 from .utils import get_object_by_uuid_or_pk
@@ -45,10 +46,10 @@ def api_login_required(view):
     return wrapper
 
 
-def _parse_month(value, today):
-    """'YYYY-MM' -> first of that month; missing -> this month. Raises ValueError."""
+def _parse_month(value, current):
+    """'YYYY-MM' -> first of that month; missing -> `current`, the user's current budget month. Raises ValueError."""
     if value in (None, ''):
-        return today.replace(day=1)
+        return current
     match = MONTH_RE.match(str(value))
     if not match or not 2000 <= int(match.group(1)) <= 2100:
         raise ValueError(_('Month must look like 2026-10.'))
@@ -112,7 +113,7 @@ def _guarded(view):
 @_guarded
 def budgets_page(request):
     today = timezone.localdate()
-    month = _parse_month(request.GET.get('month'), today)
+    month = _parse_month(request.GET.get('month'), current_budget_month(request.user, today))
     sort = request.GET.get('sort', 'urgent')
     return _page(request, month, sort if sort in SORTS else 'urgent')
 
@@ -206,8 +207,9 @@ def budgets_suggestion_fragment(request):
     from ..budget_suggestions import find_suggestion
 
     today = timezone.localdate()
-    month = _parse_month(request.GET.get('month'), today)
-    if month != today.replace(day=1):
+    current = current_budget_month(request.user, today)
+    month = _parse_month(request.GET.get('month'), current)
+    if month != current:
         return HttpResponse('')
     rows_key = f'budget_suggestion_rows_{request.user.id}'
     rows = cache.get(rows_key)

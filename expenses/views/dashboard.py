@@ -533,9 +533,20 @@ def home_view(request):
     # of each) the period covers so limits can be looked up per month (budget_resolver.period_limits)
     from ..budget_resolver import month_start as _month_start, month_weights_for_range
     budget_month_weights = None
-    if time_period in ('this_month', 'last_month'):
+    from ..budget_cycle import current_budget_month, key_for_range, previous_month, salary_day_of
+    _salary_day = salary_day_of(request.user)
+    _exact_key = (key_for_range(_salary_day, effective_start_date, effective_end_date)
+                  if effective_start_date and effective_end_date else None)
+    if time_period == 'this_month':
+        # the budget month the person is in (the salary cycle when they have a salary day)
         period_budget_factor = 1.0
-        budget_month_weights = [(date(int(selected_years[0]), int(selected_months[0]), 1), 1.0)] if (selected_years and selected_months) else None
+        budget_month_weights = [(current_budget_month(request.user, today), 1.0)]
+    elif time_period == 'last_month':
+        period_budget_factor = 1.0
+        budget_month_weights = [(previous_month(current_budget_month(request.user, today)), 1.0)]
+    elif _exact_key is not None:
+        period_budget_factor = 1.0          # exactly one budget month's days: that month's limit, whole
+        budget_month_weights = [(_exact_key, 1.0)]
     elif effective_start_date and effective_end_date:
         period_budget_factor = calculate_budget_period_factor(effective_start_date, effective_end_date)
         budget_month_weights = month_weights_for_range(effective_start_date, effective_end_date)
@@ -2693,19 +2704,22 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
         # Which month: the filter toolbar's time period (calendar months only), or ?month=&year=
         # (older links and the month tests).
         matched, state = apply_filter_config(Category.objects.filter(user=user), self.request, BUDGET_FILTERS)
+        # (a budget month is the calendar month, or the salary cycle when the profile has a salary day)
+        from ..budget_cycle import budget_month_of, current_budget_month, previous_month, salary_day_of
+        current_key = current_budget_month(user, today)
         if self.request.GET.get('month') or self.request.GET.get('year'):
             month, year = parse_month_year(self.request, today=today)
             month_start = date(year, month, 1)
         else:
             key = state['time_period']
             if key in ('last_month', 'calendar_last_month'):
-                month_start = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
+                month_start = previous_month(current_key)
             elif key == 'custom':
                 period = resolve_period(user=user, time_period='custom', start_date=state['start_date'],
                                         end_date=state['end_date'], today=today)
-                month_start = (period.end or period.start or today).replace(day=1)
+                month_start = budget_month_of(salary_day_of(user), period.end or period.start or today)
             else:
-                month_start = today.replace(day=1)
+                month_start = current_key
             month, year = month_start.month, month_start.year
 
         sort_param = state['sort'] if state['sort'] in ('urgent', 'spent', 'limit', 'name') else 'urgent'
@@ -2763,6 +2777,8 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             'applied_state': state,
             'filters_active': filters_active,
             'month_start': month_start,
+            'cycle_start': date.fromisoformat(page['start']),
+            'cycle_end': date.fromisoformat(page['end']),
             'current_month': month,
             'current_year': year,
             'current_sort': sort_param,
@@ -2771,14 +2787,14 @@ class BudgetDashboardView(HtmxPartialTemplateMixin, LoginRequiredMixin, Template
             'can_add_category': profile.can_add_category() if profile else False,
             'new_budget_possible': (profile.can_add_category() if profile else False)
                                    or any(r['limit'] is None for r in all_rows),
-            'every_month_allowed': month_start >= today.replace(day=1),
+            'every_month_allowed': month_start >= current_key,
             'rows': rows,
             'needs_attention': [r for r in rows if r['status'] in ('over', 'limit')],
             'on_track': [r for r in rows if r['status'] == 'ontrack'],
             'no_limit': [r for r in rows if r['status'] == 'nolimit'],
             'untouched_count': sum(1 for r in rows if r['status'] == 'ontrack' and not r['spent']),
             'has_any_limit': page['total'] > 0,
-            'today_day': today.day,
+            'today_day': max(1, (today - date.fromisoformat(page['start'])).days + 1),
             'pace_abs': abs(page['pace_delta'] or 0),
             'pace_marker_pct': min(100.0, (page['expected_pace'] or 0) / page['total'] * 100) if page['total'] else 0,
         })

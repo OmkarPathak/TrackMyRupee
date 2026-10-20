@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from . import budget_resolver as resolver
+from .budget_cycle import current_budget_month
 from .budgets import has_limit, monthly_spend_by_category, normalize_category
 
 THIS_MONTH, EVERY_MONTH = 'this_month', 'every_month'
@@ -63,7 +64,7 @@ def _check(user, category, month, scope, allowed_ids=None):
     if category.id not in (allowed_ids if allowed_ids is not None else resolver.plan_allowed_category_ids(user)):
         raise BudgetPlanLocked('plan_locked', _('This category is locked on your plan.'))
     month = resolver.month_start(month)
-    if scope == EVERY_MONTH and month < timezone.localdate().replace(day=1):
+    if scope == EVERY_MONTH and month < current_budget_month(user, timezone.localdate()):
         raise BudgetError('past_every_month',
                           _('"Every month" can only be set for the current or a future month.'))
     return month
@@ -178,7 +179,7 @@ def sync_legacy_limit(category):
     name = normalize_category(category.name)
     if amount is None and not BudgetLimitVersion.objects.filter(user=user, category_name=name).exists():
         return
-    _write(user, category, timezone.localdate().replace(day=1), amount, EVERY_MONTH, None)
+    _write(user, category, current_budget_month(user, timezone.localdate()), amount, EVERY_MONTH, None)
     _invalidate(user)
 
 

@@ -19865,3 +19865,6 @@ msgstr "केवल देखे जा रहे कार्ड की जग
 
 msgid "Nothing to share."
 msgstr "साझा करने के लिए कुछ नहीं।"
+
+msgid "Your salary cycle: %(start)s – %(end)s"
+msgstr "आपका वेतन चक्र: %(start)s – %(end)s"

@@ -10,6 +10,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from . import budget_resolver as resolver
+from .budget_cycle import user_budget_range
 from .budgets import (
     AT_LIMIT,
     CURRENT,
@@ -19,14 +20,14 @@ from .budgets import (
     OVER,
     PAST,
     budget_status,
-    days_in_month,
-    days_left,
     expected_pace,
     has_limit,
-    month_phase,
     monthly_spend_by_category,
     normalize_category,
     percent_used,
+    range_days,
+    range_days_left,
+    range_phase,
     safe_to_spend_per_day,
 )
 
@@ -44,8 +45,9 @@ def build_budget_page(user, month, today, sort='urgent') -> dict:
     from .models import Category
 
     m = resolver.month_start(month)
-    phase = month_phase(m, today)
-    num_days = days_in_month(m)
+    first_day, last_day = user_budget_range(user, m)      # the calendar month, or the salary cycle
+    phase = range_phase(first_day, last_day, today)
+    num_days = range_days(first_day, last_day)
 
     categories = list(Category.objects.filter(user=user).order_by('id'))
     allowed_ids = set(resolver.plan_allowed_category_ids(user, categories))
@@ -104,6 +106,9 @@ def build_budget_page(user, month, today, sort='urgent') -> dict:
         'over_by': _money(max(budgeted_spent - total_limit, ZERO)) if phase != FUTURE else None,
         'percent': round(float(budgeted_spent / total_limit * 100), 1) if has_limit(total_limit) and phase != FUTURE else None,
         'days_in_month': num_days,
+        'start': first_day.isoformat(),
+        'end': last_day.isoformat(),
+        'is_cycle': first_day.day != 1,
         'days_left': None,
         'expected_pace': None,
         'pace_delta': None,          # expected pace - spent: positive = under pace, negative = over
@@ -117,8 +122,8 @@ def build_budget_page(user, month, today, sort='urgent') -> dict:
     }
 
     if phase == CURRENT and has_limit(total_limit):
-        left = days_left(m, today)
-        expected = expected_pace(total_limit, today.day, num_days)
+        left = range_days_left(first_day, last_day, today)
+        expected = expected_pace(total_limit, (today - first_day).days + 1, num_days)
         delta = expected - budgeted_spent
         band = total_limit * PACE_BAND
         payload.update({
@@ -130,7 +135,7 @@ def build_budget_page(user, month, today, sort='urgent') -> dict:
             'state': 'over_budget' if budgeted_spent > total_limit or remaining <= 0 else 'ok',
         })
     elif phase == CURRENT:
-        payload['days_left'] = days_left(m, today)
+        payload['days_left'] = range_days_left(first_day, last_day, today)
     elif phase == PAST and has_limit(total_limit):
         payload['state'] = 'over_budget' if budgeted_spent > total_limit else 'ok'    # the month's verdict
     return payload

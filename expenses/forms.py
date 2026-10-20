@@ -888,7 +888,8 @@ class CategoryForm(SearchableSelectFormMixin, forms.ModelForm):
         if self.instance.pk and 'limit' in self.fields:
             from .budget_resolver import effective_limit
             from .budgets import has_limit
-            current = effective_limit(self.instance.user, self.instance, timezone.localdate())
+            from .budget_cycle import current_budget_month
+            current = effective_limit(self.instance.user, self.instance, current_budget_month(self.instance.user, timezone.localdate()))
             current = current if has_limit(current) else None
             self.instance.limit = self.instance._orig_limit = current
             self.initial['limit'] = current

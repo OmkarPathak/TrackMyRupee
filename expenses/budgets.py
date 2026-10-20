@@ -72,24 +72,20 @@ def capital_report_name(category, subtype, names: dict) -> str:
     return category or names.get(subtype, subtype)
 
 
-def _month_bounds(year: int, month: int):
-    """(first day of the month, first day of the next month)."""
-    from datetime import date
-    return date(year, month, 1), date(year + (month == 12), month % 12 + 1, 1)
-
-
 def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decimal]:
-    """({normalised category name: total}, grand total) in base currency for one month.
-    One query (expenses and budget-counted capital events come back together as a UNION)."""
+    """({normalised category name: total}, grand total) in base currency for one budget month (the calendar
+    month, or the salary cycle for someone with a salary day: see budget_cycle). One query (expenses and
+    budget-counted capital events come back together as a UNION)."""
     from django.db.models import Value
 
+    from .budget_cycle import user_budget_range
     from .models import CapitalEvent, Expense
 
-    first, after = _month_bounds(year, month)   # a date range, not year/month lookups, so the date index applies
-    expenses = (Expense.objects.filter(user=user, date__gte=first, date__lt=after).order_by()
+    first, last = user_budget_range(user, (year, month))   # a date range, not year/month lookups, so the date index applies
+    expenses = (Expense.objects.filter(user=user, date__gte=first, date__lte=last).order_by()
                 .values('category').annotate(subtype=Value(''), total=Sum('base_amount'))
                 .values_list('category', 'subtype', 'total'))
-    events = (CapitalEvent.objects.filter(user=user, date__gte=first, date__lt=after, exclude_from_budget=False)
+    events = (CapitalEvent.objects.filter(user=user, date__gte=first, date__lte=last, exclude_from_budget=False)
               .order_by().values('category', 'subtype').annotate(total=Sum('base_amount'))
               .values_list('category', 'subtype', 'total'))
 
@@ -106,32 +102,35 @@ def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decima
 
 
 def monthly_spend_by_category_months(user, months) -> dict:
-    """{month (1st): {normalised category name: total}} for several months in two queries
+    """{budget month key: {normalised category name: total}} for several months in two queries
     (same attribution rules as monthly_spend_by_category)."""
-    from django.db.models.functions import TruncMonth
-
+    from .budget_cycle import user_budget_range
     from .models import CapitalEvent, Expense
 
     months = sorted(months)
     if not months:
         return {}
-    first, last = months[0], months[-1]
-    end = last.replace(year=last.year + (last.month == 12), month=last.month % 12 + 1)
-    # Two plain queries, not a UNION: the halves would put the month column in different positions
+    ranges = {m: user_budget_range(user, m) for m in months}
+    first, last = min(r[0] for r in ranges.values()), max(r[1] for r in ranges.values())
+    # Two plain queries, not a UNION: the halves would put the date column in different positions
     # (annotations follow model fields in the SELECT), which Postgres refuses to union.
-    expenses = (Expense.objects.filter(user=user, date__gte=first, date__lt=end).order_by()
-                .annotate(m=TruncMonth('date')).values('m', 'category')
-                .annotate(total=Sum('base_amount')))
-    events = (CapitalEvent.objects.filter(user=user, date__gte=first, date__lt=end, exclude_from_budget=False)
-              .order_by().annotate(m=TruncMonth('date')).values('m', 'category', 'subtype')
-              .annotate(total=Sum('base_amount')))
+    expenses = (Expense.objects.filter(user=user, date__gte=first, date__lte=last).order_by()
+                .values('date', 'category').annotate(total=Sum('base_amount')))
+    events = (CapitalEvent.objects.filter(user=user, date__gte=first, date__lte=last, exclude_from_budget=False)
+              .order_by().values('date', 'category', 'subtype').annotate(total=Sum('base_amount')))
     names = None
     out = {m: {} for m in months}
 
-    def add(month, category, subtype, total):
+    def month_of(day):
+        for m, (start, end) in ranges.items():
+            if start <= day <= end:
+                return m
+        return None
+
+    def add(day, category, subtype, total):
         nonlocal names
-        month = month.date() if hasattr(month, 'date') else month
-        if month not in out:
+        month = month_of(day)
+        if month is None:
             return
         if subtype:
             names = names or _subtype_names()
@@ -140,28 +139,65 @@ def monthly_spend_by_category_months(user, months) -> dict:
         out[month][key] = out[month].get(key, ZERO) + (total or ZERO)
 
     for row in expenses:
-        add(row['m'], row['category'], '', row['total'])
+        add(row['date'], row['category'], '', row['total'])
     for row in events:
-        add(row['m'], row['category'], row['subtype'], row['total'])
+        add(row['date'], row['category'], row['subtype'], row['total'])
     return out
 
 
-def bulk_monthly_spend(year: int, month: int) -> dict:
-    """{(user_id, normalised category name): total} for every user, for one month (2 queries)."""
+def _bulk_spend(start, end, user_ids=None, except_ids=None) -> dict:
+    """{(user_id, normalised category name): total} between two dates for some users (None = all, minus
+    `except_ids`). Two queries."""
     from .models import CapitalEvent, Expense
 
+    def narrow(qs):
+        if user_ids is not None:
+            qs = qs.filter(user_id__in=user_ids)
+        if except_ids:
+            qs = qs.exclude(user_id__in=except_ids)
+        return qs
+
     spend: dict = {}
-    first, after = _month_bounds(year, month)
-    for row in (Expense.objects.filter(date__gte=first, date__lt=after)
+    for row in (narrow(Expense.objects.filter(date__gte=start, date__lte=end))
                 .values('user_id', 'category').annotate(total=Sum('base_amount'))):
         key = (row['user_id'], normalize_category(row['category']))
         spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
 
     names = _subtype_names()
-    for row in (CapitalEvent.objects.filter(date__gte=first, date__lt=after, exclude_from_budget=False)
+    for row in (narrow(CapitalEvent.objects.filter(date__gte=start, date__lte=end, exclude_from_budget=False))
                 .values('user_id', 'category', 'subtype').annotate(total=Sum('base_amount'))):
         key = (row['user_id'], normalize_category(capital_report_name(row['category'], row['subtype'], names)))
         spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
+    return spend
+
+
+def bulk_monthly_spend(year: int, month: int) -> dict:
+    """{(user_id, normalised category name): total} for every user, for one budget month (each user's own
+    calendar month or salary cycle). Two queries for the calendar users plus two per distinct salary day."""
+    from .budget_cycle import budget_range, month_key
+    from .models import UserProfile
+
+    key = month_key((year, month))
+    by_day: dict[int, list[int]] = {}
+    for user_id, day in UserProfile.objects.filter(salary_date__gte=2, salary_date__lte=31).values_list('user_id', 'salary_date'):
+        by_day.setdefault(day, []).append(user_id)
+    start, end = budget_range(1, key)
+    spend = _bulk_spend(start, end, except_ids=[i for ids in by_day.values() for i in ids])
+    for day, ids in by_day.items():
+        start, end = budget_range(day, key)
+        spend.update(_bulk_spend(start, end, user_ids=ids))
+    return spend
+
+
+def bulk_current_spend(today) -> dict:
+    """Like bulk_monthly_spend, but for the budget month each user is in today (their salary cycle can be
+    in a different month's budget than someone else's)."""
+    from .budget_cycle import current_groups
+
+    spend: dict = {}
+    for group in current_groups(today):
+        spend.update(_bulk_spend(group['start'], group['end'], user_ids=group['user_ids'],
+                                 except_ids=group.get('except_ids')))
     return spend
 
 
@@ -181,6 +217,25 @@ def month_phase(month_start_date, today) -> str:
 def days_in_month(month_start_date) -> int:
     import calendar
     return calendar.monthrange(month_start_date.year, month_start_date.month)[1]
+
+
+def range_phase(start, end, today) -> str:
+    """'past' | 'current' | 'future' for a budget month's days relative to today."""
+    if end < today:
+        return PAST
+    return FUTURE if start > today else CURRENT
+
+
+def range_days(start, end) -> int:
+    return (end - start).days + 1
+
+
+def range_days_left(start, end, today) -> int:
+    """Days left in the budget month INCLUDING today; the whole month when it is ahead; 0 when it is over."""
+    phase = range_phase(start, end, today)
+    if phase == PAST:
+        return 0
+    return range_days(start, end) if phase == FUTURE else (end - today).days + 1
 
 
 def days_left(month_start_date, today) -> int:

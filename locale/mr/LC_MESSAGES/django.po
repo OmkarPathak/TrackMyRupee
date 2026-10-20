@@ -19928,3 +19928,6 @@ msgstr "फक्त पाहत असलेल्या कार्डाऐ
 
 msgid "Nothing to share."
 msgstr "शेअर करण्यासाठी काही नाही."
+
+msgid "Your salary cycle: %(start)s – %(end)s"
+msgstr "तुमचे पगार चक्र: %(start)s – %(end)s"

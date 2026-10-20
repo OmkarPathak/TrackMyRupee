@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
@@ -52,7 +53,9 @@ class CategoryListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         from ..budget_resolver import annotate_current_limit
-        base_qs = annotate_current_limit(Category.objects.filter(user=self.request.user))
+        from ..budget_cycle import current_budget_month
+        base_qs = annotate_current_limit(Category.objects.filter(user=self.request.user),
+                                         current_budget_month(self.request.user, timezone.localdate()))
         queryset, self.applied_state = apply_filter_config(base_qs, self.request, CATEGORY_LIST_FILTERS)
         return queryset
 

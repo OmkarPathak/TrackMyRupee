@@ -13,7 +13,7 @@ from django.utils import timezone
 from webpush import send_user_notification
 from webpush.models import PushInformation
 
-from expenses.budgets import budget_status, bulk_monthly_spend, has_limit, normalize_category, percent_used
+from expenses.budgets import budget_status, bulk_current_spend, has_limit, normalize_category, percent_used
 from expenses.models import (
     Account,
     Category,
@@ -39,6 +39,8 @@ class Command(BaseCommand):
         self.active_goals_by_user = {}
         self.expense_sums = {}
         self.today = timezone.localdate()
+        self.budget_key_by_user = {}
+        self.calendar_key = self.today.replace(day=1)
 
     @no_translations     # a job has no person's language: what it writes must not depend on what ran before it
     def handle(self, *args, **kwargs):
@@ -61,9 +63,23 @@ class Command(BaseCommand):
             
         # 3. Pre-fetch this month's effective limits (all users, one query) and every user's categories
         #    (in id order: the plan lock budgets the first N of them, same as the Budget page)
+        #    (each user's budget month: the calendar month, or the salary cycle they are in)
+        from expenses.budget_cycle import current_groups, month_key
         from expenses.budget_resolver import bulk_effective_limits_by_name
-        self.limits_by_user_name = {k: v for k, v in bulk_effective_limits_by_name(self.today).items()
-                                    if has_limit(v)}
+        self.limits_by_user_name = {}
+        self.budget_key_by_user = {}      # users with a salary day; everyone else is in the calendar month
+        limits_of_month = {}
+        for group in current_groups(self.today):
+            wanted = None if group['user_ids'] is None else set(group['user_ids'])
+            skip = set(group.get('except_ids') or ())
+            if group['key'] not in limits_of_month:
+                limits_of_month[group['key']] = bulk_effective_limits_by_name(group['key'])
+            for (uid, name), limit in limits_of_month[group['key']].items():
+                if has_limit(limit) and (uid in wanted if wanted is not None else uid not in skip):
+                    self.limits_by_user_name[(uid, name)] = limit
+            for uid in wanted or ():
+                self.budget_key_by_user[uid] = group['key']
+        self.calendar_key = month_key(self.today)
         limited_users = {uid for uid, _ in self.limits_by_user_name}
         self.categories_by_user = {}
         for cat in Category.objects.filter(user_id__in=limited_users).only('id', 'user_id', 'name').order_by('id'):
@@ -72,7 +88,7 @@ class Command(BaseCommand):
         # 4. Pre-fetch this month's spend per user and category for budget checking
         #    (same attribution rules as the Budget page: expenses + budget-counted capital events,
         #    category names matched case-insensitively)
-        self.expense_sums = bulk_monthly_spend(self.today.year, self.today.month)
+        self.expense_sums = bulk_current_spend(self.today)
 
         # 5. Pre-fetch sent notifications for deduplication
         self.sent_notifications_by_user = {}
@@ -80,6 +96,9 @@ class Command(BaseCommand):
             created_at__year=self.today.year,
             created_at__month=self.today.month
         ).values('user_id', 'slug'):
+            self.sent_notifications_by_user.setdefault(n['user_id'], set()).add(n['slug'])
+        #    A budget alert is named after the budget month, and a salary cycle can start in the month before it.
+        for n in Notification.objects.filter(slug__startswith='budget-', created_at__gte=timezone.now() - timedelta(days=45)).values('user_id', 'slug'):
             self.sent_notifications_by_user.setdefault(n['user_id'], set()).add(n['slug'])
         #    A milestone is announced once ever (its slug has no month in it), not once a month.
         for n in Notification.objects.filter(slug__startswith='milestone-').values('user_id', 'slug'):
@@ -278,6 +297,7 @@ class Command(BaseCommand):
         if limit_count != -1:
             categories = categories[:limit_count]                 # plan lock, as on the Budget page
             
+        budget_key = self.budget_key_by_user.get(user.id, self.calendar_key)
         for cat in categories:
             limit = self.limits_by_user_name.get((user.id, normalize_category(cat.name)))
             if limit is None:
@@ -286,13 +306,13 @@ class Command(BaseCommand):
             status = budget_status(spent, limit)
 
             if status == 'over':
-                slug = f"budget-exceeded-{cat.id}-{self.today.year}-{self.today.month}"
+                slug = f"budget-exceeded-{cat.id}-{budget_key.year}-{budget_key.month}"
                 title = f"Budget Exceeded: {cat.name}"
                 message = f"You have exceeded your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{limit})"
                 link = f"/expenses/?category={quote(cat.name, safe='')}"
                 self._create_notification(user, title, message, 'ANALYTICS', slug=slug, link=link)
             elif status == 'limit':
-                slug = f"budget-warning-{cat.id}-{self.today.year}-{self.today.month}"
+                slug = f"budget-warning-{cat.id}-{budget_key.year}-{budget_key.month}"
                 title = f"Budget Alert: {cat.name}"
                 message = f"You have used {percent_used(spent, limit):.0f}% of your budget for {cat.name}. Total spent: {user.profile.currency}{spent} (Limit: {user.profile.currency}{limit})"
                 link = f"/expenses/?category={quote(cat.name, safe='')}"

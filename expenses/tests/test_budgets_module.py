@@ -183,7 +183,7 @@ class TestMonthlySpend(BudgetBase):
             self.spend(f'C{i}', 10)
         with self.assertNumQueries(1):      # expenses and capital events come back as one UNION
             monthly_spend_by_category(self.user, today().year, today().month)
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(3):      # who has a salary day, then expenses and events, whatever the number of users
             bulk_monthly_spend(today().year, today().month)
 
 

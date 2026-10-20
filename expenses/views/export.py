@@ -125,10 +125,10 @@ def _loan_rows(user):
 
 
 def _category_rows(user):
+    from ..budget_cycle import current_budget_month
     from ..budget_resolver import effective_limits_by_name
     from ..budgets import has_limit, normalize_category
-
-    limits = effective_limits_by_name(user, timezone.localdate())
+    limits = effective_limits_by_name(user, current_budget_month(user, timezone.localdate()))
     for c in Category.objects.filter(user=user).order_by('name'):
         limit = limits.get(normalize_category(c.name))
         yield [c.name, limit if has_limit(limit) else '']

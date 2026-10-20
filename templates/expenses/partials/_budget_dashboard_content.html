@@ -32,6 +32,8 @@
 
     {% render_filter_toolbar filter_config applied_state %}
 
+    {% if page.is_cycle %}<p class="text-muted small mb-2"><i class="bi bi-calendar-range me-1" aria-hidden="true"></i>{% blocktrans with start=cycle_start|date:'j M'|translate_digits end=cycle_end|date:'j M Y'|translate_digits %}Your salary cycle: {{ start }} – {{ end }}{% endblocktrans %}</p>{% endif %}
+
     {% include 'partials/guide_budgets.html' %}
 
     <!-- Loading skeleton (shown while a month is being fetched) -->

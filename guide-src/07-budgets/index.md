@@ -115,10 +115,10 @@ When a category has reached its limit and another category has used **under 10 p
 
 ## 4. Choosing a Month
 
-Use the arrows or the drop-down at the top to move between months. The page updates in place without reloading. The sort menu orders categories by urgency, amount spent, limit or name. The budget is always one calendar month at a time.
+Use the arrows or the drop-down at the top to move between months. The page updates in place without reloading. The sort menu orders categories by urgency, amount spent, limit or name. The budget is one budget month at a time: the calendar month, or your salary cycle if your profile has a salary day.
 
 !!! note "If you set a salary day"
-    The Budget page and the budget alerts always use calendar months (1st to the end of the month), even when you have a salary day in your profile. The Dashboard follows your salary cycle for **This month**, so its budget bars can show a different spent amount for the same category until the two periods line up.
+    With a salary day in your profile, a budget month is your **salary cycle** instead of the calendar month, and the page says so ("Your salary cycle: 25 Sep – 24 Oct"). The Budget page, the budget alerts and the Dashboard then count exactly the same days. A cycle is named after the month most of its days fall in: with salary day 25, October is 25 Sep to 24 Oct, and with salary day 5, October is 5 Oct to 4 Nov. Limits you set carry over by month name, and a month shorter than your salary day uses its last day.
 
 !!! example "Real-world use case"
     Mid-month, Pooja sees her Dining Out card has reached 210 percent of its Rs. 5,000 limit. It is a special month, so she taps **Adjust limit**, enters Rs. 10,000 and keeps **This month only**. Next month Dining Out is back at Rs. 5,000 on its own, and last month still looks exactly as it did. Later she decides the higher amount is the new normal, edits it again and picks **Every month**.
