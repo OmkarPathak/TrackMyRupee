@@ -2796,6 +2796,9 @@ class YearInReviewView(LoginRequiredMixin, TemplateView):
             year = path_year
         context['year'] = year
         context['review_data'] = generate_year_in_review_data(self.request.user, year)
+        from ..wrapped import build_wrapped
+        context['wrapped'] = build_wrapped(self.request.user, year, context['review_data'])
+        context['user_first_name'] = (self.request.user.first_name or self.request.user.username or '')[:20]
         return context
 
     def dispatch(self, request, *args, **kwargs):

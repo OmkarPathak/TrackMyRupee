@@ -1,0 +1,141 @@
+/* Year in Review ("Wrapped"). One card design that scales with its own width (cqw), so the very same markup
+   fills a phone, sits in the middle of a desktop, and is drawn at 1080px wide for the shared image.
+   100cqw = the card's width; sizes below were drawn at 360px wide. */
+
+.wr-page { background: #0b1210 !important; color: #fff; padding: 0 !important; }
+.wr-page .navbar, .wr-page footer, .wr-page .sidebar, .wr-page .sidebar-greeting-container,
+.wr-page .mobile-bottom-nav, .wr-page .fab-container { display: none !important; }
+.wr-page main, .wr-page .main-content-container, .wr-page .container-fluid, .wr-page .container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
+
+.wr { --wr-teal: #1d9e75; --wr-teal-d: #0f5f47; --wr-ink: #0d1512;
+      position: fixed; inset: 0; z-index: 1500; overflow-y: auto; background: #0b1210;
+      min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 12px;
+      padding: 12px 12px calc(16px + env(safe-area-inset-bottom)); font-family: 'DM Sans', system-ui, sans-serif; }
+.wr * { box-sizing: border-box; }
+
+/* the demo banner sits on top of everything: leave room for it */
+body:has(.demo-banner) .wr { padding-top: 64px; --wr-extra: 52px; }
+
+/* top bar: close, title, progress */
+.wr-top { width: min(100%, 460px); display: grid; gap: 10px; }
+.wr-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.wr-bar a { color: #fff; opacity: .8; font-size: 1.6rem; line-height: 1; text-decoration: none; display: inline-flex; min-width: 40px; min-height: 40px; align-items: center; justify-content: center; }
+.wr-bar a:hover { opacity: 1; color: #fff; }
+.wr-bar strong { font-size: 1rem; letter-spacing: .01em; }
+.wr-progress { display: flex; gap: 4px; }
+.wr-progress button { flex: 1; height: 4px; padding: 0; border: 0; border-radius: 99px; background: rgba(255,255,255,.25); cursor: pointer; position: relative; overflow: hidden; }
+.wr-progress button.done { background: rgba(255,255,255,.85); }
+.wr-progress button.on { background: rgba(255,255,255,.85); }
+@media (hover: hover) { .wr-progress button { height: 5px; } }
+
+/* stage: the card, with arrows beside it on a wide screen */
+.wr-stage { width: 100%; display: flex; align-items: center; justify-content: center; gap: 16px; min-height: 0; }
+.wr-deck { position: relative; width: min(100%, 460px, calc((100dvh - 190px - var(--wr-extra, 0px)) * 9 / 16)); aspect-ratio: 9 / 16; border-radius: 22px; overflow: hidden; touch-action: pan-y; box-shadow: 0 18px 50px rgba(0,0,0,.55); }
+.wr-arrow { display: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; font-size: 1.2rem; cursor: pointer; flex: none; }
+.wr-arrow:hover { background: rgba(255,255,255,.18); }
+.wr-arrow:disabled { opacity: .25; cursor: default; }
+@media (min-width: 700px) { .wr-arrow { display: inline-grid; place-items: center; } }
+
+.wr-actions { width: min(100%, 460px); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.wr-btn { height: 46px; border-radius: 12px; border: 1px solid rgba(255,255,255,.25); background: transparent; color: #fff; font: 700 1rem 'DM Sans', sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-decoration: none; }
+.wr-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+.wr-btn.primary { background: var(--wr-teal); border-color: var(--wr-teal); }
+.wr-btn.primary:hover { background: #17886a; }
+
+/* ---------------- the card ---------------- */
+.wr-card { container-type: inline-size; position: absolute; inset: 0; display: none; flex-direction: column; padding: 7% 6.2%; color: #fff; overflow: hidden; background: var(--wr-ink); font-family: 'DM Sans', system-ui, sans-serif; }
+.wr-card.on { display: flex; animation: wrIn .25s ease-out; }
+@keyframes wrIn { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .wr-card.on { animation: none; } }
+.wr-card.c1 { background: radial-gradient(circle at 85% 8%, #3fd1a0 0%, #1d9e75 38%, #0f5f47 100%); }
+.wr-card.c2 { background: linear-gradient(160deg, #1b2a4a 0%, #0d1512 100%); }
+.wr-card.c3 { background: linear-gradient(165deg, #f4a261 0%, #e76f51 100%); }
+.wr-card.c4 { background: linear-gradient(160deg, #17332a 0%, #0d1512 100%); }
+.wr-card.c5 { background: linear-gradient(165deg, #2a6fdb 0%, #14306b 100%); }
+.wr-card.c6 { background: linear-gradient(160deg, #3a2a52 0%, #15101f 100%); }
+
+.wr-brand { display: flex; align-items: center; gap: 2.2cqw; font-weight: 700; font-size: 4.9cqw; letter-spacing: .02em; }
+.wr-brand i { width: 6.1cqw; height: 6.1cqw; border-radius: 1.9cqw; background: #fff; color: #1d9e75; display: grid; place-items: center; font-style: normal; font-size: 4.2cqw; }
+.wr-eyebrow { margin-top: auto; font-size: 4.2cqw; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+.wr-big { font-family: 'Instrument Serif', serif; font-size: 16.0cqw; line-height: 1; margin: 2.8cqw 0 2.2cqw; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.wr-mid { font-size: 5.9cqw; line-height: 1.35; }
+.wr-foot { margin-top: auto; padding-top: 6cqw; display: flex; justify-content: space-between; align-items: center; gap: 3cqw; font-size: 4.2cqw; opacity: .85; }
+.wr-pill { display: inline-block; padding: 1.4cqw 3cqw; border-radius: 99px; background: rgba(255,255,255,.18); font-size: 4.5cqw; font-weight: 700; }
+.wr-lock { display: inline-flex; align-items: center; gap: 1.7cqw; align-self: flex-start; margin-top: 3cqw; background: rgba(0,0,0,.3); padding: 1.4cqw 3cqw; border-radius: 99px; font-size: 3.7cqw; font-weight: 700; }
+.wr-persona { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 13.5cqw; line-height: 1.02; margin: 3.3cqw 0; overflow-wrap: anywhere; }
+.wr-traits { display: flex; flex-wrap: wrap; gap: 2.2cqw; margin-top: 3.3cqw; }
+.wr-name { display: none; }
+.wr-card[data-name="1"] .wr-name { display: inline; }
+
+.wr-ranks { margin-top: 6.1cqw; display: grid; gap: 3.9cqw; }
+.wr-rank { display: grid; grid-template-columns: 7.8cqw 1fr auto; gap: 1.1cqw 2.8cqw; align-items: center; }
+.wr-rank b { font-family: 'Instrument Serif', serif; font-size: 8.8cqw; opacity: .7; font-weight: 400; }
+.wr-rank .n { font-weight: 700; font-size: 5.1cqw; min-width: 0; overflow-wrap: anywhere; }
+.wr-rank .v { font-weight: 700; font-size: 5.1cqw; font-variant-numeric: tabular-nums; }
+.wr-rank .t { grid-column: 2 / 4; height: 2.2cqw; border-radius: 99px; background: rgba(255,255,255,.18); overflow: hidden; }
+.wr-rank .t i { display: block; height: 100%; background: #fff; border-radius: 99px; }
+
+.wr-facts { margin-top: 5.6cqw; display: grid; gap: 3.3cqw; }
+.wr-fact { background: rgba(255,255,255,.14); border-radius: 4.4cqw; padding: 3.3cqw 3.9cqw; display: grid; grid-template-columns: 9.4cqw 1fr; gap: 2.8cqw; align-items: center; }
+.wr-fact i { font-style: normal; font-size: 7.7cqw; text-align: center; }
+.wr-fact b { display: block; font-size: 5.1cqw; line-height: 1.2; overflow-wrap: anywhere; }
+.wr-fact span { font-size: 4.5cqw; opacity: .88; }
+
+.wr-glow { margin-top: 5.6cqw; display: grid; gap: 2.8cqw; }
+.wr-glow div { display: flex; justify-content: space-between; align-items: center; gap: 3cqw; background: rgba(255,255,255,.14); border-radius: 3.9cqw; padding: 3.3cqw 3.9cqw; font-weight: 600; font-size: 4.9cqw; }
+.wr-glow em { font-style: normal; font-weight: 800; white-space: nowrap; }
+.wr-down { color: #c5ffe9; } .wr-up { color: #ffd0c4; }
+
+.wr-stats { margin-top: 6.1cqw; display: grid; gap: 4.4cqw; }
+.wr-stats div { border-left: .8cqw solid rgba(255,255,255,.6); padding-left: 3.3cqw; }
+.wr-stats b { font-family: 'Instrument Serif', serif; font-size: 11.6cqw; display: block; line-height: 1; font-weight: 400; }
+.wr-stats span { font-size: 5.0cqw; opacity: .88; }
+
+.wr-ring { width: 41.7cqw; height: 41.7cqw; border-radius: 50%; margin: 6.1cqw 0 0; background: conic-gradient(#fff 0 var(--p, 50%), rgba(255,255,255,.18) var(--p, 50%) 100%); display: grid; place-items: center; }
+.wr-ring div { width: 32cqw; height: 32cqw; border-radius: 50%; background: #15101f; display: grid; place-items: center; text-align: center; font-size: 3.7cqw; }
+.wr-ring b { font-family: 'Instrument Serif', serif; font-size: 10.9cqw; display: block; line-height: 1; font-weight: 400; }
+
+/* amounts vs percentages: "hide amounts" swaps the rupee values for the shares */
+.wr-pct { display: none; }
+.wr-card[data-hide="1"] .wr-amt { display: none; }
+.wr-card[data-hide="1"] .wr-pct { display: inline; }
+
+/* ---------------- the share sheet ---------------- */
+.wr-sheet { position: fixed; inset: 0; z-index: 2000; display: none; background: rgba(0,0,0,.6); align-items: flex-end; justify-content: center; }
+.wr-sheet.open { display: flex; }
+.wr-panel { width: min(100%, 460px); max-height: 92dvh; overflow-y: auto; background: #fff; color: #1b1f1d; border-radius: 22px 22px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); }
+.wr-panel h2 { font-size: 1.15rem; font-weight: 800; margin: 0 0 2px; }
+.wr-panel p { margin: 0 0 12px; color: #667; font-size: .9rem; }
+.wr-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 10px; }
+.wr-thumb { flex: none; width: 54px; height: 96px; border-radius: 8px; border: 0; padding: 0; cursor: pointer; position: relative; opacity: .45; }
+.wr-thumb.sel { opacity: 1; outline: 3px solid var(--wr-teal); outline-offset: 2px; }
+.wr-thumb.money::after { content: "🔒"; position: absolute; right: 3px; bottom: 3px; font-size: .75rem; }
+.wr-opt { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-top: 1px solid #e8e8e4; }
+.wr-opt small { display: block; color: #778; }
+.wr-opt label { font-weight: 700; margin: 0; }
+.wr-panel .form-check-input { width: 2.6em; height: 1.4em; flex: none; }
+.wr-panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.wr-panel .wr-btn { color: #1b1f1d; border-color: #cfd5d1; }
+.wr-panel .wr-btn.primary { color: #fff; }
+.wr-status { min-height: 1.3em; margin-top: 8px; font-size: .85rem; color: #667; text-align: center; }
+
+/* off-screen copies drawn at 1080 x 1920 for the image */
+.wr-export { position: fixed; left: -12000px; top: 0; width: 1080px; }
+.wr-export .wr-card { position: relative; display: flex; width: 1080px; height: 1920px; animation: none; border-radius: 0; }
+
+/* wide screens: the card gets a calm stage; short screens: a little tighter */
+@media (min-width: 992px) {
+  .wr { padding-top: 10px; gap: 8px; }
+  .wr-deck { width: min(520px, calc((100dvh - 190px - var(--wr-extra, 0px)) * 9 / 16)); }
+  .wr-sheet { align-items: center; }
+  .wr-panel { border-radius: 22px; }
+}
+@media (max-height: 620px) { .wr-actions { grid-template-columns: 1fr 1fr; } .wr-btn { height: 40px; } }
+
+/* very wide screens: the buttons move beside the card, so the card can use the whole height */
+@media (min-width: 1200px) {
+  .wr { grid-template-rows: auto 1fr; }
+  .wr-deck { width: min(520px, calc((100dvh - 110px - var(--wr-extra, 0px)) * 9 / 16)); }
+  .wr-actions { position: absolute; right: max(24px, calc(50% - 520px)); top: 50%; transform: translateY(-50%); width: 170px; grid-template-columns: 1fr; }
+  .wr-stage { padding-bottom: 16px; }
+}

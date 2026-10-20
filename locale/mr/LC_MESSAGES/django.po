@@ -19584,3 +19584,339 @@ msgid ""
 msgstr ""
 "प्रीमियम तुमच्या इतर खात्यांमधून भरले जातात, म्हणून ते त्या खात्यांच्या "
 "व्यवहार इतिहासात दिसतात."
+
+msgid "%(day)ss were your thing"
+msgstr "%(day)s हा तुमचा आवडता दिवस होता"
+
+msgid "%(n)s days logged"
+msgstr "%(n)s दिवस नोंदवले"
+
+msgid "%(n)s purchases logged"
+msgstr "%(n)s खरेद्या नोंदवल्या"
+
+msgid "%(n)s weeks"
+msgstr "%(n)s आठवडे"
+
+msgid "%(n)s%% of income invested"
+msgstr "उत्पन्नाच्या %(n)s%% ची गुंतवणूक"
+
+msgid "%(n)s-day no-spend streak"
+msgstr "%(n)s दिवस खर्चाशिवायची मालिका"
+
+msgid "%(name)s led the year"
+msgstr "या वर्षी %(name)s सर्वात पुढे राहिले"
+
+msgid "%(pct)s%% of your purchases happened on that day"
+msgstr "तुमच्या %(pct)s%% खरेद्या त्या दिवशी झाल्या"
+
+msgid "%(pct)s%% of your spending happened on a Saturday or Sunday."
+msgstr "तुमचा %(pct)s%% खर्च शनिवारी किंवा रविवारी झाला."
+
+msgid "%(year)s compared with %(prev)s"
+msgstr "%(year)s ची %(prev)s शी तुलना"
+
+msgid "About %(n)s purchases a day: it is the small ones that add up."
+msgstr "दररोज सुमारे %(n)s खरेद्या: छोट्या खरेद्याच मिळून मोठ्या होतात."
+
+msgid "Add my name"
+msgstr "माझे नाव जोडा"
+
+msgid "Always going somewhere"
+msgstr "नेहमी कुठेतरी प्रवासात"
+
+msgid "April"
+msgstr "एप्रिल"
+
+msgid "August"
+msgstr "ऑगस्ट"
+
+msgid "December"
+msgstr "डिसेंबर"
+
+msgid "February"
+msgstr "फेब्रुवारी"
+
+msgid "January"
+msgstr "जानेवारी"
+
+msgid "July"
+msgstr "जुलै"
+
+msgid "June"
+msgstr "जून"
+
+msgid "March"
+msgstr "मार्च"
+
+msgid "May"
+msgstr "मे"
+
+msgid "November"
+msgstr "नोव्हेंबर"
+
+msgid "October"
+msgstr "ऑक्टोबर"
+
+msgid "September"
+msgstr "सप्टेंबर"
+
+msgid "Monday"
+msgstr "सोमवार"
+
+msgid "Tuesday"
+msgstr "मंगळवार"
+
+msgid "Wednesday"
+msgstr "बुधवार"
+
+msgid "Thursday"
+msgstr "गुरुवार"
+
+msgid "Friday"
+msgstr "शुक्रवार"
+
+msgid "Saturday"
+msgstr "शनिवार"
+
+msgid "Sunday"
+msgstr "रविवार"
+
+msgid "Compared with last year"
+msgstr "मागील वर्षाशी तुलना"
+
+msgid "Consistent"
+msgstr "सातत्यपूर्ण"
+
+msgid "Could not make the images. Please try again."
+msgstr "प्रतिमा तयार करता आल्या नाहीत. कृपया पुन्हा प्रयत्न करा."
+
+msgid "Detail-minded"
+msgstr "बारकाव्यांकडे लक्ष"
+
+msgid "Download"
+msgstr "डाउनलोड करा"
+
+msgid "Early days"
+msgstr "सुरुवातीचे दिवस"
+
+msgid "Eats out"
+msgstr "बाहेर खाणे आवडते"
+
+msgid "Few, large purchases"
+msgstr "कमी, मोठ्या खरेद्या"
+
+msgid "Food and dining took %(pct)s%% of everything you spent."
+msgstr "तुमच्या एकूण खर्चाचा %(pct)s%% खाण्यापिण्यावर गेला."
+
+msgid "Fun facts"
+msgstr "गमतीदार तथ्ये"
+
+msgid "Good taste"
+msgstr "चांगली चव"
+
+msgid "Hide rupee amounts"
+msgstr "रुपयांची रक्कम लपवा"
+
+msgid "Include the Money story"
+msgstr "Money story समाविष्ट करा"
+
+msgid "Intentional"
+msgstr "विचारपूर्वक"
+
+msgid "Making your images…"
+msgstr "तुमच्या प्रतिमा तयार होत आहेत…"
+
+msgid "Many small purchases"
+msgstr "अनेक लहान खरेद्या"
+
+msgid "Milestones and streaks"
+msgstr "टप्पे आणि मालिका"
+
+msgid "Money story"
+msgstr "Money story"
+
+msgid "Net worth this year"
+msgstr "या वर्षी एकूण संपत्ती"
+
+msgid "Next card"
+msgstr "पुढचे कार्ड"
+
+msgid "No single habit ran the year: your spending was spread evenly."
+msgstr "कोणत्याही एका सवयीने वर्ष व्यापले नाही: तुमचा खर्च समान विभागला गेला."
+
+msgid "Of everything that came in, this is what stayed."
+msgstr "जे काही आले, त्यातून एवढे उरले."
+
+msgid "One purchase made up %(pct)s%% of everything you spent."
+msgstr "एकच खरेदी तुमच्या एकूण खर्चाच्या %(pct)s%% होती."
+
+msgid "Percent changes only"
+msgstr "फक्त टक्केवारीतील बदल"
+
+msgid "Pick at least one card."
+msgstr "किमान एक कार्ड निवडा."
+
+msgid ""
+"Pick the cards. The images are made on your device; nothing is uploaded."
+msgstr ""
+"कार्ड निवडा. प्रतिमा तुमच्या डिव्हाइसवर तयार होतात; काहीही अपलोड होत नाही."
+
+msgid "Planned splurges"
+msgstr "ठरवून केलेली मोठी खरेदी"
+
+msgid "Predictable"
+msgstr "अंदाज करता येणारे"
+
+msgid "Previous card"
+msgstr "मागचे कार्ड"
+
+msgid "Quiet days"
+msgstr "शांत दिवस"
+
+msgid "Saved."
+msgstr "जतन केले."
+
+msgid "Savings rate and net worth. These show income-based numbers"
+msgstr "बचत दर आणि एकूण संपत्ती. यात उत्पन्नावर आधारित आकडे दिसतात"
+
+msgid "Share of everything I spent"
+msgstr "माझ्या एकूण खर्चातील वाटा"
+
+msgid "Share your Wrapped"
+msgstr "तुमचे Wrapped शेअर करा"
+
+msgid "Share…"
+msgstr "शेअर करा…"
+
+msgid "Show percentages and ranks only"
+msgstr "फक्त टक्केवारी आणि क्रम दाखवा"
+
+msgid "Showing up counts"
+msgstr "नियमितता महत्त्वाची"
+
+msgid "Shows income-based figures"
+msgstr "उत्पन्नावर आधारित आकडे दाखवते"
+
+msgid "Shows net worth"
+msgstr "एकूण संपत्ती दाखवते"
+
+msgid "Small habits, big year"
+msgstr "लहान सवयी, मोठे वर्ष"
+
+msgid "That is <b>%(cur)s%(saved)s</b> saved out of <b>%(cur)s%(earned)s</b>."
+msgstr "म्हणजे <b>%(cur)s%(earned)s</b> पैकी <b>%(cur)s%(saved)s</b> बचत."
+
+msgid "The Balanced Spender"
+msgstr "संतुलित खर्च करणारा"
+
+msgid "The Big-Ticket Buyer"
+msgstr "मोठ्या खरेदीचा खरेदीदार"
+
+msgid "The Everyday Spender"
+msgstr "रोजचा खर्च करणारा"
+
+msgid "The Explorer"
+msgstr "भटक्या"
+
+msgid "The Foodie"
+msgstr "खवय्या"
+
+msgid "The Getting-Started Tracker"
+msgstr "नवीन ट्रॅकर"
+
+msgid "The Minimalist"
+msgstr "मिनिमलिस्ट"
+
+msgid "The Steady Planner"
+msgstr "स्थिर नियोजक"
+
+msgid "The Weekend Splurger"
+msgstr "वीकेंडला खर्च करणारा"
+
+msgid "Things only your spending knows"
+msgstr "फक्त तुमच्या खर्चाला माहीत असलेल्या गोष्टी"
+
+msgid "Travel took %(pct)s%% of your spending, more than most things."
+msgstr ""
+"प्रवासाने तुमच्या खर्चाचा %(pct)s%% घेतला, बहुतेक गोष्टींपेक्षा जास्त."
+
+msgid "Uncategorised"
+msgstr "वर्गवारी नसलेले"
+
+msgid "Weekday-light"
+msgstr "आठवड्याच्या दिवसांत कमी"
+
+msgid "Weekend-heavy"
+msgstr "वीकेंडला जास्त"
+
+msgid "Well-rounded"
+msgstr "संतुलित"
+
+msgid "What changed"
+msgstr "काय बदलले"
+
+msgid "What was yours?"
+msgstr "तुमचे काय होते?"
+
+msgid "Where it all went"
+msgstr "सगळे कुठे गेले"
+
+msgid "You kept"
+msgstr "तुम्ही राखले"
+
+msgid "You spent nothing on %(pct)s%% of the days."
+msgstr "%(pct)s%% दिवसांत तुम्ही काहीही खर्च केला नाही."
+
+msgid ""
+"Your lightest month was <b>%(best)s</b>, your priciest <b>%(priciest)s</b>."
+msgstr ""
+"तुमचा सर्वात हलका महिना <b>%(best)s</b> होता, सर्वात महागडा "
+"<b>%(priciest)s</b>."
+
+msgid "Your money personality"
+msgstr "तुमचे पैशाचे व्यक्तिमत्त्व"
+
+msgid "Your monthly spending stayed within a narrow band all year."
+msgstr "तुमचा मासिक खर्च वर्षभर एका अरुंद पट्ट्यात राहिला."
+
+msgid "Your top categories"
+msgstr "तुमच्या अव्वल वर्गवाऱ्या"
+
+msgid ""
+"Your year of tracking has just begun. The story gets richer with every "
+"entry."
+msgstr ""
+"तुमच्या ट्रॅकिंगचे वर्ष नुकतेच सुरू झाले आहे. प्रत्येक नोंदीसह कथा अधिक "
+"समृद्ध होत जाईल."
+
+msgid "about %(n)s a day"
+msgstr "दररोज सुमारे %(n)s"
+
+msgid "in a row with at least one entry"
+msgstr "सलग, प्रत्येक आठवड्यात किमान एक नोंद"
+
+msgid "kept growing, month after month"
+msgstr "दर महिन्याला वाढत राहिले"
+
+msgid "of income"
+msgstr "उत्पन्नाचे"
+
+msgid "purchases kept on record"
+msgstr "खरेद्या नोंदीत"
+
+msgid "reached this year"
+msgstr "या वर्षी पूर्ण केली"
+
+msgid "your money personality is"
+msgstr "तुमचे पैशाचे व्यक्तिमत्त्व आहे"
+
+msgid "your most repeated stop of the year"
+msgstr "वर्षातील तुमचे सर्वाधिक वेळा गेलेले ठिकाण"
+
+msgid "“%(name)s” %(n)s times"
+msgstr "“%(name)s” %(n)s वेळा"
+
+msgid "%(n)s goal"
+msgid_plural "%(n)s goals"
+msgstr[0] "%(n)s उद्दिष्ट"
+msgstr[1] "%(n)s उद्दिष्टे"

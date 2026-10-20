@@ -109,7 +109,26 @@ A few rules sit behind that:
 
 ## 6. Year in Review ("Wrapped")
 
-On Plus and Pro, the **View <year> Wrapped** button on the Analytics page opens a story-style summary of the year your period ends in (URL: `/year-in-review/<year>/`): what you earned and spent, your top three categories, your highest and lowest spending months, your most-used payment method, your biggest single expense, how much you invested, and the goals you completed (a goal belongs to the year its last contribution was made). The current year counts up to today. Free accounts are shown the pricing page instead.
+On Plus and Pro, the **View <year> Wrapped** button on the Analytics page opens your year as a short set of cards (URL: `/year-in-review/<year>/`). Tap or swipe to move through them, or use the arrows and keyboard on a computer. The current year counts up to today. Free accounts are shown the pricing page instead.
+
+**The Spending story** is built only from what you bought, never from your income, so it is the one meant for sharing:
+
+- **Your money personality**: a name for how you spent, with the one-line reason (for example "The Weekend Splurger: 51% of your spending happened on a Saturday or Sunday"). It comes from fixed rules on your own data, so the same year always gives the same result.
+- **Where it all went**: your top three categories with their share of everything you spent.
+- **Fun facts**: your busiest day of the week, your longest no-spend streak, the place you went most often and how many purchases you logged.
+- **What changed**: your biggest category changes against the year before, as percentages.
+- **Milestones and streaks**: days logged, weeks in a row with an entry and goals reached.
+
+**The Money story** has the income-based cards (your savings rate and how your net worth moved). They are kept apart and marked with a lock because they reveal income-based numbers.
+
+### Sharing
+
+Tap **Share** to pick the cards you want. Two switches decide what leaves your hands:
+
+- **Hide rupee amounts** (on by default) swaps every rupee value for a percentage or a rank, so you can share the story without sharing a single amount.
+- **Include the Money story** (off by default) adds the income-based cards.
+
+You can also add your first name. **Share…** opens your phone's share sheet (WhatsApp, Instagram Stories and so on); on a computer it downloads the images. The images are made on your device and nothing is uploaded.
 
 ---
 

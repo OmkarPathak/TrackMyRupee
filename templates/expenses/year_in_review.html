@@ -1,470 +1,174 @@
 {% extends 'base.html' %}
 {% load currency_filters digit_filters static i18n %}
 
-{% block title %}{{ year }} Year in Review - TrackMyRupee{% endblock %}
+{% block title %}{{ year }} {% trans "Wrapped" %} - TrackMyRupee{% endblock %}
 
 {% block content %}
-<style>
-    /* Immersive Full Screen Design */
-    body {
-        background-color: #000 !important;
-        color: #fff !important;
-        overflow: hidden; /* Hide scrollbars for story mode */
-        height: 100vh;
-        margin: 0;
-        padding: 0;
-    }
-    
-    /* Hide the main navbar/sidebar to make it immersive */
-    .navbar, footer, .sidebar, .sidebar-greeting-container {
-        display: none !important;
-    }
-    
-    /* Override body padding from sidebar (base template adds padding-left for sidebar) */
-    body {
-        padding-left: 0 !important;
-        padding-top: 0 !important;
-    }
-    
-    /* Override base container padding to be full edge */
-    .container-fluid, .container, main.container {
-        padding: 0 !important;
-        margin: 0 !important;
-        max-width: 100% !important;
-    }
-    
-    /* Hide the main element itself */
-    main {
-        padding: 0 !important;
-        margin: 0 !important;
-        max-width: 100% !important;
-        flex-grow: 0 !important;
-    }
+<link rel="stylesheet" href="{% static 'css/wrapped.css' %}?v=6">
 
-    .yir-slide {
-        height: 100vh;
-        width: 100vw;
-        display: none; /* Hidden by default */
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 2rem;
-        position: absolute;
-        top: 0;
-        left: 0;
-        overflow: hidden;
-        animation: fadeIn 0.3s ease-in-out;
-    }
-    
-    .yir-slide.active {
-        display: flex;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.98); }
-        to { opacity: 1; transform: scale(1); }
-    }
-
-    .yir-bg-1 { background: radial-gradient(circle at top right, #1d9e75, #111); } /* Brand Teal */
-    .yir-bg-2 { background: radial-gradient(circle at bottom left, #1a1a18, #2c3e50); } /* Deep Contrast */
-    .yir-bg-3 { background: radial-gradient(circle at center, #111, #1d9e75); } /* Focused Forest */
-    .yir-bg-4 { background: radial-gradient(circle at top left, #f4a261, #e76f51); } /* Growth Orange */
-    .yir-bg-5 { background: radial-gradient(circle at bottom right, #e05c45, #111); } /* Danger Red */
-    .yir-bg-6 { background: #000; } /* Final Black */
-
-    .yir-title {
-        font-family: 'Instrument Serif', sans-serif;
-        font-weight: 700;
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        line-height: 1.1;
-    }
-    
-    @media (min-width: 768px) {
-        .yir-title { font-size: 5rem; }
-    }
-
-    .yir-text {
-        font-family: 'DM Sans', sans-serif;
-        font-size: 1.5rem;
-        opacity: 0.9;
-        max-width: 600px;
-        pointer-events: none; /* Let clicks pass through */
-    }
-
-    .yir-highlight {
-        font-weight: 800;
-        font-size: 4rem;
-        color: #faf9f6;
-        -webkit-text-fill-color: #faf9f6;
-        display: block;
-        margin: 1rem 0;
-        pointer-events: none;
-    }
-
-    /* Story Progress Bars */
-    .story-progress-container {
-        position: absolute;
-        top: 10px;
-        left: 0;
-        right: 0;
-        width: 100%;
-        padding: 0 10px;
-        display: flex;
-        gap: 5px;
-        z-index: 1000;
-    }
-    
-    .story-progress-bar {
-        height: 3px;
-        flex-grow: 1;
-        background-color: rgba(255, 255, 255, 0.3);
-        border-radius: 3px;
-        overflow: hidden;
-    }
-    
-    .story-progress-fill {
-        height: 100%;
-        width: 0%;
-        background-color: #fff;
-    }
-    
-    .story-progress-bar.completed .story-progress-fill {
-        width: 100%;
-    }
-
-    /* Navigation Overlay Areas */
-    .nav-area-left {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 30%;
-        height: 100%;
-        z-index: 50;
-        cursor: pointer;
-    }
-    
-    .nav-area-right {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 70%;
-        height: 100%;
-        z-index: 50;
-        cursor: pointer;
-    }
-
-    /* Summary Card Styling */
-    #share-card {
-        background-color: #1a1a18;
-        border-radius: 20px;
-        padding: 2.5rem;
-        width: 100%;
-        max-width: 400px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        color: white;
-        text-align: left;
-        position: relative;
-        z-index: 100; /* Above nav areas to allow interaction */
-    }
-
-    .close-btn {
-        position: absolute;
-        top: 2rem;
-        right: 2rem;
-        color: white;
-        font-size: 2rem;
-        z-index: 1000;
-        text-decoration: none;
-        opacity: 0.7;
-        transition: opacity 0.2s;
-    }
-    .close-btn:hover { opacity: 1; color: white; }
-    
-    .interactive-element {
-        position: relative;
-        z-index: 100;
-    }
-</style>
-
-<!-- Exit Button -->
-<a href="{% url 'home' %}" onclick="if(document.referrer && document.referrer.indexOf(window.location.host) !== -1) { history.back(); return false; }" class="close-btn"><i class="bi bi-x-circle-fill"></i></a>
-
-{% if not review_data.has_data %}
-<div class="yir-slide active yir-bg-1">
-    <h1 class="yir-title">{% blocktrans %}We don't have enough data for {{ year }}.{% endblocktrans %}</h1>
-    <p class="yir-text">{% trans "Start tracking this year to see your insights next year!" %}</p>
-    <a href="{% url 'home' %}" class="btn btn-light rounded-pill px-4 py-2 mt-4 fw-bold interactive-element">{% trans "Back to Dashboard" %}</a>
+{% if not review_data.has_data or not wrapped.has_story %}
+<div class="wr wr-empty" style="grid-template-rows: 1fr; align-content: center; text-align: center;">
+    <div>
+        <h1 class="h3 fw-bold">{% blocktrans %}We don't have enough data for {{ year }}.{% endblocktrans %}</h1>
+        <p class="text-white-50">{% trans "Start tracking this year to see your insights next year!" %}</p>
+        <a href="{% url 'home' %}" class="wr-btn primary px-4 mt-2" style="display: inline-flex;">{% trans "Back to Dashboard" %}</a>
+    </div>
 </div>
 {% else %}
+{% with p=wrapped.personality f=wrapped.facts m=wrapped.milestones money=wrapped.money %}
+<div class="wr" id="wr" data-year="{{ year }}" data-name="{{ user_first_name }}">
 
-<!-- Story Progress Indicators -->
-<div class="story-progress-container">
-    <div class="story-progress-bar" id="pb-0"><div class="story-progress-fill"></div></div>
-    <div class="story-progress-bar" id="pb-1"><div class="story-progress-fill"></div></div>
-    <div class="story-progress-bar" id="pb-2"><div class="story-progress-fill"></div></div>
-    <div class="story-progress-bar" id="pb-3"><div class="story-progress-fill"></div></div>
-    <div class="story-progress-bar" id="pb-4"><div class="story-progress-fill"></div></div>
-    <div class="story-progress-bar" id="pb-5"><div class="story-progress-fill"></div></div>
-</div>
-
-<!-- Slide Navigation Overlays (Click zones) -->
-<div class="nav-area-left" id="nav-left"></div>
-<div class="nav-area-right" id="nav-right"></div>
-
-<!-- Slide 1: Intro -->
-<div class="yir-slide active yir-bg-1" id="slide-0">
-    <p class="yir-text mb-0">TrackMyRupee</p>
-    <h1 class="yir-title">{% blocktrans %}Your {{ year }}{% endblocktrans %}<br>{% trans "Wrapped" %}</h1>
-    <p class="yir-text mt-3">{% trans "Ready to see how you spent your time... and money?" %}</p>
-    <p class="text-white-50 mt-5 small"><i class="bi bi-hand-index-thumb"></i> {% trans "Tap right to continue" %}</p>
-</div>
-
-<!-- Slide 2: The Big Numbers -->
-<div class="yir-slide yir-bg-2" id="slide-1">
-    <h1 class="yir-title">{% trans "The Big Picture" %}</h1>
-    <p class="yir-text">{% trans "Your total tracked earnings:" %}</p>
-    <span class="yir-highlight" style="color: #1d9e75; -webkit-text-fill-color: #1d9e75;">{{ currency_symbol }}{{ review_data.total_earned|humanize_currency:currency_symbol|translate_digits }}</span>
-    <p class="yir-text mt-2">{% blocktrans with n=review_data.transaction_count|translate_digits %}and tracked {{ n }} expenses totaling{% endblocktrans %}</p>
-    <span class="yir-highlight" style="color: #E05C45; -webkit-text-fill-color: #E05C45;">{{ currency_symbol }}{{ review_data.total_spent|humanize_currency:currency_symbol|translate_digits }}</span>
-</div>
-
-<!-- Slide 3: Top Categories -->
-<div class="yir-slide yir-bg-3" id="slide-2">
-    <h1 class="yir-title">{% trans "Where did it go?" %}</h1>
-    <p class="yir-text mb-4">{% trans "Your top 3 spending categories this year:" %}</p>
-    
-    <div class="d-flex flex-column gap-3 w-100 align-items-center mb-4" style="max-width: 400px; pointer-events: none;">
-        {% for cat in review_data.top_categories %}
-        <div class="w-100 bg-white bg-opacity-10 rounded-pill p-3 d-flex justify-content-between align-items-center backdrop-blur">
-            <span class="fs-4 fw-bold">#{{ forloop.counter }} {{ cat.category }}</span>
-            <span class="fs-5">{{ currency_symbol }}{{ cat.total|humanize_currency:currency_symbol|translate_digits }}</span>
+    <div class="wr-top">
+        <div class="wr-bar">
+            <a href="{% url 'home' %}" id="wrClose" aria-label="{% trans 'Close' %}"><i class="bi bi-x-lg"></i></a>
+            <strong>{{ year }} {% trans "Wrapped" %}</strong>
+            <span style="min-width: 40px;"></span>
         </div>
-        {% empty %}
-        <p>{% trans "No categories tracked." %}</p>
-        {% endfor %}
+        <div class="wr-progress" id="wrProgress" aria-hidden="true"></div>
     </div>
-</div>
 
-<!-- Slide 4: Wealth Growth -->
-<div class="yir-slide yir-bg-4" id="slide-3">
-    <h1 class="yir-title">{% trans "Wealth Growth" %}</h1>
-    <p class="yir-text">{% trans "You weren't just spending. You were growing." %}</p>
-    <span class="yir-highlight text-white">{{ currency_symbol }}{{ review_data.total_invested|humanize_currency:currency_symbol|translate_digits }}</span>
-    <p class="yir-text mt-0">{% trans "invested in Mutual Funds, FDs, and SIPs." %}</p>
-    <div class="text-white opacity-75 mt-4">
-        <i class="bi bi-rocket-takeoff-fill display-4"></i>
-    </div>
-</div>
+    <div class="wr-stage">
+        <button type="button" class="wr-arrow" id="wrPrev" aria-label="{% trans 'Previous card' %}"><i class="bi bi-chevron-left"></i></button>
 
-<!-- Slide 5: Peaks and Valleys -->
-<div class="yir-slide yir-bg-5" id="slide-4">
-    <h1 class="yir-title">{% trans "Peaks and Valleys" %}</h1>
-    {% if review_data.highest_month %}
-    <p class="yir-text">{% trans "You really let loose in" %}</p>
-    <span class="yir-highlight text-white" style="-webkit-text-fill-color: white;">{{ review_data.highest_month.name }}</span>
-    <p class="yir-text mt-0">{% blocktrans with amount=review_data.highest_month.total|humanize_currency:currency_symbol|translate_digits cur=currency_symbol %}spending {{ cur }}{{ amount }}{% endblocktrans %}</p>
-    {% endif %}
-    
-    <div class="my-3 border-top w-25 border-white opacity-50"></div>
-    
-    {% if review_data.lowest_month %}
-    <p class="yir-text">{% trans "But you were a savings master in" %}</p>
-    <span class="yir-highlight text-white" style="-webkit-text-fill-color: white;">{{ review_data.lowest_month.name }}</span>
-    {% endif %}
-</div>
+        <div class="wr-deck" id="wrDeck" aria-live="polite">
 
-<!-- Slide 6: The Shareable Summary Card -->
-<div class="yir-slide yir-bg-6" id="slide-5">
-    <div id="share-card" class="interactive-element" style="border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(145deg, #1a1a18, #000);">
-        <h3 class="fw-bold mb-0">My {{ year }} Wrapped</h3>
-        <p class="text-white-50 small mb-4">{% trans "Tracked on TrackMyRupee" %}</p>
-        
-        <div class="row g-3 mb-4">
-            <div class="col-6">
-                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">{% trans "Total Earned" %}</small>
-                <span class="fs-5 fw-bold" style="color: #1d9e75;">{{ currency_symbol }}{{ review_data.total_earned|humanize_currency:currency_symbol|translate_digits }}</span>
-            </div>
-            <div class="col-6">
-                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">{% trans "Net Wealth Growth" %}</small>
-                <span class="fs-5 fw-bold" style="color: #f4a261;">{{ currency_symbol }}{{ review_data.total_invested|humanize_currency:currency_symbol|translate_digits }}</span>
-            </div>
-            <div class="col-12 mt-3">
-                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">{% trans "Biggest Purchase" %}</small>
-                <div class="d-flex align-items-center gap-2 mt-1">
-                    <span class="fs-5 fw-bold">{{ review_data.biggest_expense.amount|humanize_currency:currency_symbol|translate_digits|truncatechars:15 }}</span>
-                    <span class="text-white-50 small text-truncate">on {{ review_data.biggest_expense.description|truncatechars:15 }}</span>
+            <!-- 1 · Cover and money personality -->
+            <section class="wr-card c1" data-card="cover" data-title="{% trans 'Your money personality' %}">
+                <div class="wr-brand"><i>₹</i> TrackMyRupee · {{ year }} {% trans "Wrapped" %}</div>
+                <div class="wr-eyebrow"><span class="wr-name">{{ user_first_name }}, </span>{% trans "your money personality is" %}</div>
+                <div class="wr-persona">{{ p.name }}</div>
+                <div class="wr-mid">{{ p.reason }}</div>
+                <div class="wr-traits">{% for t in p.traits %}<span class="wr-pill">{{ t }}</span>{% endfor %}</div>
+                <div class="wr-foot"><span>trackmyrupee.com</span><span>#MyMoneyWrapped</span></div>
+            </section>
+
+            <!-- 2 · Top categories -->
+            {% if wrapped.top %}
+            <section class="wr-card c2" data-card="categories" data-title="{% trans 'Where it all went' %}">
+                <div class="wr-brand"><i>₹</i> {{ year }} {% trans "Wrapped" %}</div>
+                <div class="wr-eyebrow">{% trans "Your top categories" %}</div>
+                <div class="wr-big">{% blocktrans with name=wrapped.top.0.name %}{{ name }} led the year{% endblocktrans %}</div>
+                <div class="wr-ranks">
+                    {% for c in wrapped.top %}
+                    <div class="wr-rank"><b>{{ forloop.counter|translate_digits }}</b><span class="n">{{ c.name }}</span>
+                        <span class="v"><span class="wr-amt">{{ currency_symbol }}{{ c.total|humanize_currency:currency_symbol|translate_digits }} · </span>{{ c.pct|translate_digits }}%</span>
+                        <div class="t"><i style="width: {{ c.width }}%"></i></div></div>
+                    {% endfor %}
                 </div>
-            </div>
-            <div class="col-12 mt-3">
-                <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.65rem;">{% trans "Total Expenses" %}</small>
-                <span class="fs-5 fw-bold" style="color: #e05c45;">{{ currency_symbol }}{{ review_data.total_spent|humanize_currency:currency_symbol|translate_digits }}</span>
-            </div>
-            {% if review_data.goals_completed > 0 %}
-            <div class="col-12 mt-2">
-                <span class="badge bg-success bg-opacity-25 text-success rounded-pill px-3 py-2 fw-bold" style="font-size: 0.75rem;">
-                    <i class="bi bi-trophy-fill me-1"></i> {% blocktrans with n=review_data.goals_completed|translate_digits %}Crushed {{ n }} Goals!{% endblocktrans %}
-                </span>
-            </div>
+                <div class="wr-foot"><span>{% trans "Share of everything I spent" %}</span><span>trackmyrupee.com</span></div>
+            </section>
+            {% endif %}
+
+            <!-- 3 · Fun facts -->
+            <section class="wr-card c3" data-card="facts" data-title="{% trans 'Fun facts' %}">
+                <div class="wr-brand"><i>₹</i> {{ year }} {% trans "Wrapped" %}</div>
+                <div class="wr-eyebrow">{% trans "Things only your spending knows" %}</div>
+                <div class="wr-facts">
+                    <div class="wr-fact"><i>📅</i><div><b>{% blocktrans with day=f.busiest_weekday.name %}{{ day }}s were your thing{% endblocktrans %}</b><span>{% blocktrans with pct=f.busiest_weekday.pct|translate_digits %}{{ pct }}% of your purchases happened on that day{% endblocktrans %}</span></div></div>
+                    {% if f.no_spend_streak %}
+                    <div class="wr-fact"><i>🔥</i><div><b>{% blocktrans with n=f.no_spend_streak.days|translate_digits %}{{ n }}-day no-spend streak{% endblocktrans %}</b><span>{{ f.no_spend_streak.start|date:"j M" }} – {{ f.no_spend_streak.end|date:"j M" }}</span></div></div>
+                    {% endif %}
+                    {% if f.favourite_stop %}
+                    <div class="wr-fact"><i>☕</i><div><b>{% blocktrans with name=f.favourite_stop.name n=f.favourite_stop.count|translate_digits %}“{{ name }}” {{ n }} times{% endblocktrans %}</b><span>{% trans "your most repeated stop of the year" %}</span></div></div>
+                    {% endif %}
+                    <div class="wr-fact"><i>🧾</i><div><b>{% blocktrans with n=f.purchases|translate_digits %}{{ n }} purchases logged{% endblocktrans %}</b><span>{% blocktrans with n=f.per_day|translate_digits %}about {{ n }} a day{% endblocktrans %}</span></div></div>
+                </div>
+                <div class="wr-foot"><span>{% trans "What was yours?" %}</span><span>trackmyrupee.com</span></div>
+            </section>
+
+            <!-- 4 · Compared with last year (percentages only) -->
+            {% if wrapped.glow %}
+            <section class="wr-card c4" data-card="glow" data-title="{% trans 'Compared with last year' %}">
+                <div class="wr-brand"><i>₹</i> {{ year }} {% trans "Wrapped" %}</div>
+                <div class="wr-eyebrow">{% blocktrans with prev=wrapped.prev_year|translate_digits %}{{ year }} compared with {{ prev }}{% endblocktrans %}</div>
+                <div class="wr-big">{% trans "What changed" %}</div>
+                <div class="wr-glow">
+                    {% for g in wrapped.glow %}
+                    <div><span>{{ g.name }}</span>{% if g.change < 0 %}<em class="wr-down">▼ {{ g.change|cut:"-"|translate_digits }}%</em>{% else %}<em class="wr-up">▲ {{ g.change|translate_digits }}%</em>{% endif %}</div>
+                    {% endfor %}
+                </div>
+                {% if wrapped.best_month %}
+                <div class="wr-mid" style="margin-top: 5cqw;">{% blocktrans with best=wrapped.best_month priciest=wrapped.priciest_month %}Your lightest month was <b>{{ best }}</b>, your priciest <b>{{ priciest }}</b>.{% endblocktrans %}</div>
+                {% endif %}
+                <div class="wr-foot"><span>{% trans "Percent changes only" %}</span><span>trackmyrupee.com</span></div>
+            </section>
+            {% endif %}
+
+            <!-- 5 · Milestones and streaks -->
+            <section class="wr-card c5" data-card="milestones" data-title="{% trans 'Milestones and streaks' %}">
+                <div class="wr-brand"><i>₹</i> {{ year }} {% trans "Wrapped" %}</div>
+                <div class="wr-eyebrow">{% trans "Showing up counts" %}</div>
+                <div class="wr-big">{% blocktrans with n=m.days_logged|translate_digits %}{{ n }} days logged{% endblocktrans %}</div>
+                <div class="wr-stats">
+                    {% if m.week_streak > 1 %}<div><b>{% blocktrans with n=m.week_streak|translate_digits %}{{ n }} weeks{% endblocktrans %}</b><span>{% trans "in a row with at least one entry" %}</span></div>{% endif %}
+                    {% if m.goals %}<div><b>{% blocktrans count n=m.goals %}{{ n }} goal{% plural %}{{ n }} goals{% endblocktrans %}</b><span>{% trans "reached this year" %}</span></div>{% endif %}
+                    <div><b>{{ f.purchases|translate_digits }}</b><span>{% trans "purchases kept on record" %}</span></div>
+                </div>
+                <div class="wr-foot"><span>{% trans "Small habits, big year" %}</span><span>trackmyrupee.com</span></div>
+            </section>
+
+            <!-- 6 · Money story: savings rate (income based) -->
+            {% if money.has_income %}
+            <section class="wr-card c6" data-card="savings" data-money="1" data-title="{% trans 'Savings rate' %}">
+                <div class="wr-brand"><i>₹</i> {{ year }} {% trans "Wrapped" %}</div>
+                <div class="wr-lock">🔒 {% trans "Shows income-based figures" %}</div>
+                <div class="wr-eyebrow">{% trans "You kept" %}</div>
+                <div class="wr-ring" style="--p: {{ money.ring_pct }}%"><div><span><b>{{ money.savings_rate|floatformat:0|translate_digits }}%</b>{% trans "of income" %}</span></div></div>
+                <div class="wr-mid" style="margin-top: 5cqw;"><span class="wr-amt">{% blocktrans with saved=money.net_saved|humanize_currency:currency_symbol|translate_digits earned=money.earned|humanize_currency:currency_symbol|translate_digits cur=currency_symbol %}That is <b>{{ cur }}{{ saved }}</b> saved out of <b>{{ cur }}{{ earned }}</b>.{% endblocktrans %}</span><span class="wr-pct">{% trans "Of everything that came in, this is what stayed." %}</span></div>
+                <div class="wr-foot"><span>{% trans "Savings rate" %} · {{ year }}</span><span>trackmyrupee.com</span></div>
+            </section>
+            {% endif %}
+
+            <!-- 7 · Money story: net worth (income and holdings based) -->
+            {% if money.net_worth_change != None %}
+            <section class="wr-card c1" data-card="networth" data-money="1" data-title="{% trans 'Net worth' %}">
+                <div class="wr-brand"><i>₹</i> {{ year }} {% trans "Wrapped" %}</div>
+                <div class="wr-lock">🔒 {% trans "Shows net worth" %}</div>
+                <div class="wr-eyebrow">{% trans "Net worth this year" %}</div>
+                <div class="wr-big">
+                    {% if money.net_worth_pct != None %}<span class="wr-pct">{% if money.net_worth_pct >= 0 %}▲ {{ money.net_worth_pct|translate_digits }}%{% else %}▼ {{ money.net_worth_pct|cut:"-"|translate_digits }}%{% endif %}</span>{% endif %}
+                    <span class="wr-amt">{% if money.net_worth_change >= 0 %}▲{% else %}▼{% endif %} {{ currency_symbol }}{{ money.net_worth_change|cut:"-"|humanize_currency:currency_symbol|translate_digits }}</span>
+                    {% if money.net_worth_pct == None %}<span class="wr-pct">{% if money.net_worth_change >= 0 %}▲{% else %}▼{% endif %}</span>{% endif %}
+                </div>
+                <div class="wr-facts">
+                    {% if money.invested_pct %}<div class="wr-fact"><i>📈</i><div><b>{% blocktrans with n=money.invested_pct|translate_digits %}{{ n }}% of income invested{% endblocktrans %}</b><span>{% trans "kept growing, month after month" %}</span></div></div>{% endif %}
+                </div>
+                <div class="wr-foot"><span>{% trans "Money story" %}</span><span>trackmyrupee.com</span></div>
+            </section>
             {% endif %}
         </div>
-        
-        <div class="text-center mt-4 pt-3 border-top border-white border-opacity-10">
-            <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold" style="font-size: 0.7rem;">trackmyrupee.com</span>
-        </div>
+
+        <button type="button" class="wr-arrow" id="wrNext" aria-label="{% trans 'Next card' %}"><i class="bi bi-chevron-right"></i></button>
     </div>
-    
-    <!-- Action Buttons -->
-    <div class="mt-5 d-flex gap-3 interactive-element" data-html2canvas-ignore="true">
-        <button id="download-btn" class="btn btn-light rounded-pill px-4 py-2 fw-bold">
-            <i class="bi bi-download me-2"></i> {% trans "Save to Gallery" %}
-        </button>
-        <a href="{% url 'home' %}" onclick="if(document.referrer && document.referrer.indexOf(window.location.host) !== -1) { history.back(); return false; }" class="btn btn-outline-light rounded-pill px-4 py-2 fw-bold">
-            {% trans "Exit" %}
-        </a>
+
+    <div class="wr-actions">
+        <button type="button" class="wr-btn primary" id="wrShare"><i class="bi bi-box-arrow-up"></i> {% trans "Share" %}</button>
+        <a href="{% url 'home' %}" class="wr-btn">{% trans "Done" %}</a>
     </div>
 </div>
 
+<!-- Share sheet -->
+<div class="wr-sheet" id="wrSheet" role="dialog" aria-modal="true" aria-labelledby="wrSheetTitle">
+    <div class="wr-panel">
+        <h2 id="wrSheetTitle">{% trans "Share your Wrapped" %}</h2>
+        <p>{% trans "Pick the cards. The images are made on your device; nothing is uploaded." %}</p>
+        <div class="wr-thumbs" id="wrThumbs"></div>
+        <div class="wr-opt"><label for="wrHide">{% trans "Hide rupee amounts" %}<small>{% trans "Show percentages and ranks only" %}</small></label><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="wrHide" checked></div></div>
+        <div class="wr-opt"><label for="wrMoney">{% trans "Include the Money story" %}<small>{% trans "Savings rate and net worth. These show income-based numbers" %}</small></label><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="wrMoney"></div></div>
+        <div class="wr-opt"><label for="wrName">{% trans "Add my name" %}</label><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="wrName" checked></div></div>
+        <div class="wr-panel-actions">
+            <button type="button" class="wr-btn" id="wrDownload"><i class="bi bi-download"></i> {% trans "Download" %}</button>
+            <button type="button" class="wr-btn primary" id="wrSend"><i class="bi bi-box-arrow-up"></i> {% trans "Share…" %}</button>
+        </div>
+        <div class="wr-status" id="wrStatus" role="status"></div>
+        <button type="button" class="wr-btn mt-2 w-100" id="wrCancel">{% trans "Cancel" %}</button>
+    </div>
+</div>
+<div class="wr-export" id="wrExport" aria-hidden="true"></div>
+
+<script id="wr-text" type="application/json">{"saving": "{% trans 'Making your images…' %}", "failed": "{% trans 'Could not make the images. Please try again.' %}", "done": "{% trans 'Saved.' %}", "pickOne": "{% trans 'Pick at least one card.' %}"}</script>
+{% endwith %}
+<script src="{% static 'js/wrapped.js' %}?v=1"></script>
 {% endif %}
-
-<!-- html2canvas for downloading the card -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // --- Story Carousel Logic ---
-        const totalSlides = 6;
-        let currentSlide = 0;
-        let timer;
-        const SLIDE_DURATION = 5000; // 5 seconds per slide
-        
-        // If we don't have enough data, this doesn't run.
-        if (document.getElementById('slide-0')) {
-            const navLeft = document.getElementById('nav-left');
-            const navRight = document.getElementById('nav-right');
-            
-            function showSlide(index) {
-                // Bounds checking
-                if (index >= totalSlides) {
-                    // Reached end, bounce back or just stay on last slide
-                    index = totalSlides - 1;
-                } else if (index < 0) {
-                    index = 0;
-                }
-                
-                // Update Classes
-                for (let i = 0; i < totalSlides; i++) {
-                    const slide = document.getElementById(`slide-${i}`);
-                    const pb = document.getElementById(`pb-${i}`);
-                    
-                    if (i < index) {
-                        // Past slides
-                        slide.classList.remove('active');
-                        pb.classList.add('completed');
-                        pb.querySelector('.story-progress-fill').style.transition = 'none';
-                        pb.querySelector('.story-progress-fill').style.width = '100%';
-                    } else if (i === index) {
-                        // Current slide
-                        slide.classList.add('active');
-                        pb.classList.remove('completed');
-                        
-                        // Restart Animation for current slide
-                        const fill = pb.querySelector('.story-progress-fill');
-                        fill.style.transition = 'none';
-                        fill.style.width = '0%';
-                        
-                        // Force reflow
-                        void fill.offsetWidth;
-                        
-                        fill.style.transition = `width ${SLIDE_DURATION}ms linear`;
-                        fill.style.width = '100%';
-                        
-                    } else {
-                        // Future slides
-                        slide.classList.remove('active');
-                        pb.classList.remove('completed');
-                        pb.querySelector('.story-progress-fill').style.transition = 'none';
-                        pb.querySelector('.story-progress-fill').style.width = '0%';
-                    }
-                }
-                
-                currentSlide = index;
-                resetTimer();
-                
-                // Hide nav areas on the last slide so user can click the buttons safely
-                if (currentSlide === totalSlides - 1) {
-                    navLeft.style.display = 'none';
-                    navRight.style.display = 'none';
-                } else {
-                    navLeft.style.display = 'block';
-                    navRight.style.display = 'block';
-                }
-            }
-            
-            function nextSlide() {
-                if (currentSlide < totalSlides - 1) {
-                    showSlide(currentSlide + 1);
-                }
-            }
-            
-            function prevSlide() {
-                if (currentSlide > 0) {
-                    showSlide(currentSlide - 1);
-                }
-            }
-            
-            function resetTimer() {
-                clearInterval(timer);
-                if (currentSlide < totalSlides - 1) {
-                    timer = setInterval(nextSlide, SLIDE_DURATION);
-                }
-            }
-            
-            // Events
-            navLeft.addEventListener('click', prevSlide);
-            navRight.addEventListener('click', nextSlide);
-            
-            // Allow keyboard nav too
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
-                if (e.key === 'ArrowLeft') prevSlide();
-            });
-
-            // Initialize Custom Start
-            showSlide(0);
-        }
-    
-        // --- Download Logic ---
-        const downloadBtn = document.getElementById('download-btn');
-        if (downloadBtn) {
-            downloadBtn.addEventListener('click', function() {
-                const card = document.getElementById('share-card');
-                const prevHtml = downloadBtn.innerHTML;
-                downloadBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Generating...';
-                downloadBtn.disabled = true;
-                
-                // Use html2canvas
-                html2canvas(card, {
-                    scale: 3, // Very high resolution for crisp text
-                    backgroundColor: null,
-                    useCORS: true,
-                    logging: false
-                }).then(canvas => {
-                    // Convert to image
-                    const link = document.createElement('a');
-                    link.download = 'TrackMyRupee_Wrapped_{{ year }}.png';
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    
-                    downloadBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i> Saved';
-                    setTimeout(() => {
-                        downloadBtn.innerHTML = prevHtml;
-                        downloadBtn.disabled = false;
-                    }, 2000);
-                });
-            });
-        }
-    });
-</script>
-
+<script>document.body.classList.add('wr-page');</script>
 {% endblock %}
