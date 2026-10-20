@@ -4,14 +4,14 @@
 {% block title %}{{ year }} {% trans "Wrapped" %} - TrackMyRupee{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/wrapped.css' %}?v=8">
+<link rel="stylesheet" href="{% static 'css/wrapped.css' %}?v=13">
 
 {% if not review_data.has_data or not wrapped.has_story %}
 <div class="wr wr-empty" style="grid-template-rows: 1fr; align-content: center; text-align: center;">
     <div>
         <h1 class="h3 fw-bold">{% blocktrans %}We don't have enough data for {{ year }}.{% endblocktrans %}</h1>
         <p class="text-white-50">{% trans "Start tracking this year to see your insights next year!" %}</p>
-        <a href="{% url 'home' %}" class="wr-btn primary px-4 mt-2" style="display: inline-flex;">{% trans "Back to Dashboard" %}</a>
+        <a href="{% url 'home' %}" class="btn btn-action-primary mt-2">{% trans "Back to Dashboard" %}</a>
     </div>
 </div>
 {% else %}
@@ -20,7 +20,7 @@
 
     <div class="wr-top">
         <div class="wr-bar">
-            <a href="{% url 'home' %}" id="wrClose" aria-label="{% trans 'Close' %}"><i class="bi bi-x-lg"></i></a>
+            <a href="{% url 'analytics' %}" id="wrClose" aria-label="{% trans 'Close' %}"><i class="bi bi-x-lg"></i></a>
             <strong>{{ year }} {% trans "Wrapped" %}</strong>
             <span style="min-width: 40px;"></span>
         </div>
@@ -141,34 +141,34 @@
         <button type="button" class="wr-arrow" id="wrNext" aria-label="{% trans 'Next card' %}"><i class="bi bi-chevron-right"></i></button>
     </div>
 
-    <div class="wr-actions">
-        <button type="button" class="wr-btn primary" id="wrShare"><i class="bi bi-box-arrow-up"></i> {% trans "Share" %}</button>
-        <a href="{% url 'home' %}" class="wr-btn">{% trans "Done" %}</a>
+    <div class="wr-actions" data-bs-theme="dark">
+        <button type="button" class="btn btn-action-primary" id="wrShare"><i class="bi bi-box-arrow-up me-2"></i>{% trans "Share" %}</button>
+        <a href="{% url 'analytics' %}" class="btn btn-action-cancel">{% trans "Done" %}</a>
     </div>
 </div>
 
 <!-- Share sheet -->
 <div class="wr-sheet" id="wrSheet" role="dialog" aria-modal="true" aria-labelledby="wrSheetTitle">
-    <div class="wr-panel">
+    <div class="wr-panel" data-bs-theme="light">
         <h2 id="wrSheetTitle">{% trans "Share your Wrapped" %}</h2>
-        <p>{% trans "Pick the cards. The images are made on your device; nothing is uploaded." %}</p>
-        <div class="wr-thumbs" id="wrThumbs"></div>
+        <p>{% trans "Share the card you are viewing, or the whole set. The images are made on your device; nothing is uploaded." %}</p>
+        <div class="wr-opt"><label for="wrAll">{% trans "Share all cards" %}<small>{% trans "Instead of just the card you are viewing" %}</small></label><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="wrAll"></div></div>
         <div class="wr-opt"><label for="wrHide">{% trans "Hide rupee amounts" %}<small>{% trans "Show percentages and ranks only" %}</small></label><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="wrHide" checked></div></div>
-        <div class="wr-opt"><label for="wrMoney">{% trans "Include the Money story" %}<small>{% trans "Savings rate and net worth. These show income-based numbers" %}</small></label><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="wrMoney"></div></div>
+        <div class="wr-opt" id="wrMoneyRow" style="display: none;"><label for="wrMoney">{% trans "Include the Money story" %}<small>{% trans "Savings rate and net worth. These show income-based numbers" %}</small></label><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="wrMoney"></div></div>
         <div class="wr-opt"><label for="wrName">{% trans "Add my name" %}</label><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" id="wrName" checked></div></div>
         <div class="wr-panel-actions">
-            <button type="button" class="wr-btn" id="wrDownload"><i class="bi bi-download"></i> {% trans "Download" %}</button>
-            <button type="button" class="wr-btn primary" id="wrSend"><i class="bi bi-box-arrow-up"></i> {% trans "Share…" %}</button>
+            <button type="button" class="btn btn-action-outline" id="wrDownload"><i class="bi bi-download me-2"></i>{% trans "Download" %}</button>
+            <button type="button" class="btn btn-action-primary" id="wrSend"><i class="bi bi-box-arrow-up me-2"></i>{% trans "Share…" %}</button>
         </div>
         <div class="wr-status" id="wrStatus" role="status"></div>
-        <button type="button" class="wr-btn mt-2 w-100" id="wrCancel">{% trans "Cancel" %}</button>
+        <button type="button" class="btn btn-action-cancel mt-2 w-100" id="wrCancel">{% trans "Cancel" %}</button>
     </div>
 </div>
 <div class="wr-export" id="wrExport" aria-hidden="true"></div>
 
-<script id="wr-text" type="application/json">{"saving": "{% trans 'Making your images…' %}", "failed": "{% trans 'Could not make the images. Please try again.' %}", "done": "{% trans 'Saved.' %}", "pickOne": "{% trans 'Pick at least one card.' %}"}</script>
+<script id="wr-text" type="application/json">{"saving": "{% trans 'Making your images…' %}", "failed": "{% trans 'Could not make the images. Please try again.' %}", "done": "{% trans 'Saved.' %}", "pickOne": "{% trans 'Nothing to share.' %}"}</script>
 {% endwith %}
-<script src="{% static 'js/wrapped.js' %}?v=1"></script>
+<script src="{% static 'js/wrapped.js' %}?v=3"></script>
 {% endif %}
 <script>document.body.classList.add('wr-page');</script>
 {% endblock %}

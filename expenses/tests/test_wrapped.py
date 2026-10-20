@@ -171,3 +171,8 @@ class PageTests(Base):
         html = self.client.get(reverse('year_in_review', args=[YEAR - 5])).content.decode()
         self.assertNotIn('class="wr-card', html)
         self.assertIn('enough data', html)
+
+    def test_closing_and_done_lead_back_to_analytics(self):
+        html = self.client.get(reverse('year_in_review', args=[YEAR])).content.decode()
+        self.assertIn(f'href="{reverse("analytics")}" id="wrClose"', html)
+        self.assertIn(f'href="{reverse("analytics")}" class="btn btn-action-cancel">', html)

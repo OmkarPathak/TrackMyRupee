@@ -19753,14 +19753,6 @@ msgstr "एकच खरेदी तुमच्या एकूण खर्�
 msgid "Percent changes only"
 msgstr "फक्त टक्केवारीतील बदल"
 
-msgid "Pick at least one card."
-msgstr "किमान एक कार्ड निवडा."
-
-msgid ""
-"Pick the cards. The images are made on your device; nothing is uploaded."
-msgstr ""
-"कार्ड निवडा. प्रतिमा तुमच्या डिव्हाइसवर तयार होतात; काहीही अपलोड होत नाही."
-
 msgid "Planned splurges"
 msgstr "ठरवून केलेली मोठी खरेदी"
 
@@ -19920,3 +19912,19 @@ msgid "%(n)s goal"
 msgid_plural "%(n)s goals"
 msgstr[0] "%(n)s उद्दिष्ट"
 msgstr[1] "%(n)s उद्दिष्टे"
+
+msgid ""
+"Share the card you are viewing, or the whole set. The images are made on "
+"your device; nothing is uploaded."
+msgstr ""
+"तुम्ही पाहत असलेले कार्ड शेअर करा, किंवा संपूर्ण संच. प्रतिमा तुमच्या "
+"डिव्हाइसवर तयार होतात; काहीही अपलोड होत नाही."
+
+msgid "Share all cards"
+msgstr "सर्व कार्डे शेअर करा"
+
+msgid "Instead of just the card you are viewing"
+msgstr "फक्त पाहत असलेल्या कार्डाऐवजी"
+
+msgid "Nothing to share."
+msgstr "शेअर करण्यासाठी काही नाही."

@@ -11,9 +11,9 @@
     var cards = Array.prototype.slice.call(root.querySelectorAll('.wr-card'));
     var progress = document.getElementById('wrProgress');
     var prev = document.getElementById('wrPrev'), next = document.getElementById('wrNext');
-    var sheet = document.getElementById('wrSheet'), thumbs = document.getElementById('wrThumbs');
+    var sheet = document.getElementById('wrSheet');
     var statusEl = document.getElementById('wrStatus');
-    var index = 0, selected = {}, busy = false;
+    var index = 0, busy = false;
 
     // ---------- viewer ----------
     cards.forEach(function (card, i) {
@@ -53,10 +53,6 @@
         startX = startY = null;
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { e.preventDefault(); show(index + (dx < 0 ? 1 : -1)); }
     });
-    var close = document.getElementById('wrClose');
-    close.addEventListener('click', function (e) {
-        if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) { e.preventDefault(); history.back(); }
-    });
     show(0);
 
     // ---------- share sheet ----------
@@ -64,30 +60,19 @@
     var firstName = root.getAttribute('data-name') || '';
     if (!firstName) { nameBox.checked = false; nameBox.closest('.wr-opt').style.display = 'none'; }
 
-    function visibleCards() {
+    var all = document.getElementById('wrAll'), moneyRow = document.getElementById('wrMoneyRow');
+    function chosen() {
+        // the card in view; with "Share all cards", the whole set (the Money story only if asked for)
+        if (!all.checked) return [cards[index]];
         return cards.filter(function (c) { return money.checked || !c.hasAttribute('data-money'); });
     }
-    function buildThumbs() {
-        thumbs.innerHTML = '';
-        visibleCards().forEach(function (card) {
-            var key = card.getAttribute('data-card');
-            if (selected[key] === undefined) selected[key] = true;
-            var t = document.createElement('button');
-            t.type = 'button';
-            t.className = 'wr-thumb ' + (card.className.match(/\bc\d\b/) || [''])[0] + (card.hasAttribute('data-money') ? ' money' : '') + (selected[key] ? ' sel' : '');
-            t.setAttribute('aria-label', card.getAttribute('data-title') || key);
-            t.setAttribute('aria-pressed', selected[key] ? 'true' : 'false');
-            t.addEventListener('click', function () { selected[key] = !selected[key]; buildThumbs(); });
-            thumbs.appendChild(t);
-        });
-    }
     function setStatus(msg) { statusEl.textContent = msg || ''; }
-    function openSheet() { buildThumbs(); setStatus(''); sheet.classList.add('open'); }
+    function openSheet() { setStatus(''); moneyRow.style.display = all.checked ? '' : 'none'; sheet.classList.add('open'); }
     function closeSheet() { if (!busy) sheet.classList.remove('open'); }
     document.getElementById('wrShare').addEventListener('click', openSheet);
     document.getElementById('wrCancel').addEventListener('click', closeSheet);
     sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
-    money.addEventListener('change', buildThumbs);
+    all.addEventListener('change', function () { moneyRow.style.display = all.checked ? '' : 'none'; });
 
     // ---------- making the images ----------
     function loadHtml2Canvas() {
@@ -101,10 +86,6 @@
             document.head.appendChild(s);
         });
         return window._wrH2c;
-    }
-
-    function chosen() {
-        return visibleCards().filter(function (c) { return selected[c.getAttribute('data-card')]; });
     }
 
     function render(card) {
