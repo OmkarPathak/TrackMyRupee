@@ -54,10 +54,10 @@ body:has(.demo-banner) .wr { padding-top: 64px; --wr-extra: 52px; }
 .wr-card.c5 { background: linear-gradient(165deg, #2a6fdb 0%, #14306b 100%); }
 .wr-card.c6 { background: linear-gradient(160deg, #3a2a52 0%, #15101f 100%); }
 
-.wr-brand { display: flex; align-items: center; gap: 2.2cqw; font-weight: 700; font-size: 4.9cqw; letter-spacing: .02em; }
+.wr-brand { display: flex; align-items: center; gap: 2.2cqw; font-weight: 700; font-size: 4.9cqw; }
 .wr-brand i { width: 6.1cqw; height: 6.1cqw; border-radius: 1.9cqw; background: #fff; color: #1d9e75; display: grid; place-items: center; font-style: normal; font-size: 4.2cqw; }
 .wr-eyebrow { margin-top: auto; font-size: 4.2cqw; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
-.wr-big { font-family: 'Instrument Serif', serif; font-size: 16.0cqw; line-height: 1; margin: 2.8cqw 0 2.2cqw; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.wr-big { font-family: 'Instrument Serif', serif; font-size: 16.0cqw; line-height: 1; margin: 2.8cqw 0 2.2cqw; overflow-wrap: anywhere; }
 .wr-mid { font-size: 5.9cqw; line-height: 1.35; }
 .wr-foot { margin-top: auto; padding-top: 6cqw; display: flex; justify-content: space-between; align-items: center; gap: 3cqw; font-size: 4.2cqw; opacity: .85; }
 .wr-pill { display: inline-block; padding: 1.4cqw 3cqw; border-radius: 99px; background: rgba(255,255,255,.18); font-size: 4.5cqw; font-weight: 700; }
