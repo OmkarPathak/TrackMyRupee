@@ -2,8 +2,8 @@
 {% load static currency_filters i18n digit_filters expense_extras humanize filter_tags %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=2.2">
-    <script src="{% static 'js/tmr_filter.js' %}?v=2.0" defer></script>
+    <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=2.5">
+    <script src="{% static 'js/tmr_filter.js' %}?v=2.1" defer></script>
     {% if show_tutorial %}
     {# Product tour assets only ship when the tour will actually start (new users / ?tour=true). #}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />

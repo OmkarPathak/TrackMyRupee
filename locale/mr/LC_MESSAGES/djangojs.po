@@ -281,3 +281,9 @@ msgstr "ॲप इन्स्टॉल करा 📲"
 msgid ""
 "Add TrackMyRupee to your home screen for a fast, native app experience."
 msgstr "जलद, ॲपसारख्या अनुभवासाठी TrackMyRupee तुमच्या होम स्क्रीनवर जोडा."
+
+msgid "Select date"
+msgstr "तारीख निवडा"
+
+msgid "To"
+msgstr "पर्यंत"

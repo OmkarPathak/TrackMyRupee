@@ -731,6 +731,42 @@
   opacity: 1;
 }
 
+/* Phones: one field per row, big enough to tap, 16px text so iOS does not zoom, left-aligned, with a hint when empty */
+@media (max-width: 575.98px) {
+  .tmr-custom-date-row { flex-direction: column; gap: 10px; margin-bottom: 10px; }
+  .tmr-custom-date-label { font-size: 0.7rem; margin-bottom: 4px; }
+  .tmr-custom-date-input {
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    display: flex;               /* iOS Safari draws the value at the top of a fixed-height field unless it is centred like this */
+    align-items: center;
+    height: 38px;
+    min-height: 38px;
+    padding: 0 12px;
+    line-height: normal;
+    font-size: 0.875rem;       /* date fields open a picker rather than the keyboard, so iOS does not zoom */
+    text-align: left;
+    border-radius: 8px;
+  }
+  .tmr-custom-date-input::-webkit-date-and-time-value { text-align: left; margin: 0; padding: 0; min-height: 0; }
+  .tmr-custom-date-input::-webkit-datetime-edit { padding: 0; line-height: normal; }
+  .tmr-custom-date-input::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+  .tmr-custom-date-input::-webkit-calendar-picker-indicator { opacity: 0.6; }
+  .tmr-custom-date-input.is-empty { color: transparent; }
+  .tmr-custom-date-input.is-empty::before {
+    content: attr(data-placeholder);
+    color: var(--bs-secondary-color);
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .tmr-custom-date-actions { gap: 10px; padding-top: 4px; }
+  .tmr-custom-date-actions .tmr-custom-cancel { padding: 8px 12px; font-size: 0.875rem; }
+  .tmr-time-popover .tmr-custom-apply { padding: 8px 18px; font-size: 0.875rem; border-radius: 8px; }
+}
+
 .tmr-custom-date-input:focus {
   outline: none;
   border-color: var(--tmr-filter-primary);

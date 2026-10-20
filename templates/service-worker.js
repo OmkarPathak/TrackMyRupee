@@ -1,5 +1,5 @@
 {% load static %}// Updated: 2026-10-10 (navigation preload; precache only what pages actually request, never the dashboard HTML)
-const CACHE_NAME = 'finance-tracker-v40';
+const CACHE_NAME = 'finance-tracker-v43';
 const OFFLINE_URL = '/offline/';
 
 // Precache the offline page and the content-hashed assets every page needs. The pages reference these

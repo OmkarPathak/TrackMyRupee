@@ -1200,11 +1200,11 @@ class TMRFilterSystem {
         <div class="tmr-custom-date-row">
           <div class="tmr-custom-date-field">
             <label class="tmr-custom-date-label">${gettext('From')}</label>
-            <input type="date" class="tmr-custom-date-input tmr-custom-start" value="${escapeHtml(this.state.start_date)}">
+            <input type="date" class="tmr-custom-date-input tmr-custom-start" data-placeholder="${gettext('Select date')}" value="${escapeHtml(this.state.start_date)}">
           </div>
           <div class="tmr-custom-date-field">
-            <label class="tmr-custom-date-label">To</label>
-            <input type="date" class="tmr-custom-date-input tmr-custom-end" value="${escapeHtml(this.state.end_date)}">
+            <label class="tmr-custom-date-label">${gettext('To')}</label>
+            <input type="date" class="tmr-custom-date-input tmr-custom-end" data-placeholder="${gettext('Select date')}" value="${escapeHtml(this.state.end_date)}">
           </div>
         </div>
         <div class="tmr-custom-date-actions">
@@ -1225,6 +1225,14 @@ class TMRFilterSystem {
       const startInput = popover.querySelector('.tmr-custom-start');
       const endInput = popover.querySelector('.tmr-custom-end');
       const customItem = popover.querySelector('[data-time-key="custom"]');
+
+      // a date field that is empty shows a hint (iOS leaves it blank), and "To" cannot be before "From"
+      const syncDates = () => {
+        [startInput, endInput].forEach((input) => { if (input) input.classList.toggle('is-empty', !input.value); });
+        if (endInput && startInput) endInput.min = startInput.value || '';
+      };
+      [startInput, endInput].forEach((input) => { if (input) input.addEventListener('input', syncDates); });
+      syncDates();
 
       if (isCustom && customDrawer) {
         setTimeout(() => {
@@ -1248,7 +1256,8 @@ class TMRFilterSystem {
               }
               setTimeout(() => {
                 customDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                startInput.focus();
+                // on a phone, focusing a date field opens the picker with today pre-filled: let them tap it
+                if (!this.isMobileViewport()) startInput.focus();
               }, 60);
             } else {
               if (this.state.time_period !== 'custom') {
