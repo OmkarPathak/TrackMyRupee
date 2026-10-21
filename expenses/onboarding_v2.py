@@ -266,15 +266,31 @@ def handle_step2(
                 'is_last_day_of_month': is_last_day,
                 'is_active': True,
             }
-            if state.recurring_transaction:
-                recurring_obj = state.recurring_transaction
+            description = f"{rule_defaults['source']} (Auto)"
+            existing_rule = state.recurring_transaction
+            if not existing_rule:
+                # Reuse an identical active rule (e.g. from a double submit) to avoid violating
+                # the 'unique_recurring_transaction' constraint.
+                existing_rule = RecurringTransaction.objects.filter(
+                    user=user,
+                    transaction_type='INCOME',
+                    amount=salary_dec,
+                    currency=profile.currency,
+                    description=description,
+                    frequency='MONTHLY',
+                    start_date=cycle_start,
+                    is_active=True,
+                ).first()
+            if existing_rule:
+                recurring_obj = existing_rule
+                state.recurring_transaction = recurring_obj
                 for k, v in rule_defaults.items():
                     setattr(recurring_obj, k, v)
                 recurring_obj.save()
             else:
                 recurring_obj = RecurringTransaction.objects.create(
                     user=user,
-                    description=f"{rule_defaults['source']} (Auto)",
+                    description=description,
                     transaction_type='INCOME',
                     **rule_defaults,
                 )

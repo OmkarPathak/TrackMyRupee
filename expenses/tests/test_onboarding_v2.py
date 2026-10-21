@@ -16,7 +16,7 @@ from expenses.models import (
     SavingsGoal,
     UserProfile,
 )
-from expenses.onboarding_v2 import compute_cycle_range, get_checklist_items
+from expenses.onboarding_v2 import compute_cycle_range, get_checklist_items, handle_step2
 
 
 class OnboardingV2Tests(TestCase):
@@ -253,3 +253,26 @@ class OnboardingV2Tests(TestCase):
             self.assertNotIn('salary', props)
             self.assertNotIn('balance', props)
             self.assertNotIn('description', props)
+
+
+    def test_step2_reuses_existing_active_salary_rule_when_state_has_none(self):
+        """Regression: a repeated step 2 must not violate unique_recurring_transaction."""
+        kwargs = dict(
+            payday=25,
+            salary_amount=Decimal('50000'),
+            bank_choice='SBI',
+            custom_bank_name=None,
+            balance_now=Decimal('35000'),
+            auto_log_salary=True,
+        )
+        handle_step2(self.user, **kwargs)
+        rule = RecurringTransaction.objects.get(user=self.user)
+
+        # Simulate the onboarding state losing its link to the rule (e.g. double submit).
+        OnboardingState.objects.filter(user=self.user).update(recurring_transaction=None)
+
+        handle_step2(self.user, **kwargs)
+
+        self.assertEqual(RecurringTransaction.objects.filter(user=self.user).count(), 1)
+        state = OnboardingState.objects.get(user=self.user)
+        self.assertEqual(state.recurring_transaction_id, rule.pk)
