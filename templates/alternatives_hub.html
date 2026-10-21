@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Best Personal Finance Apps in India (2026): How to Choose - TrackMyRupee" %}{% endblock %}
+
+{% block meta_tags %}
+<meta name="description" content="{% trans "How to pick the best personal finance tracker in India: SMS auto-tracking, email and bank linking, or private manual logging. Compare the approaches and see where TrackMyRupee fits." %}">
+<meta name="author" content="Omkar Pathak">
+<link rel="canonical" href="https://trackmyrupee.com{% url 'alternatives' %}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:title" content="{% trans "Best Personal Finance Apps in India (2026): How to Choose" %}">
+<meta property="og:description" content="{% trans "SMS auto-tracking, email and bank linking, or private manual logging: how to choose a personal finance tracker in India." %}">
+<meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "TrackMyRupee alternatives guides",
+    "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Axio alternative", "url": "https://trackmyrupee.com{% url 'axio-alternative' %}"},
+        {"@type": "ListItem", "position": 2, "name": "Walnut alternative", "url": "https://trackmyrupee.com{% url 'walnut-alternative-no-sms' %}"},
+        {"@type": "ListItem", "position": 3, "name": "INDmoney alternative", "url": "https://trackmyrupee.com{% url 'indmoney-alternative-privacy' %}"}
+    ]
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TrackMyRupee",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web",
+    "url": "https://trackmyrupee.com/",
+    "offers": [
+        {"@type": "Offer", "name": "Free Plan", "price": "0", "priceCurrency": "INR", "areaServed": "IN"},
+        {"@type": "Offer", "name": "Plus Plan (Monthly)", "price": "49", "priceCurrency": "INR", "areaServed": "IN"},
+        {"@type": "Offer", "name": "Plus Plan (Yearly)", "price": "499", "priceCurrency": "INR", "areaServed": "IN"}
+    ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <nav aria-label="{% trans "breadcrumb" %}" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/" class="text-decoration-none">{% trans "Home" %}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{% trans "Alternatives" %}</li>
+                </ol>
+            </nav>
+
+            <article class="blog-content fs-blog-content text-break">
+                <h1 class="display-6 fw-bold mb-3">{% trans "Best Personal Finance Apps in India: How to Choose" %}</h1>
+                <p class="lead text-muted mb-4">{% trans "The right expense tracker depends on one trade-off: convenience or privacy. Here is how the main approaches differ, and what to check before you install anything." %}</p>
+
+                <h2 class="fw-bold mt-5 mb-3">{% trans "The three kinds of finance trackers in India" %}</h2>
+                <ul class="list-unstyled d-flex flex-column gap-4 mt-3">
+                    <li>
+                        <h3 class="h5 fw-bold mb-1">{% trans "1. SMS auto-trackers" %}</h3>
+                        <p class="text-muted mb-0">{% trans "They read bank SMS alerts and log transactions for you. Least effort, but the app needs permission to read your message inbox." %}</p>
+                    </li>
+                    <li>
+                        <h3 class="h5 fw-bold mb-1">{% trans "2. Email and account-linking apps" %}</h3>
+                        <p class="text-muted mb-0">{% trans "They pull investments and balances by scanning your email or linking accounts. Good for a single portfolio view, but they need access to your inbox or financial credentials." %}</p>
+                    </li>
+                    <li>
+                        <h3 class="h5 fw-bold mb-1">{% trans "3. Manual, privacy-first trackers" %}</h3>
+                        <p class="text-muted mb-0">{% trans "You log spends yourself, usually in seconds. A little more effort, but no one reads your messages or email. TrackMyRupee is in this group." %}</p>
+                    </li>
+                </ul>
+
+                <h2 class="fw-bold mt-5 mb-3">{% trans "What to check before choosing" %}</h2>
+                <ul class="text-muted" style="line-height: 1.8;">
+                    <li>{% trans "Permissions: does it need SMS, email or bank-login access?" %}</li>
+                    <li>{% trans "Net worth: can it track mutual funds, FDs, PPF, stocks and loans, not just daily spending?" %}</li>
+                    <li>{% trans "Salary-cycle budgeting: does your month start on payday, not on the 1st?" %}</li>
+                    <li>{% trans "Data control: can you export everything as CSV whenever you want?" %}</li>
+                    <li>{% trans "Business model: ads and cross-selling, or paid subscriptions?" %}</li>
+                    <li>{% trans "Language: English, Hindi and Marathi support." %}</li>
+                </ul>
+
+                <h2 class="fw-bold mt-5 mb-3">{% trans "Where TrackMyRupee fits" %}</h2>
+                <p class="text-muted" style="line-height: 1.8; font-size: 16px;">{% trans "TrackMyRupee is a personal finance tracker for India with no SMS access and no bank login. You type an expense like a message, set budgets around your salary cycle, and track net worth across accounts, mutual fund holdings, SIPs and loans. It is open source, works offline as an installable web app, supports English, Hindi and Marathi, and has a free plan that does not expire." %}</p>
+
+                <h2 class="fw-bold mt-5 mb-3">{% trans "Switching from another app?" %}</h2>
+                <div class="list-group mb-5">
+                    <a href="{% url 'axio-alternative' %}" class="list-group-item list-group-item-action fw-semibold">{% trans "Axio alternative: tracking without SMS access" %}</a>
+                    <a href="{% url 'walnut-alternative-no-sms' %}" class="list-group-item list-group-item-action fw-semibold">{% trans "Walnut alternative: tracking without SMS access" %}</a>
+                    <a href="{% url 'indmoney-alternative-privacy' %}" class="list-group-item list-group-item-action fw-semibold">{% trans "INDmoney alternative: net worth without email or bank linking" %}</a>
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-center gap-3 my-5">
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold">{% trans "Create Free Account" %}</a>
+                    <a href="{% url 'features' %}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold">{% trans "See All Features" %}</a>
+                </div>
+            </article>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
@@ -21,7 +23,7 @@ class AlternativePageView(TemplateView):
             'axio': {
                 'competitor_id': 'axio',
                 'competitor_name': 'Axio',
-                'meta_title': _('Best Axio Alternative in India (Privacy-First) - TrackMyRupee'),
+                'meta_title': _('Axio Alternative: Expense Tracker Without SMS Access - TrackMyRupee'),
                 'meta_description': _("Looking for an Axio alternative? Track your expenses manually without SMS permission. TrackMyRupee is the best secure manual budgeting app in India."),
                 'meta_keywords': _("Axio alternative, expense tracker India without SMS permission, best secure manual budgeting app India, personal finance tracker India"),
                 'h1_title': _('The Secure, Privacy-First Axio Alternative'),
@@ -31,6 +33,10 @@ class AlternativePageView(TemplateView):
                 'solution_title': _('The TrackMyRupee Difference: Zero Permissions Required'),
                 'solution_text': _("TrackMyRupee is built from the ground up to respect your privacy. We never ask for SMS reading permissions, bank login credentials, or email access. You are in complete control: you only track what you choose to log. With our 3-second rapid entry and automated recurring transaction logs, manual budgeting is faster and safer than ever."),
                 'faqs': [
+                    {
+                        'question': _('Is Axio safe to use?'),
+                        'answer': _('Axio reads your SMS inbox to track transactions automatically, so how safe it is for you depends on whether you are comfortable granting that permission. Check its privacy policy and the permissions it requests before installing. If you would rather not share your messages, TrackMyRupee needs no SMS, email or bank-login access.')
+                    },
                     {
                         'question': _('Why should I choose a manual expense tracker over Axio?'),
                         'answer': _('Manual tracking gives you complete control and ensures privacy. Axio reads your personal SMS messages to automate tracking, which exposes your private data. TrackMyRupee does not require any SMS permissions, so you never have to grant that access.')
@@ -53,7 +59,7 @@ class AlternativePageView(TemplateView):
             'walnut': {
                 'competitor_id': 'walnut',
                 'competitor_name': 'Walnut',
-                'meta_title': _('Best Walnut Alternative (No SMS Permission) - TrackMyRupee'),
+                'meta_title': _('Walnut Money Manager Alternative: No SMS Access - TrackMyRupee'),
                 'meta_description': _("Discover the best Walnut alternative with no SMS reading permission. Secure your financial data with TrackMyRupee, India's premium manual expense tracker."),
                 'meta_keywords': _("Walnut alternative no sms, expense tracker India without SMS permission, best secure manual budgeting app India, privacy expense tracker"),
                 'h1_title': _('Best Walnut Alternative: Zero SMS Permissions'),
@@ -63,6 +69,10 @@ class AlternativePageView(TemplateView):
                 'solution_title': _('TrackMyRupee: Secure Manual Budgeting'),
                 'solution_text': _("TrackMyRupee requires absolutely zero invasive device permissions. We don't read your messages, scrape your bank statements, or sell your financial behavior to advertisers. Supported by transparent subscriptions and a fully open-source codebase, we are built solely to provide a secure space for your financial planning."),
                 'faqs': [
+                    {
+                        'question': _('What is a good alternative to the Walnut money manager app?'),
+                        'answer': _('If you liked Walnut for expense tracking but do not want an app reading your SMS inbox, TrackMyRupee is built for that: you log a spend in a few seconds by typing it, and it needs no SMS, email or bank-login access. It also tracks budgets, goals and net worth.')
+                    },
                     {
                         'question': _('Why is TrackMyRupee the best Walnut alternative for Indians?'),
                         'answer': _('TrackMyRupee is designed specifically for the Indian market, supporting English, Hindi, and Marathi, along with native Rupee formatting. It provides a clean, premium dashboard without the constant spam, ads, or intrusive SMS access associated with Walnut.')
@@ -119,4 +129,25 @@ class AlternativePageView(TemplateView):
         # Default to axio if competitor is not set or not found
         comp_info = competitors_data.get(self.competitor, competitors_data['axio'])
         context.update(comp_info)
+        context['faq_schema'] = json.dumps({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            'mainEntity': [
+                {
+                    '@type': 'Question',
+                    'name': str(faq['question']),
+                    'acceptedAnswer': {'@type': 'Answer', 'text': str(faq['answer'])},
+                }
+                for faq in comp_info['faqs']
+            ],
+        }, ensure_ascii=False).replace('</', '<\\/')
         return context
+
+
+class AlternativesHubView(TemplateView):
+    template_name = 'alternatives_hub.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('home')
+        return super().dispatch(request, *args, **kwargs)

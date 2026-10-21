@@ -145,6 +145,7 @@ urlpatterns = [
     path('contact/', views.ContactView.as_view(), name='contact'),
 
     # Alternatives Landing Pages
+    path('alternatives/', views.AlternativesHubView.as_view(), name='alternatives'),
     path('alternatives/axio-alternative/', views.AlternativePageView.as_view(competitor='axio'), name='axio-alternative'),
     path('alternatives/walnut-alternative-no-sms/', views.AlternativePageView.as_view(competitor='walnut'), name='walnut-alternative-no-sms'),
     path('alternatives/indmoney-alternative-privacy/', views.AlternativePageView.as_view(competitor='indmoney'), name='indmoney-alternative-privacy'),

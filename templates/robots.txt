@@ -5,10 +5,12 @@ Disallow: /dashboard/
 Disallow: /expenses/
 Disallow: /settings/
 Disallow: /accounts/
-Content-Signal: ai-train=no, search=yes, ai-input=no
+Content-Signal: ai-train=no, search=yes, ai-input=yes
 Allow: /blog/
 Allow: /pricing/
 Allow: /contact/
 Allow: /about/
+Allow: /features/
+Allow: /alternatives/
 
 Sitemap: https://trackmyrupee.com/sitemap.xml
