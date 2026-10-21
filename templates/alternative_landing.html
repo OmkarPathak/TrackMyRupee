@@ -21,6 +21,7 @@
 <meta name="twitter:title" content="{{ meta_title }}">
 <meta name="twitter:description" content="{{ meta_description }}">
 <meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
+<script type="application/ld+json">{{ faq_schema|safe }}</script>
 {% endblock %}
 
 {% block content %}
@@ -31,6 +32,7 @@
             <nav aria-label="{% trans "breadcrumb" %}" class="mb-4">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="/" class="text-decoration-none">{% trans "Home" %}</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'alternatives' %}" class="text-decoration-none">{% trans "Alternatives" %}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{{ competitor_name }} {% trans "Alternative" %}</li>
                 </ol>
             </nav>

@@ -14,6 +14,23 @@ TrackMyRupee is a comprehensive financial management tool designed for the India
 - **Progressive Web App (PWA)**: Installable on mobile devices for a native app experience.
 - **Multi-lingual Support**: Fully internationalized with support for English, Hindi, and Marathi.
 
+## Who it is for
+People in India who want to track expenses, budgets and net worth without giving an app access to their SMS, email or bank login. Transactions are logged manually by typing them like a message (for example "swiggy 320"), with recurring entries automated.
+
+## Facts
+- No SMS access, no bank login, no email scanning.
+- Budgets follow your salary cycle, not the calendar month.
+- Net worth across bank accounts, mutual fund holdings, stocks, FDs, PPF, EPF, NPS and loans.
+- Languages: English, Hindi, Marathi. Installable web app (PWA) that works offline.
+- Open source. Free plan that does not expire; Plus plan at Rs 49 per month or Rs 499 per year.
+- CSV import and export.
+
+## Comparisons
+- [Best personal finance apps in India: how to choose](https://trackmyrupee.com/alternatives/)
+- [Axio alternative](https://trackmyrupee.com/alternatives/axio-alternative/)
+- [Walnut alternative](https://trackmyrupee.com/alternatives/walnut-alternative-no-sms/)
+- [INDmoney alternative](https://trackmyrupee.com/alternatives/indmoney-alternative-privacy/)
+
 ## Important Links
 - [Home Page](https://trackmyrupee.com/)
 - [Security & Privacy](https://trackmyrupee.com/security/)

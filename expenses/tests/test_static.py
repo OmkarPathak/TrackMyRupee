@@ -112,7 +112,22 @@ class StaticPageTest(TestCase):
          self.assertEqual(response.status_code, 200)
          self.assertTrue(response['Content-Type'].startswith('text/plain'))
          self.assertEqual(response['Access-Control-Allow-Origin'], '*')
-         self.assertIn("Content-Signal: ai-train=no, search=yes, ai-input=no", response.content.decode('utf-8'))
+         self.assertIn("Content-Signal: ai-train=no, search=yes, ai-input=yes", response.content.decode('utf-8'))
+
+    def test_alternatives_hub_and_faq_schema(self):
+        import json
+        import re
+
+        hub = self.client.get(reverse('alternatives'))
+        self.assertEqual(hub.status_code, 200)
+        for name in ('axio-alternative', 'walnut-alternative-no-sms', 'indmoney-alternative-privacy'):
+            self.assertContains(hub, reverse(name))
+            page = self.client.get(reverse(name))
+            self.assertEqual(page.status_code, 200)
+            blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', page.content.decode(), re.S)
+            schema = json.loads(blocks[-1])
+            self.assertEqual(schema['@type'], 'FAQPage')
+            self.assertTrue(schema['mainEntity'])
 
     def test_llms_txt(self):
          response = self.client.get('/llms.txt')

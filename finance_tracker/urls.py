@@ -45,7 +45,7 @@ def robots_txt(request):
         "Disallow: /expenses/",
         "Disallow: /settings/",
         "Disallow: /accounts/",
-        "Content-Signal: ai-train=no, search=yes, ai-input=no",
+        "Content-Signal: ai-train=no, search=yes, ai-input=yes",
         "Allow: /blog/",
         "Allow: /pricing/",
         "Allow: /contact/",

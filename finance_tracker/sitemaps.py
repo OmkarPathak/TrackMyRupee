@@ -11,7 +11,7 @@ class StaticViewSitemap(sitemaps.Sitemap):
         return [
             'landing', 'features', 'about', 'account_signup', 'account_login', 'contact',
             'privacy-policy', 'terms-of-service', 'refund-policy', 'security',
-            'blog_list', 'loan-emi-calculator', 'axio-alternative',
+            'blog_list', 'loan-emi-calculator', 'alternatives', 'axio-alternative',
             'walnut-alternative-no-sms', 'indmoney-alternative-privacy'
         ]
 
