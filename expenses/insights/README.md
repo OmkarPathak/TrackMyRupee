@@ -13,7 +13,7 @@ rules/*.py ──evaluate(ctx)──▶ engine.refresh ──▶ InsightState ro
 
 * `types.py` immutable `Insight`, `Evidence`, `Action`; enums for module, kind, tone, surface, plan.
 * `registry.py` the `@rule` decorator and the registry. Rules in `rules/` are imported automatically.
-* `context.py` what a rule may read. Each loader must be listed in the rule's `needs`.
+* `context.py` what a rule may read. Each loader must be listed in the rule's `needs`: `facts`, `budgets`, `accounts`, `recurring`, `recent` (entries of the last few days), `rows` (about six cycles of single entries, nightly rules only) and `budget_history` (the last three budget months' limits and spend).
 * `engine.py` `refresh` (evaluate and store), `generate` (read, suppress, rank, cap), dismiss, snooze, feedback.
 * `gating.py` the only place a plan tier is read. `prefs.py` the person's Settings. `telemetry.py` the only analytics.
 * `format.py` money, percent and date text; `tone.py` the tone linter; `sampling.py` synthetic contexts for tests.
@@ -43,6 +43,8 @@ rules/*.py ──evaluate(ctx)──▶ engine.refresh ──▶ InsightState ro
    * `dedupe_key` names the subject and the period (`'cat12:2026-10'`): a new period is a new insight, a dismissed one
      stays dismissed for its own period only.
    * `min_history` is completed cycles with any activity. Below it the engine skips the rule and shows "still learning".
+   * `pool='weekly'` puts a rule in the Free plan's weekly observation: Free people see one pool rule a week, Plus and Pro all of them.
+   * `cost='heavy'` is for rules that scan history (nightly only); `cost='light'` may also run when a dashboard visit finds the data changed.
    * `push=True` (and `Surface.PUSH` in `surfaces`) only for things that are time-sensitive *and* helpful. A
      `sensitive=True` insight (debt, a shortfall, a month in the red) never has share text and is never pushed.
    * `min_plan=Plan.PLUS` locks it for Free: give `preview=lambda: _('...')`, a figure-free line.
@@ -89,3 +91,24 @@ Suggested schedule: generate at 02:30 IST, deliver at 09:00 IST.
 
 Reading is one query (`generate`). When a person's data has changed since the last run, the panel fragment re-runs
 the quick rules once (about 14 queries) and not more than every ten minutes.
+
+Every registered rule, with an example of what it says, is in `docs/insights-rules.md` (regenerate it with `python scripts/generate_insights_rules_doc.py`).
+
+## UI conventions (settled with the product owner; follow them for every new rule and surface)
+
+* **Transactions come first.** On a page that is about entries (Expenses), the insights sit under the title, summary and
+  toolbar and above the list, never above the title. On the Budget page the strip sits directly under the hero card.
+* **A strip is one compact line per insight**, in one card: a small muted icon (no filled circle), a title, and a one-line
+  summary (desktop only; the title alone on a phone). Titles are regular weight on a phone and semibold from 768px up.
+  The line opens on a click to show the full text; while it is open the header summary hides (never say it twice).
+  Strips show at most two, are absent when there is nothing to say, and keep a gap above them (`mt-3`).
+* **An opened insight reads by importance:** the sentence (normal weight), then small quiet number chips, then one footer
+  row: the next step on the left, the quiet controls on the right.
+* **The next step is a plain green link with a small arrow in strips** ("Review the limit →"), not a bordered button. (The
+  dashboard card keeps the outlined `btn-action-outline` button.) Controls (Not now, Dismiss, thumbs up and down) are small,
+  muted and always inline: **no dropdowns or overlays inside anything that scrolls** (they get clipped and stretch the card).
+* **The dashboard card never makes its row taller:** beside the metrics it takes their height; stacked it stops at 30rem;
+  more insights scroll inside it, clipped to the card's rounded corners.
+* **Never repeat what a page already says:** the strip for a page skips rules whose content the page shows itself
+  (`STRIP_SKIPS` in `views.py`).
+* Reuse the app's Bootstrap classes and variables so light and dark themes work; check a new surface at phone width.

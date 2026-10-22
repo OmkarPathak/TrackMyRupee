@@ -193,6 +193,75 @@ ENTRIES = {
         None, 'हफ़्ते में अधिकतम दो, और केवल जमा के परिपक्व होने या सीमा तक पहुँचने जैसी बातों के लिए। रात देर से कभी नहीं।',
         'आठवड्यातून जास्तीत जास्त दोन, आणि फक्त ठेव परिपक्व होणे किंवा मर्यादा गाठली जाणे अशा गोष्टींसाठी. रात्री उशिरा कधीच नाही.'),
     ('', 'Save insight settings'): (None, 'अंतर्दृष्टि सेटिंग सहेजें', 'अंतर्दृष्टी सेटिंग्ज जतन करा'),
+
+    # ---- Phase B: budgets and expenses ----
+    ('', '%(category)s ended above its limit in each of the last 3 budget months, by about %(over)s on average. You could raise the limit to match how you live, or keep it as it is.'): (
+        None,
+        'पिछले ३ बजट महीनों में हर बार %(category)s में खर्च सीमा से ऊपर रहा, औसतन लगभग %(over)s। आप अपनी जीवनशैली के हिसाब से सीमा बढ़ा सकते हैं, या इसे वैसे ही रहने दें।',
+        'गेल्या ३ बजेट महिन्यांत प्रत्येक वेळी %(category)s चा खर्च मर्यादेपेक्षा जास्त राहिला, सरासरी सुमारे %(over)s ने. तुम्ही तुमच्या राहणीमानानुसार मर्यादा वाढवू शकता, किंवा तशीच राहू देऊ शकता.'),
+    ('', '%(category)s finished well under its limit in each of the last 3 budget months, leaving about %(unused)s unused each time. You might lower the limit, or share the room with another category.'): (
+        None,
+        'पिछले ३ बजट महीनों में हर बार %(category)s में खर्च सीमा से काफ़ी नीचे रहा, हर बार लगभग %(unused)s बचा। आप सीमा घटा सकते हैं, या बची जगह किसी और श्रेणी के साथ बाँट सकते हैं।',
+        'गेल्या ३ बजेट महिन्यांत प्रत्येक वेळी %(category)s चा खर्च मर्यादेपेक्षा बराच कमी राहिला, प्रत्येक वेळी सुमारे %(unused)s शिल्लक राहिले. तुम्ही मर्यादा कमी करू शकता, किंवा उरलेली जागा दुसऱ्या श्रेणीसोबत वाटून घेऊ शकता.'),
+    ('', '%(category)s has room to spare'): (None, '%(category)s में गुंजाइश है', '%(category)s मध्ये मोकळीक आहे'),
+    ('', '%(category)s is a bit higher'): (None, '%(category)s थोड़ा ज़्यादा है', '%(category)s थोडे जास्त आहे'),
+    ('', '%(category)s is a bit lower'): (None, '%(category)s थोड़ा कम है', '%(category)s थोडे कमी आहे'),
+    ('', '%(category)s is about %(pct)s higher than at this point last time, %(now)s so far against %(before)s. Spending moves in waves, so this may be nothing to act on.'): (
+        None,
+        '%(category)s पिछली बार इसी बिंदु की तुलना में लगभग %(pct)s ज़्यादा है: अब तक %(now)s, तब %(before)s। खर्च लहरों में चलता है, इसलिए हो सकता है इस पर कुछ करने की ज़रूरत न हो।',
+        'मागच्या वेळी याच टप्प्यावर होता त्यापेक्षा %(category)s सुमारे %(pct)s जास्त आहे: आतापर्यंत %(now)s, तेव्हा %(before)s. खर्च लाटांसारखा चालतो, त्यामुळे यावर काही करण्याची गरज नसेल.'),
+    ('', '%(category)s is about %(pct)s lower than at this point last time, %(now)s so far against %(before)s. Quieter stretches like this can leave room for other things.'): (
+        None,
+        '%(category)s पिछली बार इसी बिंदु की तुलना में लगभग %(pct)s कम है: अब तक %(now)s, तब %(before)s। ऐसे शांत दौर से दूसरी चीज़ों के लिए जगह बन सकती है।',
+        'मागच्या वेळी याच टप्प्यावर होता त्यापेक्षा %(category)s सुमारे %(pct)s कमी आहे: आतापर्यंत %(now)s, तेव्हा %(before)s. असे शांत टप्पे इतर गोष्टींसाठी जागा करून देऊ शकतात.'),
+    ('', '%(category)s keeps passing its limit'): (None, '%(category)s की सीमा बार-बार पार हो रही है', '%(category)s ची मर्यादा वारंवार ओलांडली जाते'),
+    ('', '%(category)s stays under its limit'): (None, '%(category)s में खर्च सीमा से नीचे रहता है', '%(category)s चा खर्च मर्यादेखाली राहतो'),
+    ('', '%(day)s tends to be your busiest day'): (None, '%(day)s अक्सर आपका सबसे व्यस्त दिन होता है', '%(day)s हा अनेकदा तुमचा सर्वात व्यस्त दिवस असतो'),
+    ('', '%(donor)s has barely used its limit for 3 budget months, while %(needy)s has reached its own limit. You could move about %(amount)s across for now, or leave things as they are.'): (
+        None,
+        '%(donor)s की सीमा पिछले ३ बजट महीनों से लगभग अनछुई है, जबकि %(needy)s अपनी सीमा तक पहुँच चुका है। आप अभी के लिए लगभग %(amount)s इधर ला सकते हैं, या चीज़ें जैसी हैं वैसी रहने दें।',
+        '%(donor)s ची मर्यादा गेल्या ३ बजेट महिन्यांपासून जवळजवळ वापरलेली नाही, तर %(needy)s ने स्वतःची मर्यादा गाठली आहे. तुम्ही सध्या सुमारे %(amount)s इकडे हलवू शकता, किंवा गोष्टी आहेत तशाच ठेवू शकता.'),
+    ('', '%(n)s entries of %(amount)s for %(what)s were added close together on %(date)s. If both are right, you can dismiss this; otherwise you could remove one.'): (
+        None,
+        '%(date)s को %(what)s के लिए %(amount)s की %(n)s प्रविष्टियाँ पास-पास जोड़ी गईं। अगर सभी सही हैं, तो इसे हटा सकते हैं; नहीं तो आप एक को हटा सकते हैं।',
+        '%(date)s रोजी %(what)s साठी %(amount)s च्या %(n)s नोंदी एकमेकांच्या जवळ जोडल्या गेल्या. सर्व बरोबर असतील तर हे काढून टाका; नाहीतर तुम्ही एक काढू शकता.'),
+    ('', 'A larger %(category)s entry'): (None, '%(category)s की एक बड़ी प्रविष्टि', '%(category)s ची एक मोठी नोंद'),
+    ('', 'A limit with room to spare'): (None, 'गुंजाइश वाली एक सीमा', 'मोकळीक असलेली एक मर्यादा'),
+    ('', 'A pattern in one of your limits'): (None, 'आपकी एक सीमा में एक पैटर्न', 'तुमच्या एका मर्यादेतील एक नमुना'),
+    ('', 'Amount'): (None, 'राशि', 'रक्कम'),
+    ('', 'An entry larger than your usual'): (None, 'आपके सामान्य से बड़ी एक प्रविष्टि', 'तुमच्या नेहमीपेक्षा मोठी एक नोंद'),
+    ('', 'An entry of %(amount)s on %(date)s is about %(times)s times your usual %(category)s amount of %(usual)s. If it was planned, you can dismiss this.'): (
+        None,
+        '%(date)s की %(amount)s की प्रविष्टि आपकी सामान्य %(category)s राशि %(usual)s से लगभग %(times)s गुना है। अगर यह योजना के अनुसार थी, तो आप इसे हटा सकते हैं।',
+        '%(date)s रोजीची %(amount)s ची नोंद तुमच्या नेहमीच्या %(category)s रकमेच्या (%(usual)s) सुमारे %(times)s पट आहे. हे ठरल्याप्रमाणे असेल तर तुम्ही हे काढून टाकू शकता.'),
+    ('', 'In each of your last 3 cycles, about %(pct)s of spending landed in the first %(days)s days. That is common when rent and bills fall early.'): (
+        None,
+        'आपके पिछले ३ चक्रों में से हर एक में लगभग %(pct)s खर्च पहले %(days)s दिनों में हुआ। जब किराया और बिल जल्दी आते हैं तो यह आम बात है।',
+        'तुमच्या गेल्या ३ चक्रांपैकी प्रत्येकात सुमारे %(pct)s खर्च पहिल्या %(days)s दिवसांत झाला. भाडे आणि बिले लवकर येतात तेव्हा हे सामान्य आहे.'),
+    ('', 'In each of your last 3 months, about %(pct)s of spending landed in the first %(days)s days. That is common when rent and bills fall early.'): (
+        None,
+        'आपके पिछले ३ महीनों में से हर एक में लगभग %(pct)s खर्च पहले %(days)s दिनों में हुआ। जब किराया और बिल जल्दी आते हैं तो यह आम बात है।',
+        'तुमच्या गेल्या ३ महिन्यांपैकी प्रत्येकात सुमारे %(pct)s खर्च पहिल्या %(days)s दिवसांत झाला. भाडे आणि बिले लवकर येतात तेव्हा हे सामान्य आहे.'),
+    ('', 'In earlier cycles when it stayed within the limit, it averaged about %(weekly)s a week.'): (
+        None,
+        'पिछले जिन चक्रों में यह सीमा के भीतर रहा, उनमें औसतन लगभग %(weekly)s प्रति सप्ताह खर्च हुआ।',
+        'मर्यादेत राहिलेल्या आधीच्या चक्रांमध्ये आठवड्याला सरासरी सुमारे %(weekly)s खर्च झाला.'),
+    ('', 'Limit of %(category)s'): (None, '%(category)s की सीमा', '%(category)s ची मर्यादा'),
+    ('', 'Most spending comes early'): (None, 'ज़्यादातर खर्च शुरुआत में होता है', 'बहुतेक खर्च सुरुवातीला होतो'),
+    ('', 'Other days'): (None, 'बाकी दिन', 'इतर दिवस'),
+    ('', 'Over the last 8 weeks, %(day)s averaged about %(top)s, against about %(other)s on other days. Plans and outings often gather around the same day, so this is usually just your routine.'): (
+        None,
+        'पिछले ८ हफ़्तों में %(day)s का औसत लगभग %(top)s रहा, जबकि बाकी दिनों में लगभग %(other)s। योजनाएँ और घूमना अक्सर एक ही दिन के आसपास होते हैं, इसलिए यह आमतौर पर बस आपकी दिनचर्या है।',
+        'गेल्या ८ आठवड्यांत %(day)s चे सरासरी सुमारे %(top)s होते, तर इतर दिवशी सुमारे %(other)s. योजना आणि फिरणे अनेकदा एकाच दिवसाच्या आसपास होतात, त्यामुळे हा साधारणपणे तुमचा नित्यक्रम असतो.'),
+    ('', 'Review the budget'): (None, 'बजट देखें', 'बजेट पहा'),
+    ('', 'Room in %(category)s'): (None, '%(category)s में गुंजाइश', '%(category)s मधील मोकळीक'),
+    ('', 'Same point last time'): (None, 'पिछली बार इसी बिंदु पर', 'मागच्या वेळी याच टप्प्यावर'),
+    ('', 'See the entry'): (None, 'प्रविष्टि देखें', 'नोंद पहा'),
+    ('', 'Share in the first days'): (None, 'शुरुआती दिनों का हिस्सा', 'सुरुवातीच्या दिवसांचा वाटा'),
+    ('', 'So far'): (None, 'अब तक', 'आतापर्यंत'),
+    ('', 'This entry'): (None, 'यह प्रविष्टि', 'ही नोंद'),
+    ('', 'Two entries look alike'): (None, 'दो प्रविष्टियाँ एक जैसी दिखती हैं', 'दोन नोंदी सारख्या दिसतात'),
+    ('', 'Usual amount'): (None, 'सामान्य राशि', 'नेहमीची रक्कम'),
 }
 
 # Pairs whose singular and plural use different placeholders cannot be gettext plurals (msgfmt rejects them), and the

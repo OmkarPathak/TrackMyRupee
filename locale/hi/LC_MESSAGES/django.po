@@ -20222,3 +20222,155 @@ msgstr "अगले ७ दिनों में कुल लगभग %(tota
 #: expenses/insights
 msgid "Thanks, glad it was useful."
 msgstr "धन्यवाद, अच्छा लगा कि यह उपयोगी रहा।"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s ended above its limit in each of the last 3 budget months, by about %(over)s on average. You could raise the limit to match how you live, or keep it as it is."
+msgstr "पिछले ३ बजट महीनों में हर बार %(category)s में खर्च सीमा से ऊपर रहा, औसतन लगभग %(over)s। आप अपनी जीवनशैली के हिसाब से सीमा बढ़ा सकते हैं, या इसे वैसे ही रहने दें।"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s finished well under its limit in each of the last 3 budget months, leaving about %(unused)s unused each time. You might lower the limit, or share the room with another category."
+msgstr "पिछले ३ बजट महीनों में हर बार %(category)s में खर्च सीमा से काफ़ी नीचे रहा, हर बार लगभग %(unused)s बचा। आप सीमा घटा सकते हैं, या बची जगह किसी और श्रेणी के साथ बाँट सकते हैं।"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s has room to spare"
+msgstr "%(category)s में गुंजाइश है"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s is a bit higher"
+msgstr "%(category)s थोड़ा ज़्यादा है"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s is a bit lower"
+msgstr "%(category)s थोड़ा कम है"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s is about %(pct)s higher than at this point last time, %(now)s so far against %(before)s. Spending moves in waves, so this may be nothing to act on."
+msgstr "%(category)s पिछली बार इसी बिंदु की तुलना में लगभग %(pct)s ज़्यादा है: अब तक %(now)s, तब %(before)s। खर्च लहरों में चलता है, इसलिए हो सकता है इस पर कुछ करने की ज़रूरत न हो।"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s is about %(pct)s lower than at this point last time, %(now)s so far against %(before)s. Quieter stretches like this can leave room for other things."
+msgstr "%(category)s पिछली बार इसी बिंदु की तुलना में लगभग %(pct)s कम है: अब तक %(now)s, तब %(before)s। ऐसे शांत दौर से दूसरी चीज़ों के लिए जगह बन सकती है।"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s keeps passing its limit"
+msgstr "%(category)s की सीमा बार-बार पार हो रही है"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s stays under its limit"
+msgstr "%(category)s में खर्च सीमा से नीचे रहता है"
+
+#: expenses/insights
+#, python-format
+msgid "%(day)s tends to be your busiest day"
+msgstr "%(day)s अक्सर आपका सबसे व्यस्त दिन होता है"
+
+#: expenses/insights
+#, python-format
+msgid "%(donor)s has barely used its limit for 3 budget months, while %(needy)s has reached its own limit. You could move about %(amount)s across for now, or leave things as they are."
+msgstr "%(donor)s की सीमा पिछले ३ बजट महीनों से लगभग अनछुई है, जबकि %(needy)s अपनी सीमा तक पहुँच चुका है। आप अभी के लिए लगभग %(amount)s इधर ला सकते हैं, या चीज़ें जैसी हैं वैसी रहने दें।"
+
+#: expenses/insights
+#, python-format
+msgid "%(n)s entries of %(amount)s for %(what)s were added close together on %(date)s. If both are right, you can dismiss this; otherwise you could remove one."
+msgstr "%(date)s को %(what)s के लिए %(amount)s की %(n)s प्रविष्टियाँ पास-पास जोड़ी गईं। अगर सभी सही हैं, तो इसे हटा सकते हैं; नहीं तो आप एक को हटा सकते हैं।"
+
+#: expenses/insights
+#, python-format
+msgid "A larger %(category)s entry"
+msgstr "%(category)s की एक बड़ी प्रविष्टि"
+
+#: expenses/insights
+msgid "A limit with room to spare"
+msgstr "गुंजाइश वाली एक सीमा"
+
+#: expenses/insights
+msgid "A pattern in one of your limits"
+msgstr "आपकी एक सीमा में एक पैटर्न"
+
+#: expenses/insights
+msgid "An entry larger than your usual"
+msgstr "आपके सामान्य से बड़ी एक प्रविष्टि"
+
+#: expenses/insights
+#, python-format
+msgid "An entry of %(amount)s on %(date)s is about %(times)s times your usual %(category)s amount of %(usual)s. If it was planned, you can dismiss this."
+msgstr "%(date)s की %(amount)s की प्रविष्टि आपकी सामान्य %(category)s राशि %(usual)s से लगभग %(times)s गुना है। अगर यह योजना के अनुसार थी, तो आप इसे हटा सकते हैं।"
+
+#: expenses/insights
+#, python-format
+msgid "In each of your last 3 cycles, about %(pct)s of spending landed in the first %(days)s days. That is common when rent and bills fall early."
+msgstr "आपके पिछले ३ चक्रों में से हर एक में लगभग %(pct)s खर्च पहले %(days)s दिनों में हुआ। जब किराया और बिल जल्दी आते हैं तो यह आम बात है।"
+
+#: expenses/insights
+#, python-format
+msgid "In each of your last 3 months, about %(pct)s of spending landed in the first %(days)s days. That is common when rent and bills fall early."
+msgstr "आपके पिछले ३ महीनों में से हर एक में लगभग %(pct)s खर्च पहले %(days)s दिनों में हुआ। जब किराया और बिल जल्दी आते हैं तो यह आम बात है।"
+
+#: expenses/insights
+#, python-format
+msgid "In earlier cycles when it stayed within the limit, it averaged about %(weekly)s a week."
+msgstr "पिछले जिन चक्रों में यह सीमा के भीतर रहा, उनमें औसतन लगभग %(weekly)s प्रति सप्ताह खर्च हुआ।"
+
+#: expenses/insights
+#, python-format
+msgid "Limit of %(category)s"
+msgstr "%(category)s की सीमा"
+
+#: expenses/insights
+msgid "Most spending comes early"
+msgstr "ज़्यादातर खर्च शुरुआत में होता है"
+
+#: expenses/insights
+msgid "Other days"
+msgstr "बाकी दिन"
+
+#: expenses/insights
+#, python-format
+msgid "Over the last 8 weeks, %(day)s averaged about %(top)s, against about %(other)s on other days. Plans and outings often gather around the same day, so this is usually just your routine."
+msgstr "पिछले ८ हफ़्तों में %(day)s का औसत लगभग %(top)s रहा, जबकि बाकी दिनों में लगभग %(other)s। योजनाएँ और घूमना अक्सर एक ही दिन के आसपास होते हैं, इसलिए यह आमतौर पर बस आपकी दिनचर्या है।"
+
+#: expenses/insights
+msgid "Review the budget"
+msgstr "बजट देखें"
+
+#: expenses/insights
+#, python-format
+msgid "Room in %(category)s"
+msgstr "%(category)s में गुंजाइश"
+
+#: expenses/insights
+msgid "Same point last time"
+msgstr "पिछली बार इसी बिंदु पर"
+
+#: expenses/insights
+msgid "See the entry"
+msgstr "प्रविष्टि देखें"
+
+#: expenses/insights
+msgid "Share in the first days"
+msgstr "शुरुआती दिनों का हिस्सा"
+
+#: expenses/insights
+msgid "So far"
+msgstr "अब तक"
+
+#: expenses/insights
+msgid "This entry"
+msgstr "यह प्रविष्टि"
+
+#: expenses/insights
+msgid "Two entries look alike"
+msgstr "दो प्रविष्टियाँ एक जैसी दिखती हैं"
+
+#: expenses/insights
+msgid "Usual amount"
+msgstr "सामान्य राशि"

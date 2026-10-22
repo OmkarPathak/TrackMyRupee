@@ -1,0 +1,9 @@
+{% load i18n %}
+    <div class="d-flex align-items-center gap-3" style="font-size: 0.8rem;" id="insight-opts-{{ p.state_uuid }}" role="group" aria-label="{% trans 'More options for this insight' %}">
+        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none link-secondary" style="font-size: inherit;" hx-post="{% url 'insights-snooze' p.state_uuid %}" hx-target="#insight-{{ p.state_uuid }}" hx-swap="outerHTML">{% trans "Not now" %}</button>
+        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none link-secondary" style="font-size: inherit;" hx-post="{% url 'insights-dismiss' p.state_uuid %}" hx-target="#insight-{{ p.state_uuid }}" hx-swap="outerHTML">{% trans "Dismiss" %}</button>
+        <span class="ms-auto d-inline-flex align-items-center gap-2">
+            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none link-secondary" style="font-size: inherit;" hx-post="{% url 'insights-helpful' p.state_uuid 'yes' %}" hx-target="#insight-opts-{{ p.state_uuid }}" hx-swap="outerHTML" aria-label="{% trans 'This was helpful' %}" title="{% trans 'This was helpful' %}"><i class="bi bi-hand-thumbs-up" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none link-secondary" style="font-size: inherit;" hx-post="{% url 'insights-helpful' p.state_uuid 'no' %}" hx-target="#insight-opts-{{ p.state_uuid }}" hx-swap="outerHTML" aria-label="{% trans 'This was not helpful' %}" title="{% trans 'This was not helpful' %}"><i class="bi bi-hand-thumbs-down" aria-hidden="true"></i></button>
+        </span>
+    </div>

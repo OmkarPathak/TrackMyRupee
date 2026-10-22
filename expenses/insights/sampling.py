@@ -8,13 +8,15 @@ a different situation.
 from __future__ import annotations
 
 import uuid
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from types import SimpleNamespace
 
-from ..analytics.facts import Facts
+from django.utils import timezone
+
+from ..analytics.facts import ExpenseRow, Facts
 from ..budgets import budget_status, normalize_category, percent_used
-from .context import InsightContext
+from .context import BudgetHistory, InsightContext
 from .format import Fmt
 from .types import Plan
 
@@ -66,7 +68,7 @@ def budget_rows(rows) -> list[dict]:
 
 
 def scenario(*, budgets: list[tuple] | None = None, salary_day: int = 1, language: str = 'en', maturing=None,
-             bills=None, **overrides) -> SampleContext:
+             bills=None, history_spend=None, recent=(), rows=(), dismissed=(), **overrides) -> SampleContext:
     """Six months of steady life, then an October that runs a little higher: dining is up, income had a bonus."""
     today = overrides.pop('today', TODAY)
     ctx = SampleContext(today=today, salary_day=salary_day, language=language, **overrides)
@@ -93,6 +95,16 @@ def scenario(*, budgets: list[tuple] | None = None, salary_day: int = 1, languag
         'categories': budget_rows(budgets if budgets is not None else [
             ('Groceries', 10000, 12000), ('Dining', 30000, 22000), ('Travel', 8000, 0)]),
     }
+    rows_ = ctx._cache['budgets']['categories']
+    months = sorted(ctx.keys_back(3))
+    ctx._cache['budget_history'] = BudgetHistory(
+        months=months,
+        limits={m: {normalize_category(r['name']): D(str(r['limit'])) for r in rows_ if r['limit']} for m in months},
+        spend={m: {normalize_category(r['name']): D(str((history_spend or {}).get(r['name'], r['limit'] * 0.5)))
+                   for r in rows_ if r['limit']} for m in months})
+    ctx._cache['dismissed_suggestions'] = frozenset(dismissed)
+    ctx._cache['recent'] = list(recent)
+    ctx._cache['rows'] = list(rows)
     ctx._cache['accounts'] = list(maturing) if maturing is not None else [SimpleNamespace(
         uuid=uuid.uuid5(uuid.NAMESPACE_URL, 'fd'), name='Bank FD', currency='₹', balance=D('210000'),
         deposit_maturity_date=today + timedelta(days=12))]
@@ -117,4 +129,46 @@ def near_limit_sample(language: str = 'en') -> SampleContext:
 
 
 def runout_sample(language: str = 'en') -> SampleContext:
-    return scenario(language=language, budgets=[('Transport', 5000, 4000), ('Dining', 40000, 22000)])
+    return scenario(language=language, budgets=[('Transport', 5000, 4000), ('Dining', 40000, 22000)],
+                    history_spend={'Transport': 3000})
+
+
+def often_over_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, budgets=[('Dining', 8000, 6000)], history_spend={'Dining': 9000})
+
+
+def often_under_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, budgets=[('Travel', 8000, 100)], history_spend={'Travel': 3000})
+
+
+def room_to_share_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, budgets=[('Dining', 10000, 10000), ('Travel', 8000, 100)],
+                    history_spend={'Dining': 9000, 'Travel': 200})
+
+
+def _row(id, day, category, amount, account=1, description=None, made=None, batch=False):
+    made = made or timezone.make_aware(datetime(day.year, day.month, day.day, 12, 0))
+    return ExpenseRow(id, day, category, D(amount), account, made, description or category, batch)
+
+
+def duplicate_sample(language: str = 'en') -> SampleContext:
+    day = TODAY - timedelta(days=1)
+    first = timezone.make_aware(datetime(day.year, day.month, day.day, 12, 0))
+    return scenario(language=language, recent=[
+        _row(101, day, 'Entertainment', 499, description='Netflix', made=first),
+        _row(102, day, 'Entertainment', 499, description='Netflix', made=first + timedelta(minutes=4))])
+
+
+def unusual_sample(language: str = 'en') -> SampleContext:
+    prior = [_row(i, TODAY - timedelta(days=20 + 9 * i), 'Groceries', 1400 + 40 * (i % 4)) for i in range(1, 13)]
+    return scenario(language=language, rows=prior + [_row(200, TODAY - timedelta(days=2), 'Groceries', 6400)])
+
+
+def weekday_sample(language: str = 'en') -> SampleContext:
+    ctx = scenario(language=language)
+    facts = ctx.facts
+    for back in range(1, 71):         # everyday spending with no monthly lumps: a heavier Saturday, a lighter rest
+        day = TODAY - timedelta(days=back)
+        facts.expense_cats[facts.index(day)] = {'dining': D(2000 if day.weekday() == 5 else 700)}
+    ctx._cache.pop('summaries', None)
+    return ctx

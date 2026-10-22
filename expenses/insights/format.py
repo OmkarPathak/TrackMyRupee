@@ -63,8 +63,8 @@ class Fmt:
         return translate_digits(f'{whole:f}%')
 
     @staticmethod
-    def short(text, words: int = 3, chars: int = 28) -> str:
-        """A name trimmed to fit a title: at most three words and 28 characters."""
+    def short(text, words: int = 2, chars: int = 24) -> str:
+        """A name trimmed to fit a title (titles are at most eight words): two words and 24 characters."""
         text = (text or '').strip()
         parts = text.split()
         shown = ' '.join(parts[:words])
@@ -80,6 +80,11 @@ class Fmt:
     def day(value: date) -> str:
         """24 Oct"""
         return translate_digits(date_format(value, 'j M'))
+
+    @staticmethod
+    def month(value: date) -> str:
+        """Oct"""
+        return translate_digits(date_format(value, 'M'))
 
     @staticmethod
     def day_year(value: date) -> str:

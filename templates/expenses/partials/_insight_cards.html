@@ -23,33 +23,11 @@
                 </div>
                 {% if not p.locked %}
                 <div class="collapse" id="insight-menu-{{ p.state_uuid }}">
-                    <div class="d-flex align-items-center gap-3 small mb-1" id="insight-opts-{{ p.state_uuid }}" role="group" aria-label="{% trans 'More options for this insight' %}">
-                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" hx-post="{% url 'insights-snooze' p.state_uuid %}" hx-target="#insight-{{ p.state_uuid }}" hx-swap="outerHTML">{% trans "Not now" %}</button>
-                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" hx-post="{% url 'insights-dismiss' p.state_uuid %}" hx-target="#insight-{{ p.state_uuid }}" hx-swap="outerHTML">{% trans "Dismiss" %}</button>
-                        <span class="ms-auto d-inline-flex align-items-center gap-3">
-                            <button type="button" class="btn btn-link btn-sm p-0 text-muted" hx-post="{% url 'insights-helpful' p.state_uuid 'yes' %}" hx-target="#insight-opts-{{ p.state_uuid }}" hx-swap="outerHTML" aria-label="{% trans 'This was helpful' %}" title="{% trans 'This was helpful' %}"><i class="bi bi-hand-thumbs-up" aria-hidden="true"></i></button>
-                            <button type="button" class="btn btn-link btn-sm p-0 text-muted" hx-post="{% url 'insights-helpful' p.state_uuid 'no' %}" hx-target="#insight-opts-{{ p.state_uuid }}" hx-swap="outerHTML" aria-label="{% trans 'This was not helpful' %}" title="{% trans 'This was not helpful' %}"><i class="bi bi-hand-thumbs-down" aria-hidden="true"></i></button>
-                        </span>
-                    </div>
+                    {% include 'expenses/partials/_insight_options.html' %}
                 </div>
                 {% endif %}
-                <p class="mb-1 text-muted" style="font-size: 0.9rem;">{{ i.message }}</p>
-                {% if i.detail %}<p class="mb-1 text-muted small">{{ i.detail }}</p>{% endif %}
-                {% if i.evidence %}
-                <ul class="list-unstyled d-flex flex-wrap gap-2 mt-2 mb-2">
-                    {% for e in i.evidence %}
-                    <li>
-                        {% if e.link %}<a href="{{ e.link }}" class="badge rounded-pill bg-body-secondary text-body border text-decoration-none fw-normal">{% else %}<span class="badge rounded-pill bg-body-secondary text-body border fw-normal">{% endif %}
-                            <span class="text-muted">{{ e.label }}</span> <span class="fw-semibold">{{ e.value }}</span>
-                        {% if e.link %}</a>{% else %}</span>{% endif %}
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-                {% if i.action %}
-                    {% if p.locked %}<a href="{{ i.action.url }}" class="btn-action-outline">{{ i.action.label }}</a>
-                    {% else %}<a href="{% url 'insights-go' p.state_uuid %}" class="btn-action-outline">{{ i.action.label }}</a>{% endif %}
-                {% endif %}
+                {% include 'expenses/partials/_insight_body.html' %}
+                {% include 'expenses/partials/_insight_action.html' %}
             </div>
         </article>
     {% endwith %}{% endfor %}

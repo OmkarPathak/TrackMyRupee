@@ -13,20 +13,31 @@ from __future__ import annotations
 from contextlib import contextmanager
 from datetime import date, timedelta
 from decimal import Decimal
+from typing import NamedTuple
 
 from django.utils import timezone
 from django.utils.translation import get_language
 
 from .. import budget_cycle
-from ..analytics.facts import Facts, Summary, load_facts
+from ..analytics.facts import ExpenseRow, Facts, Summary, load_expense_rows, load_facts
 from ..analytics.links import LinkBuilder
 from .format import Fmt
 from .gating import plan_of
 
 HISTORY_CYCLES = 5          # earlier cycles the streak looks at; the other rules look at fewer
 BILL_DAYS = 7
+RECENT_DAYS = 3
+ROW_DAYS = 180
 MATURITY_DAYS = 30
 ZERO = Decimal('0')
+
+
+class BudgetHistory(NamedTuple):
+    """The three budget months before this one: each category's limit and what was spent (the Budget page's
+    definition of spend), keyed by budget month then normalised category name."""
+    months: list
+    limits: dict
+    spend: dict
 
 
 class UndeclaredNeed(Exception):
@@ -57,9 +68,10 @@ class InsightContext:
         finally:
             self._allowed = previous
 
-    def _get(self, name: str, load):
-        if self._allowed is not None and name not in self._allowed:
-            raise UndeclaredNeed(name)
+    def _get(self, name: str, load, need: str | None = None):
+        need = need or name
+        if self._allowed is not None and need not in self._allowed:
+            raise UndeclaredNeed(need)
         if name not in self._cache:
             self._cache[name] = load()
         return self._cache[name]
@@ -151,3 +163,36 @@ class InsightContext:
             user=self.user, is_active=True, next_due_date__gte=self.today,
             next_due_date__lte=self.today + timedelta(days=BILL_DAYS),
         ).exclude(transaction_type='INCOME').order_by('next_due_date', 'id'))
+
+    @property
+    def recent_expenses(self) -> list[ExpenseRow]:
+        """Entries from the last few days: where a possible duplicate would be."""
+        return self._get('recent', lambda: load_expense_rows(self.user, self.today - timedelta(days=RECENT_DAYS), self.today))
+
+    @property
+    def expense_rows(self) -> list[ExpenseRow]:
+        """Roughly six cycles of single entries, for what is usual for a category. Heavy: nightly rules only."""
+        return self._get('rows', lambda: load_expense_rows(self.user, self.today - timedelta(days=ROW_DAYS), self.today))
+
+    @property
+    def budget_history(self) -> BudgetHistory:
+        return self._get('budget_history', self._load_budget_history)
+
+    def _load_budget_history(self) -> BudgetHistory:
+        from .. import budget_resolver
+        from ..budgets import monthly_spend_by_category_months
+        months = sorted(self.keys_back(3))
+        return BudgetHistory(
+            months=months,
+            limits=budget_resolver.effective_limits_range_by_name(self.user, months[0], months[-1]),
+            spend=monthly_spend_by_category_months(self.user, months),
+        )
+
+    @property
+    def dismissed_suggestions(self) -> frozenset[str]:
+        """Budget suggestions the person dismissed on the Budget page (the banner keeps its own record)."""
+        return self._get('dismissed_suggestions', self._load_dismissed, need='budget_history')
+
+    def _load_dismissed(self) -> frozenset[str]:
+        from ..models import BudgetSuggestionDismissal
+        return frozenset(BudgetSuggestionDismissal.objects.filter(user=self.user).values_list('key', flat=True))

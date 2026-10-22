@@ -29,7 +29,7 @@ class PanelTests(StoredBase):
         self.assertEqual(refresh.call_count, 1)
         self.assertIn('Spending is running a little higher', html)
         self.assertIn('data-insight', html)
-        self.assertEqual(InsightState.objects.filter(user=self.user).count(), 5)
+        self.assertEqual(InsightState.objects.filter(user=self.user).count(), 7)      # the quick rules only; the nightly ones (heavy) wait
 
     def test_it_requires_a_login_and_the_engine_to_be_on(self):
         self.client.logout()

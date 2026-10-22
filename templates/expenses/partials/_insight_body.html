@@ -1,0 +1,14 @@
+{% load i18n %}
+    <p class="mb-1 text-body" style="font-size: 0.9rem;">{{ i.message }}</p>
+    {% if i.detail %}<p class="mb-1 text-muted small">{{ i.detail }}</p>{% endif %}
+    {% if i.evidence %}
+    <ul class="list-unstyled d-flex flex-wrap gap-2 mt-2 mb-2">
+        {% for e in i.evidence %}
+        <li>
+            {% if e.link %}<a href="{{ e.link }}" class="badge rounded-pill bg-transparent text-body-secondary border text-decoration-none fw-normal" style="font-size: 0.72rem;">{% else %}<span class="badge rounded-pill bg-transparent text-body-secondary border fw-normal" style="font-size: 0.72rem;">{% endif %}
+                {{ e.label }} <span class="fw-semibold text-body">{{ e.value }}</span>
+            {% if e.link %}</a>{% else %}</span>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}

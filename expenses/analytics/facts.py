@@ -9,8 +9,9 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
+from typing import NamedTuple
 
 from django.db.models import F, Q, Sum
 
@@ -19,6 +20,29 @@ from ..budgets import capital_report_name, normalize_category
 from ..savings import CASHBACK_REFUND_TYPES, SavingsResult, calculate_savings
 
 ZERO = Decimal('0')
+
+
+class ExpenseRow(NamedTuple):
+    """One expense, for the rules that look at single entries (a larger-than-usual one, a possible duplicate)."""
+    id: int
+    date: date
+    category: str
+    amount: Decimal                  # base currency
+    account_id: int | None
+    created_at: datetime
+    description: str
+    from_import: bool
+
+
+def load_expense_rows(user, first: date, last: date) -> list[ExpenseRow]:
+    """The user's expenses between two dates, oldest first, in one query and without building model objects."""
+    from ..models import Expense
+
+    rows = Expense.objects.filter(user=user, date__range=(first, last)).order_by('date', 'id').values_list(
+        'id', 'date', 'category', 'base_amount', 'account_id', 'created_at', 'description', 'import_batch_id')
+    return [ExpenseRow(i, d, c or '', a or ZERO, acc, made, x.decode('utf-8', 'replace') if isinstance(x, bytes) else (x or ''),
+                       batch is not None)
+            for i, d, c, a, acc, made, x, batch in rows]
 
 
 @dataclass
@@ -126,6 +150,15 @@ class Facts:
             if self.expense_cats[day_index]:
                 total += sum(self.expense_cats[day_index].values(), ZERO)
             out.append(total)
+        return out
+
+    def daily_expenses(self, start: date, end: date) -> list[Decimal]:
+        """Expenses only (no loan interest, no capital events) on each day from start to end: the shape of everyday
+        spending, without the lumps."""
+        out = []
+        for day_index in range(self.index(start), self.index(end) + 1):
+            slot = self.expense_cats[day_index] if 0 <= day_index < self.size else None
+            out.append(sum(slot.values(), ZERO) if slot else ZERO)
         return out
 
     def category_series(self, start: date, end: date, key: str) -> Decimal:

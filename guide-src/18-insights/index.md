@@ -31,6 +31,7 @@ your own past.
 ## 2. Where you see them
 
 * **Dashboard**: at most three at a time, loaded just after the page appears.
+* **Budgets and Expenses pages**: a short strip at the top with at most two insights about that page, only when there is something to say.
 * **The bell**: at most one new insight a day, in addition to the alerts you already get (bills, budgets, goals).
 * **Push**: at most two a week, only for time-sensitive things such as a deposit about to mature or a limit about to be
   reached, and never between 9 pm and 8 am.

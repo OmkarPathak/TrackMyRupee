@@ -12,6 +12,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import timedelta
 
+from django.core.cache import cache
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone, translation
@@ -21,7 +22,7 @@ from . import prefs as prefs_module
 from . import registry, telemetry
 from .context import InsightContext
 from .gating import plan_of, rule_allowed
-from .types import Action, Insight, Kind, Presented, Surface, Tone
+from .types import Action, Insight, Kind, Plan, Presented, Surface, Tone
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,10 @@ KIND_ORDER = {Kind.UPCOMING: 0, Kind.OPPORTUNITY: 1, Kind.PATTERN: 2, Kind.OBSER
 SNOOZE_DAYS = 7
 LOOKBACK_DAYS = 90               # how far back a dismissal still holds a rule's cooldown
 LOCKED_GAP = timedelta(days=7)   # a locked preview is shown at most once a week
+POOL_WINDOW = timedelta(days=7)  # how long a Free person's weekly observation stays
 MIN_REFRESH_GAP = timedelta(minutes=10)
+MAX_AGE = timedelta(hours=1)
+DIRTY_TTL = 6 * 3600
 
 FIELDS = ['payload', 'lang', 'priority', 'valid_until', 'generated_at', 'locked']
 
@@ -48,12 +52,29 @@ class RefreshResult:
 
 # ---------------------------------------------------------------------------------------------- write path
 
+def _dirty_key(user_id) -> str:
+    return f'insights_dirty_{user_id}'
+
+
+def mark_stale(user_id) -> None:
+    """Something the insights are built from changed. This is a cache write, not a database one, so saving an entry
+    costs no extra query. (With a per-process cache another worker will not see it: the hourly and daily refreshes
+    in `needs_refresh` cover that.)"""
+    cache.set(_dirty_key(user_id), 1, DIRTY_TTL)
+
+
 def needs_refresh(profile, now=None) -> bool:
-    """Stale data and the last run is not just a moment ago."""
+    """Whether a page visit should re-run the quick rules. Never within ten minutes of the last run; after that, when
+    the data changed (a write, or a change in Settings), the day turned over (pace and dates move every day), or the
+    last run is an hour old."""
     now = now or timezone.now()
-    if not profile.insights_stale:
+    last = profile.insights_generated_at
+    if last is None:
+        return True
+    if now - last < MIN_REFRESH_GAP:
         return False
-    return profile.insights_generated_at is None or now - profile.insights_generated_at >= MIN_REFRESH_GAP
+    return (profile.insights_stale or bool(cache.get(_dirty_key(profile.user_id)))
+            or timezone.localdate(last) != timezone.localdate(now) or now - last >= MAX_AGE)
 
 
 def _locked_copy(rule, insight: Insight) -> Insight | None:
@@ -139,6 +160,7 @@ def refresh(user, *, today=None, costs=('light', 'heavy'), profile=None) -> Refr
     stored = prefs_module.get(profile)
     stored['learning'] = learning
     profile.insights_prefs, profile.insights_generated_at, profile.insights_stale = stored, now, False
+    cache.delete(_dirty_key(user.pk))
     UserProfile.objects.filter(pk=profile.pk).update(
         insights_prefs=stored, insights_generated_at=now, insights_stale=False)
     return result
@@ -150,7 +172,7 @@ def _sort_key(insight: Insight):
     return (-insight.priority, KIND_ORDER[insight.kind], insight.valid_until)
 
 
-def candidates(user, surface: Surface, *, modules=None, profile=None, now=None, exclude=()):
+def candidates(user, surface: Surface, *, modules=None, profile=None, now=None, exclude=(), skip_rules=()):
     """The stored insights that may be shown on `surface` now, best first, as (Insight, InsightState) pairs:
     not dismissed, snoozed, cooling down, muted or above the person's plan. One query."""
     from ..models import InsightState
@@ -178,7 +200,7 @@ def candidates(user, surface: Surface, *, modules=None, profile=None, now=None, 
         rule = registry.get(row.rule_id)
         if (rule is None or row.valid_until < today or row.dismissed_at or row.acted_at
                 or (row.snoozed_until and row.snoozed_until > now)
-                or (row.rule_id, row.dedupe_key) in exclude
+                or (row.rule_id, row.dedupe_key) in exclude or row.rule_id in skip_rules
                 or not prefs_module.module_on(prefs, rule.module) or prefs_module.is_muted(prefs, row.rule_id, today)):
             continue
         done = resolved.get(row.rule_id)
@@ -197,11 +219,25 @@ def candidates(user, surface: Surface, *, modules=None, profile=None, now=None, 
             continue
         found.append((insight, row))
     found.sort(key=lambda pair: _sort_key(pair[0]))
-    return found
+    return _weekly_pool(found, plan, now)
+
+
+def _weekly_pool(found, plan, now):
+    """On the Free plan the rules in the "weekly" pool share one observation a week: the one first shown in the last
+    seven days stays; otherwise the best one nobody has seen yet; the rest wait. Plus and Pro see them all."""
+    if plan != Plan.FREE:
+        return found
+    pooled = [pair for pair in found if registry.get(pair[1].rule_id).pool == 'weekly']
+    if not pooled:
+        return found
+    current = [p for p in pooled if p[1].first_shown and now - p[1].first_shown < POOL_WINDOW]
+    unseen = [p for p in pooled if not p[1].first_shown]
+    keep = (current or unseen)[:1]
+    return [pair for pair in found if pair not in pooled or pair in keep]
 
 
 def generate(user, surface: Surface, *, modules=None, limit: int | None = None, profile=None, now=None,
-             exclude=()) -> list[Presented]:
+             exclude=(), skip_rules=()) -> list[Presented]:
     """The insights to show on `surface` right now, ranked and capped, with at most two from one module on the
     dashboard. One query, plus one write the first time something is shown on a given day.
 
@@ -211,7 +247,7 @@ def generate(user, surface: Surface, *, modules=None, limit: int | None = None, 
 
     now = now or timezone.now()
     today = timezone.localdate(now)
-    found = candidates(user, surface, modules=modules, profile=profile, now=now, exclude=exclude)
+    found = candidates(user, surface, modules=modules, profile=profile, now=now, exclude=exclude, skip_rules=skip_rules)
     cap = limit or CAPS.get(surface, 3)
     per_module, picked, locked_shown = {}, [], 0
     for insight, row in found:

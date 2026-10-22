@@ -470,3 +470,15 @@ Decisions you gave: D1 correct cycle bases (per rule, after the shadow report); 
 * **Storage additions** beyond the plan: `InsightState.created_at` (so a dismissal rests only rules that speak *after* it) and `InsightFeedback.not_helpful_count` (two "not helpful" votes mute a rule for 90 days).
 * **Not yet:** the per-module strip is ready as an endpoint (`/insights/panel/?surface=module&modules=budgets`) but is embedded on pages from Phase B; no email channel until Phase E.
 * **Measured:** a refresh is 14 queries; reading the panel is 1 query (2 the first time a row is shown that day); the dashboard page itself adds none.
+
+## 11. Phase B as built (budgets and expenses)
+
+Rules added (all in `docs/insights-rules.md`, with their own examples): `expenses.possible_duplicate`, `expenses.unusual_amount` (Plus, nightly), `expenses.busiest_weekday`, `expenses.spending_timing`, `expenses.category_change`, `budgets.limit_often_over` and `budgets.limit_often_under` (Plus, nightly), `budgets.room_to_share`, plus the "what has helped" line on `budgets.category_runout`.
+
+* **`room_to_share` is the Budget page's own suggestion.** `budget_suggestions.find_suggestion` was split so the rule and the banner share one pure function (`pick_suggestion`); the banner's behaviour and tests are unchanged, and a dismissal made on the Budget page hides the insight too.
+* **`category_change` compares like with like.** The dashboard's spike and drop bullets compared a partly finished month with a whole one; this compares the same number of days into the previous cycle, needs a week of the cycle, and only mentions a move that is at least 10% of the category and 5% of last time's spending.
+* **The Free weekly observation** is the weekday and timing rules (`pool='weekly'`): a Free person sees one of them a week; Plus and Pro see both. `category_change` stays outside the pool because the spike and drop bullets it replaces were free for everyone.
+* **Module strips** are embedded on the Budget page and the Expenses page (a bounded card above the content, absent when there is nothing to say). On the Budget page the strip leaves out what the page already says: limits passed or nearing and the smart move.
+* **Facts layer additions:** `load_expense_rows` (one query, no model objects), `Facts.daily_expenses`, and context loaders `recent_expenses`, `expense_rows` and `budget_history`.
+* **Cost:** a dashboard visit's quick refresh is 15 queries (it was 14); the nightly run is 19, and reads history once for every rule that needs it.
+* **Not yet:** the Recurring page and Accounts page strips (Phase C, with the rules that belong there).

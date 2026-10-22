@@ -13,7 +13,8 @@ from pathlib import Path
 PACKAGE = Path(__file__).resolve().parent
 ROOT = PACKAGE.parent.parent
 TEMPLATES = [ROOT / 'templates/expenses/partials' / name for name in
-             ('_insight_cards.html', '_insight_thanks.html', '_insights_settings.html')]
+             ('_insight_cards.html', '_insight_body.html', '_insight_action.html', '_insight_action_link.html', '_insight_options.html', '_insight_strip.html', '_insight_thanks.html',
+             '_insights_settings.html')]
 TRANS_TAG = re.compile(r'''\{%\s*trans\s+(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')\s*%\}''')
 
 

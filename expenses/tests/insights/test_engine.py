@@ -42,13 +42,14 @@ class RefreshTests(StoredBase):
         first = engine.refresh(self.user, today=TODAY)
         rows = {r.rule_id: r for r in InsightState.objects.filter(user=self.user)}
         self.assertEqual(set(rows), {'cashflow.pace_vs_usual', 'cashflow.saving_streak', 'cashflow.savings_momentum',
-                                     'cashflow.year_pace', 'expenses.category_above_usual'})
+                                     'cashflow.year_pace', 'expenses.category_above_usual', 'expenses.category_change',
+                                     'expenses.spending_timing'})
         self.assertEqual(first.failed, [])
         uuids = {r.rule_id: r.uuid for r in rows.values()}
         engine.refresh(self.user, today=TODAY)
         again = {r.rule_id: r.uuid for r in InsightState.objects.filter(user=self.user)}
         self.assertEqual(again, uuids)                       # updated in place: no duplicates, the same rows
-        self.assertEqual(InsightState.objects.filter(user=self.user).count(), 5)
+        self.assertEqual(InsightState.objects.filter(user=self.user).count(), 7)   # one row per rule here (travel is nothing so far, so no "lower")
 
     def test_refresh_never_undoes_a_dismissal_or_a_snooze(self):
         self.life()
@@ -91,7 +92,7 @@ class RefreshTests(StoredBase):
         prefs.save(self.profile, enabled=True, modules_off=['cashflow'], notify='normal', push=True)
         engine.refresh(self.user, today=TODAY)
         self.assertEqual(set(InsightState.objects.filter(user=self.user).values_list('rule_id', flat=True)),
-                         {'expenses.category_above_usual'})
+                         {'expenses.category_above_usual', 'expenses.category_change', 'expenses.spending_timing'})
 
     def test_old_rows_are_pruned(self):
         self.store('cashflow.test', valid_until=TODAY - timedelta(days=120))
@@ -116,6 +117,35 @@ class RefreshTests(StoredBase):
         UserProfile.objects.filter(pk=fresh.pk).update(insights_stale=True)
         self.assertFalse(engine.needs_refresh(UserProfile.objects.get(pk=fresh.pk)))     # ran a moment ago
         self.assertTrue(engine.needs_refresh(UserProfile.objects.get(pk=fresh.pk), now=timezone.now() + timedelta(minutes=11)))
+
+    def test_a_refresh_is_also_due_when_the_day_turns_or_an_hour_passes_even_with_nothing_changed(self):
+        self.life()
+        engine.refresh(self.user, today=TODAY)
+        fresh = UserProfile.objects.get(pk=self.profile.pk)
+        self.assertFalse(engine.needs_refresh(fresh, now=fresh.insights_generated_at + timedelta(minutes=30)))
+        self.assertTrue(engine.needs_refresh(fresh, now=fresh.insights_generated_at + timedelta(hours=1, minutes=1)))
+        midnight = timezone.localtime(fresh.insights_generated_at).replace(hour=23, minute=59) + timedelta(minutes=12)
+        self.assertTrue(engine.needs_refresh(fresh, now=midnight))             # a new day: the pace has moved
+
+    def test_a_change_to_the_persons_money_makes_the_next_visit_refresh(self):
+        engine.refresh(self.user, today=TODAY)
+        fresh = UserProfile.objects.get(pk=self.profile.pk)
+        later = fresh.insights_generated_at + timedelta(minutes=11)
+        self.assertFalse(engine.needs_refresh(fresh, now=later))
+        self.spend(100, TODAY)
+        self.assertTrue(engine.needs_refresh(UserProfile.objects.get(pk=self.profile.pk), now=later))
+        engine.refresh(self.user, today=TODAY)                                   # and a refresh clears it again
+        again = UserProfile.objects.get(pk=self.profile.pk)
+        self.assertFalse(engine.needs_refresh(again, now=again.insights_generated_at + timedelta(minutes=11)))
+
+    def test_so_does_a_change_to_a_budget_limit_and_saving_costs_no_extra_query(self):
+        engine.refresh(self.user, today=TODAY)
+        fresh = UserProfile.objects.get(pk=self.profile.pk)
+        self.category('Food', 5000)
+        self.assertTrue(engine.needs_refresh(fresh, now=fresh.insights_generated_at + timedelta(minutes=11)))
+        with CaptureQueriesContext(connection) as queries:
+            self.spend(100, TODAY)
+        self.assertFalse([q for q in queries.captured_queries if 'insights' in q['sql']])
 
 
 class FailureIsolationTests(StoredBase):
@@ -301,9 +331,12 @@ class QueryCountTests(StoredBase):
 
     def test_refresh_stays_within_its_ceiling(self):
         self.life()
+        with CaptureQueriesContext(connection) as quick:
+            engine.refresh(self.user, today=TODAY, costs=('light',))
+        self.assertLessEqual(len(quick), 16)        # measured: 15 (what a dashboard visit may run)
         with CaptureQueriesContext(connection) as small:
             engine.refresh(self.user, today=TODAY)
-        self.assertLessEqual(len(small), 16)        # measured: 14
+        self.assertLessEqual(len(small), 20)        # measured: 19 (the nightly run, heavy rules included)
 
     def test_refresh_does_not_grow_with_the_amount_of_data(self):
         self.life()
@@ -315,4 +348,4 @@ class QueryCountTests(StoredBase):
                                    balance=D('1000'), deposit_maturity_date=TODAY + timedelta(days=5 + n))
         with CaptureQueriesContext(connection) as big:
             engine.refresh(self.user, today=TODAY)
-        self.assertLessEqual(len(big), 16)
+        self.assertLessEqual(len(big), 20)

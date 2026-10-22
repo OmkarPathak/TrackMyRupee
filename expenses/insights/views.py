@@ -16,6 +16,9 @@ from ..views.notifications import _cron_authorized, _dispatch_cron_command
 from . import engine, is_engine_on, prefs, registry
 from .types import Module, Surface
 
+# On the Budget page the strip leaves out what the page already says on its own (a limit passed or nearing is its
+# "Needs attention" list, and room_to_share is its "Smart move" banner): one insight is never shown twice in a view.
+STRIP_SKIPS = {'budgets': frozenset({'budgets.limit_passed', 'budgets.limit_nearing', 'budgets.room_to_share'})}
 PANEL_SURFACES = {s.value: s for s in (Surface.DASHBOARD, Surface.MODULE, Surface.ANALYTICS)}
 
 
@@ -39,7 +42,16 @@ def panel(request):
     profile = request.user.profile
     if engine.needs_refresh(profile):
         engine.refresh(request.user, costs=('light',), profile=profile)
-    items = engine.generate(request.user, surface, modules=_modules(request.GET.get('modules')), profile=profile)
+    modules = _modules(request.GET.get('modules'))
+    strip = request.GET.get('strip') == '1'
+    skip = set()
+    if strip and modules and Module.BUDGETS in modules:
+        skip |= STRIP_SKIPS['budgets']
+    items = engine.generate(request.user, surface, modules=modules, profile=profile, skip_rules=skip)
+    if strip:         # a page's strip says nothing at all when there is nothing to say
+        if not items:
+            return HttpResponse('')
+        return HttpResponse(render_to_string('expenses/partials/_insight_strip.html', {'items': items}, request=request))
     return HttpResponse(render_to_string('expenses/partials/_insight_cards.html', {
         'items': items,
         'learning': engine.is_learning(profile),

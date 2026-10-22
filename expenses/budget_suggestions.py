@@ -31,19 +31,24 @@ def suggestion_key(donor_id, needy_id, month) -> str:
     return f"move:{donor_id}:{needy_id}:{month:%Y-%m}"
 
 
-def find_suggestion(user, month, rows) -> dict | None:
-    """`rows`: the page payload's category rows for the current month. Returns None when nothing is
-    supported by the data, or the suggestion was dismissed."""
-    from .models import BudgetSuggestionDismissal
-
+def _needy_and_donors(rows):
     needy = [r for r in rows if r['status'] in ('over', 'limit') and r['limit']]
     donors = [r for r in rows if r['limit'] and r['status'] == 'ontrack' and (r['spent'] or 0) < r['limit'] * float(UNUSED_SHARE)]
+    return needy, donors
+
+
+def lookback_months(month) -> list:
+    return [_add_months(month, -k) for k in range(LOOKBACK_MONTHS, 0, -1)]
+
+
+def pick_suggestion(rows, month, limits, spend) -> dict | None:
+    """The suggestion the data supports, from the page rows and the three earlier months' limits and spend
+    (`limits` and `spend` are keyed by budget month, then normalised category name). No queries, and no
+    dismissals: the caller decides what to do about those."""
+    needy, donors = _needy_and_donors(rows)
     if not needy or not donors:
         return None
-
-    months = [_add_months(month, -k) for k in range(LOOKBACK_MONTHS, 0, -1)]
-    limits = resolver.effective_limits_range_by_name(user, months[0], months[-1])
-    spend = monthly_spend_by_category_months(user, months)          # one query for all three months
+    months = lookback_months(month)
 
     def barely_used(name):
         key = normalize_category(name)
@@ -64,16 +69,29 @@ def find_suggestion(user, month, rows) -> dict | None:
     amount = min(math.floor(room), math.ceil(want / ROUND_TO) * ROUND_TO)
     if amount <= 0:
         return None
-
-    key = suggestion_key(donor['id'], target['id'], month)
-    if BudgetSuggestionDismissal.objects.filter(user=user, key=key).exists():
-        return None
     return {
-        'key': key,
+        'key': suggestion_key(donor['id'], target['id'], month),
         'donor_id': donor['id'], 'donor_name': donor['name'], 'donor_untouched': round(room, 2),
         'needy_id': target['id'], 'needy_name': target['name'], 'needy_limit': target['limit'],
         'amount': amount, 'months': LOOKBACK_MONTHS,
     }
+
+
+def find_suggestion(user, month, rows) -> dict | None:
+    """`rows`: the page payload's category rows for the current month. Returns None when nothing is
+    supported by the data, or the suggestion was dismissed."""
+    from .models import BudgetSuggestionDismissal
+
+    needy, donors = _needy_and_donors(rows)
+    if not needy or not donors:
+        return None
+    months = lookback_months(month)
+    limits = resolver.effective_limits_range_by_name(user, months[0], months[-1])
+    spend = monthly_spend_by_category_months(user, months)          # one query for all three months
+    suggestion = pick_suggestion(rows, month, limits, spend)
+    if suggestion is None or BudgetSuggestionDismissal.objects.filter(user=user, key=suggestion['key']).exists():
+        return None
+    return suggestion
 
 
 def may_have_suggestion(rows) -> bool:

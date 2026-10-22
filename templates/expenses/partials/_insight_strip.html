@@ -1,0 +1,32 @@
+{% load i18n %}<style>
+    .insight-strip:not(:has([data-insight])) { display: none; }
+    .insight-row:not(.collapsed) .insight-summary { display: none !important; }   /* the opened body says it in full (!important: beats d-md-inline) */
+    .insight-row:not(.collapsed) .insight-chevron { transform: rotate(180deg); }
+    .insight-title { font-weight: 400; }                                         /* regular on a phone, where the line is the whole row */
+    @media (min-width: 768px) { .insight-title { font-weight: 600; } }
+</style>
+<section class="insight-strip card shadow-sm border-0 rounded-4 mt-3 mb-3 overflow-hidden" aria-label="{% trans 'Insights' %}">
+    {% for p in items %}{% with i=p.insight %}
+    <div data-insight id="insight-{{ p.state_uuid }}"{% if not forloop.first %} class="border-top"{% endif %}>
+        <button type="button" class="insight-row btn btn-link d-flex align-items-baseline gap-2 w-100 text-start text-decoration-none text-body px-3 py-2 rounded-0 collapsed"
+                data-bs-toggle="collapse" data-bs-target="#insight-body-{{ p.state_uuid }}" aria-expanded="false" aria-controls="insight-body-{{ p.state_uuid }}">
+            <i class="bi bi-{{ i.icon }} text-secondary opacity-75 flex-shrink-0" style="font-size: 0.85rem;" aria-hidden="true"></i>
+            <span class="insight-title flex-shrink-0" style="font-size: 0.9rem;">
+                <span class="visually-hidden">{% if i.tone == 'positive' %}{% trans "Good news:" %}{% elif i.tone == 'gentle_attention' %}{% trans "Worth a look:" %}{% else %}{% trans "For your information:" %}{% endif %}</span>
+                {{ i.title }}
+            </span>
+            <span class="insight-summary text-secondary text-truncate d-none d-md-inline" style="min-width: 0; font-size: 0.875rem; font-weight: 400;">{{ i.message }}</span>
+            <i class="insight-chevron bi bi-chevron-down ms-auto text-secondary flex-shrink-0" style="font-size: 0.75rem;" aria-hidden="true"></i>
+        </button>
+        <div class="collapse" id="insight-body-{{ p.state_uuid }}">
+            <div class="px-3 pb-3" style="padding-left: 2.1rem !important;">
+                {% include 'expenses/partials/_insight_body.html' %}
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
+                    <div>{% include 'expenses/partials/_insight_action.html' with as_link=True %}</div>
+                    {% if not p.locked %}{% include 'expenses/partials/_insight_options.html' %}{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endwith %}{% endfor %}
+</section>

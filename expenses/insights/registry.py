@@ -15,7 +15,7 @@ from .types import Insight, Module, Plan, Surface
 
 COSTS = ('light', 'heavy')
 MODES = ('stored', 'inline')
-NEEDS = frozenset({'facts', 'budgets', 'accounts', 'recurring'})     # the loaders an InsightContext offers
+NEEDS = frozenset({'facts', 'budgets', 'accounts', 'recurring', 'recent', 'rows', 'budget_history'})     # the loaders an InsightContext offers
 
 
 @dataclass(frozen=True)
@@ -33,6 +33,7 @@ class InsightRule:
     push: bool = False            # time-sensitive and helpful enough to be pushed (never for sensitive insights)
     preview: Callable | None = None      # a figure-free line shown to plans below min_plan
     sample: Callable | None = None       # builds a synthetic context so tests can run the rule everywhere
+    pool: str | None = None              # 'weekly': on the Free plan the pool's rules share one observation a week
 
 
 REGISTRY: dict[str, InsightRule] = {}
@@ -41,7 +42,7 @@ _loaded = False
 
 def rule(*, id: str, module: Module, surfaces: Iterable[Surface], needs: Iterable[str] = (), min_plan: Plan = Plan.FREE,
          cooldown_days: int = 7, min_history: int = 0, cost: str = 'light', mode: str = 'stored', push: bool = False,
-         preview: Callable | None = None, sample: Callable | None = None):
+         preview: Callable | None = None, sample: Callable | None = None, pool: str | None = None):
     surfaces, needs = frozenset(surfaces), frozenset(needs)
     if id in REGISTRY:
         raise ValueError(f'duplicate rule id {id}')
@@ -57,7 +58,7 @@ def rule(*, id: str, module: Module, surfaces: Iterable[Surface], needs: Iterabl
     def register(fn):
         REGISTRY[id] = InsightRule(
             id=id, module=module, surfaces=surfaces, min_plan=min_plan, cooldown_days=cooldown_days, needs=needs,
-            evaluate=fn, min_history=min_history, cost=cost, mode=mode, push=push, preview=preview, sample=sample)
+            evaluate=fn, min_history=min_history, cost=cost, mode=mode, push=push, preview=preview, sample=sample, pool=pool)
         return fn
     return register
 

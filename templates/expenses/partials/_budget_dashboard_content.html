@@ -151,6 +151,9 @@
             {% endif %}
         </section>
 
+        <!-- Insights about budgets: a strip under the hero card, fetched after the page paints, and absent when there is nothing to say -->
+        {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=budgets&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
         <!-- Status chips: icon + text so status is never colour alone -->
         <div class="bdx-chips" role="group" aria-label="{% trans 'Filter categories by status' %}">
             {% for t in status_tiles %}

@@ -1,0 +1,1 @@
+{% if i.action %}{% if p.locked %}{% with target=i.action.url %}{% include 'expenses/partials/_insight_action_link.html' %}{% endwith %}{% else %}{% url 'insights-go' p.state_uuid as target %}{% include 'expenses/partials/_insight_action_link.html' %}{% endif %}{% endif %}
