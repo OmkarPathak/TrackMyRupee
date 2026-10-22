@@ -16,10 +16,22 @@ from ..views.notifications import _cron_authorized, _dispatch_cron_command
 from . import engine, is_engine_on, prefs, registry
 from .types import Module, Surface
 
-# On the Budget page the strip leaves out what the page already says on its own (a limit passed or nearing is its
-# "Needs attention" list, and room_to_share is its "Smart move" banner): one insight is never shown twice in a view.
-STRIP_SKIPS = {'budgets': frozenset({'budgets.limit_passed', 'budgets.limit_nearing', 'budgets.room_to_share'})}
+# A page's strip leaves out what the page already says on its own, because one insight is never shown twice in a view:
+# the Budget page lists limits passed or nearing and has its "Smart move" banner; the Subscriptions page lists what is due;
+# the Accounts page has its own "bill due soon" card (a maturing deposit stays in the strip).
+STRIP_SKIPS = {
+    Module.BUDGETS: frozenset({'budgets.limit_passed', 'budgets.limit_nearing', 'budgets.room_to_share'}),
+    Module.RECURRING: frozenset({'recurring.bills_soon'}),
+    Module.ACCOUNTS: frozenset({'accounts.card_billing_soon'}),
+}
 PANEL_SURFACES = {s.value: s for s in (Surface.DASHBOARD, Surface.MODULE, Surface.ANALYTICS)}
+
+
+def _int(raw) -> int | None:
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return None
 
 
 def _modules(raw: str | None):
@@ -44,9 +56,7 @@ def panel(request):
         engine.refresh(request.user, costs=('light',), profile=profile)
     modules = _modules(request.GET.get('modules'))
     strip = request.GET.get('strip') == '1'
-    skip = set()
-    if strip and modules and Module.BUDGETS in modules:
-        skip |= STRIP_SKIPS['budgets']
+    skip = set().union(*(STRIP_SKIPS.get(m, ()) for m in modules or ())) if strip else set()
     items = engine.generate(request.user, surface, modules=modules, profile=profile, skip_rules=skip)
     if strip:         # a page's strip says nothing at all when there is nothing to say
         if not items:
@@ -112,6 +122,7 @@ def settings_save(request):
         modules_off=[m.value for m in registry.modules_with_rules() if m.value not in request.POST.getlist('modules')],
         notify=request.POST.get('notify', 'normal'),
         push='push' in request.POST,
+        emergency_months=_int(request.POST.get('emergency_months')),
     )
     messages.success(request, _('Your Insights settings are saved.'))
     return redirect(reverse('profile-settings') + '#insights')

@@ -90,6 +90,9 @@
     </div>
 
     {% if loan_summaries %}
+    <!-- Insights about loans: under the title and filters, above the portfolio -->
+    {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=loans&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
     <!-- Loan Portfolio Visual Analytics Row -->
     <div class="row g-4 mb-4">
         <div class="col-12 {% if loan_summaries|length >= 2 %}col-lg-6{% else %}col-lg-12{% endif %}">

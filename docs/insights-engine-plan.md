@@ -482,3 +482,17 @@ Rules added (all in `docs/insights-rules.md`, with their own examples): `expense
 * **Facts layer additions:** `load_expense_rows` (one query, no model objects), `Facts.daily_expenses`, and context loaders `recent_expenses`, `expense_rows` and `budget_history`.
 * **Cost:** a dashboard visit's quick refresh is 15 queries (it was 14); the nightly run is 19, and reads history once for every rule that needs it.
 * **Not yet:** the Recurring page and Accounts page strips (Phase C, with the rules that belong there).
+
+## 12. Phase C as built (recurring, loans, accounts)
+
+Rules added (see `docs/insights-rules.md`): `recurring.fixed_costs` and `recurring.price_change` (Plus), `recurring.looks_recurring` (Free, Recurring page only, nightly), `cashflow.low_point_before_salary` (Plus, nightly, extra gentle below zero), `loans.interest_paid_year`, `loans.extra_emi_effect` and `loans.milestone_ahead` (Plus), `loans.rate_gap` (Pro), `accounts.card_billing_soon` (Free), `accounts.card_utilisation` (Plus), `accounts.idle_cash` and `accounts.not_reconciled` (Plus, nightly).
+
+* **Costs nothing for people without the thing.** Rules declare `requires={'loans'|'cards'|'recurring'}`; one inventory query decides, so someone with no loans, cards or recurring payments pays no query for those rules. A dashboard visit's quick refresh is still 15 queries; the nightly run for a person with all of it is higher (net worth alone is about eight) and is only run by the command.
+* **Loans reuse the loan service.** `ctx.loans` loads active loans with `annotate_loan_principal_totals` and prefetched rates, and fills each loan's cached summary, so `LoanService.calculate_extra_emi_savings` and `current_rate` run with no query per loan (tested against `get_loan_summary`). Interest and principal for the financial year come from one grouped query that uses the same `interest * exchange_rate` as the savings definition.
+* **Cards:** only a billing day exists, so the copy says "billing date" (D10). What is owed is the ledger balance in the card's own currency. The existing reminders three days before billing are unchanged.
+* **`recurring.price_change` is feasible**: posted entries carry the schedule's description plus " (Recurring)", so the postings are read by that description (a renamed schedule starts a fresh history).
+* **`recurring.similar_services` was cut** (D17). `recurring.looks_recurring` is Recurring-page only because the bell already carries the same nudge.
+* **Financial year** (April to March) for rupee accounts, calendar year otherwise (D11).
+* **The cushion target** is a Setting (3 to 24 months, six by default), so "idle cash" compares with the person's own number (D9).
+* **Strips** on the Subscriptions, Loans and Accounts pages; each leaves out what its page already shows (due payments; the bill-due and maturing cards).
+* **Everything about debt is sensitive**: extra gentle, no share text, never pushed, and shown to a plan below the rule's minimum as nothing at all (no preview).

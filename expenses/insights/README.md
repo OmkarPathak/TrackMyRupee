@@ -13,7 +13,7 @@ rules/*.py ──evaluate(ctx)──▶ engine.refresh ──▶ InsightState ro
 
 * `types.py` immutable `Insight`, `Evidence`, `Action`; enums for module, kind, tone, surface, plan.
 * `registry.py` the `@rule` decorator and the registry. Rules in `rules/` are imported automatically.
-* `context.py` what a rule may read. Each loader must be listed in the rule's `needs`: `facts`, `budgets`, `accounts`, `recurring`, `recent` (entries of the last few days), `rows` (about six cycles of single entries, nightly rules only) and `budget_history` (the last three budget months' limits and spend).
+* `context.py` what a rule may read. Each loader must be listed in the rule's `needs`: `facts`, `budgets`, `accounts`, `recurring`, `recent` (entries of the last few days), `rows` (about six cycles of single entries, nightly rules only) `budget_history` (the last three budget months' limits and spend), `inventory` (does the person have loans, cards, recurring payments), `recurring_all`, `postings` (what each recurring expense actually cost each time), `pending` (scheduled items for two weeks), `cash` (net worth point; `.idle` is cash held), `accounts_all`, `cards` (what is owed, in the card's own currency), `loans` (totalled, rates prefetched, so the loan service runs without a query per loan), `loan_paid` (this financial year) and `reconciliations`.
 * `engine.py` `refresh` (evaluate and store), `generate` (read, suppress, rank, cap), dismiss, snooze, feedback.
 * `gating.py` the only place a plan tier is read. `prefs.py` the person's Settings. `telemetry.py` the only analytics.
 * `format.py` money, percent and date text; `tone.py` the tone linter; `sampling.py` synthetic contexts for tests.
@@ -44,6 +44,7 @@ rules/*.py ──evaluate(ctx)──▶ engine.refresh ──▶ InsightState ro
      stays dismissed for its own period only.
    * `min_history` is completed cycles with any activity. Below it the engine skips the rule and shows "still learning".
    * `pool='weekly'` puts a rule in the Free plan's weekly observation: Free people see one pool rule a week, Plus and Pro all of them.
+   * `requires={'loans'}` (or `'cards'`, `'recurring'`) skips the rule, at no cost, for a person who has none.
    * `cost='heavy'` is for rules that scan history (nightly only); `cost='light'` may also run when a dashboard visit finds the data changed.
    * `push=True` (and `Surface.PUSH` in `surfaces`) only for things that are time-sensitive *and* helpful. A
      `sensitive=True` insight (debt, a shortfall, a month in the red) never has share text and is never pushed.

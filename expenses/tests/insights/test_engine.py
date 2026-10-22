@@ -43,13 +43,13 @@ class RefreshTests(StoredBase):
         rows = {r.rule_id: r for r in InsightState.objects.filter(user=self.user)}
         self.assertEqual(set(rows), {'cashflow.pace_vs_usual', 'cashflow.saving_streak', 'cashflow.savings_momentum',
                                      'cashflow.year_pace', 'expenses.category_above_usual', 'expenses.category_change',
-                                     'expenses.spending_timing'})
+                                     'expenses.spending_timing', 'accounts.idle_cash', 'recurring.looks_recurring'})
         self.assertEqual(first.failed, [])
         uuids = {r.rule_id: r.uuid for r in rows.values()}
         engine.refresh(self.user, today=TODAY)
         again = {r.rule_id: r.uuid for r in InsightState.objects.filter(user=self.user)}
         self.assertEqual(again, uuids)                       # updated in place: no duplicates, the same rows
-        self.assertEqual(InsightState.objects.filter(user=self.user).count(), 7)   # one row per rule here (travel is nothing so far, so no "lower")
+        self.assertEqual(InsightState.objects.filter(user=self.user).count(), 10)   # one row per rule here (travel is nothing so far, so no "lower"); looks_recurring speaks twice
 
     def test_refresh_never_undoes_a_dismissal_or_a_snooze(self):
         self.life()
@@ -92,7 +92,8 @@ class RefreshTests(StoredBase):
         prefs.save(self.profile, enabled=True, modules_off=['cashflow'], notify='normal', push=True)
         engine.refresh(self.user, today=TODAY)
         self.assertEqual(set(InsightState.objects.filter(user=self.user).values_list('rule_id', flat=True)),
-                         {'expenses.category_above_usual', 'expenses.category_change', 'expenses.spending_timing'})
+                         {'expenses.category_above_usual', 'expenses.category_change', 'expenses.spending_timing',
+                          'recurring.looks_recurring', 'accounts.idle_cash'})
 
     def test_old_rows_are_pruned(self):
         self.store('cashflow.test', valid_until=TODAY - timedelta(days=120))
@@ -310,7 +311,8 @@ class PlanGatingTests(StoredBase):
     def test_the_migrated_rules_are_open_to_every_plan(self):
         self.life()
         engine.refresh(self.user, today=TODAY)
-        self.assertFalse(InsightState.objects.filter(user=self.user, locked=True).exists())
+        locked = set(InsightState.objects.filter(user=self.user, locked=True).values_list('rule_id', flat=True))
+        self.assertEqual(locked, {'accounts.idle_cash'})       # the one Plus rule that spoke; none of the migrated ones is locked
         self.assertGreaterEqual(len(self.generate(now=NOW)), 3)
 
 
@@ -336,7 +338,7 @@ class QueryCountTests(StoredBase):
         self.assertLessEqual(len(quick), 16)        # measured: 15 (what a dashboard visit may run)
         with CaptureQueriesContext(connection) as small:
             engine.refresh(self.user, today=TODAY)
-        self.assertLessEqual(len(small), 20)        # measured: 19 (the nightly run, heavy rules included)
+        self.assertLessEqual(len(small), 31)        # measured: 29 (the nightly run: heavy rules, net worth included)
 
     def test_refresh_does_not_grow_with_the_amount_of_data(self):
         self.life()
@@ -348,4 +350,4 @@ class QueryCountTests(StoredBase):
                                    balance=D('1000'), deposit_maturity_date=TODAY + timedelta(days=5 + n))
         with CaptureQueriesContext(connection) as big:
             engine.refresh(self.user, today=TODAY)
-        self.assertLessEqual(len(big), 20)
+        self.assertLessEqual(len(big), 31)

@@ -13,7 +13,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import NamedTuple
 
-from django.db.models import F, Q, Sum
+from django.db.models import Count, F, Q, Sum
 
 from ..account_types import investment_codes
 from ..budgets import capital_report_name, normalize_category
@@ -43,6 +43,25 @@ def load_expense_rows(user, first: date, last: date) -> list[ExpenseRow]:
     return [ExpenseRow(i, d, c or '', a or ZERO, acc, made, x.decode('utf-8', 'replace') if isinstance(x, bytes) else (x or ''),
                        batch is not None)
             for i, d, c, a, acc, made, x, batch in rows]
+
+
+class LoanPaid(NamedTuple):
+    """What repayments between two dates were made of (base currency)."""
+    interest: Decimal
+    principal: Decimal
+    repayments: int
+
+
+def load_loan_paid(user, first: date, last: date) -> LoanPaid:
+    """Interest and principal paid on all the user's loans between two dates, in one query. Uses the same
+    interest * exchange rate the savings definition does, so the two always agree."""
+    from ..models import LoanRepayment
+
+    row = LoanRepayment.objects.filter(loan__user=user, date__range=(first, last)).aggregate(
+        interest=Sum(F('interest_portion') * F('exchange_rate')),
+        principal=Sum(F('principal_portion') * F('exchange_rate')),
+        n=Count('id'))
+    return LoanPaid(row['interest'] or ZERO, row['principal'] or ZERO, row['n'] or 0)
 
 
 @dataclass

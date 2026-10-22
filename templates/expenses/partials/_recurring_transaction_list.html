@@ -72,6 +72,9 @@
         
     {% include 'components/upgrade_nudge.html' %}
 
+    <!-- Insights about recurring payments: under the title and filters, above the list -->
+    {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=recurring&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
     <!-- Navigation Pills (matches all-transactions page style) -->
     <div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 hide-scrollbar mt-3 mb-4" style="scrollbar-width: none;" id="subscriptionTabs" role="tablist">
         <button type="button" id="all-tab" role="tab" aria-selected="{% if current_status == 'cancelled' %}false{% else %}true{% endif %}"

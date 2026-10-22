@@ -333,6 +333,9 @@
 
 {% include 'partials/guide_accounts.html' %}
 
+<!-- Insights about accounts: a strip under the net worth card, fetched after the page paints -->
+{% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=accounts&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
 <!-- NEEDS YOUR ATTENTION -->
 {% if attention_cards or stale_count %}
 <section class="acx-attn-wrap" aria-labelledby="acx-attn-title">

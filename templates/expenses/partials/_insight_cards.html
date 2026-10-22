@@ -2,14 +2,13 @@
 <div data-insights-panel>
 {% if items %}
     <div class="d-flex flex-column gap-4">
+    <style>.insight-link { color: var(--color-secondary, #0F7657); } [data-bs-theme="dark"] .insight-link { color: #4cc9a0; } .insight-link:hover { text-decoration: underline !important; } .insight-title { font-weight: 400; } @media (min-width: 768px) { .insight-title { font-weight: 600; } }</style>
     {% for p in items %}{% with i=p.insight %}
         <article class="d-flex align-items-start gap-3" data-insight id="insight-{{ p.state_uuid }}" aria-labelledby="insight-title-{{ p.state_uuid }}">
-            <div class="d-flex align-items-center justify-content-center rounded-circle border flex-shrink-0 {% if i.tone == 'positive' %}border-success border-opacity-25 bg-success bg-opacity-10 text-success{% elif i.tone == 'gentle_attention' %}border-warning border-opacity-25 bg-warning bg-opacity-10 text-warning{% else %}bg-primary bg-opacity-10 text-primary{% endif %}" style="width: 42px; height: 42px;">
-                <i class="bi bi-{{ i.icon }}" style="font-size: 1.2rem;" aria-hidden="true"></i>
-            </div>
+            <i class="bi bi-{{ i.icon }} text-secondary opacity-75 flex-shrink-0" style="font-size: 1rem; margin-top: 0.2rem;" aria-hidden="true"></i>
             <div class="flex-grow-1" style="min-width: 0;">
                 <div class="d-flex justify-content-between align-items-start gap-2">
-                    <h3 class="h6 fw-bold mb-1 text-body" id="insight-title-{{ p.state_uuid }}">
+                    <h3 class="insight-title h6 mb-1 text-body" id="insight-title-{{ p.state_uuid }}">
                         <span class="visually-hidden">{% if i.tone == 'positive' %}{% trans "Good news:" %}{% elif i.tone == 'gentle_attention' %}{% trans "Worth a look:" %}{% else %}{% trans "For your information:" %}{% endif %}</span>
                         {{ i.title }}
                     </h3>
@@ -27,7 +26,7 @@
                 </div>
                 {% endif %}
                 {% include 'expenses/partials/_insight_body.html' %}
-                {% include 'expenses/partials/_insight_action.html' %}
+                {% include 'expenses/partials/_insight_action.html' with as_link=True %}
             </div>
         </article>
     {% endwith %}{% endfor %}

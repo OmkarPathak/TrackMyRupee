@@ -15,7 +15,11 @@ from .types import Insight, Module, Plan, Surface
 
 COSTS = ('light', 'heavy')
 MODES = ('stored', 'inline')
-NEEDS = frozenset({'facts', 'budgets', 'accounts', 'recurring', 'recent', 'rows', 'budget_history'})     # the loaders an InsightContext offers
+# the loaders an InsightContext offers
+NEEDS = frozenset({'facts', 'budgets', 'accounts', 'recurring', 'recent', 'rows', 'budget_history', 'inventory',
+                   'recurring_all', 'postings', 'pending', 'cash', 'accounts_all', 'cards', 'loans', 'loan_paid',
+                   'reconciliations'})
+INVENTORY = frozenset({'loans', 'cards', 'recurring'})     # what a person may not have at all
 
 
 @dataclass(frozen=True)
@@ -34,6 +38,7 @@ class InsightRule:
     preview: Callable | None = None      # a figure-free line shown to plans below min_plan
     sample: Callable | None = None       # builds a synthetic context so tests can run the rule everywhere
     pool: str | None = None              # 'weekly': on the Free plan the pool's rules share one observation a week
+    requires: frozenset[str] = frozenset()   # 'loans', 'cards' or 'recurring': skipped, costing nothing, when the person has none
 
 
 REGISTRY: dict[str, InsightRule] = {}
@@ -42,14 +47,17 @@ _loaded = False
 
 def rule(*, id: str, module: Module, surfaces: Iterable[Surface], needs: Iterable[str] = (), min_plan: Plan = Plan.FREE,
          cooldown_days: int = 7, min_history: int = 0, cost: str = 'light', mode: str = 'stored', push: bool = False,
-         preview: Callable | None = None, sample: Callable | None = None, pool: str | None = None):
-    surfaces, needs = frozenset(surfaces), frozenset(needs)
+         preview: Callable | None = None, sample: Callable | None = None, pool: str | None = None,
+         requires: Iterable[str] = ()):
+    surfaces, needs, requires = frozenset(surfaces), frozenset(needs), frozenset(requires)
     if id in REGISTRY:
         raise ValueError(f'duplicate rule id {id}')
     if cost not in COSTS or mode not in MODES:
         raise ValueError(f'{id}: bad cost or mode')
     if not needs <= NEEDS:
         raise ValueError(f'{id}: unknown needs {sorted(needs - NEEDS)}')
+    if not requires <= INVENTORY:
+        raise ValueError(f'{id}: unknown requires {sorted(requires - INVENTORY)}')
     if push and Surface.PUSH not in surfaces:
         raise ValueError(f'{id}: push rules list Surface.PUSH')
     if sample is None:
@@ -58,7 +66,7 @@ def rule(*, id: str, module: Module, surfaces: Iterable[Surface], needs: Iterabl
     def register(fn):
         REGISTRY[id] = InsightRule(
             id=id, module=module, surfaces=surfaces, min_plan=min_plan, cooldown_days=cooldown_days, needs=needs,
-            evaluate=fn, min_history=min_history, cost=cost, mode=mode, push=push, preview=preview, sample=sample, pool=pool)
+            evaluate=fn, min_history=min_history, cost=cost, mode=mode, push=push, preview=preview, sample=sample, pool=pool, requires=requires)
         return fn
     return register
 

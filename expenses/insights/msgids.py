@@ -15,6 +15,7 @@ ROOT = PACKAGE.parent.parent
 TEMPLATES = [ROOT / 'templates/expenses/partials' / name for name in
              ('_insight_cards.html', '_insight_body.html', '_insight_action.html', '_insight_action_link.html', '_insight_options.html', '_insight_strip.html', '_insight_thanks.html',
              '_insights_settings.html')]
+BLOCK_TAG = re.compile(r'\{%\s*blocktranslate\b[^%]*%\}(.*?)\{%\s*endblocktranslate\s*%\}', re.DOTALL)
 TRANS_TAG = re.compile(r'''\{%\s*trans\s+(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')\s*%\}''')
 
 
@@ -48,6 +49,8 @@ def template_strings() -> list[tuple[str, str, str, str | None]]:
         for match in TRANS_TAG.finditer(path.read_text(encoding='utf-8')):
             text = match.group(1) if match.group(1) is not None else match.group(2)
             found.append((str(path), '', text.replace('\\"', '"').replace("\\'", "'"), None))
+        for match in BLOCK_TAG.finditer(path.read_text(encoding='utf-8')):
+            found.append((str(path), '', re.sub(r'\{\{\s*(\w+)\s*\}\}', r'%(\1)s', match.group(1)).strip(), None))
     return found
 
 

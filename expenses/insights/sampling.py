@@ -14,7 +14,7 @@ from types import SimpleNamespace
 
 from django.utils import timezone
 
-from ..analytics.facts import ExpenseRow, Facts
+from ..analytics.facts import ExpenseRow, Facts, LoanPaid
 from ..budgets import budget_status, normalize_category, percent_used
 from .context import BudgetHistory, InsightContext
 from .format import Fmt
@@ -68,7 +68,9 @@ def budget_rows(rows) -> list[dict]:
 
 
 def scenario(*, budgets: list[tuple] | None = None, salary_day: int = 1, language: str = 'en', maturing=None,
-             bills=None, history_spend=None, recent=(), rows=(), dismissed=(), **overrides) -> SampleContext:
+             bills=None, history_spend=None, recent=(), rows=(), dismissed=(), recurring_all=None, postings=None,
+             pending=None, cash=None, cards=(), loans=(), accounts_all=(), reconciliations=None,
+             **overrides) -> SampleContext:
     """Six months of steady life, then an October that runs a little higher: dining is up, income had a bonus."""
     today = overrides.pop('today', TODAY)
     ctx = SampleContext(today=today, salary_day=salary_day, language=language, **overrides)
@@ -105,6 +107,17 @@ def scenario(*, budgets: list[tuple] | None = None, salary_day: int = 1, languag
     ctx._cache['dismissed_suggestions'] = frozenset(dismissed)
     ctx._cache['recent'] = list(recent)
     ctx._cache['rows'] = list(rows)
+    ctx._cache['inventory'] = {'loans': bool(loans), 'cards': bool(cards), 'recurring': True}
+    ctx._cache['recurring_all'] = list(recurring_all) if recurring_all is not None else [
+        _recurring('Rent', 'EXPENSE', 20000), _recurring('Home loan EMI', 'LOAN', 18200), _recurring('Netflix', 'EXPENSE', 499)]
+    ctx._cache['postings'] = dict(postings or {})
+    ctx._cache['pending'] = dict(pending or {})
+    ctx._cache['cash'] = cash or SimpleNamespace(idle=D('150000'))
+    ctx._cache['cards'] = list(cards)
+    ctx._cache['loans'] = list(loans)
+    ctx._cache['accounts_all'] = list(accounts_all)
+    ctx._cache['reconciliations'] = dict(reconciliations or {})
+    ctx._cache['loan_paid'] = LoanPaid(D('84000'), D('160000'), 6)
     ctx._cache['accounts'] = list(maturing) if maturing is not None else [SimpleNamespace(
         uuid=uuid.uuid5(uuid.NAMESPACE_URL, 'fd'), name='Bank FD', currency='₹', balance=D('210000'),
         deposit_maturity_date=today + timedelta(days=12))]
@@ -172,3 +185,73 @@ def weekday_sample(language: str = 'en') -> SampleContext:
         facts.expense_cats[facts.index(day)] = {'dining': D(2000 if day.weekday() == 5 else 700)}
     ctx._cache.pop('summaries', None)
     return ctx
+
+
+def _recurring(description, kind, amount, frequency='MONTHLY'):
+    return SimpleNamespace(uuid=uuid.uuid5(uuid.NAMESPACE_URL, description), description=description,
+                           transaction_type=kind, frequency=frequency, amount=D(amount), base_amount=D(amount))
+
+
+def price_change_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, postings={'Netflix (Recurring)': [
+        (TODAY - timedelta(days=35), D('499')), (TODAY - timedelta(days=4), D('649'))]})
+
+
+def looks_recurring_sample(language: str = 'en') -> SampleContext:
+    gym = [_row(300 + i, TODAY - timedelta(days=days), 'Health', 1200, description='Gym fee')
+           for i, days in enumerate((70, 40, 10))]
+    return scenario(language=language, rows=gym)
+
+
+class _Rates:
+    def __init__(self, *rates):
+        self._rates = rates
+
+    def all(self):
+        return list(self._rates)
+
+
+def _loan(name, initial, remaining, rate, months=240, started=40, extra_rates=()):
+    start = TODAY - timedelta(days=started * 30)
+    paid = D(initial) - D(remaining)
+    loan = SimpleNamespace(
+        uuid=uuid.uuid5(uuid.NAMESPACE_URL, name), name=name, currency='₹', initial_principal=D(initial),
+        paid_principal=paid, capital_prepaid=D(0), opening_paid_principal=D(0), duration_months=months, start_date=start,
+        repayment_type='EMI', interest_rates=_Rates(SimpleNamespace(effective_date=start, interest_rate=D(rate)),
+                                                     *extra_rates))
+    loan._cached_summary = {'remaining_principal': float(remaining)}
+    return loan
+
+
+def loans_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, loans=[_loan('Home Loan', 5000000, 4200000, '8.5'),
+                                              _loan('Car Loan', 800000, 390000, '9.9', months=60, started=30)])
+
+
+def cards_sample(language: str = 'en') -> SampleContext:
+    from ..models import Account
+    card = Account(id=7, name='Travel Card', account_type='CREDIT_CARD', currency='₹', credit_limit=D('80000'),
+                   credit_card_billing_day=(TODAY + timedelta(days=6)).day)
+    return scenario(language=language, cards=[(card, D('50000'))])
+
+
+def idle_cash_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, cash=SimpleNamespace(idle=D('420000')))
+
+
+def reconcile_sample(language: str = 'en') -> SampleContext:
+    from ..models import Account
+    account = Account(id=5, name='Savings Account', account_type='SAVINGS_ACCOUNT', currency='₹')
+    return scenario(language=language, accounts_all=[account], reconciliations={5: TODAY - timedelta(days=74)})
+
+
+def low_point_sample(language: str = 'en') -> SampleContext:
+    payday = TODAY + timedelta(days=14)
+
+    def item(day, kind, amount, salary=False):
+        return {'description': 'x', 'amount': D(amount), 'kind': kind, 'type': 'EXPENSE', 'is_salary': salary, 'date': day}
+    pending = {TODAY + timedelta(days=2): [item(TODAY + timedelta(days=2), 'out', 499)],
+               TODAY + timedelta(days=6): [item(TODAY + timedelta(days=6), 'out', 18200)],
+               payday: [item(payday, 'in', 60000, salary=True)]}
+    rows = [_row(400 + i, TODAY - timedelta(days=i), 'Food', 700) for i in range(1, 28)]
+    return scenario(language=language, pending=pending, rows=rows, cash=SimpleNamespace(idle=D('30000')))

@@ -31,7 +31,7 @@ your own past.
 ## 2. Where you see them
 
 * **Dashboard**: at most three at a time, loaded just after the page appears.
-* **Budgets and Expenses pages**: a short strip at the top with at most two insights about that page, only when there is something to say.
+* **Budgets, Expenses, Subscriptions, Loans and Accounts pages**: a short strip with at most two insights about that page, only when there is something to say.
 * **The bell**: at most one new insight a day, in addition to the alerts you already get (bills, budgets, goals).
 * **Push**: at most two a week, only for time-sensitive things such as a deposit about to mature or a limit about to be
   reached, and never between 9 pm and 8 am.
@@ -65,6 +65,9 @@ Open **Settings → Profile** and scroll to **Insights**:
 * Choose how often we mention things: normally (at most one a day in the bell), quietly (at most one a week, no push) or
   only on the pages.
 * Switch push on or off.
+* Say how many months of spending in the bank feels like a comfortable cushion to you (six unless you choose otherwise). Insights about your cash compare it with that number and never with anyone else's.
+
+Insights about loans and credit cards are written extra gently, are never pushed, and have no share button.
 
 Insights in the bell and push are open to every plan. An email digest, when it arrives, will be part of Pro.
 

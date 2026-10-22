@@ -19,7 +19,15 @@ from django.utils import timezone
 from django.utils.translation import get_language
 
 from .. import budget_cycle
-from ..analytics.facts import ExpenseRow, Facts, Summary, load_expense_rows, load_facts
+from ..analytics.facts import (
+    ExpenseRow,
+    Facts,
+    LoanPaid,
+    Summary,
+    load_expense_rows,
+    load_facts,
+    load_loan_paid,
+)
 from ..analytics.links import LinkBuilder
 from .format import Fmt
 from .gating import plan_of
@@ -28,6 +36,8 @@ HISTORY_CYCLES = 5          # earlier cycles the streak looks at; the other rule
 BILL_DAYS = 7
 RECENT_DAYS = 3
 ROW_DAYS = 180
+PENDING_DAYS = 14
+POSTING_DAYS = 400
 MATURITY_DAYS = 30
 ZERO = Decimal('0')
 
@@ -196,3 +206,154 @@ class InsightContext:
     def _load_dismissed(self) -> frozenset[str]:
         from ..models import BudgetSuggestionDismissal
         return frozenset(BudgetSuggestionDismissal.objects.filter(user=self.user).values_list('key', flat=True))
+
+    # ---- recurring payments, loans, cards, cash: loaded only for people who have them (see `inventory`) ----
+
+    @property
+    def inventory(self) -> dict[str, bool]:
+        """Does the person have any loans, credit cards or recurring payments? One query, so a rule about loans costs
+        nothing at all for someone with none."""
+        return self._get('inventory', self._load_inventory)
+
+    def _load_inventory(self) -> dict[str, bool]:
+        from django.contrib.auth.models import User
+        from django.db.models import Exists, OuterRef
+
+        from ..models import Account, Loan, RecurringTransaction
+
+        row = User.objects.filter(pk=self.user.pk).annotate(
+            has_loans=Exists(Loan.objects.filter(user=OuterRef('pk'), is_active=True)),
+            has_cards=Exists(Account.objects.filter(user=OuterRef('pk'), is_active=True,
+                                                    account_type__in=revolving_codes(),
+                                                    credit_card_billing_day__isnull=False)),
+            has_recurring=Exists(RecurringTransaction.objects.filter(user=OuterRef('pk'), is_active=True)),
+        ).values('has_loans', 'has_cards', 'has_recurring').first() or {}
+        return {'loans': bool(row.get('has_loans')), 'cards': bool(row.get('has_cards')),
+                'recurring': bool(row.get('has_recurring'))}
+
+    @property
+    def recurring_all(self) -> list:
+        """Every active recurring payment (the due-soon list is `bills_due`)."""
+        return self._get('recurring_all', self._load_recurring_all)
+
+    def _load_recurring_all(self) -> list:
+        from ..models import RecurringTransaction
+        return list(RecurringTransaction.objects.filter(user=self.user, is_active=True).order_by('id'))
+
+    @property
+    def postings(self) -> dict[str, list[tuple]]:
+        """{description: [(date, base amount), ...]} oldest first, for the entries the app posted from the person's
+        active recurring expenses: what a payment actually cost each time. One query."""
+        return self._get('postings', self._load_postings)
+
+    def _load_postings(self) -> dict[str, list[tuple]]:
+        from ..models import Expense
+
+        names = {f'{rt.description} (Recurring)' for rt in self.recurring_all if rt.transaction_type == 'EXPENSE'}
+        out: dict[str, list[tuple]] = {}
+        if not names:
+            return out
+        rows = Expense.objects.filter(user=self.user, description__in=names,
+                                      date__gte=self.today - timedelta(days=POSTING_DAYS)
+                                      ).order_by('date', 'id').values_list('description', 'date', 'base_amount')
+        for description, day, amount in rows:
+            out.setdefault(description, []).append((day, Decimal(str(amount))))
+        return out
+
+    @property
+    def pending(self) -> dict:
+        """{date: [scheduled item, ...]} for the next two weeks: what the Calendar page lists as coming up."""
+        return self._get('pending', self._load_pending)
+
+    def _load_pending(self) -> dict:
+        from ..calendar_data import pending_by_day
+        return pending_by_day(self.user, self.today, self.today + timedelta(days=PENDING_DAYS))
+
+    @property
+    def cash(self):
+        """The net worth point for today: `.idle` is the money held in cash and bank accounts."""
+        return self._get('cash', self._load_cash)
+
+    def _load_cash(self):
+        from ..analytics.networth import net_worth_points
+        return net_worth_points(self.user, [self.today], self.today)[0]
+
+    @property
+    def accounts_all(self) -> list:
+        return self._get('accounts_all', self._load_accounts_all)
+
+    def _load_accounts_all(self) -> list:
+        from ..models import Account
+        return list(Account.objects.filter(user=self.user, is_active=True).order_by('id'))
+
+    @property
+    def cards(self) -> list[tuple]:
+        """[(card, owed)] for active credit cards, BNPL and overdrafts with a billing day: what is owed, positive, in the
+        card's own currency, from the ledger the accounts page uses."""
+        return self._get('cards', self._load_cards)
+
+    def _load_cards(self) -> list[tuple]:
+        from ..ledger_read_service import LedgerReadService
+        from ..models import Account
+
+        cards = list(Account.objects.filter(user=self.user, is_active=True, account_type__in=revolving_codes(),
+                                            credit_card_billing_day__isnull=False).order_by('id'))
+        balances = LedgerReadService.get_account_balances(cards) if cards else {}
+        return [(card, max(-Decimal(str(balances.get(card.pk, card.balance) or 0)), ZERO)) for card in cards]
+
+    @property
+    def loans(self) -> list:
+        """Active loans, each with its remaining principal already worked out (so the loan service's own maths runs
+        without a query per loan) and its interest rates prefetched. Two queries."""
+        return self._get('loans', self._load_loans)
+
+    def _load_loans(self) -> list:
+        from ..models import Loan, annotate_loan_principal_totals
+
+        loans = list(annotate_loan_principal_totals(
+            Loan.objects.filter(user=self.user, is_active=True).order_by('id')).prefetch_related('interest_rates'))
+        for loan in loans:
+            remaining = (Decimal(str(loan.initial_principal)) - Decimal(str(loan.paid_principal))
+                         - Decimal(str(loan.capital_prepaid)) - Decimal(str(loan.opening_paid_principal or 0)))
+            loan._cached_summary = {'remaining_principal': float(max(remaining, ZERO))}
+        return loans
+
+    @property
+    def financial_year(self) -> tuple[date, date]:
+        """April to March for rupee accounts (the Indian financial year), the calendar year otherwise."""
+        if self.fmt.indian:
+            start_year = self.today.year if self.today.month >= 4 else self.today.year - 1
+            return date(start_year, 4, 1), date(start_year + 1, 3, 31)
+        return date(self.today.year, 1, 1), date(self.today.year, 12, 31)
+
+    @property
+    def loan_paid(self) -> LoanPaid:
+        return self._get('loan_paid', self._load_loan_paid)
+
+    def _load_loan_paid(self) -> LoanPaid:
+        first, last = self.financial_year
+        return load_loan_paid(self.user, first, min(last, self.today))
+
+    @property
+    def reconciliations(self) -> dict[int, date]:
+        """{account id: the statement date of its latest reconciliation}. One query."""
+        return self._get('reconciliations', self._load_reconciliations)
+
+    def _load_reconciliations(self) -> dict[int, date]:
+        from django.db.models import Max
+
+        from ..models import AccountReconciliation
+        return dict(AccountReconciliation.objects.filter(user=self.user).values_list('account_id').annotate(
+            latest=Max('statement_date')))
+
+    @property
+    def emergency_months(self) -> int:
+        """The person's own target, in months of spending (a Setting; six unless they chose otherwise)."""
+        from . import prefs
+        return prefs.get(self.profile)['emergency_months']
+
+
+def revolving_codes() -> list[str]:
+    """Account types that are credit cards, buy-now-pay-later or overdrafts."""
+    from ..account_types import ACCOUNT_TYPE_META, STRATEGY
+    return [code for code, (_kind, strategy) in ACCOUNT_TYPE_META.items() if strategy == STRATEGY.REVOLVING_CREDIT]

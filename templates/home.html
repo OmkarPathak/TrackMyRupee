@@ -1799,7 +1799,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         @media (min-width: 992px) {
             .insights-col { position: relative; min-height: 22rem; }
-            .insights-col .insights-card { position: absolute; inset: 0; max-height: none; }
+            .insights-col .insights-card { position: absolute; inset: 0 calc(var(--bs-gutter-x) * .5); max-height: none; }   /* inside the column gutters, so the edges line up with the cards around it */
         }
     </style>
     <div class="col-12 col-lg-6 nw-animate-in insights-col" id="tour-smart-insights-card" style="animation-delay: 0.2s;">

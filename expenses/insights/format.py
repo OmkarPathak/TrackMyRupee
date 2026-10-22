@@ -73,6 +73,11 @@ class Fmt:
         return shown + ('…' if len(parts) > words else '')
 
     @staticmethod
+    def rate(value) -> str:
+        """An interest rate with one decimal: 9.5%."""
+        return translate_digits(f"{Decimal(str(value)).quantize(ONE_DECIMAL, rounding=ROUND_HALF_UP):f}%")
+
+    @staticmethod
     def number(value) -> str:
         return translate_digits(str(value))
 

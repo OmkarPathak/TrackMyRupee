@@ -113,6 +113,8 @@ def refresh(user, *, today=None, costs=('light', 'heavy'), profile=None) -> Refr
         for rule in registry.all_rules():
             if rule.cost not in costs or rule.mode != 'stored' or not prefs_module.module_on(prefs, rule.module):
                 continue
+            if rule.requires and not all(ctx.inventory[k] for k in rule.requires):
+                continue                  # no loans, no cards, no recurring payments: nothing to look at, nothing to load
             if rule.min_history and ctx.history_cycles() < rule.min_history:
                 result.skipped_for_history += 1
                 continue

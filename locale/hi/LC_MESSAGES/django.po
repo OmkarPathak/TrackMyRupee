@@ -20374,3 +20374,287 @@ msgstr "दो प्रविष्टियाँ एक जैसी दि�
 #: expenses/insights
 msgid "Usual amount"
 msgstr "सामान्य राशि"
+
+#: expenses/insights
+#, python-format
+msgid "%(card)s bills on %(date)s, with about %(amount)s outstanding, around %(pct)s of its limit. A payment before then may lower what shows on the statement."
+msgstr "%(card)s का बिल %(date)s को बनेगा, और लगभग %(amount)s बकाया है, जो इसकी सीमा का लगभग %(pct)s है। उससे पहले भुगतान करने पर स्टेटमेंट में दिखने वाली रकम कम हो सकती है।"
+
+#: expenses/insights
+#, python-format
+msgid "%(card)s bills on %(date)s, with about %(amount)s outstanding. A payment before then may lower what shows on the statement."
+msgstr "%(card)s का बिल %(date)s को बनेगा, और लगभग %(amount)s बकाया है। उससे पहले भुगतान करने पर स्टेटमेंट में दिखने वाली रकम कम हो सकती है।"
+
+#: expenses/insights
+#, python-format
+msgid "%(card)s is using about %(pct)s of its %(limit)s limit. That is common after a big purchase, and it eases as the card is paid down."
+msgstr "%(card)s में सीमा (%(limit)s) का लगभग %(pct)s इस्तेमाल हो रहा है। बड़ी खरीदारी के बाद ऐसा आम है, और कार्ड चुकाने के साथ यह घटता जाता है।"
+
+#: expenses/insights
+#, python-format
+msgid "%(high)s is at %(high_rate)s, about %(gap)s points above %(low)s at %(low_rate)s. This is a comparison only, for whenever you next look at your loans."
+msgstr "%(high)s की दर %(high_rate)s है, जबकि %(low)s की %(low_rate)s, यानी लगभग %(gap)s अंक का फ़र्क़। यह सिर्फ़ एक तुलना है, जब आप अगली बार अपने ऋण देखें तब के लिए।"
+
+#: expenses/insights
+#, python-format
+msgid "%(loan)s has about %(n)s month left on its schedule, with %(amount)s still to repay. A steady finish is in sight."
+msgid_plural "%(loan)s has about %(n)s months left on its schedule, with %(amount)s still to repay. A steady finish is in sight."
+msgstr[0] "%(loan)s की अनुसूची में लगभग %(n)s महीना बचा है, और %(amount)s चुकाना बाकी है। स्थिर समापन नज़र के सामने है।"
+msgstr[1] "%(loan)s की अनुसूची में लगभग %(n)s महीने बचे हैं, और %(amount)s चुकाना बाकी है। स्थिर समापन नज़र के सामने है।"
+
+#: expenses/insights
+#, python-format
+msgid "%(loan)s is %(pct)s repaid"
+msgstr "%(loan)s का %(pct)s चुकता हो चुका है"
+
+#: expenses/insights
+#, python-format
+msgid "%(loan)s is in its final year"
+msgstr "%(loan)s अपने अंतिम वर्ष में है"
+
+#: expenses/insights
+#, python-format
+msgid "%(loan)s rate changes soon"
+msgstr "%(loan)s की दर जल्द बदलेगी"
+
+#: expenses/insights
+#, python-format
+msgid "%(n)s months of spending"
+msgstr "%(n)s महीनों का खर्च"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s came down from %(before)s to %(after)s on the latest entry. If you expected this, you can dismiss it."
+msgstr "ताज़ा प्रविष्टि में %(name)s की रकम %(before)s से घटकर %(after)s हो गई। अगर आपको इसकी उम्मीद थी, तो इसे हटा सकते हैं।"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s went up from %(before)s to %(after)s on the latest entry. If you expected this, you can dismiss it."
+msgstr "ताज़ा प्रविष्टि में %(name)s की रकम %(before)s से बढ़कर %(after)s हो गई। अगर आपको इसकी उम्मीद थी, तो इसे हटा सकते हैं।"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s was last matched to a statement %(days)s days ago. A quick check when you have a moment keeps the balance trustworthy."
+msgstr "%(name)s का मिलान आख़िरी बार %(days)s दिन पहले स्टेटमेंट से हुआ था। जब समय हो, एक छोटी जाँच से शेष राशि भरोसेमंद बनी रहती है।"
+
+#: expenses/insights
+#, python-format
+msgid "%(what)s looks like it repeats"
+msgstr "%(what)s बार-बार आता दिखता है"
+
+#: expenses/insights
+msgid "A balance could use a check"
+msgstr "एक शेष राशि की जाँच हो सकती है"
+
+#: expenses/insights
+msgid "A card billing date is near"
+msgstr "कार्ड की बिलिंग तिथि पास है"
+
+#: expenses/insights
+msgid "A closer look at the days before payday"
+msgstr "वेतन से पहले के दिनों पर एक नज़दीकी नज़र"
+
+#: expenses/insights
+msgid "A look at the cash you hold"
+msgstr "आपके पास मौजूद नकदी पर एक नज़र"
+
+#: expenses/insights
+msgid "A look at your fixed costs"
+msgstr "आपके तय खर्चों पर एक नज़र"
+
+#: expenses/insights
+#, python-format
+msgid "A rate change you recorded for %(loan)s takes effect on %(date)s, from %(old)s to %(new)s. Your payments will follow the new rate."
+msgstr "आपने %(loan)s के लिए जो दर बदलाव दर्ज किया है, वह %(date)s से लागू होगा, %(old)s से %(new)s। आपके भुगतान नई दर के अनुसार होंगे।"
+
+#: expenses/insights
+msgid "A recurring amount changed"
+msgstr "एक आवर्ती राशि बदली"
+
+#: expenses/insights
+msgid "A tight stretch before payday"
+msgstr "वेतन से पहले थोड़ी तंगी का दौर"
+
+#: expenses/insights
+#, python-format
+msgid "About %(idle)s sits in your bank accounts, roughly %(months)s months of your spending, against your %(target)s-month target. If that feels right, there is nothing to do."
+msgstr "आपके बैंक खातों में लगभग %(idle)s रखे हैं, जो आपके खर्च के लगभग %(months)s महीनों के बराबर है, जबकि आपका लक्ष्य %(target)s महीने का है। अगर यह ठीक लगता है, तो कुछ करने की ज़रूरत नहीं।"
+
+#: expenses/insights
+#, python-format
+msgid "At this pace, your bank balance could dip to about %(amount)s around %(day)s, before your salary on %(payday)s. If it helps, you could move a bill or keep a small buffer."
+msgstr "इसी रफ़्तार से आपके बैंक का शेष %(day)s के आसपास घटकर लगभग %(amount)s रह सकता है, आपके वेतन (%(payday)s) से पहले। मदद मिले तो आप कोई बिल आगे-पीछे कर सकते हैं या थोड़ा बफ़र रख सकते हैं।"
+
+#: expenses/insights
+#, python-format
+msgid "At this pace, your bank balance could run a little short around %(day)s, before your salary on %(payday)s. If it helps, you could move a bill or keep a small buffer."
+msgstr "इसी रफ़्तार से %(day)s के आसपास आपके बैंक में थोड़ी कमी पड़ सकती है, आपके वेतन (%(payday)s) से पहले। मदद मिले तो आप कोई बिल आगे-पीछे कर सकते हैं या थोड़ा बफ़र रख सकते हैं।"
+
+#: expenses/insights
+msgid "Billing date"
+msgstr "बिलिंग तिथि"
+
+#: expenses/insights
+msgid "Card use is a little higher"
+msgstr "कार्ड का उपयोग थोड़ा ज़्यादा है"
+
+#: expenses/insights
+msgid "Cash and bank"
+msgstr "नकद और बैंक"
+
+#: expenses/insights
+msgid "Cash and bank today"
+msgstr "आज नकद और बैंक"
+
+#: expenses/insights
+msgid "Cash set aside for emergencies"
+msgstr "आपात स्थिति के लिए रखी नकदी"
+
+#: expenses/insights
+msgid "Check the balance"
+msgstr "शेष राशि जाँचें"
+
+#: expenses/insights
+msgid "Each month"
+msgstr "हर महीने"
+
+#: expenses/insights
+msgid "Everyday spending a day"
+msgstr "रोज़ का सामान्य खर्च"
+
+#: expenses/insights
+msgid "Takes effect on"
+msgstr "लागू होने की तिथि"
+
+#: expenses/insights
+msgid "How much cash in the bank feels comfortable to you. Insights compare your cash with this, never with anyone else's."
+msgstr "बैंक में कितनी नकदी आपको आरामदायक लगती है। अंतर्दृष्टि आपकी नकदी की तुलना इसी से करती हैं, किसी और से कभी नहीं।"
+
+#: expenses/insights
+msgid "Interest on your loans this year"
+msgstr "इस साल आपके ऋणों पर ब्याज"
+
+#: expenses/insights
+msgid "Interest saved"
+msgstr "बचा ब्याज"
+
+#: expenses/insights
+msgid "Last matched"
+msgstr "आख़िरी मिलान"
+
+#: expenses/insights
+msgid "Make it recurring"
+msgstr "इसे आवर्ती बनाएँ"
+
+#: expenses/insights
+msgid "Now"
+msgstr "अब"
+
+#: expenses/insights
+#, python-format
+msgid "One extra EMI a year on %(loan)s could close it about %(n)s months earlier and save around %(amount)s in interest. It is only an estimate, and entirely optional."
+msgstr "हर साल एक अतिरिक्त EMI देने से %(loan)s लगभग %(n)s महीने पहले बंद हो सकता है और लगभग %(amount)s का ब्याज बच सकता है। यह सिर्फ़ एक अनुमान है, और पूरी तरह वैकल्पिक।"
+
+#: expenses/insights
+#, python-format
+msgid "One extra EMI a year on %(loan)s could close it about %(years)s years earlier and save around %(amount)s in interest. It is only an estimate, and entirely optional."
+msgstr "हर साल एक अतिरिक्त EMI देने से %(loan)s लगभग %(years)s साल पहले बंद हो सकता है और लगभग %(amount)s का ब्याज बच सकता है। यह सिर्फ़ एक अनुमान है, और पूरी तरह वैकल्पिक।"
+
+#: expenses/insights
+msgid "Outstanding"
+msgstr "बकाया"
+
+#: expenses/insights
+#, python-format
+msgid "Recurring payments come to about %(monthly)s a month, around %(share)s of your income. Knowing this number can make the rest of the month easier to plan."
+msgstr "आवर्ती भुगतान महीने में लगभग %(monthly)s बैठते हैं, जो आपकी आय का लगभग %(share)s है। यह संख्या जानने से बाकी महीने की योजना बनाना आसान हो सकता है।"
+
+#: expenses/insights
+msgid "Scheduled until payday"
+msgstr "वेतन तक निर्धारित"
+
+#: expenses/insights
+msgid "See the full picture"
+msgstr "पूरी तस्वीर देखें"
+
+#: expenses/insights
+#, python-format
+msgid "So far this financial year, about %(interest)s of your loan payments went to interest and %(principal)s to principal."
+msgstr "इस वित्त वर्ष में अब तक आपके ऋण भुगतानों में से लगभग %(interest)s ब्याज में और %(principal)s मूलधन में गए।"
+
+#: expenses/insights
+#, python-format
+msgid "So far this year, about %(interest)s of your loan payments went to interest and %(principal)s to principal."
+msgstr "इस साल अब तक आपके ऋण भुगतानों में से लगभग %(interest)s ब्याज में और %(principal)s मूलधन में गए।"
+
+#: expenses/insights
+msgid "Still to repay"
+msgstr "चुकाना बाकी"
+
+#: expenses/insights
+#, python-format
+msgid "The same %(amount)s entry for %(what)s appeared %(n)s times in the last 3 months. You could make it recurring, or leave it as it is."
+msgstr "पिछले ३ महीनों में %(what)s के लिए %(amount)s की वही प्रविष्टि %(n)s बार आई। आप इसे आवर्ती बना सकते हैं, या वैसे ही रहने दें।"
+
+#: expenses/insights
+msgid "Times"
+msgstr "बार"
+
+#: expenses/insights
+msgid "Used"
+msgstr "इस्तेमाल"
+
+#: expenses/insights
+msgid "Usual monthly spending"
+msgstr "सामान्य मासिक खर्च"
+
+#: expenses/insights
+msgid "View card"
+msgstr "कार्ड देखें"
+
+#: expenses/insights
+msgid "View loan"
+msgstr "ऋण देखें"
+
+#: expenses/insights
+msgid "View the calendar"
+msgstr "कैलेंडर देखें"
+
+#: expenses/insights
+msgid "View your loans"
+msgstr "अपने ऋण देखें"
+
+#: expenses/insights
+msgid "What one extra EMI could do"
+msgstr "एक अतिरिक्त EMI से क्या हो सकता है"
+
+#: expenses/insights
+#, python-format
+msgid "You have repaid about %(pct)s of %(loan)s, with about %(amount)s still to go. Steady payments got you here."
+msgstr "आप %(loan)s का लगभग %(pct)s चुका चुके हैं, और लगभग %(amount)s बाकी है। नियमित भुगतान ने आपको यहाँ तक पहुँचाया।"
+
+#: expenses/insights
+msgid "Your EMI"
+msgstr "आपकी EMI"
+
+#: expenses/insights
+msgid "Your cushion target"
+msgstr "आपका सुरक्षा-निधि लक्ष्य"
+
+#: expenses/insights
+msgid "Your fixed costs each month"
+msgstr "आपके हर महीने के तय खर्च"
+
+#: expenses/insights
+msgid "Your loan rates differ"
+msgstr "आपके ऋणों की दरें अलग हैं"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s now costs a bit more"
+msgstr "%(name)s अब थोड़ा महंगा है"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s now costs a bit less"
+msgstr "%(name)s अब थोड़ा सस्ता है"

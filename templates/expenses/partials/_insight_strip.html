@@ -2,6 +2,7 @@
     .insight-strip:not(:has([data-insight])) { display: none; }
     .insight-row:not(.collapsed) .insight-summary { display: none !important; }   /* the opened body says it in full (!important: beats d-md-inline) */
     .insight-row:not(.collapsed) .insight-chevron { transform: rotate(180deg); }
+    .insight-link { color: var(--color-secondary, #0F7657); } [data-bs-theme="dark"] .insight-link { color: #4cc9a0; } .insight-link:hover { text-decoration: underline !important; }
     .insight-title { font-weight: 400; }                                         /* regular on a phone, where the line is the whole row */
     @media (min-width: 768px) { .insight-title { font-weight: 600; } }
 </style>

@@ -16,6 +16,8 @@ def insights_settings(context):
         'enabled': current['enabled'],
         'notify': current['notify'],
         'push': current['push'],
+        'emergency_months': current['emergency_months'],
+        'emergency_choices': prefs.EMERGENCY_MONTHS,
         'modules': [{'value': m.value, 'label': MODULE_LABELS[m], 'on': m.value not in current['modules_off']}
                     for m in registry.modules_with_rules()],
     }

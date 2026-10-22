@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n digit_filters %}
 <section id="insights" class="mt-5 pt-4 border-top" aria-labelledby="insights-settings-title">
     <h3 class="h5 fw-bold mb-1" id="insights-settings-title">{% trans "Insights" %}</h3>
     <p class="text-muted small mb-3">{% trans "Calm observations about your own money, drawn only from your own entries. They describe what we notice and never advise." %}</p>
@@ -35,6 +35,16 @@
                 <option value="quiet"{% if notify == 'quiet' %} selected{% endif %}>{% trans "Quietly: at most one a week, and no push" %}</option>
                 <option value="off"{% if notify == 'off' %} selected{% endif %}>{% trans "Only on the pages, never in the bell" %}</option>
             </select>
+        </div>
+
+        <div class="mb-4">
+            <label for="insights-emergency" class="form-label text-muted small fw-bold">{% trans "Your cushion target" %}</label>
+            <select class="form-select" id="insights-emergency" name="emergency_months">
+                {% for months in emergency_choices %}
+                <option value="{{ months }}"{% if months == emergency_months %} selected{% endif %}>{% blocktranslate with n=months|translate_digits %}{{ n }} months of spending{% endblocktranslate %}</option>
+                {% endfor %}
+            </select>
+            <div class="form-text text-muted small mt-1">{% trans "How much cash in the bank feels comfortable to you. Insights compare your cash with this, never with anyone else's." %}</div>
         </div>
 
         <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
