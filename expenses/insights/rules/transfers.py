@@ -20,14 +20,16 @@ MIN_CYCLE_SHARE = D('0.5')      # and at least half the cycle gone, so a payday 
       cooldown_days=30, min_history=3, min_plan=Plan.PLUS, preview=lambda: _('Share of income you invest'),
       sample=sampling.invested_share_sample)
 def invested_share(ctx) -> list[Insight]:
-    """Invested money as a share of income this cycle, against the average of the person's three earlier cycles."""
+    """Invested money as a share of income this cycle, against their three earlier cycles taken together."""
     if D(ctx.elapsed_days) / ctx.cycle_days < MIN_CYCLE_SHARE:
         return []
     now = ctx.summary(ctx.key)
-    shares = [s.invested / s.income * 100 for s in (ctx.summary(k) for k in ctx.keys_back(3)) if s.income > 0]
-    if now.income <= 0 or now.invested <= 0 or not shares:
+    earlier = [s for s in (ctx.summary(k) for k in ctx.keys_back(3)) if s.income > 0]
+    if now.income <= 0 or now.invested <= 0 or not earlier:
         return []
-    usual, share = sum(shares, D(0)) / len(shares), now.invested / now.income * 100
+    # total invested over total income, so one cycle with very little income cannot swing the usual share
+    usual = sum((s.invested for s in earlier), D(0)) / sum((s.income for s in earlier), D(0)) * 100
+    share = now.invested / now.income * 100
     if abs(share - usual) < MIN_POINTS:
         return []
     fmt, link = ctx.fmt, reverse('transfer-list')

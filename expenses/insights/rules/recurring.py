@@ -66,7 +66,7 @@ def _digest(description: str, amount) -> str:
     return hashlib.sha1(f'{description.strip().lower()}|{amount}'.encode()).hexdigest()[:12]
 
 
-@rule(id='recurring.fixed_costs', module=Module.RECURRING, surfaces={Surface.DASHBOARD, Surface.MODULE},
+@rule(id='recurring.fixed_costs', module=Module.RECURRING, surfaces={Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY},
       needs={'recurring_all', 'facts'}, cooldown_days=30, min_history=1, min_plan=Plan.PLUS, requires={'recurring'},
       preview=lambda: _('A look at your fixed costs'), sample=sampling.default_sample)
 def fixed_costs(ctx) -> list[Insight]:
@@ -91,7 +91,7 @@ def fixed_costs(ctx) -> list[Insight]:
                   Evidence(_('Payments'), fmt.number(len(items)))),
         action=Action(_('View recurring payments'), link),
         dedupe_key=f'{ctx.key:%Y-%m}', valid_until=ctx.cycle[1],
-        surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE}),
+        surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY}),
         numbers={'monthly': str(monthly.quantize(D('0.01'))), 'items': len(items), 'share': int(share)},
     )]
 

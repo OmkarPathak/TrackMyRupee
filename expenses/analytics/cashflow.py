@@ -118,36 +118,19 @@ def sankey(page: Page) -> dict:
     return {'nodes': nodes, 'links': flows, 'rows': rows, 'total': float(base), 'symbol': page.money.symbol,
             'labels': {'amount': _('Amount'), 'share': _('Share of income'), 'change': _('Change'),
                        'cta': _('View transactions')},
-            'takeaways': takeaways(page, income, kept, shortfall, invested, before)}
+            'takeaways': takeaways(page)}
 
 
-def takeaways(page: Page, income, kept, shortfall, invested, before) -> list[str]:
-    """Up to three plain sentences about the flow: the biggest cost, what happened to the money, the biggest mover."""
-    now, out = page.summary, []
-    ranked = sorted(now.categories.items(), key=lambda item: item[1], reverse=True)
-    if ranked and income > 0:
-        key, amount = ranked[0]
-        out.append(_('%(name)s is your biggest cost: %(amount)s, %(pct)s of your income.') % {
-            'name': page.category_name(key), 'amount': page.money.full(amount), 'pct': percent(amount / income * 100)})
-    overspent = now.spending - income
-    if overspent > 0:
-        out.append(_('You spent %(amount)s more than you earned in this period.') % {'amount': page.money.full(overspent)})
-    elif shortfall > 0:
-        out.append(_('Your costs and investing came to %(amount)s more than your income, paid from savings you already had.')
-                   % {'amount': page.money.full(shortfall)})
-    elif income > 0:
-        out.append(_('You invested %(invested)s and kept %(kept)s of your income as cash.') % {
-            'invested': percent(invested / income * 100), 'kept': percent(kept / income * 100)})
-    if before is not None:
-        movers = [(key, amount - before.categories.get(key, ZERO)) for key, amount in now.categories.items()]
-        movers = [m for m in movers if before.categories.get(m[0], ZERO) > 0]
-        if movers:
-            key, diff = max(movers, key=lambda m: abs(m[1]))
-            if diff != 0:
-                out.append((_('%(name)s went up by %(amount)s compared with %(then)s.') if diff > 0
-                            else _('%(name)s went down by %(amount)s compared with %(then)s.')) % {
-                    'name': page.category_name(key), 'amount': page.money.full(abs(diff)), 'then': page.compare_name()})
-    return out[:3]
+TAKEAWAY_RULES = ('cashflow.biggest_cost', 'cashflow.spent_beyond_income', 'cashflow.invested_and_kept',
+                  'cashflow.category_moved')
+
+
+def takeaways(page: Page) -> list[str]:
+    """Up to three plain sentences about the flow: the biggest cost, what happened to the money, the biggest mover.
+    Each is an inline insight rule (expenses/insights/rules/cashflow.py), best first."""
+    from ..insights import engine
+    from ..insights.pagectx import PageContext
+    return [i.message for i in engine.inline(PageContext(page), TAKEAWAY_RULES, limit=3)]
 
 
 def health(page: Page) -> list[dict]:

@@ -1,5 +1,5 @@
 {% load i18n digit_filters %}
-<section id="insights" class="mt-5 pt-4 border-top" aria-labelledby="insights-settings-title">
+<section id="insights" aria-labelledby="insights-settings-title">
     <h3 class="h5 fw-bold mb-1" id="insights-settings-title">{% trans "Insights" %}</h3>
     <p class="text-muted small mb-3">{% trans "Calm observations about your own money, drawn only from your own entries. They describe what we notice and never advise." %}</p>
     <form method="post" action="{% url 'insights-settings' %}">
@@ -55,6 +55,16 @@
             <div class="form-check form-switch p-0 m-0 flex-shrink-0">
                 <input type="checkbox" class="form-check-input" role="switch" id="insights-push" name="push"{% if push %} checked{% endif %}>
             </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="insights-digest" class="form-label text-muted small fw-bold">{% trans "Email digest" %}</label>
+            <select class="form-select" id="insights-digest" name="digest"{% if not digest_available %} disabled{% endif %}>
+                <option value="weekly"{% if digest == 'weekly' %} selected{% endif %}>{% trans "Weekly: one email a week with the most useful insights" %}</option>
+                <option value="daily"{% if digest == 'daily' %} selected{% endif %}>{% trans "Daily: one email a day, when there is something new" %}</option>
+                <option value="off"{% if digest == 'off' %} selected{% endif %}>{% trans "Never" %}</option>
+            </select>
+            <div class="form-text text-muted small mt-1">{% if digest_available %}{% trans "Only sent when there is something worth saying, and every email has an unsubscribe link." %}{% else %}{% trans "The email digest is part of the Pro plan." %}{% endif %}</div>
         </div>
 
         <button type="submit" class="btn-action-primary">{% trans "Save insight settings" %}</button>

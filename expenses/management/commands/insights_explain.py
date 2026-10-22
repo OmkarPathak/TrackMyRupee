@@ -43,7 +43,9 @@ class Command(BaseCommand):
         with translation.override(profile.language or 'en'):
             ctx = InsightContext(user, today=today, profile=profile)
             for rule in registry.all_rules():
-                if not prefs.module_on(current, rule.module):
+                if rule.mode == 'inline':
+                    status = 'inline: worked out on the Analytics page, never stored'
+                elif not prefs.module_on(current, rule.module):
                     status = 'module switched off'
                 elif not rule_allowed(rule.min_plan, plan):
                     status = f'needs {rule.min_plan.name} (a preview at most)'

@@ -90,7 +90,7 @@ def _month_name(value: date) -> str:
     return translate_digits(date_format(value, 'F'))
 
 
-@rule(id='goals.small_change', module=Module.GOALS, surfaces={Surface.MODULE}, needs={'goals'}, cooldown_days=60,
+@rule(id='goals.small_change', module=Module.GOALS, surfaces={Surface.MODULE, Surface.MONTHLY}, needs={'goals'}, cooldown_days=60,
       min_plan=Plan.PLUS, requires={'goals'}, preview=lambda: _('A small change for a goal'), sample=sampling.goals_sample)
 def small_change(ctx) -> list[Insight]:
     """What adding a little each month (5% of what is left, rounded) would do to when a goal finishes."""
@@ -114,7 +114,7 @@ def small_change(ctx) -> list[Insight]:
                 'amount': own.approx(extra), 'n': ctx.fmt.number(now - then)},
             evidence=(Evidence(_('Extra each month'), own.money(extra), _link(goal)),),
             action=Action(_('Open the goal'), _link(goal)),
-            dedupe_key=f'{goal.uuid}:{ctx.key:%Y-%m}', valid_until=ctx.cycle[1], surfaces=frozenset({Surface.MODULE}),
+            dedupe_key=f'{goal.uuid}:{ctx.key:%Y-%m}', valid_until=ctx.cycle[1], surfaces=frozenset({Surface.MODULE, Surface.MONTHLY}),
             numbers={'goal': goal.pk, 'extra': str(extra), 'brought_forward': now - then}))
     return found[:2]
 

@@ -1288,6 +1288,11 @@
     .multi-select-dropdown.show {
         display: block;
     }
+    /* a narrow select (a day number, a currency) still gets a panel wide enough to read and search in */
+    .searchable-select-dropdown { min-width: 12rem; }
+    /* inside an input group (Monthly on day [ 1 ]) the select fills what is left and joins its label */
+    .input-group > .searchable-select-wrapper { flex: 1 1 auto; width: 1%; min-width: 5rem; }
+    .input-group > .searchable-select-wrapper > .searchable-select-btn { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: -1px; }
     .searchable-select-search,
     .multi-select-search {
         margin-bottom: 0.4rem;
@@ -1439,7 +1444,7 @@
 
     {% block scripts %}{% endblock %}
     <script defer src="{% static 'js/sidebar.js' %}?v=1.3"></script>
-    <script defer src="{% static 'js/app_base.js' %}?v=1.2"></script>
+    <script defer src="{% static 'js/app_base.js' %}?v=1.5"></script>
     {% block extra_body %}{% endblock %}
 
     {% if user.is_authenticated %}

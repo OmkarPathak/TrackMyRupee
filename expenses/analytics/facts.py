@@ -62,6 +62,23 @@ def load_income_rows(user, first: date, last: date) -> list[IncomeRow]:
     return [IncomeRow(d, t or '', a or ZERO) for d, t, a in rows]
 
 
+def load_category_cycles(user, ranges, *, categories: Iterable[str] = (), account_ids: Iterable[int] = ()
+                         ) -> dict[str, list[Decimal]]:
+    """What the user spent in each category over each of some consecutive (first, last) date ranges, oldest first, in
+    one query. Expenses only, narrowed by the toolbar's category and account filters."""
+    from ..models import Expense
+
+    ranges, categories, account_ids = list(ranges), list(categories), list(account_ids)
+    rows = Expense.objects.filter(user=user, date__gte=ranges[0][0], date__lte=ranges[-1][1])
+    if categories:
+        rows = rows.filter(category__in=categories)
+    if account_ids:
+        rows = rows.filter(account_id__in=account_ids)
+    sums = {f'c{i}': Sum('base_amount', filter=Q(date__range=span)) for i, span in enumerate(ranges)}
+    return {row['category']: [row[f'c{i}'] or ZERO for i in range(len(ranges))]
+            for row in rows.values('category').annotate(**sums)}
+
+
 class LoanPaid(NamedTuple):
     """What repayments between two dates were made of (base currency)."""
     interest: Decimal

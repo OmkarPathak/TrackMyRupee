@@ -116,7 +116,7 @@ def card_utilisation(ctx) -> list[Insight]:
     )]
 
 
-@rule(id='accounts.idle_cash', module=Module.ACCOUNTS, surfaces={Surface.DASHBOARD, Surface.MODULE},
+@rule(id='accounts.idle_cash', module=Module.ACCOUNTS, surfaces={Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY},
       needs={'cash', 'facts'}, cooldown_days=60, min_history=2, min_plan=Plan.PLUS, cost='heavy',   # net worth is ~8 queries
       preview=lambda: _('A look at the cash you hold'), sample=sampling.idle_cash_sample)
 def idle_cash(ctx) -> list[Insight]:
@@ -139,7 +139,7 @@ def idle_cash(ctx) -> list[Insight]:
                   'your %(target)s-month target. If that feels right, there is nothing to do.') % {
             'idle': fmt.approx(idle), 'months': fmt.number(round(months)), 'target': fmt.number(target)},
         evidence=(Evidence(_('Cash and bank'), fmt.money(idle), link), Evidence(_('Usual monthly spending'), fmt.money(monthly))),
-        dedupe_key=f'{ctx.key:%Y-%m}', valid_until=ctx.cycle[1], surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE}),
+        dedupe_key=f'{ctx.key:%Y-%m}', valid_until=ctx.cycle[1], surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY}),
         numbers={'months': round(months), 'target': target},
     )]
 

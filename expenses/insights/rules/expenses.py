@@ -11,6 +11,7 @@ from django.utils.translation import gettext as _
 
 from ... import budget_cycle
 from ...analytics.links import EXPENSE
+from ...analytics.money import percent
 from .. import sampling
 from ..registry import rule
 from ..types import Action, Evidence, Insight, Kind, Module, Plan, Surface, Tone
@@ -287,3 +288,38 @@ def category_change(ctx) -> list[Insight]:
             numbers={'category': key, 'direction': 'up' if up else 'down', 'pct': int(pct)},
         ))
     return out
+
+
+# ---- the Net worth tab's "categories creeping up": inline, cycle-aware, and following the toolbar's filters ----
+
+CREEP_ROWS = 3                  # shown at most (as the tab always did)
+CREEP_SHARP = D('0.1')          # an average rise of this much a month is worth a stronger colour
+
+
+@rule(id='expenses.categories_creeping_up', module=Module.EXPENSES, surfaces={Surface.ANALYTICS},
+      needs={'page', 'category_cycles'}, mode='inline', cooldown_days=0, sample=sampling.creeping_sample)
+def categories_creeping_up(ctx) -> list[Insight]:
+    """Categories whose spending rose through each of the last three complete budget months, fastest first, one
+    insight each (the tab lists them as rows: the evidence is the row). Budget months follow the person's salary
+    day, and the toolbar's category and account filters narrow what is counted."""
+    ranges, by_category = ctx.category_cycles
+    page = ctx.page
+    start, end = ranges[0][0], ranges[-1][1]
+    ranked = []
+    for name, (e1, e2, e3) in by_category.items():
+        if e1 > 0 and e2 > e1 and e3 > e2:
+            ranked.append((name, ((e2 - e1) / e1 + (e3 - e2) / e2) / 2))
+    ranked.sort(key=lambda item: item[1], reverse=True)
+    found = []
+    for name, growth in ranked[:CREEP_ROWS]:
+        shown = _(name)
+        pct = percent(growth * 100)
+        link = page.links.transactions(start, end, (EXPENSE,), category=name)
+        found.append(Insight(
+            rule_id='expenses.categories_creeping_up', module=Module.EXPENSES, kind=Kind.PATTERN,
+            tone=Tone.GENTLE_ATTENTION if growth >= CREEP_SHARP else Tone.CALM, priority=min(100, 40 + int(growth * 100)),
+            icon='arrow-up-right-circle', title=_('%(name)s keeps rising') % {'name': shown},
+            message=_('%(name)s has risen three months in a row, by about %(pct)s a month.') % {'name': shown, 'pct': pct},
+            evidence=(Evidence(shown, pct, link),), dedupe_key=f'{name}:{ctx.key:%Y-%m}', valid_until=end + timedelta(days=31),
+            surfaces=frozenset({Surface.ANALYTICS}), numbers={'category': name}))
+    return found

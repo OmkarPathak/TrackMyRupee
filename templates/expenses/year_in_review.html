@@ -4,7 +4,7 @@
 {% block title %}{{ year }} {% trans "Wrapped" %} - TrackMyRupee{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/wrapped.css' %}?v=13">
+<link rel="stylesheet" href="{% static 'css/wrapped.css' %}?v=14">
 
 {% if not review_data.has_data or not wrapped.has_story %}
 <div class="wr wr-empty" style="grid-template-rows: 1fr; align-content: center; text-align: center;">
@@ -132,6 +132,19 @@
                 </div>
                 <div class="wr-facts">
                     {% if money.invested_pct %}<div class="wr-fact"><i>📈</i><div><b>{% blocktrans with n=money.invested_pct|translate_digits %}{{ n }}% of income invested{% endblocktrans %}</b><span>{% trans "kept growing, month after month" %}</span></div></div>{% endif %}
+                </div>
+                <div class="wr-foot"><span>{% trans "Money story" %}</span><span>trackmyrupee.com</span></div>
+            </section>
+            {% endif %}
+
+            <!-- 8 · Money story: what we noticed (income based; the sentences carry amounts, so they hide with them) -->
+            {% if wrapped.insights %}
+            <section class="wr-card c2" data-card="noticed" data-money="1" data-title="{% trans 'What we noticed' %}">
+                <div class="wr-brand"><i>₹</i> {{ year }} {% trans "Wrapped" %}</div>
+                <div class="wr-lock">🔒 {% trans "Shows income-based figures" %}</div>
+                <div class="wr-eyebrow">{% trans "What we noticed" %}</div>
+                <div class="wr-facts">
+                    {% for line in wrapped.insights %}<div class="wr-fact wr-fact--text"><div><b>{{ line.title }}</b><span class="wr-amt">{{ line.message }}</span></div></div>{% endfor %}
                 </div>
                 <div class="wr-foot"><span>{% trans "Money story" %}</span><span>trackmyrupee.com</span></div>
             </section>

@@ -432,6 +432,25 @@ class InsightContext:
             return None, None
         return SimpleNamespace(total=Decimal(str(snap))), net_worth_points(self.user, [self.today], self.today)[0]
 
+    # ---- inline rules: the Analytics tab's own Page (see pagectx.PageContext, which fills these in) ----
+
+    values: dict = {}
+
+    @property
+    def page(self):
+        return self._get('page', self._load_page)
+
+    def _load_page(self):
+        raise LookupError('this rule runs on an Analytics page')
+
+    @property
+    def category_cycles(self) -> tuple[list, dict]:
+        """([(first, last) of each of the last three complete budget months, oldest first], {category: [amount, ...]})."""
+        return self._get('category_cycles', self._load_category_cycles)
+
+    def _load_category_cycles(self):
+        raise LookupError('this rule runs on an Analytics page')
+
     @property
     def reconciliations(self) -> dict[int, date]:
         """{account id: the statement date of its latest reconciliation}. One query."""

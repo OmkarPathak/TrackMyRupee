@@ -202,7 +202,7 @@ def _month_chips(ctx, name: str, cells) -> tuple[Evidence, ...]:
     ) for month, limit, spent in cells)
 
 
-@rule(id='budgets.limit_often_over', module=Module.BUDGETS, surfaces={Surface.DASHBOARD, Surface.MODULE},
+@rule(id='budgets.limit_often_over', module=Module.BUDGETS, surfaces={Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY},
       needs={'budgets', 'budget_history'}, cooldown_days=45, min_history=3, min_plan=Plan.PLUS, cost='heavy',
       preview=lambda: _('A pattern in one of your limits'), sample=sampling.often_over_sample)
 def limit_often_over(ctx) -> list[Insight]:
@@ -224,13 +224,13 @@ def limit_often_over(ctx) -> list[Insight]:
             evidence=_month_chips(ctx, name, cells),
             action=Action(_('Review the limit'), reverse('budget')),
             dedupe_key=f'over:{key[:50]}:{ctx.key:%Y-%m}', valid_until=ctx.cycle[1],
-            surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE}),
+            surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY}),
             numbers={'category': key},
         ))
     return out
 
 
-@rule(id='budgets.limit_often_under', module=Module.BUDGETS, surfaces={Surface.DASHBOARD, Surface.MODULE},
+@rule(id='budgets.limit_often_under', module=Module.BUDGETS, surfaces={Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY},
       needs={'budgets', 'budget_history'}, cooldown_days=45, min_history=3, min_plan=Plan.PLUS, cost='heavy',
       preview=lambda: _('A limit with room to spare'), sample=sampling.often_under_sample)
 def limit_often_under(ctx) -> list[Insight]:
@@ -252,13 +252,13 @@ def limit_often_under(ctx) -> list[Insight]:
             evidence=_month_chips(ctx, name, cells),
             action=Action(_('Review the limit'), reverse('budget')),
             dedupe_key=f'under:{key[:50]}:{ctx.key:%Y-%m}', valid_until=ctx.cycle[1],
-            surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE}),
+            surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY}),
             numbers={'category': key},
         ))
     return out
 
 
-@rule(id='budgets.room_to_share', module=Module.BUDGETS, surfaces={Surface.DASHBOARD, Surface.MODULE},
+@rule(id='budgets.room_to_share', module=Module.BUDGETS, surfaces={Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY},
       needs={'budgets', 'budget_history'}, cooldown_days=7, min_history=3, sample=sampling.room_to_share_sample)
 def room_to_share(ctx) -> list[Insight]:
     """The Budget page's "smart move", as an insight: one category at its limit while another has barely been used
@@ -285,6 +285,6 @@ def room_to_share(ctx) -> list[Insight]:
                            fmt.money(suggestion['needy_limit']))),
         action=Action(_('Review the budget'), reverse('budget')),
         dedupe_key=suggestion['key'], valid_until=ctx.cycle[1],
-        surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE}),
+        surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY}),
         numbers={'donor': suggestion['donor_id'], 'needy': suggestion['needy_id'], 'amount': suggestion['amount']},
     )]

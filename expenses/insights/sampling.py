@@ -14,7 +14,9 @@ from types import SimpleNamespace
 
 from django.utils import timezone
 
+from ..analytics.common import Page
 from ..analytics.facts import ExpenseRow, Facts, IncomeRow, LoanPaid
+from ..analytics.money import Money
 from ..budgets import budget_status, normalize_category, percent_used
 from .context import BudgetHistory, GoalFacts, HoldingValue, InsightContext
 from .format import Fmt
@@ -365,3 +367,51 @@ def heavy_week_sample(language: str = 'en') -> SampleContext:
 
 def net_worth_sample(language: str = 'en') -> SampleContext:
     return scenario(language=language, networth=(SimpleNamespace(total=D('900000')), SimpleNamespace(total=D('926000'))))
+
+
+# ---- Phase E: the inline sentences on the Analytics tabs ----
+
+class SamplePage:
+    """What an inline rule reads from an Analytics Page, built from a scenario: the cycle against the one before."""
+
+    def __init__(self, ctx, *, compare=True):
+        self.facts = ctx.facts
+        self.period = SimpleNamespace(range=ctx.cycle, compare=ctx.cycle_of(ctx.keys_back(1)[0]), compare_kind='before')
+        self.summary = ctx.facts.summarize(*self.period.range)
+        self.compare = ctx.facts.summarize(*self.period.compare) if compare else None
+        self.money = Money(ctx.fmt.symbol)
+        self.links = ctx.links
+        self.categories, self.account_ids, self.filters_active = [], [], False
+
+    def category_name(self, key):
+        return self.facts.names.get(key, key)
+
+    compare_name = Page.compare_name          # the real wording, from the Analytics Page itself
+
+
+def _with_page(ctx, **values):
+    ctx._cache['page'] = SamplePage(ctx)
+    ctx.values = values
+    return ctx
+
+
+def page_sample(language: str = 'en') -> SampleContext:
+    return _with_page(scenario(language=language))
+
+
+def page_overspent_sample(language: str = 'en') -> SampleContext:
+    ctx = scenario(language=language)
+    _fill(ctx.facts, ctx.cycle[0], category='Rent', amount=30000)
+    ctx._cache.pop('summaries', None)
+    return _with_page(ctx)
+
+
+def creeping_sample(language: str = 'en') -> SampleContext:
+    ctx = _with_page(scenario(language=language))
+    ranges = [ctx.cycle_of(key) for key in reversed(ctx.keys_back(3))]
+    ctx._cache['category_cycles'] = (ranges, {'Food': [D(100), D(150), D(200)], 'Rent': [D(100), D(90), D(200)]})
+    return ctx
+
+
+def net_worth_period_sample(language: str = 'en') -> SampleContext:
+    return _with_page(scenario(language=language), change=D('26000'), kept=D('16000'))

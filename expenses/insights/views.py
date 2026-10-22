@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.core import signing
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
@@ -123,9 +125,37 @@ def settings_save(request):
         notify=request.POST.get('notify', 'normal'),
         push='push' in request.POST,
         emergency_months=_int(request.POST.get('emergency_months')),
+        digest=request.POST.get('digest'),
     )
     messages.success(request, _('Your Insights settings are saved.'))
     return redirect(reverse('profile-settings') + '#insights')
+
+
+# ---- the email digest's unsubscribe link: signed, works without signing in, one click ----
+
+DIGEST_SALT = 'insights.digest.unsubscribe'
+
+
+def digest_token(user) -> str:
+    return signing.dumps({'u': user.pk}, salt=DIGEST_SALT)
+
+
+@csrf_exempt
+@require_http_methods(['GET', 'POST'])
+def digest_unsubscribe(request, token):
+    """GET shows a button (a mail scanner opening the link changes nothing); POST switches the digest off. Mail apps
+    that support one-click unsubscribe post here directly (List-Unsubscribe-Post)."""
+    try:
+        user_id = signing.loads(token, salt=DIGEST_SALT)['u']
+    except (signing.BadSignature, KeyError, TypeError):
+        return HttpResponseBadRequest(_('This unsubscribe link is not valid.'))
+    user = User.objects.filter(pk=user_id).select_related('profile').first()
+    if user is None:
+        return HttpResponseBadRequest(_('This unsubscribe link is not valid.'))
+    done = request.method == 'POST'
+    if done:
+        prefs.set_digest(user.profile, 'off')
+    return HttpResponse(render_to_string('expenses/insight_digest_unsubscribe.html', {'done': done}, request=request))
 
 
 # ---- cron (same pattern as the other jobs: a secret, a background thread, a lock) ----
@@ -136,6 +166,14 @@ def trigger_generate(request):
     if not _cron_authorized(request):
         return JsonResponse({'error': 'Unauthorized'}, status=403)
     return _dispatch_cron_command('generate_insights', lock_timeout=1800)
+
+
+@csrf_exempt
+@require_POST
+def trigger_digest(request):
+    if not _cron_authorized(request):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    return _dispatch_cron_command('send_insight_digest', lock_timeout=1800)
 
 
 @csrf_exempt

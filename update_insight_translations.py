@@ -521,6 +521,80 @@ ENTRIES = {
         'या चक्रात ती सुमारे %(change)s कमी झाली आहे: तुम्ही %(kept)s वाचवले, आणि मूल्यातील बदलांनी %(rest)s कमी केले.'),
     ('', 'Net worth'): (None, 'कुल संपत्ति', 'निव्वळ संपत्ती'),
     ('', 'Kept this cycle'): (None, 'इस चक्र में बचाया', 'या चक्रात वाचवलेले'),
+    # ---- Phase E: the Analytics sentences (several already had these words in the catalogue; those are left alone) ----
+    ('', 'What you kept this period'): (None, 'इस अवधि में आपने क्या बचाया', 'या कालावधीत तुम्ही काय वाचवले'),
+    ('', 'No income in this period'): (None, 'इस अवधि में कोई आय नहीं', 'या कालावधीत उत्पन्न नाही'),
+    ('', 'No income was recorded in this period.'): (None, 'इस अवधि में कोई आय दर्ज नहीं हुई।', 'या कालावधीत कोणतेही उत्पन्न नोंदवले गेले नाही.'),
+    ('', 'You kept %(saved)s of %(income)s (%(rate)s).'): (None, 'आपने %(income)s में से %(saved)s बचाए (%(rate)s)।', 'तुम्ही %(income)s पैकी %(saved)s वाचवले (%(rate)s).'),
+    ('', 'That is ahead of the comparison period (%(rate)s).'): (None, 'यह तुलना वाली अवधि (%(rate)s) से बेहतर है।', 'हे तुलनेच्या कालावधीपेक्षा (%(rate)s) चांगले आहे.'),
+    ('', 'That is behind the comparison period (%(rate)s).'): (None, 'यह तुलना वाली अवधि (%(rate)s) से पीछे है।', 'हे तुलनेच्या कालावधीपेक्षा (%(rate)s) मागे आहे.'),
+    ('', 'Your biggest cost'): (None, 'आपका सबसे बड़ा खर्च', 'तुमचा सर्वात मोठा खर्च'),
+    ('', '%(name)s is your biggest cost: %(amount)s, %(pct)s of your income.'): (
+        None, '%(name)s आपका सबसे बड़ा खर्च है: %(amount)s, यानी आपकी आय का %(pct)s।',
+        '%(name)s हा तुमचा सर्वात मोठा खर्च आहे: %(amount)s, म्हणजे तुमच्या उत्पन्नाच्या %(pct)s.'),
+    ('', 'Spending beyond income'): (None, 'आय से ज़्यादा खर्च', 'उत्पन्नापेक्षा जास्त खर्च'),
+    ('', 'You spent %(amount)s more than you earned in this period.'): (
+        None, 'इस अवधि में आपने कमाई से %(amount)s ज़्यादा खर्च किया।', 'या कालावधीत तुम्ही कमाईपेक्षा %(amount)s जास्त खर्च केला.'),
+    ('', 'Your costs and investing came to %(amount)s more than your income, paid from savings you already had.'): (
+        None, 'आपके खर्च और निवेश आपकी आय से %(amount)s ज़्यादा रहे, जो पहले से जमा बचत से चुकाए गए।',
+        'तुमचा खर्च आणि गुंतवणूक तुमच्या उत्पन्नापेक्षा %(amount)s जास्त झाली, जी आधीच्या बचतीतून भरली गेली.'),
+    ('', 'Where your income went'): (None, 'आपकी आय कहाँ गई', 'तुमचे उत्पन्न कुठे गेले'),
+    ('', 'You invested %(invested)s and kept %(kept)s of your income as cash.'): (
+        None, 'आपने आय का %(invested)s निवेश किया और %(kept)s नकद में बचाया।',
+        'तुम्ही उत्पन्नाच्या %(invested)s गुंतवणूक केली आणि %(kept)s रोख म्हणून वाचवले.'),
+    ('', 'The biggest mover'): (None, 'सबसे ज़्यादा बदलाव', 'सर्वात जास्त बदल'),
+    ('', '%(name)s went up by %(amount)s compared with %(then)s.'): (
+        None, '%(then)s की तुलना में %(name)s पर %(amount)s ज़्यादा खर्च हुआ।', '%(then)s च्या तुलनेत %(name)s वर %(amount)s जास्त खर्च झाला.'),
+    ('', '%(name)s went down by %(amount)s compared with %(then)s.'): (
+        None, '%(then)s की तुलना में %(name)s पर %(amount)s कम खर्च हुआ।', '%(then)s च्या तुलनेत %(name)s वर %(amount)s कमी खर्च झाला.'),
+    ('', '%(name)s keeps rising'): (None, '%(name)s बढ़ता जा रहा है', '%(name)s वाढतच आहे'),
+    ('', '%(name)s has risen three months in a row, by about %(pct)s a month.'): (
+        None, '%(name)s लगातार तीन महीने बढ़ा है, औसतन लगभग %(pct)s प्रति माह।',
+        '%(name)s सलग तीन महिने वाढले आहे, सरासरी सुमारे %(pct)s दरमहा.'),
+    ('', 'Over this period it is up about %(change)s: roughly %(kept)s from what you kept and %(rest)s from changes in value.'): (
+        None,
+        'इस अवधि में यह लगभग %(change)s बढ़ी है: करीब %(kept)s आपकी बचत से और %(rest)s मूल्य में बदलाव से।',
+        'या कालावधीत ती सुमारे %(change)s वाढली आहे: सुमारे %(kept)s तुमच्या बचतीतून आणि %(rest)s मूल्यातील बदलांमुळे.'),
+    ('', 'Over this period it is up about %(change)s: you kept %(kept)s, and changes in value took back %(rest)s.'): (
+        None,
+        'इस अवधि में यह लगभग %(change)s बढ़ी है: आपने %(kept)s बचाए, और मूल्य में बदलाव ने %(rest)s वापस ले लिए।',
+        'या कालावधीत ती सुमारे %(change)s वाढली आहे: तुम्ही %(kept)s वाचवले, आणि मूल्यातील बदलांनी %(rest)s परत घेतले.'),
+    ('', 'Over this period it is down about %(change)s: you kept %(kept)s, and changes in value took away %(rest)s.'): (
+        None,
+        'इस अवधि में यह लगभग %(change)s घटी है: आपने %(kept)s बचाए, और मूल्य में बदलाव ने %(rest)s घटा दिए।',
+        'या कालावधीत ती सुमारे %(change)s कमी झाली आहे: तुम्ही %(kept)s वाचवले, आणि मूल्यातील बदलांनी %(rest)s कमी केले.'),
+    # ---- Phase E: the email digest, its Settings control, the unsubscribe page, the Year in Review card ----
+    ('', 'What we noticed'): (None, 'हमने क्या देखा', 'आम्ही काय पाहिले'),
+    ('', 'Your insights'): (None, 'आपकी अंतर्दृष्टि', 'तुमच्या अंतर्दृष्टी'),
+    ('', 'A few things we noticed'): (None, 'कुछ बातें जो हमने देखीं', 'काही गोष्टी ज्या आम्ही पाहिल्या'),
+    ('', 'Calm observations about your own money. Nothing here is advice.'): (
+        None, 'आपके अपने पैसे के बारे में शांत अवलोकन। यहाँ कुछ भी सलाह नहीं है।', 'तुमच्या स्वतःच्या पैशांबद्दल शांत निरीक्षणे. येथे काहीही सल्ला नाही.'),
+    ('', 'Your TrackMyRupee insights, %(date)s'): (None, 'आपकी TrackMyRupee अंतर्दृष्टि, %(date)s', 'तुमच्या TrackMyRupee अंतर्दृष्टी, %(date)s'),
+    ('', 'Open TrackMyRupee'): (None, 'TrackMyRupee खोलें', 'TrackMyRupee उघडा'),
+    ('', 'Unsubscribe'): (None, 'सदस्यता रद्द करें', 'सदस्यता रद्द करा'),
+    ('', 'Change how often'): (None, 'कितनी बार भेजें, बदलें', 'किती वेळा पाठवायचे ते बदला'),
+    ('', 'You get this email once a week, because you chose that in Settings.'): (
+        None, 'आपको यह ईमेल हफ़्ते में एक बार मिलता है, क्योंकि आपने सेटिंग्स में यही चुना है।',
+        'तुम्हाला हा ईमेल आठवड्यातून एकदा मिळतो, कारण तुम्ही सेटिंग्जमध्ये तेच निवडले आहे.'),
+    ('', 'You get this email every day when there is something new, because you chose that in Settings.'): (
+        None, 'जब भी कुछ नया हो, आपको यह ईमेल हर दिन मिलता है, क्योंकि आपने सेटिंग्स में यही चुना है।',
+        'काही नवीन असेल तेव्हा तुम्हाला हा ईमेल दररोज मिळतो, कारण तुम्ही सेटिंग्जमध्ये तेच निवडले आहे.'),
+    ('', 'Email digest'): (None, 'ईमेल डाइजेस्ट', 'ईमेल डायजेस्ट'),
+    ('', 'Weekly: one email a week with the most useful insights'): (
+        None, 'साप्ताहिक: हफ़्ते में एक ईमेल, सबसे काम की अंतर्दृष्टि के साथ', 'साप्ताहिक: आठवड्यातून एक ईमेल, सर्वात उपयुक्त अंतर्दृष्टींसह'),
+    ('', 'Daily: one email a day, when there is something new'): (
+        None, 'दैनिक: हर दिन एक ईमेल, जब कुछ नया हो', 'दैनिक: दररोज एक ईमेल, काही नवीन असेल तेव्हा'),
+    ('', 'Never'): (None, 'कभी नहीं', 'कधीही नाही'),
+    ('', 'Only sent when there is something worth saying, and every email has an unsubscribe link.'): (
+        None, 'केवल तब भेजा जाता है जब कुछ कहने लायक हो, और हर ईमेल में सदस्यता रद्द करने का लिंक होता है।',
+        'फक्त काही सांगण्यासारखे असेल तेव्हाच पाठवला जातो, आणि प्रत्येक ईमेलमध्ये सदस्यता रद्द करण्याचा दुवा असतो.'),
+    ('', 'The email digest is part of the Pro plan.'): (None, 'ईमेल डाइजेस्ट प्रो प्लान का हिस्सा है।', 'ईमेल डायजेस्ट प्रो प्लॅनचा भाग आहे.'),
+    ('', 'Insight emails'): (None, 'अंतर्दृष्टि ईमेल', 'अंतर्दृष्टी ईमेल'),
+    ('', 'Stop the weekly insight digest?'): (None, 'साप्ताहिक अंतर्दृष्टि डाइजेस्ट बंद करें?', 'साप्ताहिक अंतर्दृष्टी डायजेस्ट बंद करायचा?'),
+    ('', 'You will not get the insight digest any more. You can switch it back on in Settings whenever you like.'): (
+        None, 'अब आपको अंतर्दृष्टि डाइजेस्ट नहीं मिलेगा। आप जब चाहें सेटिंग्स में इसे फिर चालू कर सकते हैं।',
+        'आता तुम्हाला अंतर्दृष्टी डायजेस्ट मिळणार नाही. तुम्हाला हवे तेव्हा तुम्ही सेटिंग्जमध्ये तो पुन्हा सुरू करू शकता.'),
+    ('', 'This unsubscribe link is not valid.'): (None, 'यह सदस्यता रद्द करने का लिंक मान्य नहीं है।', 'हा सदस्यता रद्द करण्याचा दुवा वैध नाही.'),
 }
 
 # Pairs whose singular and plural use different placeholders cannot be gettext plurals (msgfmt rejects them), and the

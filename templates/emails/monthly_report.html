@@ -47,6 +47,14 @@
         .ai-insight h3 { font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #1D9E75; text-transform: uppercase; letter-spacing: 0.5px; }
         .ai-insight p { margin: 0; font-size: 14px; color: #2D3748; }
 
+        /* Insights block */
+        .insights { margin-top: 30px; }
+        .insights h3 { font-size: 14px; font-weight: 700; margin: 0 0 10px 0; color: #2D3748; text-transform: uppercase; letter-spacing: 0.5px; }
+        .insight-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #4a5568; }
+        .insight-item:last-child { border-bottom: none; }
+        .insight-item b { color: #2d3748; }
+        .insights a { color: #1D9E75; font-weight: 600; text-decoration: none; }
+
         .btn { display: inline-block; background-color: #1D9E75; color: #ffffff; padding: 14px 28px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 15px; margin-top: 30px; box-shadow: 0 4px 15px rgba(29, 158, 117, 0.2); }
         .logo { font-size: 20px; font-weight: 800; color: #1D9E75; text-decoration: none; display: block; margin-bottom: 5px; }
 
@@ -168,6 +176,20 @@
                         <span class="event-amount">{{ currency_symbol }}{{ event.amount|floatformat:0 }}</span>
                     </div>
                     {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if data.insights %}
+                <div class="insights">
+                    <h3>Worth knowing</h3>
+                    {% for i in data.insights.highlights %}
+                    <div class="insight-item"><b>{{ i.title }}</b><br>{{ i.message }}</div>
+                    {% endfor %}
+                    {% if data.insights.went_well %}<p class="insight-item"><b>Went well:</b> {{ data.insights.went_well.title }}</p>{% endif %}
+                    {% if data.insights.try_next %}
+                    <p class="insight-item"><b>One small thing to try next month:</b> {{ data.insights.try_next.message }}
+                        {% if data.insights.try_next.action.url %}<br><a href="https://trackmyrupee.com{{ data.insights.try_next.action.url }}">{{ data.insights.try_next.action.label }}</a>{% endif %}</p>
+                    {% endif %}
                 </div>
                 {% endif %}
 

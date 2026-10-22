@@ -9,6 +9,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 
 from ...analytics.links import SPENDING_TYPES
+from ...analytics.money import percent
 from ...utils import get_safe_date
 from .. import sampling
 from ..registry import rule
@@ -66,7 +67,7 @@ def pace_vs_usual(ctx) -> list[Insight]:
     )]
 
 
-@rule(id='cashflow.saving_streak', module=Module.CASHFLOW, surfaces={Surface.DASHBOARD}, needs={'facts'},
+@rule(id='cashflow.saving_streak', module=Module.CASHFLOW, surfaces={Surface.DASHBOARD, Surface.YEAR_IN_REVIEW, Surface.MONTHLY}, needs={'facts'},
       cooldown_days=30, min_history=1, sample=sampling.default_sample)
 def saving_streak(ctx) -> list[Insight]:
     """Months in a row (this one included, up to six) in which more came in than went out."""
@@ -91,12 +92,12 @@ def saving_streak(ctx) -> list[Insight]:
             streak) % {'n': ctx.fmt.number(streak)},
         evidence=(Evidence(_('Kept so far'), ctx.fmt.money(ctx.summary(ctx.key).saved),
                            ctx.links.transactions(start, ctx.today)),),
-        dedupe_key=f'{ctx.key:%Y-%m}', valid_until=end, surfaces=frozenset({Surface.DASHBOARD}),
+        dedupe_key=f'{ctx.key:%Y-%m}', valid_until=end, surfaces=frozenset({Surface.DASHBOARD, Surface.YEAR_IN_REVIEW, Surface.MONTHLY}),
         numbers={'streak': streak},
     )]
 
 
-@rule(id='cashflow.savings_momentum', module=Module.CASHFLOW, surfaces={Surface.DASHBOARD}, needs={'facts'},
+@rule(id='cashflow.savings_momentum', module=Module.CASHFLOW, surfaces={Surface.DASHBOARD, Surface.MONTHLY}, needs={'facts'},
       cooldown_days=14, min_history=1, sample=sampling.default_sample)
 def savings_momentum(ctx) -> list[Insight]:
     """What has been kept so far is already more than the whole of the previous cycle."""
@@ -119,12 +120,12 @@ def savings_momentum(ctx) -> list[Insight]:
             Evidence(_('Kept before'), fmt.money(before)),
             Evidence(_('Change'), fmt.percent(pct)),
         ),
-        dedupe_key=f'{ctx.key:%Y-%m}', valid_until=end, surfaces=frozenset({Surface.DASHBOARD}),
+        dedupe_key=f'{ctx.key:%Y-%m}', valid_until=end, surfaces=frozenset({Surface.DASHBOARD, Surface.MONTHLY}),
         numbers={'pct': pct},
     )]
 
 
-@rule(id='cashflow.year_pace', module=Module.CASHFLOW, surfaces={Surface.DASHBOARD, Surface.ANALYTICS},
+@rule(id='cashflow.year_pace', module=Module.CASHFLOW, surfaces={Surface.DASHBOARD, Surface.ANALYTICS, Surface.YEAR_IN_REVIEW},
       needs={'facts'}, cooldown_days=30, min_history=1, sample=sampling.default_sample)
 def year_pace(ctx) -> list[Insight]:
     """Year-to-date savings, carried forward at the same monthly average to the end of the year."""
@@ -145,7 +146,7 @@ def year_pace(ctx) -> list[Insight]:
         evidence=(Evidence(_('Kept so far this year'), ctx.fmt.money(kept),
                            ctx.links.transactions(first_day, ctx.today)),),
         dedupe_key=f'{ctx.key:%Y-%m}', valid_until=ctx.cycle[1],
-        surfaces=frozenset({Surface.DASHBOARD, Surface.ANALYTICS}),
+        surfaces=frozenset({Surface.DASHBOARD, Surface.ANALYTICS, Surface.YEAR_IN_REVIEW}),
         numbers={'projected': _q(projected), 'kept': _q(kept)},
     )]
 
@@ -211,3 +212,93 @@ def low_point_before_salary(ctx) -> list[Insight]:
         surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE}),
         numbers={'short': below, 'low_day': low_day.isoformat()},
     )]
+
+
+# ---- the Cashflow tab's takeaways: inline sentences, worked out from the tab's own Page ----
+
+ZERO = D(0)
+
+
+def _flow(page):
+    """(income, kept, shortfall) the way the Cashflow tab's flow chart works them out."""
+    now = page.summary
+    needs = now.spending + now.invested
+    return now.income, max(ZERO, now.income - needs), max(ZERO, needs - now.income)
+
+
+def _takeaway(rule_id, priority, icon, title, message, ctx, *, tone=Tone.CALM, sensitive=False) -> Insight:
+    page = ctx.page
+    return Insight(
+        rule_id=rule_id, module=Module.CASHFLOW, kind=Kind.OBSERVATION, tone=tone, priority=priority, icon=icon,
+        title=title, message=message, dedupe_key=f'{page.period.range[0]}:{page.period.range[1]}',
+        valid_until=page.period.range[1] + timedelta(days=1), surfaces=frozenset({Surface.ANALYTICS}), sensitive=sensitive)
+
+
+@rule(id='cashflow.biggest_cost', module=Module.CASHFLOW, surfaces={Surface.ANALYTICS}, needs={'page'}, mode='inline',
+      cooldown_days=0, sample=sampling.page_sample)
+def biggest_cost(ctx) -> list[Insight]:
+    """The category that took the most, as a share of income."""
+    page = ctx.page
+    income, _kept, _short = _flow(page)
+    ranked = sorted(page.summary.categories.items(), key=lambda item: item[1], reverse=True)
+    if not ranked or income <= 0:
+        return []
+    key, amount = ranked[0]
+    return [_takeaway('cashflow.biggest_cost', 60, 'receipt', _('Your biggest cost'),
+                      _('%(name)s is your biggest cost: %(amount)s, %(pct)s of your income.') % {
+                          'name': page.category_name(key), 'amount': page.money.full(amount),
+                          'pct': percent(amount / income * 100)}, ctx)]
+
+
+@rule(id='cashflow.spent_beyond_income', module=Module.CASHFLOW, surfaces={Surface.ANALYTICS}, needs={'page'},
+      mode='inline', cooldown_days=0, sample=sampling.page_overspent_sample)
+def spent_beyond_income(ctx) -> list[Insight]:
+    """Spending above income, or costs and investing above income paid from savings. Sensitive: a month in the red."""
+    page = ctx.page
+    income, _kept, shortfall = _flow(page)
+    overspent = page.summary.spending - income
+    if overspent > 0:
+        message = _('You spent %(amount)s more than you earned in this period.') % {'amount': page.money.full(overspent)}
+    elif shortfall > 0:
+        message = _('Your costs and investing came to %(amount)s more than your income, paid from savings you already had.') % {
+            'amount': page.money.full(shortfall)}
+    else:
+        return []
+    return [_takeaway('cashflow.spent_beyond_income', 58, 'exclamation-circle', _('Spending beyond income'), message, ctx,
+                      tone=Tone.GENTLE_ATTENTION, sensitive=True)]
+
+
+@rule(id='cashflow.invested_and_kept', module=Module.CASHFLOW, surfaces={Surface.ANALYTICS}, needs={'page'}, mode='inline',
+      cooldown_days=0, sample=sampling.page_sample)
+def invested_and_kept(ctx) -> list[Insight]:
+    """How the income was split between investing and what was kept as cash (when it covered everything)."""
+    page = ctx.page
+    income, kept, shortfall = _flow(page)
+    if income <= 0 or shortfall > 0 or page.summary.spending - income > 0:
+        return []
+    return [_takeaway('cashflow.invested_and_kept', 55, 'pie-chart', _('Where your income went'),
+                      _('You invested %(invested)s and kept %(kept)s of your income as cash.') % {
+                          'invested': percent(page.summary.invested / income * 100), 'kept': percent(kept / income * 100)},
+                      ctx)]
+
+
+@rule(id='cashflow.category_moved', module=Module.CASHFLOW, surfaces={Surface.ANALYTICS}, needs={'page'}, mode='inline',
+      cooldown_days=0, sample=sampling.page_sample)
+def category_moved(ctx) -> list[Insight]:
+    """The category whose spending moved the most against the comparison period."""
+    page = ctx.page
+    before = page.compare
+    if before is None:
+        return []
+    movers = [(key, amount - before.categories.get(key, ZERO)) for key, amount in page.summary.categories.items()]
+    movers = [m for m in movers if before.categories.get(m[0], ZERO) > 0]
+    if not movers:
+        return []
+    key, diff = max(movers, key=lambda m: abs(m[1]))
+    if diff == 0:
+        return []
+    args = {'name': page.category_name(key), 'amount': page.money.full(abs(diff)), 'then': page.compare_name()}
+    message = (_('%(name)s went up by %(amount)s compared with %(then)s.') if diff > 0
+               else _('%(name)s went down by %(amount)s compared with %(then)s.')) % args
+    return [_takeaway('cashflow.category_moved', 50, 'arrow-down-up', _('The biggest mover'), message, ctx,
+                      tone=Tone.POSITIVE if diff < 0 else Tone.CALM)]

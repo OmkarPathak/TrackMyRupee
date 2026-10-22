@@ -18,7 +18,7 @@ MODES = ('stored', 'inline')
 # the loaders an InsightContext offers
 NEEDS = frozenset({'facts', 'budgets', 'accounts', 'recurring', 'recent', 'rows', 'budget_history', 'inventory',
                    'recurring_all', 'postings', 'pending', 'cash', 'accounts_all', 'cards', 'loans', 'loan_paid',
-                   'reconciliations', 'income_rows', 'goals', 'holdings', 'networth'})
+                   'reconciliations', 'income_rows', 'goals', 'holdings', 'networth', 'page', 'category_cycles'})
 INVENTORY = frozenset({'loans', 'cards', 'recurring', 'goals', 'holdings'})     # what a person may not have at all
 
 

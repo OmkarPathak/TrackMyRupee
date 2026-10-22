@@ -276,6 +276,68 @@ def generate(user, surface: Surface, *, modules=None, limit: int | None = None, 
     return [Presented(insight, str(row.uuid), row.locked) for insight, row in picked]
 
 
+def inline(ctx, rule_ids, *, limit: int | None = None) -> list[Insight]:
+    """Run inline rules (the sentences on a page) against `ctx` right now: best first, never stored, nothing shown
+    to a plan below a rule's minimum. A rule that raises is skipped and logged by id and class, like a stored one."""
+    found = []
+    for rule_id in rule_ids:
+        rule = registry.get(rule_id)
+        if rule is None or rule.mode != 'inline' or not rule_allowed(rule.min_plan, ctx.plan):
+            continue
+        try:
+            with ctx.declared(rule.needs):
+                found.extend(rule.evaluate(ctx))
+        except Exception as exc:         # noqa: BLE001 - one bad sentence must not break a tab
+            logger.warning('inline insight rule failed rule_id=%s type=%s', rule.id, type(exc).__name__)
+    found.sort(key=_sort_key)
+    return found[:limit] if limit else found
+
+
+def compose(user, surface: Surface, *, today=None, profile=None) -> list[Insight]:
+    """Everything the stored rules would say on `surface` for the budget month containing `today`, worked out now
+    and not stored: how the monthly report, the Year in Review and the digest look at a month that is over. Plans
+    below a rule's minimum get nothing (there is no preview in an email), and only rules that list `surface` run."""
+    profile = profile if profile is not None else user.profile
+    prefs = prefs_module.get(profile)
+    plan = plan_of(profile)
+    today = today or timezone.localdate()
+    if not prefs['enabled']:
+        return []
+    found = []
+    with translation.override(profile.language or 'en'):
+        ctx = InsightContext(user, today=today, profile=profile)
+        for rule in registry.all_rules():
+            if (surface not in rule.surfaces or rule.mode != 'stored' or not rule_allowed(rule.min_plan, plan)
+                    or not prefs_module.module_on(prefs, rule.module)):
+                continue
+            try:
+                if rule.requires and not all(ctx.inventory[k] for k in rule.requires):
+                    continue
+                if rule.min_history and ctx.history_cycles() < rule.min_history:
+                    continue
+                with ctx.declared(rule.needs):
+                    found.extend(i for i in rule.evaluate(ctx) if surface in i.surfaces)
+            except Exception as exc:     # noqa: BLE001
+                logger.warning('insight rule failed rule_id=%s type=%s', rule.id, type(exc).__name__)
+    found.sort(key=_sort_key)
+    return found
+
+
+def pick(insights, limit: int = 3, *, positive_first: bool = True, allow_sensitive: bool = True) -> list[Insight]:
+    """Up to `limit` insights from different modules where possible, the good news first (when asked), then by rank."""
+    pool = sorted((i for i in insights if allow_sensitive or not i.sensitive),
+                  key=lambda i: ((i.tone != Tone.POSITIVE,) if positive_first else ()) + _sort_key(i))
+    picked, seen = [], set()
+    for i in pool:
+        if i.module not in seen and len(picked) < limit:
+            picked.append(i)
+            seen.add(i.module)
+    for i in pool:
+        if i not in picked and len(picked) < limit:
+            picked.append(i)
+    return picked
+
+
 def is_learning(profile) -> bool:
     return bool(prefs_module.get(profile)['learning'])
 

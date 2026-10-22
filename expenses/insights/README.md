@@ -1,8 +1,8 @@
 # The Insights Engine
 
 One set of rules, many surfaces. A rule is written once, as a pure function of an `InsightContext`, and the engine
-stores what it says. Pages, the bell, push (and later the digest, the monthly email and Year in Review) only format
-what was stored. No rule is copied between surfaces, and a rule never redefines what counts as spending, savings,
+stores what it says. Pages, the bell, push, the email digest, the monthly email and Year in Review only format
+what the rules said. No rule is copied between surfaces, and a rule never redefines what counts as spending, savings,
 income or net worth: it reads those from `analytics/facts.py` and `savings.py`.
 
 ```
@@ -14,10 +14,11 @@ rules/*.py ──evaluate(ctx)──▶ engine.refresh ──▶ InsightState ro
 * `types.py` immutable `Insight`, `Evidence`, `Action`; enums for module, kind, tone, surface, plan.
 * `registry.py` the `@rule` decorator and the registry. Rules in `rules/` are imported automatically.
 * `context.py` what a rule may read. Each loader must be listed in the rule's `needs`: `facts`, `budgets`, `accounts`, `recurring`, `recent` (entries of the last few days), `rows` (about six cycles of single entries, nightly rules only) `budget_history` (the last three budget months' limits and spend), `inventory` (does the person have loans, cards, recurring payments, goals, holdings), `recurring_all`, `postings` (what each recurring expense actually cost each time), `pending` (scheduled items for two weeks), `cash` (net worth point; `.idle` is cash held), `accounts_all`, `cards` (what is owed, in the card's own currency), `loans` (totalled, rates prefetched, so the loan service runs without a query per loan), `loan_paid` (this financial year), `reconciliations`, `income_rows` (about eight months of income entries), `goals` (every goal with its contributions and whether the plan locks it), `holdings` (active holdings valued in the person's currency, nightly only) and `networth` (the nightly snapshot from before the cycle began, and today's point; nightly only).
-* `engine.py` `refresh` (evaluate and store), `generate` (read, suppress, rank, cap), dismiss, snooze, feedback.
+* `engine.py` `refresh` (evaluate and store), `generate` (read, suppress, rank, cap), `inline` (the sentences on the Analytics tabs), `compose` (what the rules would say at the end of a month that is over: the monthly report and Year in Review), `pick` (a few, good news first, from different modules), dismiss, snooze, feedback.
+* `pagectx.py` the context an inline rule runs in: one Analytics `Page` (its period, comparison, filters and loaded facts). `composers.py` the monthly report section and the Year in Review lines.
 * `gating.py` the only place a plan tier is read. `prefs.py` the person's Settings. `telemetry.py` the only analytics.
 * `format.py` money, percent and date text; `tone.py` the tone linter; `sampling.py` synthetic contexts for tests.
-* `adapters/` formatting only (the bell and push so far). Templates are in `templates/expenses/partials/_insight_*.html`.
+* `adapters/` formatting only: the bell, push and the email digest. Templates are in `templates/expenses/partials/_insight_*.html`.
 
 ## Add a rule in under 30 minutes
 
@@ -44,11 +45,13 @@ rules/*.py ──evaluate(ctx)──▶ engine.refresh ──▶ InsightState ro
      stays dismissed for its own period only.
    * `min_history` is completed cycles with any activity. Below it the engine skips the rule and shows "still learning".
    * `pool='weekly'` puts a rule in the Free plan's weekly observation: Free people see one pool rule a week, Plus and Pro all of them.
-   * `requires={'loans'}` (or `'cards'`, `'recurring'`) skips the rule, at no cost, for a person who has none.
+   * `requires={'loans'}` (or `'cards'`, `'recurring'`, `'goals'`, `'holdings'`) skips the rule, at no cost, for a person who has none.
    * `cost='heavy'` is for rules that scan history (nightly only); `cost='light'` may also run when a dashboard visit finds the data changed.
    * `push=True` (and `Surface.PUSH` in `surfaces`) only for things that are time-sensitive *and* helpful. A
      `sensitive=True` insight (debt, a shortfall, a month in the red) never has share text and is never pushed.
    * `min_plan=Plan.PLUS` locks it for Free: give `preview=lambda: _('...')`, a figure-free line.
+   * `mode='inline'` is for a sentence that belongs to one Analytics tab: it needs `{'page'}`, runs per request in a `PageContext` (`engine.inline`), is never stored, and shows nothing to a plan below its minimum. Its sample must set `ctx._cache['page']` (see `sampling.page_sample`).
+   * `Surface.MONTHLY` and `Surface.YEAR_IN_REVIEW` in `surfaces` put a rule in the monthly report (Pro) and the Year in Review. Sensitive insights are left out of both. The digest needs no surface of its own: it reads what is stored.
 3. **Write the words** following `docs/insights-tone.md`: what we noticed, a little context, at most one optional
    next step. Every string is `gettext` with named placeholders, one whole sentence per msgid (never glue translated
    pieces together). Use `ctx.fmt.approx()` in sentences and `ctx.fmt.money()` in evidence. Use two msgids when one and
@@ -82,13 +85,14 @@ addition to the alerts `send_notifications` already creates. The email digest is
 |---|---|
 | `INSIGHTS_ENGINE_MODE` | `off` (default), `shadow` (legacy dashboard, engine compared with it for a sample), `on` |
 | `INSIGHTS_ENGINE_USER_IDS` | comma-separated user ids that always get the engine, whatever the mode |
-| `INSIGHTS_CHANNELS` | which channels may send: `bell`, `push` (and later `email`). Empty sends nothing |
+| `INSIGHTS_CHANNELS` | which channels may send: `bell`, `push`, `email` (the digest). Empty sends nothing |
 | `INSIGHTS_SHADOW_PERCENT` | share of people compared in shadow mode (default 10) |
 | `manage.py generate_insights` | nightly, idempotent, batched: `--user-id`, `--batch-size`, `--active-days`, `--light-only` |
 | `manage.py deliver_insights` | the bell and push, capped, safe to re-run |
-| `POST /api/cron/generate-insights/` and `/api/cron/deliver-insights/` | the same, for the external cron (secret header) |
+| `manage.py send_insight_digest` | the email digest (Pro; needs `email` in `INSIGHTS_CHANNELS`): up to three insights, one email a week (or a day, by choice), only when there is something new, never the same insight twice; every email has a signed unsubscribe link and the one-click header |
+| `POST /api/cron/generate-insights/`, `/api/cron/deliver-insights/` and `/api/cron/insight-digest/` | the same, for the external cron (secret header) |
 
-Suggested schedule: generate at 02:30 IST, deliver at 09:00 IST.
+Suggested schedule: generate at 02:30 IST, deliver at 09:00 IST, digest at 09:30 IST (the weekly digest goes out on whichever day a person has something new, then waits a week).
 
 Reading is one query (`generate`). When a person's data has changed since the last run, the panel fragment re-runs
 the quick rules once (about 14 queries) and not more than every ten minutes.

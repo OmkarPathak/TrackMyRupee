@@ -38,7 +38,7 @@ def _loan_link(loan) -> str:
     return reverse('loan-detail', args=[loan.uuid])
 
 
-@rule(id='loans.interest_paid_year', module=Module.LOANS, surfaces={Surface.DASHBOARD, Surface.MODULE},
+@rule(id='loans.interest_paid_year', module=Module.LOANS, surfaces={Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY, Surface.YEAR_IN_REVIEW},
       needs={'loan_paid'}, cooldown_days=90, min_plan=Plan.PLUS, requires={'loans'}, sample=sampling.loans_sample)
 def interest_paid_year(ctx) -> list[Insight]:
     """Interest and principal paid on loans so far this financial year (calendar year outside India)."""
@@ -59,12 +59,12 @@ def interest_paid_year(ctx) -> list[Insight]:
         evidence=(Evidence(_('Interest'), fmt.money(paid.interest), link), Evidence(_('Principal'), fmt.money(paid.principal))),
         action=Action(_('View your loans'), link),
         dedupe_key=f'{first.year}:{ctx.key:%Y-%m}', valid_until=ctx.cycle[1],
-        surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE}),
+        surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY, Surface.YEAR_IN_REVIEW}),
         numbers={'interest': str(paid.interest.quantize(D('0.01'))), 'principal': str(paid.principal.quantize(D('0.01')))},
     )]
 
 
-@rule(id='loans.extra_emi_effect', module=Module.LOANS, surfaces={Surface.DASHBOARD, Surface.MODULE}, needs={'loans'},
+@rule(id='loans.extra_emi_effect', module=Module.LOANS, surfaces={Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY}, needs={'loans'},
       cooldown_days=90, min_plan=Plan.PLUS, requires={'loans'}, sample=sampling.loans_sample)
 def extra_emi_effect(ctx) -> list[Insight]:
     """What one extra EMI a year, all of it against the principal, would change for an amortising loan: the loan
@@ -96,7 +96,7 @@ def extra_emi_effect(ctx) -> list[Insight]:
                   Evidence(_('Interest saved'), own.money(result['interest_saved']))),
         action=Action(_('See the full picture'), link),
         dedupe_key=f'{loan.uuid}:{ctx.today.year}-Q{(ctx.today.month - 1) // 3 + 1}', valid_until=ctx.cycle[1],
-        surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE}),
+        surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE, Surface.MONTHLY}),
         numbers={'loan': loan.name.strip().lower(), 'months_saved': months},
     )]
 

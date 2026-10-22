@@ -35,6 +35,9 @@ your own past.
 * **The bell**: at most one new insight a day, in addition to the alerts you already get (bills, budgets, goals).
 * **Push**: at most two a week, only for time-sensitive things such as a deposit about to mature or a limit about to be
   reached, and never between 9 pm and 8 am.
+* **Analytics**: the plain sentences under the totals and on the Cashflow and Net worth tabs (what you kept, your biggest cost, what moved your net worth, which categories keep rising) come from the same rules.
+* **Year in Review**: a "What we noticed" card in your story. It shows income-based figures, so it is only shared with the Money story, and it hides with the amounts.
+* **Monthly report and weekly email (Pro)**: the monthly report gains a short "Worth knowing" section, and a weekly email lists up to three insights, only when there is something new. Switch the email to daily or off in Settings, or use the unsubscribe link in any email. Insights about debt, a shortfall or a long gap in income are never emailed.
 
 New to TrackMyRupee? Until there is enough history, the panel says **We are still learning your patterns** instead of
 guessing. A few weeks of entries are usually enough.
@@ -65,11 +68,12 @@ Open **Settings → Profile** and scroll to **Insights**:
 * Choose how often we mention things: normally (at most one a day in the bell), quietly (at most one a week, no push) or
   only on the pages.
 * Switch push on or off.
+* Choose the email digest (Pro): weekly, daily or never.
 * Say how many months of spending in the bank feels like a comfortable cushion to you (six unless you choose otherwise). Insights about your cash compare it with that number and never with anyone else's.
 
 Insights about loans, credit cards and a long gap in your income are written extra gently, are never pushed, and have no share button. Insights about holdings only describe your mix; they never say what to buy or sell.
 
-Insights in the bell and push are open to every plan. An email digest, when it arrives, will be part of Pro.
+Insights in the bell and push are open to every plan. The email digest and the monthly report section are part of Pro.
 
 ---
 

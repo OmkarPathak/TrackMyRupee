@@ -20968,3 +20968,129 @@ msgstr "या चक्रात ती सुमारे %(change)s कमी
 #: expenses/insights
 msgid "Kept this cycle"
 msgstr "या चक्रात वाचवलेले"
+
+#: expenses/insights
+msgid "What you kept this period"
+msgstr "या कालावधीत तुम्ही काय वाचवले"
+
+#: expenses/insights
+msgid "No income in this period"
+msgstr "या कालावधीत उत्पन्न नाही"
+
+#: expenses/insights
+msgid "Your biggest cost"
+msgstr "तुमचा सर्वात मोठा खर्च"
+
+#: expenses/insights
+msgid "Spending beyond income"
+msgstr "उत्पन्नापेक्षा जास्त खर्च"
+
+#: expenses/insights
+msgid "Where your income went"
+msgstr "तुमचे उत्पन्न कुठे गेले"
+
+#: expenses/insights
+msgid "The biggest mover"
+msgstr "सर्वात जास्त बदल"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s keeps rising"
+msgstr "%(name)s वाढतच आहे"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s has risen three months in a row, by about %(pct)s a month."
+msgstr "%(name)s सलग तीन महिने वाढले आहे, सरासरी सुमारे %(pct)s दरमहा."
+
+#: expenses/insights
+#, python-format
+msgid "Over this period it is up about %(change)s: roughly %(kept)s from what you kept and %(rest)s from changes in value."
+msgstr "या कालावधीत ती सुमारे %(change)s वाढली आहे: सुमारे %(kept)s तुमच्या बचतीतून आणि %(rest)s मूल्यातील बदलांमुळे."
+
+#: expenses/insights
+#, python-format
+msgid "Over this period it is up about %(change)s: you kept %(kept)s, and changes in value took back %(rest)s."
+msgstr "या कालावधीत ती सुमारे %(change)s वाढली आहे: तुम्ही %(kept)s वाचवले, आणि मूल्यातील बदलांनी %(rest)s परत घेतले."
+
+#: expenses/insights
+#, python-format
+msgid "Over this period it is down about %(change)s: you kept %(kept)s, and changes in value took away %(rest)s."
+msgstr "या कालावधीत ती सुमारे %(change)s कमी झाली आहे: तुम्ही %(kept)s वाचवले, आणि मूल्यातील बदलांनी %(rest)s कमी केले."
+
+#: expenses/insights
+msgid "What we noticed"
+msgstr "आम्ही काय पाहिले"
+
+#: expenses/insights
+msgid "Your insights"
+msgstr "तुमच्या अंतर्दृष्टी"
+
+#: expenses/insights
+msgid "A few things we noticed"
+msgstr "काही गोष्टी ज्या आम्ही पाहिल्या"
+
+#: expenses/insights
+msgid "Calm observations about your own money. Nothing here is advice."
+msgstr "तुमच्या स्वतःच्या पैशांबद्दल शांत निरीक्षणे. येथे काहीही सल्ला नाही."
+
+#: expenses/insights
+#, python-format
+msgid "Your TrackMyRupee insights, %(date)s"
+msgstr "तुमच्या TrackMyRupee अंतर्दृष्टी, %(date)s"
+
+#: expenses/insights
+msgid "Open TrackMyRupee"
+msgstr "TrackMyRupee उघडा"
+
+#: expenses/insights
+msgid "Change how often"
+msgstr "किती वेळा पाठवायचे ते बदला"
+
+#: expenses/insights
+msgid "You get this email once a week, because you chose that in Settings."
+msgstr "तुम्हाला हा ईमेल आठवड्यातून एकदा मिळतो, कारण तुम्ही सेटिंग्जमध्ये तेच निवडले आहे."
+
+#: expenses/insights
+msgid "You get this email every day when there is something new, because you chose that in Settings."
+msgstr "काही नवीन असेल तेव्हा तुम्हाला हा ईमेल दररोज मिळतो, कारण तुम्ही सेटिंग्जमध्ये तेच निवडले आहे."
+
+#: expenses/insights
+msgid "Email digest"
+msgstr "ईमेल डायजेस्ट"
+
+#: expenses/insights
+msgid "Weekly: one email a week with the most useful insights"
+msgstr "साप्ताहिक: आठवड्यातून एक ईमेल, सर्वात उपयुक्त अंतर्दृष्टींसह"
+
+#: expenses/insights
+msgid "Daily: one email a day, when there is something new"
+msgstr "दैनिक: दररोज एक ईमेल, काही नवीन असेल तेव्हा"
+
+#: expenses/insights
+msgid "Never"
+msgstr "कधीही नाही"
+
+#: expenses/insights
+msgid "Only sent when there is something worth saying, and every email has an unsubscribe link."
+msgstr "फक्त काही सांगण्यासारखे असेल तेव्हाच पाठवला जातो, आणि प्रत्येक ईमेलमध्ये सदस्यता रद्द करण्याचा दुवा असतो."
+
+#: expenses/insights
+msgid "The email digest is part of the Pro plan."
+msgstr "ईमेल डायजेस्ट प्रो प्लॅनचा भाग आहे."
+
+#: expenses/insights
+msgid "Insight emails"
+msgstr "अंतर्दृष्टी ईमेल"
+
+#: expenses/insights
+msgid "Stop the weekly insight digest?"
+msgstr "साप्ताहिक अंतर्दृष्टी डायजेस्ट बंद करायचा?"
+
+#: expenses/insights
+msgid "You will not get the insight digest any more. You can switch it back on in Settings whenever you like."
+msgstr "आता तुम्हाला अंतर्दृष्टी डायजेस्ट मिळणार नाही. तुम्हाला हवे तेव्हा तुम्ही सेटिंग्जमध्ये तो पुन्हा सुरू करू शकता."
+
+#: expenses/insights
+msgid "This unsubscribe link is not valid."
+msgstr "हा सदस्यता रद्द करण्याचा दुवा वैध नाही."

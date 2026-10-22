@@ -14,7 +14,8 @@ PACKAGE = Path(__file__).resolve().parent
 ROOT = PACKAGE.parent.parent
 TEMPLATES = [ROOT / 'templates/expenses/partials' / name for name in
              ('_insight_cards.html', '_insight_body.html', '_insight_action.html', '_insight_action_link.html', '_insight_options.html', '_insight_strip.html', '_insight_thanks.html',
-             '_insights_settings.html')]
+             '_insights_settings.html')] + [ROOT / 'templates/emails/insight_digest.html',
+                                            ROOT / 'templates/expenses/insight_digest_unsubscribe.html']
 BLOCK_TAG = re.compile(r'\{%\s*blocktranslate\b[^%]*%\}(.*?)\{%\s*endblocktranslate\s*%\}', re.DOTALL)
 TRANS_TAG = re.compile(r'''\{%\s*trans\s+(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)')\s*%\}''')
 

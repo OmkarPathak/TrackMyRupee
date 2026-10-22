@@ -226,6 +226,15 @@ class InvestingRuleTests(SimpleTestCase):
         self.assertEqual(found.numbers, {'share': 7, 'usual': 15})
         self.assertIn('About 7% of income went into investments this cycle, against your usual 15%.', found.message)
 
+    def test_the_usual_share_is_total_invested_over_total_income_not_an_average_of_shares(self):
+        ctx = sampling.invested_share_sample()
+        first = ctx.cycle_of(ctx.keys_back(1)[0])[0]
+        i = ctx.facts.index(first)
+        ctx.facts.income[i] = D('100')                 # a cycle with almost no income, but 9,000 invested
+        ctx._cache.pop('summaries', None)
+        [found] = run('transfers.invested_share', ctx)
+        self.assertLess(found.numbers['usual'], 40)    # not 9000% pulling the average through the roof
+
     def test_a_small_difference_an_early_cycle_or_nothing_invested_says_nothing(self):
         ctx = sampling.invested_share_sample()
         _put(ctx.facts, ctx.cycle[0], invested=4100)         # 9,000 of 70,000 is 12.9%: within five points of the usual 15%
@@ -396,7 +405,7 @@ class PhaseDRulesAreRegisteredTests(SimpleTestCase):
         self.assertEqual(RULES['calendar.heavy_week'].requires, frozenset({'recurring'}))
 
     def test_every_module_now_has_a_rule_except_import(self):
-        self.assertEqual({m.value for m in Module} - {m.value for m in registry.modules_with_rules()}, {'import', 'analytics'})
+        self.assertEqual({m.value for m in Module} - {m.value for m in registry.modules_with_rules()}, {'import'})
 
 
 class FactsAdditionsTests(InsightBase):

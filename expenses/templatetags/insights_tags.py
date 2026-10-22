@@ -1,6 +1,8 @@
 from django import template
 
 from ..insights import prefs, registry
+from ..insights.gating import plan_of, surface_allowed
+from ..insights.types import Surface
 from ..insights.labels import MODULE_LABELS
 
 register = template.Library()
@@ -17,6 +19,8 @@ def insights_settings(context):
         'notify': current['notify'],
         'push': current['push'],
         'emergency_months': current['emergency_months'],
+        'digest': current['digest'],
+        'digest_available': surface_allowed(Surface.DIGEST, plan_of(profile)),
         'emergency_choices': prefs.EMERGENCY_MONTHS,
         'modules': [{'value': m.value, 'label': MODULE_LABELS[m], 'on': m.value not in current['modules_off']}
                     for m in registry.modules_with_rules()],
