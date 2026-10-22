@@ -91,6 +91,9 @@
     # reCAPTCHA
     RECAPTCHA_PUBLIC_KEY=''
     RECAPTCHA_SECRET_KEY=''
+
+    # Exchange Rates (optional; Frankfurter and ExchangeRate-API are used when unset)
+    ALLRATESTODAY_API_KEY=''
     ```
     **Note**: The application will not run correctly without at least the Core Settings in this file.
 

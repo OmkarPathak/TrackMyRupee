@@ -370,6 +370,9 @@ GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID')
 POSTHOG_API_KEY = os.environ.get('POSTHOG_API_KEY')
 POSTHOG_HOST = os.environ.get('POSTHOG_HOST', 'https://us.i.posthog.com')
 
+# Optional exchange rate source, tried before Frankfurter when set
+ALLRATESTODAY_API_KEY = os.environ.get('ALLRATESTODAY_API_KEY', '').strip()
+
 # Sign up with email + username; log in with either (allauth >= 65.4 settings).
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}
