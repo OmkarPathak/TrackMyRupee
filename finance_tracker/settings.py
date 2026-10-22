@@ -297,6 +297,7 @@ INSIGHTS_ENGINE_MODE = os.environ.get('INSIGHTS_ENGINE_MODE', 'off').strip().low
 INSIGHTS_ENGINE_USER_IDS = frozenset(
     int(i) for i in os.environ.get('INSIGHTS_ENGINE_USER_IDS', '').split(',') if i.strip().isdigit())
 INSIGHTS_CHANNELS = frozenset(c.strip() for c in os.environ.get('INSIGHTS_CHANNELS', '').split(',') if c.strip())
+INSIGHTS_REFRESH_IN_BACKGROUND = not IS_TESTING             # re-run a person's quick rules after the response, not inside it
 INSIGHTS_STRIP_CACHE_SECONDS = 0 if IS_TESTING else 60      # how long a page's rendered insights strip is reused (htmx list swaps)
 try:
     INSIGHTS_SHADOW_PERCENT = max(0, min(100, int(os.environ.get('INSIGHTS_SHADOW_PERCENT', 10))))

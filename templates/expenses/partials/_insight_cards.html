@@ -1,5 +1,5 @@
 {% load i18n %}
-<div data-insights-panel>
+<div data-insights-panel{% if refresh_url %} hx-get="{{ refresh_url }}" hx-trigger="load delay:2500ms" hx-swap="outerHTML"{% endif %}>
 {% if items %}
     <div class="d-flex flex-column gap-4">
     <style>.insight-link { color: var(--color-secondary, #0F7657); } [data-bs-theme="dark"] .insight-link { color: #4cc9a0; } .insight-link:hover { text-decoration: underline !important; } .insight-title { font-weight: 400; } @media (min-width: 768px) { .insight-title { font-weight: 600; } }</style>

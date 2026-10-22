@@ -263,3 +263,66 @@ class LoaderTests(InsightBase):
                                    payment_method='Cash')
         ctx = InsightContext(self.user, today=TODAY, profile=self.profile)
         self.assertEqual(run('recurring.price_change', ctx), [])
+
+
+class BackgroundRefreshTests(InsightBase):
+    @ENGINE_ON
+    @override_settings(INSIGHTS_REFRESH_IN_BACKGROUND=True)
+    def test_a_person_with_stored_insights_gets_them_without_waiting_for_the_refresh(self):
+        from unittest import mock
+        self.life()
+        engine.refresh(self.user, today=TODAY)                                   # stored, so there is something to show
+        UserProfile.objects.filter(pk=self.profile.pk).update(insights_stale=True,
+                                                              insights_generated_at=timezone.now() - timedelta(hours=3))
+        with mock.patch('expenses.insights.engine.refresh_in_background', return_value=True) as later, \
+                mock.patch('expenses.insights.engine.refresh') as inline:
+            response = self.client.get(reverse('insights-panel') + '?surface=dashboard')
+        self.assertEqual(response.status_code, 200)
+        later.assert_called_once_with(self.user.pk)
+        inline.assert_not_called()
+
+    @ENGINE_ON
+    @override_settings(INSIGHTS_REFRESH_IN_BACKGROUND=True)
+    def test_the_very_first_visit_gets_a_placeholder_that_asks_again(self):
+        from unittest import mock
+        with mock.patch('expenses.insights.engine.refresh_in_background', return_value=True) as later, \
+                mock.patch('expenses.insights.engine.refresh') as inline:
+            card = self.client.get(reverse('insights-panel') + '?surface=dashboard').content.decode()
+            strip = self.client.get(reverse('insights-panel') + '?surface=module&modules=budgets&strip=1').content.decode()
+        inline.assert_not_called()
+        self.assertEqual(later.call_count, 2)
+        self.assertIn('hx-trigger="load delay:2500ms"', card)
+        self.assertIn('hx-trigger="load delay:2500ms"', strip)
+
+    @ENGINE_ON
+    @override_settings(INSIGHTS_REFRESH_IN_BACKGROUND=True)
+    def test_when_the_background_is_busy_the_first_visit_refreshes_inline(self):
+        from unittest import mock
+        with mock.patch('expenses.insights.engine.refresh_in_background', return_value=False), \
+                mock.patch('expenses.insights.engine.refresh') as inline:
+            html = self.client.get(reverse('insights-panel') + '?surface=dashboard').content.decode()
+        inline.assert_called_once()
+        self.assertNotIn('hx-trigger="load delay', html)
+
+    def test_the_background_run_refreshes_and_lets_its_slot_go(self):
+        self.life()
+        before = UserProfile.objects.get(pk=self.profile.pk).insights_generated_at
+        with mock_connection_close():
+            engine._run_background(self.user.pk, release=False)
+        self.assertNotEqual(UserProfile.objects.get(pk=self.profile.pk).insights_generated_at, before)
+
+    def test_only_a_few_background_runs_happen_at_once(self):
+        taken = [engine._background_slots.acquire(blocking=False) for _ in range(4)]
+        try:
+            self.assertTrue(all(taken))
+            self.assertFalse(engine.refresh_in_background(self.user.pk))         # busy: nothing starts, nothing is lost
+        finally:
+            for ok in taken:
+                if ok:
+                    engine._background_slots.release()
+
+
+def mock_connection_close():
+    """The background run closes its database connection when done; under test that is the shared one."""
+    from unittest import mock
+    return mock.patch('django.db.connection.close')

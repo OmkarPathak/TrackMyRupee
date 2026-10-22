@@ -13,6 +13,7 @@ from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonRespo
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.html import escape
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
@@ -72,15 +73,23 @@ def panel(request):
         cached = cache.get(cache_key)
         if cached is not None:
             return HttpResponse(cached)
+    refreshing = False
     if engine.needs_refresh(profile):
-        try:
-            engine.refresh(request.user, costs=('light',), profile=profile)
-        except Exception as exc:       # noqa: BLE001 - show what is stored rather than a broken panel
-            logger.warning('insight refresh failed type=%s', type(exc).__name__)
+        # Someone who already has stored insights gets them at once and the refresh runs after the response. A first
+        # visit has nothing stored yet: it gets a placeholder that asks again in a moment.
+        if settings.INSIGHTS_REFRESH_IN_BACKGROUND and engine.refresh_in_background(request.user.pk):
+            refreshing = profile.insights_generated_at is None      # nothing stored yet: show a placeholder, ask again soon
+        else:
+            try:
+                engine.refresh(request.user, costs=('light',), profile=profile)
+            except Exception as exc:       # noqa: BLE001 - show what is stored rather than a broken panel
+                logger.warning('insight refresh failed type=%s', type(exc).__name__)
     modules = _modules(request.GET.get('modules'))
     skip = set().union(*(STRIP_SKIPS.get(m, ()) for m in modules or ())) if strip else set()
     items = engine.generate(request.user, surface, modules=modules, profile=profile, skip_rules=skip)
     if strip:         # a page's strip says nothing at all when there is nothing to say
+        if refreshing:
+            return HttpResponse(f'<div hx-get="{escape(request.get_full_path())}" hx-trigger="load delay:2500ms" hx-swap="outerHTML"></div>')
         html = render_to_string('expenses/partials/_insight_strip.html', {'items': items}, request=request) if items else ''
         if cache_key:
             cache.set(cache_key, html, settings.INSIGHTS_STRIP_CACHE_SECONDS)
@@ -89,6 +98,7 @@ def panel(request):
         'items': items,
         'learning': engine.is_learning(profile),
         'switched_off': not prefs.get(profile)['enabled'],
+        'refresh_url': request.get_full_path() if refreshing else '',
     }, request=request))
 
 

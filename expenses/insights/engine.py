@@ -9,6 +9,7 @@ amount or a category name into logs and error reports). One bad rule never break
 from __future__ import annotations
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from datetime import timedelta
 
@@ -113,6 +114,35 @@ def refresh(user, *, today=None, costs=('light', 'heavy'), profile=None) -> Refr
         raise
     finally:
         cache.delete(_refresh_lock(user.pk))
+
+
+_background_slots = threading.BoundedSemaphore(4)       # at most this many background runs per process at once
+
+
+def refresh_in_background(user_id) -> bool:
+    """Run the quick rules for one person after the response has gone, so a page's insights come back at once from
+    what is stored and the next visit shows the fresh ones. Returns False when the process is already busy with
+    several of these (the next visit tries again: nothing is marked as done)."""
+    if not _background_slots.acquire(blocking=False):
+        return False
+    threading.Thread(target=_run_background, args=(user_id,), daemon=True, name='insights-refresh').start()
+    return True
+
+
+def _run_background(user_id, *, release=True) -> None:
+    from django.contrib.auth import get_user_model
+    from django.db import connection
+
+    try:
+        user = get_user_model().objects.select_related('profile').filter(pk=user_id).first()
+        if user is not None:
+            refresh(user, costs=('light',), profile=user.profile)
+    except Exception as exc:       # noqa: BLE001 - nobody is waiting: log the class only
+        logger.warning('insight background refresh failed type=%s', type(exc).__name__)
+    finally:
+        connection.close()
+        if release:
+            _background_slots.release()
 
 
 def _refresh(user, *, today, costs, profile) -> RefreshResult:

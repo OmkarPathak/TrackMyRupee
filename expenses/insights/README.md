@@ -94,8 +94,11 @@ addition to the alerts `send_notifications` already creates. The email digest is
 
 Suggested schedule: generate at 02:30 IST, deliver at 09:00 IST, digest at 09:30 IST (the weekly digest goes out on whichever day a person has something new, then waits a week).
 
-Reading is one query (`generate`). A page's strip is also kept for a minute (`INSIGHTS_STRIP_CACHE_SECONDS`), because an htmx list swap asks for it again; a run, a dismissal or a settings change retires it (`touch`/`version`). When a person's data has changed since the last run, the panel fragment re-runs
-the quick rules once (about 14 queries) and not more than every ten minutes.
+Reading is one query (`generate`). A page's strip is also kept for a minute (`INSIGHTS_STRIP_CACHE_SECONDS`), because an htmx list swap asks for it again; a run, a dismissal or a settings change retires it (`touch`/`version`). When a person's data has changed since the last run, the quick rules run again (about 14 queries), not more than
+every ten minutes: for someone with stored insights it happens after the response (`engine.refresh_in_background`, a few
+threads per process, `INSIGHTS_REFRESH_IN_BACKGROUND`), so the fragment answers from what is stored in about four
+queries; the very first visit gets a placeholder that asks again after 2.5 seconds. Pages never wait for any of it: every
+panel and strip is an htmx fragment loaded after the page has painted.
 
 Every registered rule, with an example of what it says, is in `docs/insights-rules.md` (regenerate it with `python scripts/generate_insights_rules_doc.py`).
 
