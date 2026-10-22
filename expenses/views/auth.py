@@ -20,6 +20,7 @@ def _parse_decimal(val, default=Decimal('0.00')):
         return default
 
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
@@ -30,7 +31,7 @@ from django.core.management import call_command
 from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -279,6 +280,13 @@ class LandingPageView(TemplateView):
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
         response['Link'] = '</llms.txt>; rel="service-doc", </sitemap.xml>; rel="describedby"'
+        # A shared cache (the CDN) may keep the English page for anonymous visitors for a few minutes. Anyone with a
+        # session or a chosen language, or who reads another language, always gets their own copy.
+        shareable = (response.status_code == 200 and (translation.get_language() or '').startswith('en')
+                     and settings.SESSION_COOKIE_NAME not in request.COOKIES
+                     and settings.LANGUAGE_COOKIE_NAME not in request.COOKIES)
+        response['Cache-Control'] = ('public, max-age=0, s-maxage=300, stale-while-revalidate=3600'
+                                     if shareable else 'private, no-cache')
         return response
 
     def _get_demo_net_worth_breakdown(self):
