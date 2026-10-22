@@ -46,9 +46,12 @@ class Fmt:
         size_steps = ((Decimal(10) ** 7, 'Cr'), (Decimal(10) ** 5, 'L'), (Decimal(10) ** 3, 'k')) if self.indian else \
             ((Decimal(10) ** 9, 'B'), (Decimal(10) ** 6, 'M'), (Decimal(10) ** 3, 'k'))
         size = abs(number)
-        for step, key in size_steps:
+        for index, (step, key) in enumerate(size_steps):
             if size >= step:
                 scaled = (size / step).quantize(ONE_DECIMAL, rounding=ROUND_HALF_UP)
+                if index and scaled >= (100 if self.indian else 1000):      # 99,950 rounds to 100k: say ₹1L instead
+                    step, key = size_steps[index - 1]
+                    scaled = (size / step).quantize(ONE_DECIMAL, rounding=ROUND_HALF_UP)
                 text = f'{scaled:f}'.removesuffix('.0')
                 word = _suffix(key)
                 gap = '' if word.isascii() else ' '

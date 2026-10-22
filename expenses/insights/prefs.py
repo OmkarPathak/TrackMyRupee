@@ -50,38 +50,61 @@ def is_muted(prefs: dict, rule_id: str, today: date) -> bool:
         return False
 
 
+def _update(profile, mutate, **extra) -> dict:
+    """Change the stored choices on a fresh read inside a lock, so two writers (the Settings form, an unsubscribe
+    link, a nightly run) never overwrite each other's change. `extra` are other profile columns to set."""
+    from django.db import transaction
+
+    from ..models import UserProfile
+
+    with transaction.atomic():
+        fresh = UserProfile.objects.select_for_update().filter(pk=profile.pk).only('id', 'insights_prefs').first()
+        current = get(fresh if fresh is not None else profile)
+        mutate(current)
+        UserProfile.objects.filter(pk=profile.pk).update(insights_prefs=current, **extra)
+    profile.insights_prefs = current
+    for name, value in extra.items():
+        setattr(profile, name, value)
+    from . import touch
+    touch(profile.user_id)
+    return current
+
+
 def save(profile, *, enabled: bool, modules_off, notify: str, push: bool, emergency_months: int | None = None,
          digest: str | None = None) -> dict:
     """Store the choices from the Settings form. Unknown modules and choices are ignored; the engine-owned keys
     (muted, learning) are kept as they are."""
     known = {m.value for m in modules_with_rules()}
-    current = get(profile)
-    current.update({
-        'enabled': bool(enabled),
-        'modules_off': sorted({str(m) for m in modules_off} & known),
-        'notify': notify if notify in NOTIFY_CHOICES else 'normal',
-        'push': bool(push),
-    })
-    if emergency_months is not None:
-        current['emergency_months'] = emergency_months if emergency_months in EMERGENCY_MONTHS else current['emergency_months']
-    if digest in DIGEST_CHOICES:
-        current['digest'] = digest
-    profile.insights_prefs = current
-    profile.insights_stale = True
-    profile.save(update_fields=['insights_prefs', 'insights_stale'])
-    return current
+
+    def apply(current):
+        current.update({
+            'enabled': bool(enabled),
+            'modules_off': sorted({str(m) for m in modules_off} & known),
+            'notify': notify if notify in NOTIFY_CHOICES else 'normal',
+            'push': bool(push),
+        })
+        if emergency_months is not None:
+            current['emergency_months'] = emergency_months if emergency_months in EMERGENCY_MONTHS else current['emergency_months']
+        if digest in DIGEST_CHOICES:
+            current['digest'] = digest
+
+    return _update(profile, apply, insights_stale=True)
 
 
 def mute(profile, rule_id: str, today: date) -> None:
-    current = get(profile)
-    current['muted'][rule_id] = (today + timedelta(days=MUTE_DAYS)).isoformat()
-    profile.insights_prefs = current
-    profile.save(update_fields=['insights_prefs'])
+    _update(profile, lambda current: current['muted'].__setitem__(
+        rule_id, (today + timedelta(days=MUTE_DAYS)).isoformat()))
 
 
 def set_digest(profile, choice: str) -> None:
     """Change only the email digest (the unsubscribe link does this, without touching anything else)."""
-    current = get(profile)
-    current['digest'] = choice if choice in DIGEST_CHOICES else current['digest']
-    profile.insights_prefs = current
-    profile.save(update_fields=['insights_prefs'])
+    def apply(current):
+        current['digest'] = choice if choice in DIGEST_CHOICES else current['digest']
+
+    _update(profile, apply)
+
+
+def stamp_run(profile, *, learning: bool, now) -> None:
+    """A run finished: record when, and whether there was too little history to say anything yet."""
+    _update(profile, lambda current: current.__setitem__('learning', bool(learning)),
+            insights_generated_at=now, insights_stale=False)

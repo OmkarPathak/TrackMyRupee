@@ -13,6 +13,7 @@ from django.conf import settings
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from .. import channel_enabled, engine, registry, telemetry
 from .. import prefs as prefs_module
@@ -21,6 +22,11 @@ from ..types import Surface
 BELL_WINDOW = {'normal': timedelta(days=1), 'quiet': timedelta(days=7)}
 PUSH_PER_WEEK = 2
 QUIET_FROM, QUIET_TO = 21, 8        # local time (IST): no push from 9 pm to 8 am
+
+
+def _push_text(module) -> str:
+    from ..labels import MODULE_LABELS
+    return _('Something in your %(area)s is worth a look.') % {'area': str(MODULE_LABELS.get(module, module.value)).lower()}
 
 
 def in_quiet_hours(now) -> bool:
@@ -41,15 +47,20 @@ def deliver_bell(user, profile, now) -> int:
     window = BELL_WINDOW.get(prefs['notify'])
     if window is None or not channel_enabled('bell'):
         return 0
-    if InsightState.objects.filter(user=user, bell_at__gte=now - window).exists():
+    # (two hours of give: a cron run that starts a minute earlier than yesterday's must not skip the day)
+    if InsightState.objects.filter(user=user, bell_at__gte=now - window + timedelta(hours=2)).exists():
         return 0
     for insight, row in engine.candidates(user, Surface.BELL, profile=profile, now=now):
         if row.bell_at or row.locked or not _claim(row, 'bell_at', now):
             continue
-        Notification.objects.create(
-            user=user, title=insight.title, message=insight.message, notification_type='INSIGHT',
-            slug=f'insight-{row.rule_id}-{row.dedupe_key}'[:255], link=reverse('insights-go', args=[row.uuid]),
-            metadata={'rule_id': row.rule_id, 'surface': 'bell'})
+        try:
+            Notification.objects.create(
+                user=user, title=insight.title, message=insight.message, notification_type='INSIGHT',
+                slug=f'insight-{row.rule_id}-{row.dedupe_key}'[:255], link=reverse('insights-go', args=[row.uuid]),
+                metadata={'rule_id': row.rule_id, 'surface': 'bell'})
+        except Exception:
+            InsightState.objects.filter(pk=row.pk).update(bell_at=None)        # give it back: a later run can try again
+            raise
         telemetry.event(user, 'delivered', rule_id=row.rule_id, surface='bell', count=1)
         return 1
     return 0
@@ -72,8 +83,11 @@ def deliver_push(user, profile, now, *, has_push: bool) -> int:
         if row.push_at or row.locked or insight.sensitive or not (rule and rule.push) or not _claim(row, 'push_at', now):
             continue
         site_url = getattr(settings, 'SITE_URL', 'https://trackmyrupee.com').rstrip('/')
+        # A push can be read on a locked screen: it says that something is worth a look and in which part of the
+        # app, never a name or an amount (those are one tap away).
         payload = {
-            'head': insight.title, 'body': insight.message, 'icon': f"{site_url}{static('img/pwa-icon-512.png')}",
+            'head': _('TrackMyRupee insight'), 'body': _push_text(insight.module),
+            'icon': f"{site_url}{static('img/pwa-icon-512.png')}",
             'url': f"{site_url}{reverse('insights-go', args=[row.uuid])}",
         }
         try:

@@ -457,7 +457,7 @@ class RealLoaderTests(InsightBase):
         sql = ' '.join(q['sql'] for q in queries.captured_queries)
         for table in ('expenses_accountreconciliation', 'expenses_loaninterestrate', 'expenses_recurringtransaction.id'):
             self.assertNotIn(table, sql)
-        self.assertLessEqual(len(queries), 16)
+        self.assertLessEqual(len(queries), 20)
 
 
 class SettingsAndStripsTests(InsightBase):
@@ -471,6 +471,7 @@ class SettingsAndStripsTests(InsightBase):
         self.client.post(reverse('insights-settings'), {'enabled': 'on', 'notify': 'normal'})
         self.assertEqual(prefs.get(UserProfile.objects.get(pk=self.profile.pk))['emergency_months'], 12)    # absent: kept
 
+    @ENGINE_ON
     def test_the_settings_page_offers_it_in_the_readers_language(self):
         html = self.client.get(reverse('profile-settings')).content.decode()
         self.assertIn('name="emergency_months"', html)

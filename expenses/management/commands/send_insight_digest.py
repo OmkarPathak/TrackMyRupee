@@ -3,8 +3,10 @@ there is something worth saying, never twice for the same insight. Which channel
 INSIGHTS_CHANNELS (it must include "email"). Safe to run again. Reports counts only."""
 import logging
 
+from allauth.account.models import EmailAddress
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
+from django.db.models import Exists, OuterRef
 from django.utils import timezone
 
 from expenses.insights import channel_enabled
@@ -35,7 +37,10 @@ class Command(BaseCommand):
         sent = failed = 0
         for start in range(0, len(ids), options['batch_size']):
             chunk = ids[start:start + options['batch_size']]
-            for user in User.objects.filter(pk__in=chunk, is_active=True).exclude(email='').select_related('profile'):
+            for user in (User.objects.filter(pk__in=chunk, is_active=True, profile__tier='PRO').exclude(email='')
+                         .exclude(username='demo').filter(Exists(EmailAddress.objects.filter(
+                             user=OuterRef('pk'), email__iexact=OuterRef('email'), verified=True)))
+                         .select_related('profile')):
                 try:
                     sent += digest.send(user, user.profile, now)
                 except Exception as exc:    # noqa: BLE001

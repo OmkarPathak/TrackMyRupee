@@ -284,6 +284,11 @@ def _mark_insights_stale(user_id):
     """The person's stored insights were worked out before this change: the next time they open the dashboard (or a
     page with an insights strip) the quick rules run again. A cache write, so a save costs no extra query."""
     try:
+        from types import SimpleNamespace
+
+        from .insights import is_engine_on
+        if not user_id or not is_engine_on(SimpleNamespace(pk=user_id)):
+            return          # the engine is not running for this person: a save costs nothing extra
         from .insights.engine import mark_stale
         mark_stale(user_id)
     except Exception:

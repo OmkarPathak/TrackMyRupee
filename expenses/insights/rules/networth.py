@@ -28,7 +28,8 @@ def what_moved(ctx) -> list[Insight]:
     before, now = ctx.networth
     if before is None:                    # no snapshot from the start of this cycle: nothing to compare with
         return []
-    change, kept = now.total - before.total, ctx.summary(ctx.key).saved
+    # (what was kept counts the one-off Capital Events too: that money left, and net worth shows it)
+    change, kept = now.total - before.total, ctx.facts.with_capital_events(True).summarize(*ctx.cycle).saved
     rest = change - kept
     if kept <= 0 or abs(change) < MIN_MOVE or before.total <= 0:
         return []

@@ -1,7 +1,7 @@
 """The tone linter. Insight copy is a calm friend's voice: no alarm words, no shouting, no exclamation marks.
 
-Used three ways: by the engine (a failing insight is dropped, never shown), by the unit test that scans every
-rule's sample output, and by the test that scans every gettext string in this package. See docs/insights-tone.md.
+Used by the unit test that scans every rule's sample output and by the test that scans every gettext string in this
+package (the engine does not lint at run time). See docs/insights-tone.md.
 """
 from __future__ import annotations
 

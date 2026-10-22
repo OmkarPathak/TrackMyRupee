@@ -7,16 +7,26 @@ the person's own and not shared with amounts unless they choose, does not either
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 from django.utils import timezone
 
+from ..budget_cycle import budget_month_of, budget_range, salary_day_of
 from . import engine, is_engine_on
 from .gating import plan_of, surface_allowed
 from .types import Kind, Surface, Tone
 
 MONTHLY_PICKS = 3
 YEAR_PICKS = 4
+
+
+def last_completed_day(user, day: date) -> date:
+    """`day`, or the last day of the budget month before it when `day` falls inside a budget month that is not over:
+    with a salary day, the cycle a calendar month ends in has only just begun, and what it would say is about its
+    first few days, not about the month the report or the year is describing."""
+    salary_day = salary_day_of(user)
+    start, end = budget_range(salary_day, budget_month_of(salary_day, day))
+    return day if day >= end else start - timedelta(days=1)
 
 
 def monthly(user, end_date: date, *, profile=None) -> dict | None:
@@ -26,7 +36,7 @@ def monthly(user, end_date: date, *, profile=None) -> dict | None:
     profile = profile if profile is not None else user.profile
     if not is_engine_on(user) or not surface_allowed(Surface.MONTHLY, plan_of(profile)):
         return None
-    found = [i for i in engine.compose(user, Surface.MONTHLY, today=end_date, profile=profile) if not i.sensitive]
+    found = [i for i in engine.compose(user, Surface.MONTHLY, today=last_completed_day(user, end_date), profile=profile) if not i.sensitive]
     if not found:
         return None
     highlights = engine.pick(found, MONTHLY_PICKS)
@@ -42,6 +52,7 @@ def year_lines(user, year: int, *, profile=None) -> list:
     profile = profile if profile is not None else user.profile
     if not is_engine_on(user):
         return []
-    today = min(date(year, 12, 31), timezone.localdate())
+    today = timezone.localdate()
+    today = last_completed_day(user, date(year, 12, 31)) if date(year, 12, 31) < today else today
     found = engine.compose(user, Surface.YEAR_IN_REVIEW, today=today, profile=profile)
     return engine.pick(found, YEAR_PICKS, allow_sensitive=False)

@@ -35,7 +35,7 @@ DUPLICATE_GAP = timedelta(hours=24)
 def category_above_usual(ctx) -> list[Insight]:
     """The biggest category of the cycle, against its average over up to three earlier cycles."""
     totals = ctx.summary(ctx.key).categories
-    if not totals:
+    if not totals or ctx.elapsed_days < MIN_DAYS_IN:      # the first days of a cycle are one big bill, not a pattern
         return []
     top_key = max(totals, key=totals.get)
     top = totals[top_key]
@@ -80,7 +80,7 @@ def duplicate_groups(rows) -> list[list]:
     for row in rows:
         if row.from_import or _is_posting(row.description) or row.amount <= 0:
             continue
-        buckets[(row.account_id, row.amount, row.description.strip().lower())].append(row)
+        buckets[(row.account_id, row.amount, row.description.strip().lower(), row.date)].append(row)   # the same day: a week caught up in one sitting is not a duplicate
     groups = []
     for entries in buckets.values():
         entries.sort(key=lambda r: r.created_at)
@@ -180,9 +180,13 @@ def busiest_weekday(ctx) -> list[Insight]:
     series = ctx.facts.daily_expenses(start, end)
     if len(series) != WEEKS * 7 or sum(1 for v in series if v > 0) < 20:
         return []
+    # One large payment (rent, a laptop) must not make its weekday "busy": no single day counts for more than
+    # three times the middle spending day.
+    spending_days = sorted(v for v in series if v > 0)
+    cap = spending_days[len(spending_days) // 2] * 3
     totals = [D(0)] * 7
     for offset, value in enumerate(series):
-        totals[(start + timedelta(days=offset)).weekday()] += value
+        totals[(start + timedelta(days=offset)).weekday()] += min(value, cap)
     averages = [t / WEEKS for t in totals]
     top = max(range(7), key=lambda i: averages[i])
     others = sum((a for i, a in enumerate(averages) if i != top), D(0)) / 6
@@ -250,7 +254,7 @@ def category_change(ctx) -> list[Insight]:
         return []
     start, _end = ctx.cycle
     before_start = ctx.cycle_of(ctx.keys_back(1)[0])[0]
-    before_end = before_start + timedelta(days=elapsed - 1)
+    before_end = min(before_start + timedelta(days=elapsed - 1), ctx.cycle_of(ctx.keys_back(1)[0])[1])   # never into this cycle
     now = ctx.facts.summarize(start, ctx.today).categories
     before = ctx.facts.summarize(before_start, before_end).categories
     whole_before = sum(before.values(), D(0))

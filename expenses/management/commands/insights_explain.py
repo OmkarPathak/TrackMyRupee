@@ -25,7 +25,7 @@ class Command(BaseCommand):
         elif options['username']:
             user = users.filter(username=options['username']).first()
         else:
-            user = users.order_by('-last_login').first()
+            user = users.order_by(F('last_login').desc(nulls_last=True)).first()
         if user is None:
             raise CommandError('no such user')
         profile = user.profile

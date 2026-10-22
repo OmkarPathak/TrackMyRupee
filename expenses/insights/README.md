@@ -89,12 +89,12 @@ addition to the alerts `send_notifications` already creates. The email digest is
 | `INSIGHTS_SHADOW_PERCENT` | share of people compared in shadow mode (default 10) |
 | `manage.py generate_insights` | nightly, idempotent, batched: `--user-id`, `--batch-size`, `--active-days`, `--light-only` |
 | `manage.py deliver_insights` | the bell and push, capped, safe to re-run |
-| `manage.py send_insight_digest` | the email digest (Pro; needs `email` in `INSIGHTS_CHANNELS`): up to three insights, one email a week (or a day, by choice), only when there is something new, never the same insight twice; every email has a signed unsubscribe link and the one-click header |
+| `manage.py send_insight_digest` | the email digest (Pro; verified addresses only; needs `email` in `INSIGHTS_CHANNELS`): up to three insights, one email a week (or a day, by choice), only when there is something new, never the same insight twice; every email has a signed unsubscribe link and the one-click header |
 | `POST /api/cron/generate-insights/`, `/api/cron/deliver-insights/` and `/api/cron/insight-digest/` | the same, for the external cron (secret header) |
 
 Suggested schedule: generate at 02:30 IST, deliver at 09:00 IST, digest at 09:30 IST (the weekly digest goes out on whichever day a person has something new, then waits a week).
 
-Reading is one query (`generate`). When a person's data has changed since the last run, the panel fragment re-runs
+Reading is one query (`generate`). A page's strip is also kept for a minute (`INSIGHTS_STRIP_CACHE_SECONDS`), because an htmx list swap asks for it again; a run, a dismissal or a settings change retires it (`touch`/`version`). When a person's data has changed since the last run, the panel fragment re-runs
 the quick rules once (about 14 queries) and not more than every ten minutes.
 
 Every registered rule, with an example of what it says, is in `docs/insights-rules.md` (regenerate it with `python scripts/generate_insights_rules_doc.py`).

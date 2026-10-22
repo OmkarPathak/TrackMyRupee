@@ -38,7 +38,7 @@ def pace_vs_usual(ctx) -> list[Insight]:
     start, end = ctx.cycle
     spent = ctx.summary(ctx.key).spending
     earlier = [s for s in (ctx.summary(k).spending for k in ctx.keys_back(3)) if s > 0]
-    if spent <= 0 or not earlier:
+    if spent <= 0 or not earlier or ctx.elapsed_days < 7:      # a pace needs a week of days behind it
         return []
     usual = sum(earlier, D(0)) / len(earlier)
     projected = spent / ctx.elapsed_days * ctx.cycle_days
@@ -71,9 +71,11 @@ def pace_vs_usual(ctx) -> list[Insight]:
       cooldown_days=30, min_history=1, sample=sampling.default_sample)
 def saving_streak(ctx) -> list[Insight]:
     """Months in a row (this one included, up to six) in which more came in than went out."""
-    if ctx.summary(ctx.key).saved <= 0:
+    # The cycle in progress counts once it is at least half over: early on, "kept" is nearly the whole salary.
+    counts_now = ctx.elapsed_days * 2 >= ctx.cycle_days
+    if counts_now and ctx.summary(ctx.key).saved <= 0:
         return []
-    streak = 1
+    streak = 1 if counts_now else 0
     for key in ctx.keys_back(5):
         if ctx.summary(key).saved > 0:
             streak += 1
@@ -103,7 +105,7 @@ def savings_momentum(ctx) -> list[Insight]:
     """What has been kept so far is already more than the whole of the previous cycle."""
     now = ctx.summary(ctx.key).saved
     before = ctx.summary(ctx.keys_back(1)[0]).saved
-    if not (now > 0 and before > 0 and now > before):
+    if ctx.elapsed_days * 2 < ctx.cycle_days or not (now > 0 and before > 0 and now > before):   # not in the first half: it is just the salary
         return []
     pct = int((now - before) / before * 100)
     fmt, (start, end) = ctx.fmt, ctx.cycle
@@ -130,7 +132,7 @@ def savings_momentum(ctx) -> list[Insight]:
 def year_pace(ctx) -> list[Insight]:
     """Year-to-date savings, carried forward at the same monthly average to the end of the year."""
     months = ctx.key.month
-    if months < 2:
+    if months < 3:           # two cycles say little about a year
         return []
     kept = sum((ctx.summary(date(ctx.key.year, m, 1)).saved for m in range(1, months + 1)), D(0))
     if kept <= 0:

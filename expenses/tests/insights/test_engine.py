@@ -10,7 +10,7 @@ from expenses.insights import engine, prefs, sampling
 from expenses.insights.types import Insight, Kind, Module, Plan, Surface, Tone
 from expenses.models import Account, InsightFeedback, InsightState, UserProfile
 
-from .base import TODAY, D, InsightBase, month_start, temp_rule
+from .base import ENGINE_ON, TODAY, D, InsightBase, month_start, temp_rule
 
 NOW = timezone.make_aware(datetime(2026, 10, 22, 9, 0))
 
@@ -128,6 +128,7 @@ class RefreshTests(StoredBase):
         midnight = timezone.localtime(fresh.insights_generated_at).replace(hour=23, minute=59) + timedelta(minutes=12)
         self.assertTrue(engine.needs_refresh(fresh, now=midnight))             # a new day: the pace has moved
 
+    @ENGINE_ON
     def test_a_change_to_the_persons_money_makes_the_next_visit_refresh(self):
         engine.refresh(self.user, today=TODAY)
         fresh = UserProfile.objects.get(pk=self.profile.pk)
@@ -139,6 +140,7 @@ class RefreshTests(StoredBase):
         again = UserProfile.objects.get(pk=self.profile.pk)
         self.assertFalse(engine.needs_refresh(again, now=again.insights_generated_at + timedelta(minutes=11)))
 
+    @ENGINE_ON
     def test_so_does_a_change_to_a_budget_limit_and_saving_costs_no_extra_query(self):
         engine.refresh(self.user, today=TODAY)
         fresh = UserProfile.objects.get(pk=self.profile.pk)
@@ -335,10 +337,10 @@ class QueryCountTests(StoredBase):
         self.life()
         with CaptureQueriesContext(connection) as quick:
             engine.refresh(self.user, today=TODAY, costs=('light',))
-        self.assertLessEqual(len(quick), 16)        # measured: 15 (what a dashboard visit may run)
+        self.assertLessEqual(len(quick), 20)        # measured: 19 (what a dashboard visit may run; includes the savepoint pair around the prefs write)
         with CaptureQueriesContext(connection) as small:
             engine.refresh(self.user, today=TODAY)
-        self.assertLessEqual(len(small), 33)        # measured: 32 (the nightly run: heavy rules, net worth and income included)
+        self.assertLessEqual(len(small), 37)        # measured: 36 (the nightly run: heavy rules, net worth and income included)
 
     def test_refresh_does_not_grow_with_the_amount_of_data(self):
         self.life()
@@ -350,4 +352,4 @@ class QueryCountTests(StoredBase):
                                    balance=D('1000'), deposit_maturity_date=TODAY + timedelta(days=5 + n))
         with CaptureQueriesContext(connection) as big:
             engine.refresh(self.user, today=TODAY)
-        self.assertLessEqual(len(big), 33)
+        self.assertLessEqual(len(big), 37)

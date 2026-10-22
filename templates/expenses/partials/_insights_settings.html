@@ -64,7 +64,7 @@
                 <option value="daily"{% if digest == 'daily' %} selected{% endif %}>{% trans "Daily: one email a day, when there is something new" %}</option>
                 <option value="off"{% if digest == 'off' %} selected{% endif %}>{% trans "Never" %}</option>
             </select>
-            <div class="form-text text-muted small mt-1">{% if digest_available %}{% trans "Only sent when there is something worth saying, and every email has an unsubscribe link." %}{% else %}{% trans "The email digest is part of the Pro plan." %}{% endif %}</div>
+            <div class="form-text text-muted small mt-1">{% if digest_available %}{% trans "Only sent when there is something worth saying, and every email has an unsubscribe link. It is not sent if you chose to see insights only on the pages." %}{% else %}{% trans "The email digest is part of the Pro plan." %}{% endif %}</div>
         </div>
 
         <button type="submit" class="btn-action-primary">{% trans "Save insight settings" %}</button>

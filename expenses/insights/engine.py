@@ -19,7 +19,7 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 
 from . import prefs as prefs_module
-from . import registry, telemetry
+from . import registry, telemetry, touch
 from .context import InsightContext
 from .gating import plan_of, rule_allowed
 from .types import Action, Insight, Kind, Plan, Presented, Surface, Tone
@@ -90,12 +90,34 @@ def _locked_copy(rule, insight: Insight) -> Insight | None:
         plan=rule.min_plan, icon='lock')
 
 
+def _refresh_lock(user_id) -> str:
+    return f'insights_refresh_{user_id}'
+
+
 def refresh(user, *, today=None, costs=('light', 'heavy'), profile=None) -> RefreshResult:
     """Evaluate the rules for one person and store what they have to say. Safe to run again: stored rows are
-    updated in place and a dismissal, a snooze or an "acted on" is never undone."""
-    from ..models import InsightState, UserProfile
+    updated in place and a dismissal, a snooze or an "acted on" is never undone.
+
+    Only one run per person at a time (two tabs, or a page visit during the nightly batch): a second caller
+    returns at once with `ran` False. A run that fails still stamps the time, so a broken run is not retried on
+    every page view."""
+    from ..models import UserProfile
 
     profile = profile if profile is not None else user.profile
+    if not cache.add(_refresh_lock(user.pk), 1, 120):
+        return RefreshResult(ran=False)
+    try:
+        return _refresh(user, today=today, costs=costs, profile=profile)
+    except Exception:
+        UserProfile.objects.filter(pk=profile.pk).update(insights_generated_at=timezone.now())
+        raise
+    finally:
+        cache.delete(_refresh_lock(user.pk))
+
+
+def _refresh(user, *, today, costs, profile) -> RefreshResult:
+    from ..models import InsightState, UserProfile
+
     result = RefreshResult(ran=True)
     prefs = prefs_module.get(profile)
     now = timezone.now()
@@ -108,14 +130,22 @@ def refresh(user, *, today=None, costs=('light', 'heavy'), profile=None) -> Refr
     with translation.override(profile.language or 'en'):
         ctx = InsightContext(user, today=today, profile=profile)
         existing = {(s.rule_id, s.dedupe_key): s for s in InsightState.objects.filter(user=user)}
-        to_create, to_update, emitted, succeeded = [], [], set(), set()
+        to_create, to_update, emitted, succeeded = {}, [], set(), set()
 
         for rule in registry.all_rules():
             if rule.cost not in costs or rule.mode != 'stored' or not prefs_module.module_on(prefs, rule.module):
                 continue
-            if rule.requires and not all(ctx.inventory[k] for k in rule.requires):
-                continue                  # no loans, no cards, no recurring payments: nothing to look at, nothing to load
-            if rule.min_history and ctx.history_cycles() < rule.min_history:
+            try:
+                missing = bool(rule.requires) and not all(ctx.inventory[k] for k in rule.requires)
+                short = bool(rule.min_history) and ctx.history_cycles() < rule.min_history
+            except Exception as exc:         # noqa: BLE001 - a loader that fails skips this rule, not the whole run
+                result.failed.append(rule.id)
+                logger.warning('insight rule failed rule_id=%s type=%s', rule.id, type(exc).__name__)
+                continue
+            if missing:
+                succeeded.add(rule.id)    # no loans, no cards, no recurring payments (any more): nothing to say, so old rows retire
+                continue
+            if short:
                 result.skipped_for_history += 1
                 continue
             locked = not rule_allowed(rule.min_plan, plan)
@@ -132,19 +162,20 @@ def refresh(user, *, today=None, costs=('light', 'heavy'), profile=None) -> Refr
             for insight in produced:
                 key = (rule.id, insight.dedupe_key)
                 emitted.add(key)
-                row = existing.get(key)
+                row = existing.get(key) or to_create.get(key)
                 values = {'payload': insight.to_payload(), 'lang': translation.get_language() or 'en',
                           'priority': insight.priority, 'valid_until': insight.valid_until, 'generated_at': now,
                           'locked': locked}
-                if row is None:
-                    to_create.append(InsightState(user=user, rule_id=rule.id, dedupe_key=insight.dedupe_key, **values))
+                if row is None:       # (a rule that says the same thing twice in one run is stored once)
+                    to_create[key] = InsightState(user=user, rule_id=rule.id, dedupe_key=insight.dedupe_key, **values)
                 else:
                     for name, value in values.items():
                         setattr(row, name, value)
-                    to_update.append(row)
+                    if key not in to_create:
+                        to_update.append(row)
 
         if to_create:
-            InsightState.objects.bulk_create(to_create)
+            InsightState.objects.bulk_create(list(to_create.values()), ignore_conflicts=True)
         if to_update:
             InsightState.objects.bulk_update(to_update, FIELDS)
         result.written = len(to_create) + len(to_update)
@@ -159,24 +190,24 @@ def refresh(user, *, today=None, costs=('light', 'heavy'), profile=None) -> Refr
             user=user, valid_until__lt=today - timedelta(days=InsightState.KEEP_DAYS)).delete()
 
     learning = bool(result.skipped_for_history) and not (to_create or to_update)
-    stored = prefs_module.get(profile)
-    stored['learning'] = learning
-    profile.insights_prefs, profile.insights_generated_at, profile.insights_stale = stored, now, False
     cache.delete(_dirty_key(user.pk))
-    UserProfile.objects.filter(pk=profile.pk).update(
-        insights_prefs=stored, insights_generated_at=now, insights_stale=False)
+    # Only the engine's own key is written, on a fresh read: a change the person made to their settings (or a
+    # digest unsubscribe) while this run was going must not be undone.
+    prefs_module.stamp_run(profile, learning=learning, now=now)
+    touch(user.pk)
     return result
 
 
 # ----------------------------------------------------------------------------------------------- read path
 
 def _sort_key(insight: Insight):
-    return (-insight.priority, KIND_ORDER[insight.kind], insight.valid_until)
+    return (-insight.priority, KIND_ORDER[insight.kind], insight.valid_until, insight.rule_id, insight.dedupe_key)
 
 
-def candidates(user, surface: Surface, *, modules=None, profile=None, now=None, exclude=(), skip_rules=()):
+def candidates(user, surface: Surface, *, modules=None, profile=None, now=None, exclude=(), skip_rules=(), also=()):
     """The stored insights that may be shown on `surface` now, best first, as (Insight, InsightState) pairs:
-    not dismissed, snoozed, cooling down, muted or above the person's plan. One query."""
+    not dismissed, snoozed, cooling down, muted or above the person's plan. One query. `also` lists more surfaces
+    that qualify (the digest reads the dashboard's and the pages' insights in one pass)."""
     from ..models import InsightState
 
     profile = profile if profile is not None else user.profile
@@ -189,7 +220,7 @@ def candidates(user, surface: Surface, *, modules=None, profile=None, now=None, 
     horizon = now - timedelta(days=LOOKBACK_DAYS)
 
     rows = list(InsightState.objects.filter(user=user).filter(
-        Q(valid_until__gte=today) | Q(dismissed_at__gte=horizon) | Q(acted_at__gte=horizon)))
+        Q(valid_until__gte=today) | Q(dismissed_at__gte=horizon) | Q(acted_at__gte=horizon)).order_by('id'))
 
     resolved: dict[str, object] = {}
     for row in rows:
@@ -217,24 +248,31 @@ def candidates(user, surface: Surface, *, modules=None, profile=None, now=None, 
             insight = Insight.from_payload(row.payload)
         except Exception:               # noqa: BLE001 - a row from an older shape is skipped, never shown half-made
             continue
-        if surface not in insight.surfaces or (modules is not None and insight.module not in modules):
+        if {surface, *also}.isdisjoint(insight.surfaces) or (modules is not None and insight.module not in modules):
             continue
         found.append((insight, row))
     found.sort(key=lambda pair: _sort_key(pair[0]))
-    return _weekly_pool(found, plan, now)
+    return _weekly_pool(found, plan, now, rows)
 
 
-def _weekly_pool(found, plan, now):
+def _weekly_pool(found, plan, now, rows=()):
     """On the Free plan the rules in the "weekly" pool share one observation a week: the one first shown in the last
-    seven days stays; otherwise the best one nobody has seen yet; the rest wait. Plus and Pro see them all."""
+    seven days stays; otherwise the best one nobody has seen yet; the rest wait. Plus and Pro see them all.
+
+    "The one shown this week" is looked up among all the person's rows, not only those this page may show, so a
+    different page (or a dismissal) cannot bring a second observation into the same week."""
     if plan != Plan.FREE:
         return found
     pooled = [pair for pair in found if registry.get(pair[1].rule_id).pool == 'weekly']
     if not pooled:
         return found
-    current = [p for p in pooled if p[1].first_shown and now - p[1].first_shown < POOL_WINDOW]
-    unseen = [p for p in pooled if not p[1].first_shown]
-    keep = (current or unseen)[:1]
+    shown = [r for r in rows if r.first_shown and now - r.first_shown < POOL_WINDOW
+             and (rule := registry.get(r.rule_id)) is not None and rule.pool == 'weekly']
+    if shown:
+        latest = max(shown, key=lambda r: r.first_shown)
+        keep = [p for p in pooled if p[1].pk == latest.pk]
+    else:
+        keep = [p for p in pooled if not p[1].first_shown][:1]
     return [pair for pair in found if pair not in pooled or pair in keep]
 
 
@@ -355,6 +393,7 @@ def dismiss(user, state_uuid) -> bool:
         return False
     row.dismissed_at = timezone.now()
     row.save(update_fields=['dismissed_at'])
+    touch(user.pk)
     telemetry.event(user, 'action', rule_id=row.rule_id, action='dismiss')
     return True
 
@@ -365,6 +404,7 @@ def snooze(user, state_uuid, days: int = SNOOZE_DAYS) -> bool:
         return False
     row.snoozed_until = timezone.now() + timedelta(days=days)
     row.save(update_fields=['snoozed_until'])
+    touch(user.pk)
     telemetry.event(user, 'action', rule_id=row.rule_id, action='snooze')
     return True
 
@@ -377,6 +417,7 @@ def acted(user, state_uuid) -> str | None:
     if row.acted_at is None:
         row.acted_at = timezone.now()
         row.save(update_fields=['acted_at'])
+        touch(user.pk)
         telemetry.event(user, 'action', rule_id=row.rule_id, action='acted')
     return row.rule_id
 
@@ -397,5 +438,6 @@ def feedback(user, rule_id: str, helpful: bool, *, profile=None) -> bool:
             prefs_module.mute(profile if profile is not None else user.profile, rule_id, timezone.localdate())
             row.not_helpful_count = 0
     row.save()
+    touch(user.pk)
     telemetry.event(user, 'action', rule_id=rule_id, action='helpful' if helpful else 'not_helpful')
     return True

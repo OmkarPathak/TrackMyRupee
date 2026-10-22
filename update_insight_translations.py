@@ -22,6 +22,13 @@ ENTRIES = {
     ('amount suffix: million', 'M'): (None, 'मिलियन', 'दशलक्ष'),
     ('amount suffix: billion', 'B'): (None, 'अरब', 'अब्ज'),
 
+    # ---- push text (a lock screen shows no names or amounts) ----
+    ('', 'TrackMyRupee insight'): (None, 'TrackMyRupee इनसाइट', 'TrackMyRupee इनसाइट'),
+    ('', 'Something in your %(area)s is worth a look.'): (None, 'आपके %(area)s में कुछ देखने लायक है।', 'तुमच्या %(area)s मध्ये काहीतरी पाहण्यासारखे आहे.'),
+    ('', 'Only sent when there is something worth saying, and every email has an unsubscribe link. It is not sent if you chose to see insights only on the pages.'): (
+        None, 'केवल तब भेजा जाता है जब कुछ कहने लायक हो, और हर ईमेल में सदस्यता छोड़ने का लिंक होता है। अगर आपने इनसाइट्स केवल पृष्ठों पर देखना चुना है तो यह नहीं भेजा जाता।',
+        'फक्त काही सांगण्यासारखे असेल तेव्हाच पाठवले जाते, आणि प्रत्येक ईमेलमध्ये सदस्यता रद्द करण्याची लिंक असते. तुम्ही इनसाइट्स फक्त पेजेसवर पाहणे निवडले असेल तर ते पाठवले जात नाही.'),
+
     # ---- module names (Settings) ----
     ('', 'Expenses'): (None, 'खर्च', 'खर्च'),
     ('', 'Income'): (None, 'आय', 'उत्पन्न'),

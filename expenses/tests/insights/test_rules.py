@@ -218,7 +218,7 @@ class BudgetRuleTests(SimpleTestCase):
     def test_runout_gives_the_date_and_leaves_out_categories_already_over(self):
         [insight] = run('budgets.category_runout', budget_ctx([('Transport', 5000, 4000), ('Dining', 100, 500)]))
         self.assertEqual(insight.numbers['categories'], ['transport'])
-        self.assertIn('28 Oct', insight.message)         # 22 days gone, 4000 of 5000 used: day 27.5 of the cycle
+        self.assertIn('27 Oct', insight.message)         # 22 days gone, 4000 of 5000 used: the limit is reached on day 28 (the 27th)
 
     def test_runout_is_quiet_for_a_category_on_a_slow_pace(self):
         self.assertEqual(run('budgets.category_runout', budget_ctx([('Transport', 5000, 1000)])), [])
@@ -268,7 +268,7 @@ class FormatTests(SimpleTestCase):
     def test_rupee_amounts_use_thousands_lakhs_and_crores(self):
         fmt = Fmt('₹')
         self.assertEqual([fmt.approx(v) for v in (842, 9200, 140000, 25000000, 99999)],
-                         ['₹842', '₹9.2k', '₹1.4L', '₹2.5Cr', '₹100k'])
+                         ['₹842', '₹9.2k', '₹1.4L', '₹2.5Cr', '₹1L'])        # 99,999 rounds up into the next unit
         self.assertEqual(fmt.approx(-9200), '−₹9.2k')
 
     def test_other_currencies_use_thousands_millions_and_billions(self):

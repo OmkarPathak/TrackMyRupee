@@ -57,7 +57,9 @@ def load_income_rows(user, first: date, last: date) -> list[IncomeRow]:
     """The user's income entries between two dates, oldest first, in one query and without building model objects."""
     from ..models import Income
 
-    rows = Income.objects.filter(user=user, date__range=(first, last)).order_by('date', 'id').values_list(
+    # (cashback and refunds are not income anywhere else in the app, so they do not count as pay arriving)
+    rows = Income.objects.filter(user=user, date__range=(first, last)).exclude(
+        source_type__in=CASHBACK_REFUND_TYPES).order_by('date', 'id').values_list(
         'date', 'source_type', 'base_amount')
     return [IncomeRow(d, t or '', a or ZERO) for d, t, a in rows]
 

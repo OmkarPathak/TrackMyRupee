@@ -107,7 +107,10 @@ class PushTests(DeliveryBase):
         sent, send = self.push()
         self.assertEqual(sent, 1)
         payload = send.call_args.kwargs['payload']
-        self.assertEqual(payload['head'], 'A calm title')
+        # a lock screen gets no names or amounts: a generic line that names the part of the app
+        self.assertEqual(payload['head'], 'TrackMyRupee insight')
+        self.assertNotIn('A calm title', payload['body'])
+        self.assertIn('worth a look', payload['body'])
         self.assertTrue(payload['url'].endswith(f'/insights/{row.uuid}/go/'))
         self.assertIsNotNone(InsightState.objects.get(pk=row.pk).push_at)
 

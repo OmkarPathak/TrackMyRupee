@@ -1,21 +1,26 @@
 """HTTP for insights: the panel fragment, the person's actions on a card, their Settings, and the cron triggers."""
 from __future__ import annotations
 
+import logging
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core import signing
+from django.core.cache import cache
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from ..models import InsightState
 from ..views.notifications import _cron_authorized, _dispatch_cron_command
-from . import engine, is_engine_on, prefs, registry
+from . import engine, is_engine_on, prefs, registry, version
 from .types import Module, Surface
 
 # A page's strip leaves out what the page already says on its own, because one insight is never shown twice in a view:
@@ -40,7 +45,10 @@ def _modules(raw: str | None):
     if not raw:
         return None
     wanted = {m for m in raw.split(',') if m in Module._value2member_map_}
-    return {Module(m) for m in wanted} or None
+    return {Module(m) for m in wanted}          # unknown names narrow to nothing, never to everything
+
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -54,16 +62,29 @@ def panel(request):
     if surface is None:
         return HttpResponseBadRequest('unknown surface')
     profile = request.user.profile
-    if engine.needs_refresh(profile):
-        engine.refresh(request.user, costs=('light',), profile=profile)
-    modules = _modules(request.GET.get('modules'))
     strip = request.GET.get('strip') == '1'
+    cache_key = None
+    if strip and settings.INSIGHTS_STRIP_CACHE_SECONDS:
+        # a page's strip is asked for again every time its list is swapped (filter, search, next page): reuse the
+        # last one for a minute; anything that changes what it says (a run, a dismissal, a setting) retires it
+        cache_key = (f'insights_strip_{request.user.pk}_{version(request.user.pk)}_{get_language()}_'
+                     f'{request.GET.get("surface", "")}_{request.GET.get("modules", "")}')
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return HttpResponse(cached)
+    if engine.needs_refresh(profile):
+        try:
+            engine.refresh(request.user, costs=('light',), profile=profile)
+        except Exception as exc:       # noqa: BLE001 - show what is stored rather than a broken panel
+            logger.warning('insight refresh failed type=%s', type(exc).__name__)
+    modules = _modules(request.GET.get('modules'))
     skip = set().union(*(STRIP_SKIPS.get(m, ()) for m in modules or ())) if strip else set()
     items = engine.generate(request.user, surface, modules=modules, profile=profile, skip_rules=skip)
     if strip:         # a page's strip says nothing at all when there is nothing to say
-        if not items:
-            return HttpResponse('')
-        return HttpResponse(render_to_string('expenses/partials/_insight_strip.html', {'items': items}, request=request))
+        html = render_to_string('expenses/partials/_insight_strip.html', {'items': items}, request=request) if items else ''
+        if cache_key:
+            cache.set(cache_key, html, settings.INSIGHTS_STRIP_CACHE_SECONDS)
+        return HttpResponse(html)
     return HttpResponse(render_to_string('expenses/partials/_insight_cards.html', {
         'items': items,
         'learning': engine.is_learning(profile),
@@ -110,7 +131,7 @@ def go(request, state_uuid):
         raise Http404
     engine.acted(request.user, state_uuid)
     action = (row.payload or {}).get('action')
-    target = action[1] if action and action[1] and action[1].startswith('/') and not action[1].startswith('//') else None
+    target = action[1] if action and action[1] and action[1].startswith('/') and not action[1].startswith('//') and '\\' not in action[1] else None
     return redirect(target or reverse('home'))
 
 

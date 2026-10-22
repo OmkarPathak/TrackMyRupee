@@ -297,7 +297,11 @@ INSIGHTS_ENGINE_MODE = os.environ.get('INSIGHTS_ENGINE_MODE', 'off').strip().low
 INSIGHTS_ENGINE_USER_IDS = frozenset(
     int(i) for i in os.environ.get('INSIGHTS_ENGINE_USER_IDS', '').split(',') if i.strip().isdigit())
 INSIGHTS_CHANNELS = frozenset(c.strip() for c in os.environ.get('INSIGHTS_CHANNELS', '').split(',') if c.strip())
-INSIGHTS_SHADOW_PERCENT = int(os.environ.get('INSIGHTS_SHADOW_PERCENT', 10))
+INSIGHTS_STRIP_CACHE_SECONDS = 0 if IS_TESTING else 60      # how long a page's rendered insights strip is reused (htmx list swaps)
+try:
+    INSIGHTS_SHADOW_PERCENT = max(0, min(100, int(os.environ.get('INSIGHTS_SHADOW_PERCENT', 10))))
+except ValueError:
+    INSIGHTS_SHADOW_PERCENT = 10
 
 # How long a finished Analytics tab is kept (seconds). Any write by the user clears it sooner; tests turn it off.
 ANALYTICS_CACHE_SECONDS = 0 if IS_TESTING else 300

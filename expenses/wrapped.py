@@ -248,6 +248,25 @@ def build_wrapped(user, year: int, review: dict) -> dict:
         money['net_worth_change'] = None
         money['net_worth_pct'] = None
     out['money'] = money
-    from .insights import composers
-    out['insights'] = [{'title': i.title, 'message': i.message} for i in composers.year_lines(user, year)]
+    out['insights'] = _insight_lines(user, year, today)
     return out
+
+
+def _insight_lines(user, year: int, today: datetime.date) -> list[dict]:
+    """The "What we noticed" lines. They are worked out by running the rules, so they are kept for a while (a past
+    year never changes) and a failure leaves the card out rather than breaking the page."""
+    from django.core.cache import cache
+    from django.utils import translation
+
+    from .insights import composers
+
+    key = f'wrapped_insights_{user.pk}_{year}_{translation.get_language()}'
+    cached = cache.get(key)
+    if cached is not None:
+        return cached
+    try:
+        lines = [{'title': i.title, 'message': i.message} for i in composers.year_lines(user, year)]
+    except Exception:       # noqa: BLE001
+        return []
+    cache.set(key, lines, 6 * 3600 if year < today.year else 600)
+    return lines

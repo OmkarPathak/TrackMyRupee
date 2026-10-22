@@ -21031,3 +21031,167 @@ msgstr "अब आपको अंतर्दृष्टि डाइजेस
 #: expenses/insights
 msgid "This unsubscribe link is not valid."
 msgstr "यह सदस्यता रद्द करने का लिंक मान्य नहीं है।"
+
+msgid "A budget about to run out early, a category creeping up, a deposit about to mature, a card billing date, a salary that is late, idle cash, a subscription that changed price, a goal that is slipping or on track, and more. Each one is a plain sentence about your own money."
+msgstr "समय से पहले खत्म होता बजट, बढ़ती हुई श्रेणी, परिपक्व होने वाली जमा, कार्ड की बिलिंग तारीख, देर से आया वेतन, बेकार पड़ा नकद, भाव बदली सदस्यता, पीछे या सही राह पर चल रहा लक्ष्य, और भी बहुत कुछ। हर एक आपके अपने पैसों के बारे में एक सीधा-सा वाक्य है।"
+
+msgid "A budget running out early, a deposit about to mature, a card billing date, a bill that changed price, a salary that is late."
+msgstr "समय से पहले खत्म होता बजट, परिपक्व होने वाली जमा, कार्ड की बिलिंग तारीख, भाव बदला हुआ बिल, देर से आया वेतन।"
+
+msgid "A health check in four plain numbers"
+msgstr "चार सीधे आँकड़ों में सेहत की जाँच"
+
+msgid "A short strip on your Dashboard and on pages like Budgets, Expenses, Accounts, Loans and Goals, the sentences on your Analytics tabs, a \"What we noticed\" card in your Year in Review, and on Pro a weekly email and a monthly report section."
+msgstr "आपके Dashboard और Budgets, Expenses, Accounts, Loans व Goals जैसे पृष्ठों पर एक छोटी पट्टी, Analytics टैब पर वाक्य, Year in Review में \"हमने क्या देखा\" कार्ड, और Pro पर साप्ताहिक ईमेल व मासिक रिपोर्ट का एक खंड।"
+
+msgid "About fifty things it watches for"
+msgstr "लगभग पचास बातों पर नज़र"
+
+msgid "At this pace, Transport could reach its ₹5k limit around the 28th; ₹4k is used so far. If that sounds right, you could ease the pace or leave it."
+msgstr "इसी रफ़्तार से Transport 28 तारीख के आसपास अपनी ₹5k की सीमा तक पहुँच सकता है; अब तक ₹4k खर्च हुआ है। अगर यह सही लगे तो रफ़्तार थोड़ी धीमी कर सकते हैं, या छोड़ भी सकते हैं।"
+
+msgid "Before it becomes a problem"
+msgstr "समस्या बनने से पहले"
+
+msgid "Built on your salary cycle, your budgets and your currency, so it always agrees with the rest of the app."
+msgstr "आपके वेतन चक्र, बजट और मुद्रा पर बना है, इसलिए यह हमेशा ऐप के बाकी हिस्सों से मेल खाता है।"
+
+msgid "Calm by design"
+msgstr "डिज़ाइन से ही शांत"
+
+msgid "Calm, never alarming"
+msgstr "शांत, कभी डराने वाला नहीं"
+
+msgid "Calm, specific observations from your own entries, so you do not have to go looking."
+msgstr "आपकी अपनी प्रविष्टियों से शांत और सटीक अवलोकन, ताकि आपको ढूँढना न पड़े।"
+
+msgid "Choose the topics and how often it speaks, or keep it to the pages. Included on every plan."
+msgstr "विषय चुनें और कितनी बार बोले यह तय करें, या इसे केवल पृष्ठों तक रखें। हर प्लान में शामिल।"
+
+msgid "Every number opens the entries behind it"
+msgstr "हर आँकड़ा अपने पीछे की प्रविष्टियाँ खोलता है"
+
+msgid "Examples of insights"
+msgstr "इनसाइट्स के उदाहरण"
+
+msgid "Examples. Yours are written from your own entries."
+msgstr "उदाहरण। आपके इनसाइट्स आपकी अपनी प्रविष्टियों से लिखे जाते हैं।"
+
+msgid "Follows your real month"
+msgstr "आपके असली महीने के साथ चलता है"
+
+msgid "How insights work"
+msgstr "इनसाइट्स कैसे काम करते हैं"
+
+msgid "Insights From Your Own Numbers"
+msgstr "आपके अपने आँकड़ों से इनसाइट्स"
+
+msgid "Insights and net worth tracking"
+msgstr "इनसाइट्स और कुल संपत्ति की ट्रैकिंग"
+
+msgid "Insights are worked out inside the app from what you logged. No bank feed, no outside AI service, and your data is never sold or used for advertising. Insights are included on every plan."
+msgstr "इनसाइट्स ऐप के अंदर, आपकी दर्ज की हुई प्रविष्टियों से बनते हैं। कोई बैंक फ़ीड नहीं, कोई बाहरी AI सेवा नहीं, और आपका डेटा कभी बेचा या विज्ञापन के लिए इस्तेमाल नहीं होता। इनसाइट्स हर प्लान में शामिल हैं।"
+
+msgid "Insights on every page"
+msgstr "हर पृष्ठ पर इनसाइट्स"
+
+msgid "Insights point out which categories are quietly rising month over month, and by exactly how much."
+msgstr "इनसाइट्स बताते हैं कि कौन-सी श्रेणियाँ महीने-दर-महीने चुपचाप बढ़ रही हैं, और ठीक कितनी।"
+
+msgid "Insights read your own entries and show exactly which categories are growing month over month, in one calm sentence."
+msgstr "इनसाइट्स आपकी अपनी प्रविष्टियाँ पढ़कर एक शांत वाक्य में ठीक-ठीक बताते हैं कि कौन-सी श्रेणियाँ महीने-दर-महीने बढ़ रही हैं।"
+
+msgid "Insights that notice for you"
+msgstr "इनसाइट्स जो आपके लिए ध्यान रखते हैं"
+
+msgid "Insights use your salary cycle, your Capital Events choices and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app."
+msgstr "इनसाइट्स आपके वेतन चक्र, आपके Capital Events के चुनाव और आपकी मुद्रा का वैसे ही उपयोग करते हैं जैसे आपके बजट और योग करते हैं, इसलिए वे ऐप के बाकी हिस्सों से कभी असहमत नहीं होते।"
+
+msgid "It follows your real month"
+msgstr "यह आपके असली महीने के साथ चलता है"
+
+msgid "It leads with what is going well, never compares you with other people, and never predicts the markets."
+msgstr "यह पहले वही बताता है जो अच्छा चल रहा है, आपकी दूसरों से तुलना नहीं करता, और बाज़ार की भविष्यवाणी नहीं करता।"
+
+msgid "It notices. You decide."
+msgstr "यह ध्यान देता है। फ़ैसला आपका।"
+
+msgid "Most apps show you a list and leave the reading to you. TrackMyRupee reads your own entries and says what is worth a look, in one calm sentence, with the numbers behind it."
+msgstr "ज़्यादातर ऐप आपको एक सूची दिखाकर पढ़ना आप पर छोड़ देते हैं। TrackMyRupee आपकी अपनी प्रविष्टियाँ पढ़ता है और एक शांत वाक्य में, आँकड़ों के साथ, बताता है कि क्या देखने लायक है।"
+
+msgid "Netflix now costs a bit more"
+msgstr "Netflix अब थोड़ा महँगा है"
+
+msgid "Netflix went up from ₹499 to ₹649 on the latest entry. If you expected this, you can dismiss it."
+msgstr "नवीनतम प्रविष्टि पर Netflix ₹499 से बढ़कर ₹649 हो गया। अगर आपको यह अपेक्षित था तो इसे हटा सकते हैं।"
+
+msgid "Pick the topics, and whether the bell mentions things normally, quietly or only on the pages. Snooze or dismiss any insight, and say whether it was helpful so you see less of what is not."
+msgstr "विषय चुनें, और यह भी कि घंटी सामान्य रूप से, चुपचाप या केवल पृष्ठों पर बताए। किसी भी इनसाइट को टाल दें या हटा दें, और बताएँ कि वह मददगार था या नहीं, ताकि जो काम का नहीं वह कम दिखे।"
+
+msgid "Review subscriptions"
+msgstr "सदस्यताओं की समीक्षा करें"
+
+msgid "Runs on your entries, nowhere else"
+msgstr "केवल आपकी प्रविष्टियों पर चलता है, और कहीं नहीं"
+
+msgid "See it in the live demo"
+msgstr "लाइव डेमो में देखें"
+
+msgid "Spots budgets running out early, categories creeping up and bills that changed price, in plain sentences."
+msgstr "समय से पहले खत्म होते बजट, बढ़ती श्रेणियाँ और भाव बदले बिल, सीधे वाक्यों में।"
+
+msgid "Tap a figure and see the exact transactions. Nothing is a black box."
+msgstr "किसी आँकड़े पर टैप करें और ठीक वही लेन-देन देखें। कुछ भी छिपा नहीं है।"
+
+msgid "The sentence uses rounded figures. The exact amounts sit in small chips under it, and each chip opens the transactions that make up the number."
+msgstr "वाक्य में गोल किए हुए आँकड़े होते हैं। सटीक राशियाँ उसके नीचे छोटे चिप्स में होती हैं, और हर चिप उन लेन-देन को खोलता है जिनसे वह संख्या बनी है।"
+
+msgid "Transport may reach its limit early"
+msgstr "Transport समय से पहले अपनी सीमा तक पहुँच सकता है"
+
+msgid "Unlock advanced spending analysis and more insights about your own money with TrackMyRupee Pro."
+msgstr "TrackMyRupee Pro के साथ खर्च का उन्नत विश्लेषण और अपने पैसों के बारे में और इनसाइट्स पाएँ।"
+
+msgid "Used so far"
+msgstr "अब तक उपयोग"
+
+msgid "We lead with what is going well, never compare you with other people, and never predict the markets. Insights about debt, a shortfall or a long gap in income are written extra gently, and are never pushed or emailed."
+msgstr "हम पहले वही बताते हैं जो अच्छा चल रहा है, आपकी दूसरों से तुलना नहीं करते, और बाज़ार की भविष्यवाणी नहीं करते। कर्ज़, कमी या आय में लंबे अंतराल के इनसाइट्स और भी नरमी से लिखे जाते हैं, और कभी पुश या ईमेल नहीं किए जाते।"
+
+msgid "Weekly insights email"
+msgstr "साप्ताहिक इनसाइट्स ईमेल"
+
+msgid "Where it shows up"
+msgstr "यह कहाँ दिखता है"
+
+msgid "You choose how loud it is"
+msgstr "कितना बोले, यह आप तय करें"
+
+msgid "You have kept more than you spent for 6 months in a row. Small habits like this add up quietly."
+msgstr "आपने लगातार 6 महीने खर्च से ज़्यादा बचाया है। ऐसी छोटी आदतें चुपचाप जुड़ती जाती हैं।"
+
+msgid "You set the volume"
+msgstr "आवाज़ आप तय करें"
+
+msgid "Your FD matures on 3 Nov, with about ₹2.1L coming back to you. You might decide where it goes next, or leave it for now."
+msgstr "आपकी FD 3 नवंबर को परिपक्व हो रही है, लगभग ₹2.1L लौटेंगे। आप तय कर सकते हैं कि आगे कहाँ जाए, या अभी रहने दें।"
+
+msgid "Your savings rate, whether spending is rising or falling, how many months your cash would last, and how many months you spent less than you earned. Each one says what it measures."
+msgstr "आपकी बचत दर, खर्च बढ़ रहा है या घट रहा है, आपका नकद कितने महीने चलेगा, और कितने महीने आपने कमाई से कम खर्च किया। हर एक बताता है कि वह क्या मापता है।"
+
+#: expenses/insights
+msgid "TrackMyRupee"
+msgstr "TrackMyRupee"
+
+#: expenses/insights
+#, python-format
+msgid "Something in your %(area)s is worth a look."
+msgstr "आपके %(area)s में कुछ देखने लायक है।"
+
+#: expenses/insights
+msgid "Only sent when there is something worth saying, and every email has an unsubscribe link. It is not sent if you chose to see insights only on the pages."
+msgstr "केवल तब भेजा जाता है जब कुछ कहने लायक हो, और हर ईमेल में सदस्यता छोड़ने का लिंक होता है। अगर आपने इनसाइट्स केवल पृष्ठों पर देखना चुना है तो यह नहीं भेजा जाता।"
+
+#: expenses/insights
+msgid "TrackMyRupee insight"
+msgstr "TrackMyRupee इनसाइट"

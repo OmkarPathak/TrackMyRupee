@@ -272,6 +272,7 @@ class DigestPrefsAndSettingsTests(InsightBase):
         prefs.save(self.profile, enabled=True, modules_off=[], notify='normal', push=True)
         self.assertEqual(prefs.get(self.profile)['digest'], 'daily')                  # left alone when not sent
 
+    @ENGINE_ON
     def test_the_settings_page_has_a_profile_tab_and_an_insights_tab(self):
         html = self.client.get(reverse('profile-settings')).content.decode()
         self.assertIn('id="set-tab-profile"', html)
@@ -279,6 +280,7 @@ class DigestPrefsAndSettingsTests(InsightBase):
         self.assertIn('id="set-pane-insights"', html)
         self.assertIn('btn-action-primary', html[html.index('Save Changes') - 200:html.index('Save Changes')])
 
+    @ENGINE_ON
     def test_the_settings_form_saves_it_for_pro_and_shows_it_disabled_below_pro(self):
         self.client.post(reverse('insights-settings'), {'enabled': 'on', 'notify': 'normal', 'digest': 'off'})
         self.assertEqual(prefs.get(UserProfile.objects.get(pk=self.profile.pk))['digest'], 'off')
@@ -393,6 +395,8 @@ class DigestTests(InsightBase):
         from io import StringIO
 
         from django.core.management import call_command
+        from allauth.account.models import EmailAddress
+        EmailAddress.objects.create(user=self.user, email=self.user.email, verified=True, primary=True)    # only a verified address gets it
         self.store('cashflow.saving_streak', Module.CASHFLOW)
         out = StringIO()
         call_command('send_insight_digest', stdout=out)

@@ -519,7 +519,7 @@ class RealLoaderTests(InsightBase):
         sql = ' '.join(q['sql'] for q in queries.captured_queries)
         for table in ('expenses_goalcontribution', 'expenses_valuation'):
             self.assertNotIn(f'FROM "{table}"', sql)
-        self.assertLessEqual(len(queries), 17)
+        self.assertLessEqual(len(queries), 21)
 
 
 class StripsAndSettingsTests(InsightBase):

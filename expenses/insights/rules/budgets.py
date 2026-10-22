@@ -127,6 +127,8 @@ def category_runout(ctx) -> list[Insight]:
     """A category still within its limit that, at the pace so far, would pass it before the cycle ends."""
     start, end = ctx.cycle
     elapsed, length = ctx.elapsed_days, ctx.cycle_days
+    if elapsed < 7:           # one big bill in the first days is not a pace
+        return []
     running_out = []
     for r in _rows(ctx):
         if not r['limit'] or r['percent'] is None or r['percent'] > 100 or _dec(r['spent']) <= 0:
@@ -134,7 +136,7 @@ def category_runout(ctx) -> list[Insight]:
         projected_pct = round(_dec(r['spent']) / elapsed * length / _dec(r['limit']) * 100, 1)
         if projected_pct > 100:
             days_to_limit = elapsed * _dec(r['limit']) / _dec(r['spent'])
-            running_out.append((start + timedelta(days=int(days_to_limit)), r))
+            running_out.append((start + timedelta(days=max(int(days_to_limit) - 1, 0)), r))
     if not running_out:
         return []
     running_out.sort(key=lambda item: (item[0], item[1]['name'].lower()))

@@ -19,6 +19,7 @@
     </style>
     <div class="mb-3">
         <h2 class="h4 mb-3 fw-bold">{% trans "Profile Settings" %}</h2>
+        {% if INSIGHTS_ON %}
         <ul class="nav set-tabs" role="tablist" aria-label="{% trans 'Profile Settings' %}">
             <li class="nav-item" role="presentation">
                 <button type="button" class="nav-link active" id="set-tab-profile" role="tab" data-set-tab="profile" aria-controls="set-pane-profile" aria-selected="true"><i class="bi bi-person me-1" aria-hidden="true"></i>{% trans "Profile" %}</button>
@@ -27,6 +28,7 @@
                 <button type="button" class="nav-link" id="set-tab-insights" role="tab" data-set-tab="insights" aria-controls="set-pane-insights" aria-selected="false"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i>{% trans "Insights" %}</button>
             </li>
         </ul>
+        {% endif %}
     </div>
 
     <div id="set-pane-profile" role="tabpanel" aria-labelledby="set-tab-profile">
@@ -114,9 +116,11 @@
             </div>
         </form>
     </div>
+    {% if INSIGHTS_ON %}
     <div id="set-pane-insights" role="tabpanel" aria-labelledby="set-tab-insights" hidden>
         {% insights_settings %}
     </div>
+    {% endif %}
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -137,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try { history.replaceState(null, '', name === 'insights' ? '#insights' : location.pathname + location.search); } catch (e) {}
         });
     });
-    openTab(location.hash === '#insights' ? 'insights' : 'profile');
+    if (tabs.length) openTab(location.hash === '#insights' ? 'insights' : 'profile');
     var form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function() {

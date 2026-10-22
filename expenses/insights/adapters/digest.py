@@ -14,6 +14,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone, translation
+from django.utils.formats import date_format
 from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
 
@@ -24,6 +25,15 @@ from ..types import Surface
 
 WINDOW = {'weekly': timedelta(days=7), 'daily': timedelta(days=1)}
 PICKS = 3
+
+
+def plain_text(html: str) -> str:
+    """The text part of an email made from its HTML: no styles or title, entities turned back into characters."""
+    import html as html_lib
+    import re
+
+    html = re.sub(r'<(style|title|head)[^>]*>.*?</\1>', ' ', html, flags=re.DOTALL | re.IGNORECASE)
+    return ' '.join(html_lib.unescape(strip_tags(html)).split())
 
 
 def _site_url() -> str:
@@ -41,11 +51,9 @@ def allowed(user, profile) -> str | None:
 
 def select(user, profile, now) -> list[tuple]:
     """[(Insight, InsightState)] for the next email, at most three from different modules, best first."""
-    pairs = {}
-    for surface in (Surface.DASHBOARD, Surface.MODULE):
-        for insight, row in engine.candidates(user, surface, profile=profile, now=now):
-            pairs.setdefault(row.pk, (insight, row))
-    eligible = [(i, r) for i, r in pairs.values() if not r.email_at and not r.locked and not i.sensitive]
+    eligible = [(i, r) for i, r in engine.candidates(user, Surface.DASHBOARD, profile=profile, now=now,
+                                                      also=(Surface.MODULE,))
+                if not r.email_at and not r.locked and not i.sensitive]
     by_id = {id(i): (i, r) for i, r in eligible}
     return [by_id[id(i)] for i in engine.pick([i for i, _r in eligible], PICKS, positive_first=False)]
 
@@ -73,14 +81,14 @@ def send(user, profile, now) -> int:
         return 0
     unsubscribe = f"{_site_url()}{reverse('insights-digest-unsubscribe', args=[digest_token(user)])}"
     with translation.override(profile.language or 'en'):
-        subject = _('Your TrackMyRupee insights, %(date)s') % {'date': timezone.localtime(now).strftime('%d %b')}
+        subject = _('Your TrackMyRupee insights, %(date)s') % {'date': date_format(timezone.localtime(now), 'j M')}
         html = render_to_string('emails/insight_digest.html', {
             'items': [{'title': i.title, 'message': i.message, 'link': f"{_site_url()}{reverse('insights-go', args=[r.uuid])}",
                        'action': i.action.label if i.action else ''} for i, r in claimed],
             'unsubscribe_url': unsubscribe, 'settings_url': f"{_site_url()}{reverse('profile-settings')}#insights",
             'site_url': _site_url(), 'frequency': frequency})
     message = EmailMultiAlternatives(
-        subject=subject, body=' '.join(strip_tags(html).split()), from_email=settings.DEFAULT_FROM_EMAIL, to=[user.email],
+        subject=subject, body=plain_text(html), from_email=settings.DEFAULT_FROM_EMAIL, to=[user.email],
         headers={'List-Unsubscribe': f'<{unsubscribe}>', 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'})
     message.attach_alternative(html, 'text/html')
     try:
@@ -90,6 +98,6 @@ def send(user, profile, now) -> int:
         InsightState.objects.filter(pk__in=[r.pk for _i, r in claimed]).update(email_at=None)
         raise
     if not EmailLog.objects.filter(user=user, subject=subject, status='SENT').exists():
-        EmailLog.objects.create(user=user, to_email=user.email, subject=subject, body=subject, html_body=html, status='SENT')
+        EmailLog.objects.create(user=user, to_email=user.email, subject=subject, body=subject, html_body='', status='SENT')
     telemetry.event(user, 'delivered', surface='email', count=len(claimed))
     return 1

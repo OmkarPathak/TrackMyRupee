@@ -84,7 +84,7 @@ def extra_emi_effect(ctx) -> list[Insight]:
     args = {'loan': loan.name, 'amount': own.approx(result['interest_saved']), 'n': ctx.fmt.number(months),
             'years': ctx.fmt.number(f"{result['years_saved']:g}")}
     message = (_('One extra EMI a year on %(loan)s could close it about %(years)s years earlier and save around '
-                 '%(amount)s in interest. It is only an estimate, and entirely optional.') if months >= 12 else
+                 '%(amount)s in interest. It is only an estimate, and entirely optional.') if months >= 24 else
                _('One extra EMI a year on %(loan)s could close it about %(n)s months earlier and save around '
                  '%(amount)s in interest. It is only an estimate, and entirely optional.')) % args
     link = _loan_link(loan)

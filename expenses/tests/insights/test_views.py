@@ -155,12 +155,14 @@ class SettingsTests(InsightBase):
         self.post(enabled='on', notify='normal')
         self.assertTrue(UserProfile.objects.get(pk=self.profile.pk).insights_stale)
 
+    @ENGINE_ON
     def test_the_settings_page_shows_the_section_with_its_topics(self):
         html = self.client.get(reverse('profile-settings')).content.decode()
         self.assertIn('id="insights"', html)
         self.assertIn('name="modules" value="budgets"', html)
         self.assertIn('Save insight settings', html)
 
+    @ENGINE_ON
     def test_the_section_is_translated(self):
         UserProfile.objects.filter(pk=self.profile.pk).update(language='mr')
         html = self.client.get(reverse('profile-settings'), HTTP_ACCEPT_LANGUAGE='mr').content.decode()

@@ -277,9 +277,14 @@ class InsightContext:
             return out
         rows = Expense.objects.filter(user=self.user, description__in=names,
                                       date__gte=self.today - timedelta(days=POSTING_DAYS)
-                                      ).order_by('date', 'id').values_list('description', 'date', 'base_amount')
-        for description, day, amount in rows:
-            out.setdefault(description, []).append((day, Decimal(str(amount))))
+                                      ).order_by('date', 'id').values_list('description', 'date', 'amount', 'currency',
+                                                                           'base_amount')
+        base = self.profile.currency
+        for description, day, amount, currency, base_amount in rows:
+            # a foreign-currency schedule costs the same each time in its own currency: compare that, not the
+            # base amount, which moves with the day's exchange rate
+            figure = amount if currency and currency != base else base_amount
+            out.setdefault(description, []).append((day, Decimal(str(figure))))
         return out
 
     @property
@@ -408,8 +413,10 @@ class InsightContext:
                 if holding.currency not in rates:
                     try:
                         rates[holding.currency] = Decimal(str(get_exchange_rate(holding.currency, base)))
-                    except Exception:                   # no rate: use the figure as it is rather than say nothing
-                        rates[holding.currency] = Decimal(1)
+                    except Exception:                   # no rate: leave this holding out rather than count it at 1 to 1
+                        rates[holding.currency] = None
+                if rates[holding.currency] is None:
+                    continue
                 value = (value * rates[holding.currency]).quantize(Decimal('0.01'))
             out.append(HoldingValue(holding, value))
         return out
@@ -422,7 +429,6 @@ class InsightContext:
         return self._get('networth', self._load_networth)
 
     def _load_networth(self) -> tuple:
-        from ..analytics.networth import net_worth_points
         from ..models import NetWorthSnapshot
 
         start = self.cycle[0] - timedelta(days=1)
@@ -430,7 +436,7 @@ class InsightContext:
                                                ).order_by('-as_of_date').values_list('total_net_worth', flat=True).first()
         if snap is None:
             return None, None
-        return SimpleNamespace(total=Decimal(str(snap))), net_worth_points(self.user, [self.today], self.today)[0]
+        return SimpleNamespace(total=Decimal(str(snap))), self._get('cash', self._load_cash, need='networth')
 
     # ---- inline rules: the Analytics tab's own Page (see pagectx.PageContext, which fills these in) ----
 

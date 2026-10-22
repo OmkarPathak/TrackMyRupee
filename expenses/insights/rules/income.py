@@ -18,6 +18,7 @@ D = Decimal
 SALARY = 'Salary'
 LATE_AFTER_DAYS = 3             # the salary is "late" this many days after the day it usually arrives
 LATE_WINDOW_DAYS = 20           # and the note stops after this many
+SALARY_EARLY_DAYS = 3           # salary credited this many days before the cycle begins is still this cycle's
 MIN_SALARY_MONTHS = 2           # months with a salary entry before a "usual day" is learned
 GAP_DAYS = 45
 GAP_PATTERN_MONTHS = 3          # months with income before a gap means anything
@@ -87,7 +88,7 @@ def salary_late(ctx) -> list[Insight]:
         expected = start
     else:
         expected = get_safe_date(start.year, start.month, day)
-    if any(start <= r.date <= end for r in salary_rows):
+    if any(start - timedelta(days=SALARY_EARLY_DAYS) <= r.date <= end for r in salary_rows):      # paid a few days early (a weekend) counts
         return []
     late_by = (ctx.today - expected).days
     if not LATE_AFTER_DAYS <= late_by <= LATE_WINDOW_DAYS:
