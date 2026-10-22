@@ -154,24 +154,24 @@
     </script>
 
     <!-- Preconnect to CDNs for speedier connection establishment -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Preload above-the-fold hero mockup images for faster LCP -->
     <link rel="preload" href="{% static 'img/desktop.webp' %}" as="image" type="image/webp" media="(min-width: 992px)">
     <!-- Mobile LCP: preload 420w variant only on mobile viewports (saves ~25KB vs 840w) -->
-    <link rel="preload" href="{% static 'img/mobile-2-420.webp' %}" as="image" type="image/webp" fetchpriority="high" media="(max-width: 991px)">
+    <link rel="preload" as="image" type="image/webp" fetchpriority="high" media="(max-width: 991px)"
+          imagesrcset="{% static 'img/mobile-2-420.webp' %} 420w, {% static 'img/mobile-2.webp' %} 840w" imagesizes="(max-width: 600px) 420px, 840px">
 
     <!-- Google Fonts — non-blocking via preload+onload; display=swap handles FOUT -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet"></noscript>
 
     <!-- Bootstrap 5 CSS — kept blocking (required for above-the-fold layout) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{% static 'vendor/bootstrap/bootstrap.purged.min.css' %}" rel="stylesheet">
     <!-- Bootstrap Icons — non-blocking; all icons appear below-the-fold -->
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"></noscript>
+    <link rel="preload" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}"></noscript>
 
     <style>
         :root {
@@ -1273,10 +1273,14 @@
 
         /* ANIMATIONS */
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { transform: translateY(14px); }      /* no opacity: text that starts invisible is not painted, so it delays the first and largest paint */
+            to { transform: translateY(0); }
         }
-        .hero-inner > * { animation: fadeUp .6s ease both; }
+        .hero-inner > * { animation: fadeUp .5s ease both; }
+        @media (prefers-reduced-motion: reduce) { .hero-inner > * { animation: none; } }
+
+        /* Sections below the first screens are laid out and painted only when they come near the viewport */
+        main > section:nth-of-type(n+3) { content-visibility: auto; contain-intrinsic-size: auto 800px; }
         .hero-inner > *:nth-child(2) { animation-delay: .1s; }
 
         /* PWA / Mobile Notch Safe Area Fixes */
@@ -1610,7 +1614,7 @@
     <div class="hero-visual-wrapper">
         <div class="hero-mockups">
             <div class="desktop-mockup">
-                <img src="{% static 'img/desktop.webp' %}" alt="TrackMyRupee Desktop Dashboard" class="img-fluid w-100" loading="eager" width="800" height="402">
+                <img src="{% static 'img/desktop.webp' %}" alt="TrackMyRupee Desktop Dashboard" class="img-fluid w-100" loading="lazy" decoding="async" width="800" height="402">
             </div>
             <div class="mobile-mockup">
                 <picture>
@@ -2679,7 +2683,7 @@
 </script>
 
     <!-- Bootstrap JS — deferred; landing page interactive elements don't depend on it synchronously -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}" defer></script>
 
     <!-- Django Messages Toast Container -->
     {% if messages %}
