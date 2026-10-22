@@ -49,6 +49,16 @@
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-EYJX7BCKVD"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-EYJX7BCKVD",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-EYJX7BCKVD",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script>
+  
 
     
     
@@ -1284,6 +1294,8 @@
 
 
 
+  
+
 
 
 
@@ -1340,6 +1352,80 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+  
+    
+  
+
+
+  
+    
+  
+
+
+
+
+  
+
+<h4>Cookies</h4>
+<p>With your permission, we use Google Analytics cookies to count visits to this guide and see which pages help. If you decline, nothing is loaded. See the <a href="https://trackmyrupee.com/privacy-policy/#section-3">Privacy Policy</a>.</p>
+<input class="md-toggle" type="checkbox" id="__settings" checked>
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+      
+      
+        
+        
+      
+      <li class="task-list-item">
+        <label class="task-list-control">
+          <input type="checkbox" name="analytics" checked>
+          <span class="task-list-indicator"></span>
+          Google Analytics
+        </label>
+      </li>
+    
+      
+      
+        
+        
+      
+      <li class="task-list-item">
+        <label class="task-list-control">
+          <input type="checkbox" name="github" checked>
+          <span class="task-list-indicator"></span>
+          GitHub
+        </label>
+      </li>
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">स्वीकार करा</button>
+    
+    
+    
+  
+    
+    
+      <button type="reset" class="md-button md-button--primary">नकारा</button>
+    
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
     
     <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "toc.follow", "search.highlight", "search.suggest", "content.code.copy", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.07f07601.min.js", "translations": {"clipboard.copied": "\u0915\u0949\u092a\u0940 \u0915\u0947\u0932\u0947", "clipboard.copy": "\u0915\u094d\u0932\u093f\u092a\u092c\u094b\u0930\u094d\u0921\u0935\u0930 \u0915\u0949\u092a\u0940 \u0915\u0930\u093e", "search.result.more.one": "\u092f\u093e \u092a\u093e\u0928\u093e\u0935\u0930 \u0906\u0923\u0916\u0940 1", "search.result.more.other": "\u092f\u093e \u092a\u093e\u0928\u093e\u0935\u0930 \u0906\u0923\u0916\u0940 #", "search.result.none": "\u0915\u094b\u0923\u0924\u0947\u0939\u0940 \u0928\u093f\u0915\u093e\u0932 \u0906\u0922\u0933\u0932\u0947 \u0928\u093e\u0939\u0940\u0924", "search.result.one": "1 \u0928\u093f\u0915\u093e\u0932 \u0906\u0922\u0933\u0932\u093e", "search.result.other": "# \u0928\u093f\u0915\u093e\u0932 \u0906\u0922\u0933\u0932\u0947", "search.result.placeholder": "\u0936\u094b\u0927\u0923\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u091f\u093e\u0908\u092a \u0915\u0930\u093e", "search.result.term.missing": "\u0917\u0939\u093e\u0933", "select.version": "\u0906\u0935\u0943\u0924\u094d\u0924\u0940 \u0928\u093f\u0935\u0921\u093e"}}</script>
     
