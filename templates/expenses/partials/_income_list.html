@@ -46,6 +46,9 @@
     {% render_filter_toolbar filter_config applied_state %}
     {% endif %}
 
+    <!-- Insights about income: one compact line each -->
+    {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=income&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
     <!-- Summary & Sparkline Widget -->
     <div class="row g-2 mb-3">
         <!-- Summary Cards -->

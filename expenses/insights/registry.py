@@ -18,8 +18,8 @@ MODES = ('stored', 'inline')
 # the loaders an InsightContext offers
 NEEDS = frozenset({'facts', 'budgets', 'accounts', 'recurring', 'recent', 'rows', 'budget_history', 'inventory',
                    'recurring_all', 'postings', 'pending', 'cash', 'accounts_all', 'cards', 'loans', 'loan_paid',
-                   'reconciliations'})
-INVENTORY = frozenset({'loans', 'cards', 'recurring'})     # what a person may not have at all
+                   'reconciliations', 'income_rows', 'goals', 'holdings', 'networth'})
+INVENTORY = frozenset({'loans', 'cards', 'recurring', 'goals', 'holdings'})     # what a person may not have at all
 
 
 @dataclass(frozen=True)
@@ -38,7 +38,7 @@ class InsightRule:
     preview: Callable | None = None      # a figure-free line shown to plans below min_plan
     sample: Callable | None = None       # builds a synthetic context so tests can run the rule everywhere
     pool: str | None = None              # 'weekly': on the Free plan the pool's rules share one observation a week
-    requires: frozenset[str] = frozenset()   # 'loans', 'cards' or 'recurring': skipped, costing nothing, when the person has none
+    requires: frozenset[str] = frozenset()   # 'loans', 'cards', 'recurring', 'goals' or 'holdings': skipped, costing nothing, when the person has none
 
 
 REGISTRY: dict[str, InsightRule] = {}

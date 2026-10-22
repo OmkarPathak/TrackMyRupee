@@ -396,6 +396,131 @@ ENTRIES = {
     ('', 'Your cushion target'): (None, 'आपका सुरक्षा-निधि लक्ष्य', 'तुमचे सुरक्षितता-निधी लक्ष्य'),
     ('', 'Your fixed costs each month'): (None, 'आपके हर महीने के तय खर्च', 'तुमचे दर महिन्याचे ठरलेले खर्च'),
     ('', 'Your loan rates differ'): (None, 'आपके ऋणों की दरें अलग हैं', 'तुमच्या कर्जांचे दर वेगळे आहेत'),
+    # ---- Phase D: income ----
+    ('', 'How steady your income is'): (None, 'आपकी आय कितनी स्थिर है', 'तुमचे उत्पन्न किती स्थिर आहे'),
+    ('', 'About %(share)s of your income came from salary; the rest varied between %(low)s and %(high)s a cycle.'): (
+        None,
+        'आपकी आय का लगभग %(share)s वेतन से आया; बाकी हर चक्र में %(low)s से %(high)s के बीच रहा।',
+        'तुमच्या उत्पन्नाचा सुमारे %(share)s भाग पगारातून आला; उर्वरित प्रत्येक चक्रात %(low)s ते %(high)s दरम्यान राहिला.'),
+    ('', 'About %(share)s of your income came from salary; the rest came to around %(avg)s a cycle.'): (
+        None,
+        'आपकी आय का लगभग %(share)s वेतन से आया; बाकी हर चक्र में करीब %(avg)s रहा।',
+        'तुमच्या उत्पन्नाचा सुमारे %(share)s भाग पगारातून आला; उर्वरित प्रत्येक चक्रात सुमारे %(avg)s होता.'),
+    ('', 'Salary'): (None, 'वेतन', 'पगार'),
+    ('', 'Other income'): (None, 'अन्य आय', 'इतर उत्पन्न'),
+    ('', 'Salary has not arrived yet'): (None, 'वेतन अभी नहीं आया', 'पगार अजून आलेला नाही'),
+    ('', 'It usually lands around day %(day)s of the month and none is recorded this cycle. If it is on its way, there is nothing to do.'): (
+        None,
+        'यह आम तौर पर महीने की %(day)s तारीख के आसपास आता है और इस चक्र में कोई दर्ज नहीं है। अगर वह रास्ते में है, तो कुछ करने की ज़रूरत नहीं।',
+        'तो साधारणपणे महिन्याच्या %(day)s तारखेच्या आसपास येतो आणि या चक्रात कोणताही नोंदवलेला नाही. तो वाटेत असेल तर काही करण्याची गरज नाही.'),
+    ('', 'Add income'): (None, 'आय जोड़ें', 'उत्पन्न जोडा'),
+    ('', 'No income recorded for a while'): (None, 'कुछ समय से कोई आय दर्ज नहीं', 'काही काळापासून कोणतेही उत्पन्न नोंदवलेले नाही'),
+    ('', 'There has been no income entry for %(days)s days. You can add income whenever you are ready.'): (
+        None,
+        '%(days)s दिनों से कोई आय प्रविष्टि नहीं है। जब आप तैयार हों, आय जोड़ सकते हैं।',
+        '%(days)s दिवसांपासून कोणतीही उत्पन्न नोंद नाही. तुम्ही तयार असाल तेव्हा उत्पन्न जोडू शकता.'),
+    ('', 'Last income'): (None, 'पिछली आय', 'मागील उत्पन्न'),
+
+    # ---- Phase D: goals ----
+    ('', '%(name)s is on track for %(month)s'): (None, '%(name)s %(month)s तक सही राह पर', '%(name)s %(month)s पर्यंत पूर्ण होण्याच्या मार्गावर आहे'),
+    ('', '%(name)s may finish a little later'): (None, '%(name)s शायद कुछ देर से पूरा होगा', '%(name)s थोड्या उशिरा पूर्ण होऊ शकते'),
+    ('', 'At the pace of the last 3 months, it reaches %(target)s around %(when)s.'): (
+        None,
+        'पिछले 3 महीनों की रफ़्तार से यह %(when)s के आसपास %(target)s तक पहुँचेगा।',
+        'गेल्या 3 महिन्यांच्या गतीने ते %(when)s च्या आसपास %(target)s पर्यंत पोहोचेल.'),
+    ('', 'At the pace of the last 3 months, it reaches %(target)s around %(when)s, a little after your %(date)s date. A small top-up could close the gap.'): (
+        None,
+        'पिछले 3 महीनों की रफ़्तार से यह %(when)s के आसपास %(target)s तक पहुँचेगा, यानी आपकी %(date)s की तारीख़ से थोड़ा बाद। थोड़ी सी अतिरिक्त राशि इस अंतर को भर सकती है।',
+        'गेल्या 3 महिन्यांच्या गतीने ते %(when)s च्या आसपास %(target)s पर्यंत पोहोचेल, म्हणजे तुमच्या %(date)s च्या तारखेनंतर थोडे. थोडी जादा रक्कम हा फरक भरून काढू शकते.'),
+    ('', 'Saved so far'): (None, 'अब तक बचाया', 'आतापर्यंत वाचवलेले'),
+    ('', 'Each month'): (None, 'हर महीने', 'दर महिन्याला'),
+    ('', 'Open the goal'): (None, 'लक्ष्य खोलें', 'उद्दिष्ट उघडा'),
+    ('', 'A small change for a goal'): (None, 'एक लक्ष्य के लिए एक छोटा बदलाव', 'एका उद्दिष्टासाठी एक छोटासा बदल'),
+    ('', 'A small change for %(name)s'): (None, '%(name)s के लिए एक छोटा बदलाव', '%(name)s साठी एक छोटासा बदल'),
+    ('', 'Adding %(amount)s a month would bring the finish forward by about %(n)s months. It is one option; the current pace is fine too.'): (
+        None,
+        'हर महीने %(amount)s जोड़ने से समाप्ति लगभग %(n)s महीने पहले हो सकती है। यह बस एक विकल्प है; मौजूदा रफ़्तार भी ठीक है।',
+        'दर महिन्याला %(amount)s जोडल्यास पूर्णता सुमारे %(n)s महिने आधी होऊ शकते. हा फक्त एक पर्याय आहे; सध्याची गतीही चांगली आहे.'),
+    ('', 'Extra each month'): (None, 'हर महीने अतिरिक्त', 'दर महिन्याला जादा'),
+    ('', 'A goal has been quiet lately'): (None, 'एक लक्ष्य में हाल में कोई हलचल नहीं', 'एका उद्दिष्टात अलीकडे हालचाल नाही'),
+    ('', '%(name)s has been quiet lately'): (None, '%(name)s में हाल में कोई हलचल नहीं', '%(name)s मध्ये अलीकडे हालचाल नाही'),
+    ('', 'There has been no contribution for %(days)s days; it stands at %(pct)s of %(target)s. A small top-up or a pause are both fine.'): (
+        None,
+        '%(days)s दिनों से कोई योगदान नहीं हुआ; यह %(target)s का %(pct)s है। थोड़ी राशि जोड़ना या रुकना, दोनों ठीक हैं।',
+        '%(days)s दिवसांपासून कोणतेही योगदान झालेले नाही; ते %(target)s च्या %(pct)s वर आहे. थोडी रक्कम जोडणे किंवा थांबणे, दोन्ही चालेल.'),
+    ('', '%(name)s is complete'): (None, '%(name)s पूरा हो गया', '%(name)s पूर्ण झाले'),
+    ('', '%(name)s is nearly there'): (None, '%(name)s लगभग पूरा होने को है', '%(name)s जवळजवळ पूर्ण होत आले'),
+    ('', '%(name)s is halfway'): (None, '%(name)s आधा पूरा हुआ', '%(name)s अर्धे पूर्ण झाले'),
+    ('', 'You have reached all of %(target)s. Steady contributions got you here.'): (
+        None, 'आप पूरे %(target)s तक पहुँच गए हैं। नियमित योगदान ने आपको यहाँ तक पहुँचाया।',
+        'तुम्ही संपूर्ण %(target)s पर्यंत पोहोचला आहात. नियमित योगदानाने तुम्हाला येथवर आणले.'),
+    ('', 'You have reached %(pct)s of %(target)s. Steady contributions got you here.'): (
+        None, 'आप %(target)s का %(pct)s तक पहुँच गए हैं। नियमित योगदान ने आपको यहाँ तक पहुँचाया।',
+        'तुम्ही %(target)s च्या %(pct)s पर्यंत पोहोचला आहात. नियमित योगदानाने तुम्हाला येथवर आणले.'),
+
+    # ---- Phase D: transfers and investing, holdings ----
+    ('', 'Share of income you invest'): (None, 'निवेश में गया आय का हिस्सा', 'उत्पन्नाचा तुम्ही गुंतवत असलेला हिस्सा'),
+    ('', 'About %(share)s of income went into investments this cycle, against your usual %(usual)s.'): (
+        None,
+        'इस चक्र में आय का लगभग %(share)s निवेश में गया, जबकि आपका सामान्य %(usual)s रहता है।',
+        'या चक्रात उत्पन्नाचा सुमारे %(share)s गुंतवणुकीत गेला, तुमचा नेहमीचा %(usual)s असतो.'),
+    ('', 'Invested'): (None, 'निवेश किया', 'गुंतवले'),
+    ('', 'A SIP has not been recorded'): (None, 'एक SIP दर्ज नहीं हुई', 'एक SIP नोंदवली गेलेली नाही'),
+    ('', 'Your %(amount)s SIP (%(name)s) was due on %(day)s and is not recorded yet. If it went through, you can add it.'): (
+        None,
+        'आपकी %(amount)s की SIP (%(name)s) %(day)s को देय थी और अभी दर्ज नहीं है। अगर वह हो गई है, तो आप उसे जोड़ सकते हैं।',
+        'तुमची %(amount)s ची SIP (%(name)s) %(day)s रोजी देय होती आणि अजून नोंदवलेली नाही. ती झाली असल्यास तुम्ही ती जोडू शकता.'),
+    ('', 'Due on'): (None, 'देय तिथि', 'देय तारीख'),
+    ('', 'Add the transfer'): (None, 'ट्रांसफ़र जोड़ें', 'हस्तांतरण जोडा'),
+    ('', 'Where your invested money sits'): (None, 'आपका निवेशित पैसा कहाँ है', 'तुमचे गुंतवलेले पैसे कुठे आहेत'),
+    ('', '%(kind)s are about %(kind_share)s of your invested money and %(name)s about %(share)s. This is just a picture of your mix.'): (
+        None,
+        '%(kind)s आपके निवेशित पैसे का लगभग %(kind_share)s हैं और %(name)s लगभग %(share)s। यह बस आपके मिश्रण की एक तस्वीर है।',
+        '%(kind)s तुमच्या गुंतवलेल्या पैशांच्या सुमारे %(kind_share)s आहेत आणि %(name)s सुमारे %(share)s. हे फक्त तुमच्या मिश्रणाचे चित्र आहे.'),
+    ('', '%(kind)s are about %(kind_share)s of your invested money. This is just a picture of your mix.'): (
+        None,
+        '%(kind)s आपके निवेशित पैसे का लगभग %(kind_share)s हैं। यह बस आपके मिश्रण की एक तस्वीर है।',
+        '%(kind)s तुमच्या गुंतवलेल्या पैशांच्या सुमारे %(kind_share)s आहेत. हे फक्त तुमच्या मिश्रणाचे चित्र आहे.'),
+    ('', '%(name)s is about %(share)s of your invested money. This is just a picture of your mix.'): (
+        None,
+        '%(name)s आपके निवेशित पैसे का लगभग %(share)s है। यह बस आपके मिश्रण की एक तस्वीर है।',
+        '%(name)s तुमच्या गुंतवलेल्या पैशांच्या सुमारे %(share)s आहे. हे फक्त तुमच्या मिश्रणाचे चित्र आहे.'),
+    ('', 'Invested value'): (None, 'निवेशित मूल्य', 'गुंतवणूक मूल्य'),
+    ('', 'Mutual funds'): (None, 'म्यूचुअल फ़ंड', 'म्युच्युअल फंड'),
+    ('', 'Stocks'): (None, 'शेयर', 'शेअर्स'),
+    ('', 'Recurring deposits'): (None, 'आवर्ती जमा', 'आवर्ती ठेवी'),
+    ('', 'Other holdings'): (None, 'अन्य होल्डिंग्स', 'इतर होल्डिंग्ज'),
+
+    # ---- Phase D: capital events, calendar, net worth ----
+    ('', 'A one-off cost shaped this cycle'): (None, 'एकमुश्त खर्च का इस चक्र पर असर', 'एका एकवेळच्या खर्चाने हे चक्र घडवले'),
+    ('', 'Your savings rate is %(rate)s, or %(with)s with %(name)s counted. One-off costs are normal and are kept out of averages by default.'): (
+        None,
+        'आपकी बचत दर %(rate)s है, या %(name)s को गिनने पर %(with)s। एकमुश्त खर्च सामान्य हैं और डिफ़ॉल्ट रूप से औसत से बाहर रखे जाते हैं।',
+        'तुमचा बचत दर %(rate)s आहे, किंवा %(name)s धरल्यास %(with)s. एकवेळचे खर्च सामान्य असतात आणि डीफॉल्टनुसार सरासरीतून वगळले जातात.'),
+    ('', 'One-off costs'): (None, 'एकमुश्त खर्च', 'एकवेळचे खर्च'),
+    ('', 'A busy week of payments ahead'): (None, 'आगे भुगतानों से भरा एक व्यस्त सप्ताह', 'पुढे देयकांचा एक व्यस्त आठवडा'),
+    ('', 'About %(amount)s is scheduled over the next 7 days, around %(times)s times a typical week for you.'): (
+        None,
+        'अगले 7 दिनों में लगभग %(amount)s निर्धारित है, जो आपके सामान्य सप्ताह का करीब %(times)s गुना है।',
+        'पुढील 7 दिवसांत सुमारे %(amount)s ठरलेले आहे, जे तुमच्या सामान्य आठवड्याच्या सुमारे %(times)s पट आहे.'),
+    ('', 'Scheduled'): (None, 'निर्धारित', 'ठरलेले'),
+    ('', 'A typical week'): (None, 'एक सामान्य सप्ताह', 'एक सामान्य आठवडा'),
+    ('', 'Open the calendar'): (None, 'कैलेंडर खोलें', 'कॅलेंडर उघडा'),
+    ('', 'What moved your net worth'): (None, 'आपकी कुल संपत्ति में क्या बदला', 'तुमच्या निव्वळ संपत्तीत काय बदलले'),
+    ('', 'It is up about %(change)s this cycle: roughly %(kept)s from what you kept and %(rest)s from changes in value.'): (
+        None,
+        'इस चक्र में यह लगभग %(change)s बढ़ी है: करीब %(kept)s आपकी बचत से और %(rest)s मूल्य में बदलाव से।',
+        'या चक्रात ती सुमारे %(change)s वाढली आहे: सुमारे %(kept)s तुमच्या बचतीतून आणि %(rest)s मूल्यातील बदलांमुळे.'),
+    ('', 'It is up about %(change)s this cycle: you kept %(kept)s, and changes in value took back %(rest)s.'): (
+        None,
+        'इस चक्र में यह लगभग %(change)s बढ़ी है: आपने %(kept)s बचाए, और मूल्य में बदलाव ने %(rest)s वापस ले लिए।',
+        'या चक्रात ती सुमारे %(change)s वाढली आहे: तुम्ही %(kept)s वाचवले, आणि मूल्यातील बदलांनी %(rest)s परत घेतले.'),
+    ('', 'It is down about %(change)s this cycle: you kept %(kept)s, and changes in value took away %(rest)s.'): (
+        None,
+        'इस चक्र में यह लगभग %(change)s घटी है: आपने %(kept)s बचाए, और मूल्य में बदलाव ने %(rest)s घटा दिए।',
+        'या चक्रात ती सुमारे %(change)s कमी झाली आहे: तुम्ही %(kept)s वाचवले, आणि मूल्यातील बदलांनी %(rest)s कमी केले.'),
+    ('', 'Net worth'): (None, 'कुल संपत्ति', 'निव्वळ संपत्ती'),
+    ('', 'Kept this cycle'): (None, 'इस चक्र में बचाया', 'या चक्रात वाचवलेले'),
 }
 
 # Pairs whose singular and plural use different placeholders cannot be gettext plurals (msgfmt rejects them), and the

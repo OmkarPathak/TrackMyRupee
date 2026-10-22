@@ -444,12 +444,12 @@ class TestCalendarLayout(CalBase):
     def page(self):
         return self.client.get(reverse('calendar-month', args=[2026, 10])).content.decode()
 
-    def test_back_month_and_search_share_one_header_row(self):
+    def test_month_and_search_share_one_header_row(self):
         html = self.page()
         head = html[html.index('class="cal-head"'):html.index('<!-- Legend -->')]
         self.assertIn('cal-nav', head)
         self.assertIn('cal-search-form', head)
-        self.assertIn('Back to Dashboard', head)
+        self.assertNotIn('Back to Dashboard', head)
         self.assertEqual(head.count('<h1'), 1)
 
     def test_grid_height_is_tied_to_the_viewport(self):

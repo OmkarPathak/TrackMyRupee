@@ -14,6 +14,7 @@ from webpush import send_user_notification
 from webpush.models import PushInformation
 
 from expenses.budgets import budget_status, bulk_current_spend, has_limit, normalize_category, percent_used
+from expenses.goal_progress import milestone_reached
 from expenses.models import (
     Account,
     Category,
@@ -24,6 +25,9 @@ from expenses.models import (
     UserProfile,
 )
 from finance_tracker.plans import PLAN_DETAILS, get_limit
+
+
+MILESTONE_LABELS = {100: "Goal Completed!", 90: "Almost There!", 50: "Halfway Mark!"}
 
 
 class Command(BaseCommand):
@@ -333,18 +337,16 @@ class Command(BaseCommand):
         for goal in goals:
             pct = goal.progress_percentage
             
-            milestones = [(100, "Goal Completed!"), (90, "Almost There!"), (50, "Halfway Mark!")]
-            for threshold, label in milestones:
-                if pct >= threshold:
-                    slug = f"milestone-{goal.id}-{threshold}"
-                    title = f"Milestone: {goal.name}"
-                    message = f"{label} You've reached {pct}% of your goal for {goal.name}!"
-                    link = f"/goals/{goal.id}/"
-                    
-                    # We found the highest threshold reached. 
-                    # Attempt to create. If it's a duplicate, we still stop (break) for THIS goal.
-                    self._create_notification(user, title, message, 'MILESTONE', slug=slug, link=link)
-                    break 
+            threshold = milestone_reached(pct)
+            if threshold is None:
+                continue
+            label = MILESTONE_LABELS[threshold]
+            slug = f"milestone-{goal.id}-{threshold}"
+            title = f"Milestone: {goal.name}"
+            message = f"{label} You've reached {pct}% of your goal for {goal.name}!"
+            link = f"/goals/{goal.id}/"
+            # The highest threshold reached is the one announced. If it is a duplicate, nothing more is said for THIS goal.
+            self._create_notification(user, title, message, 'MILESTONE', slug=slug, link=link)
 
     def _process_subscription_reminders(self, profile):
         """Notifies about upcoming plan expiries (2 days prior). Only for plans that really end:

@@ -14,9 +14,9 @@ from types import SimpleNamespace
 
 from django.utils import timezone
 
-from ..analytics.facts import ExpenseRow, Facts, LoanPaid
+from ..analytics.facts import ExpenseRow, Facts, IncomeRow, LoanPaid
 from ..budgets import budget_status, normalize_category, percent_used
-from .context import BudgetHistory, InsightContext
+from .context import BudgetHistory, GoalFacts, HoldingValue, InsightContext
 from .format import Fmt
 from .types import Plan
 
@@ -69,8 +69,8 @@ def budget_rows(rows) -> list[dict]:
 
 def scenario(*, budgets: list[tuple] | None = None, salary_day: int = 1, language: str = 'en', maturing=None,
              bills=None, history_spend=None, recent=(), rows=(), dismissed=(), recurring_all=None, postings=None,
-             pending=None, cash=None, cards=(), loans=(), accounts_all=(), reconciliations=None,
-             **overrides) -> SampleContext:
+             pending=None, cash=None, cards=(), loans=(), accounts_all=(), reconciliations=None, income_rows=(),
+             goals=(), holdings=(), networth=None, **overrides) -> SampleContext:
     """Six months of steady life, then an October that runs a little higher: dining is up, income had a bonus."""
     today = overrides.pop('today', TODAY)
     ctx = SampleContext(today=today, salary_day=salary_day, language=language, **overrides)
@@ -107,7 +107,12 @@ def scenario(*, budgets: list[tuple] | None = None, salary_day: int = 1, languag
     ctx._cache['dismissed_suggestions'] = frozenset(dismissed)
     ctx._cache['recent'] = list(recent)
     ctx._cache['rows'] = list(rows)
-    ctx._cache['inventory'] = {'loans': bool(loans), 'cards': bool(cards), 'recurring': True}
+    ctx._cache['inventory'] = {'loans': bool(loans), 'cards': bool(cards), 'recurring': True, 'goals': bool(goals),
+                               'holdings': bool(holdings)}
+    ctx._cache['income_rows'] = list(income_rows)
+    ctx._cache['goals'] = list(goals)
+    ctx._cache['holdings'] = list(holdings)
+    ctx._cache['networth'] = networth or (SimpleNamespace(total=D(0)), SimpleNamespace(total=D(0)))
     ctx._cache['recurring_all'] = list(recurring_all) if recurring_all is not None else [
         _recurring('Rent', 'EXPENSE', 20000), _recurring('Home loan EMI', 'LOAN', 18200), _recurring('Netflix', 'EXPENSE', 499)]
     ctx._cache['postings'] = dict(postings or {})
@@ -255,3 +260,108 @@ def low_point_sample(language: str = 'en') -> SampleContext:
                payday: [item(payday, 'in', 60000, salary=True)]}
     rows = [_row(400 + i, TODAY - timedelta(days=i), 'Food', 700) for i in range(1, 28)]
     return scenario(language=language, pending=pending, rows=rows, cash=SimpleNamespace(idle=D('30000')))
+
+
+# ---- Phase D: income, goals, transfers and investing, holdings, capital events, calendar, net worth ----
+
+def _income(day, amount, kind='Salary'):
+    return IncomeRow(day, kind, D(amount))
+
+
+def income_sample(language: str = 'en') -> SampleContext:
+    rows = [_income(date(2026, m, 1), 60000) for m in (7, 8, 9)]
+    rows += [_income(date(2026, 7, 9), 6000, 'Freelance / Consulting'), _income(date(2026, 8, 14), 21000, 'Freelance / Consulting')]
+    return scenario(language=language, income_rows=sorted(rows))
+
+
+def salary_late_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, income_rows=[_income(date(2026, 8, 15), 60000), _income(date(2026, 9, 15), 60000)])
+
+
+def income_gap_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, income_rows=[_income(date(2026, m, 1), 60000) for m in (4, 5, 6, 7)])
+
+
+def _goal(name, target, contributions, *, today=TODAY, target_date=None):
+    """A GoalFacts for a goal called `name` whose contributions are [(days ago, amount)]."""
+    rows = sorted((today - timedelta(days=ago), D(amount)) for ago, amount in contributions)
+    saved = sum((a for _d, a in rows), D(0))
+    goal = SimpleNamespace(
+        pk=1, uuid=uuid.uuid5(uuid.NAMESPACE_URL, name), name=name, currency='₹', target_amount=D(target),
+        current_amount=saved, target_date=target_date, is_completed=saved >= D(target),
+        progress_percentage=round(float(saved / D(target) * 100), 1))
+    return GoalFacts(goal, rows, False)
+
+
+def goals_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, goals=[_goal('Goa trip', 100000, [(100, 20000), (90, 5000), (60, 5000), (30, 5000), (3, 5000)])])
+
+
+def goal_stalled_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, goals=[_goal('Goa trip', 40000, [(100, 5000), (80, 5000), (60, 5000)])])
+
+
+def goal_milestone_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, goals=[_goal('Goa trip', 100000, [(60, 30000), (5, 22000)])])
+
+
+def _put(facts: Facts, day: date, *, invested=0, extra=0, extra_name=None):
+    i = facts.index(day)
+    if invested:
+        facts.invested[i] += D(invested)
+    if extra:
+        key = normalize_category(extra_name)
+        facts.names.setdefault(key, extra_name)
+        facts.capital_extra[i] += D(extra)
+        facts._add(facts.capital_cats_extra, i, key, D(extra))
+
+
+def invested_share_sample(language: str = 'en') -> SampleContext:
+    ctx = scenario(language=language)
+    for m in range(1, ctx.key.month):
+        _put(ctx.facts, ctx.cycle_of(date(ctx.key.year, m, 1))[0], invested=9000)
+    _put(ctx.facts, ctx.cycle[0], invested=4900)
+    ctx._cache.pop('summaries', None)
+    return ctx
+
+
+def sip_missed_sample(language: str = 'en') -> SampleContext:
+    from ..account_types import investment_codes
+    start = TODAY - timedelta(days=17)
+    sip = SimpleNamespace(
+        uuid=uuid.uuid5(uuid.NAMESPACE_URL, 'sip'), description='Nifty fund SIP', transaction_type='TRANSFER', frequency='MONTHLY',
+        amount=D(5000), base_amount=D(5000), end_date=None, start_date=start, last_processed_date=None,
+        to_account=SimpleNamespace(account_type=sorted(investment_codes())[0], is_active=True), first_due_date=lambda: start)
+    return scenario(language=language, recurring_all=[sip])
+
+
+def concentration_sample(language: str = 'en') -> SampleContext:
+    def held(name, kind, value):
+        return HoldingValue(SimpleNamespace(instrument_name=name, instrument_type=kind), D(value))
+    return scenario(language=language, holdings=[held('Nifty fund', 'MF', 400000), held('Index fund', 'MF', 150000),
+                                                  held('Tata Motors', 'STOCK', 50000)])
+
+
+def rate_effect_sample(language: str = 'en') -> SampleContext:
+    ctx = scenario(language=language)
+    _put(ctx.facts, ctx.cycle[0], extra=12000, extra_name='Roof repair')
+    ctx._cache.pop('summaries', None)
+    return ctx
+
+
+def heavy_week_sample(language: str = 'en') -> SampleContext:
+    ctx = scenario(language=language)
+    for back in range(1, 71):         # a plain 4,900 a week of everyday spending
+        day = TODAY - timedelta(days=back)
+        ctx.facts.expense_cats[ctx.facts.index(day)] = {'dining': D(700)}
+    ctx._cache.pop('summaries', None)
+
+    def item(day, amount):
+        return {'description': 'x', 'amount': D(amount), 'kind': 'out', 'type': 'EXPENSE', 'is_salary': False, 'date': day}
+    ctx._cache['pending'] = {TODAY + timedelta(days=2): [item(TODAY + timedelta(days=2), 6000)],
+                             TODAY + timedelta(days=5): [item(TODAY + timedelta(days=5), 4000)]}
+    return ctx
+
+
+def net_worth_sample(language: str = 'en') -> SampleContext:
+    return scenario(language=language, networth=(SimpleNamespace(total=D('900000')), SimpleNamespace(total=D('926000'))))

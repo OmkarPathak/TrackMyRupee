@@ -75,6 +75,9 @@
     </div>
     {% endif %}
 
+    <!-- Insights about holdings: one compact line each -->
+    {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=holdings&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
     <!-- Main Holdings Card Container -->
     <div class="card rounded-4 border-0 shadow-sm" style="border: 1px solid rgba(0,0,0,0.07) !important;">
         <div class="card-header bg-transparent border-0 p-3 p-md-4 d-flex align-items-center justify-content-between">

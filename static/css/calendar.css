@@ -31,12 +31,12 @@
 .cal-nav-btn {
   width: 2.1rem; height: 2.1rem; border-radius: 50%; flex: none; padding: 0; line-height: 1;
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--cal-cell); border: 1px solid var(--cal-line); color: var(--bs-body-color);
+  background: transparent; border: 0; color: var(--bs-body-color);
   transition: background-color .15s ease, border-color .15s ease;
 }
 .cal-nav-btn i { display: block; line-height: 1; font-size: 1rem; width: 1em; height: 1em; text-align: center; }
 .cal-nav-btn i::before { display: block; line-height: 1; vertical-align: 0; }
-.cal-nav-btn:hover { border-color: var(--cal-ink); }
+.cal-nav-btn:hover { background: var(--cal-cell); }
 .cal .cal-btn-ink {   /* `.cal` raises specificity above the global dark-mode `a` colour rule */
   background: var(--cal-ink); color: var(--cal-on-ink); border: 0; border-radius: .75rem;
   padding: .45rem 1rem; font-weight: 700; font-size: .9rem; text-decoration: none; white-space: nowrap;

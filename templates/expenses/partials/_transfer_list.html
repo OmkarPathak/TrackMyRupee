@@ -53,6 +53,9 @@
     {% render_filter_toolbar filter_config applied_state %}
     {% endif %}
 
+    <!-- Insights about investing: one compact line each -->
+    {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=transfers&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
     {% if transfers %}
     <div class="card border-0 shadow-sm rounded-4 d-none d-md-block transfer-list-card">
         <div class="card-body p-0">

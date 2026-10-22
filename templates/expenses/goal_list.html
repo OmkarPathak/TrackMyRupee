@@ -42,6 +42,9 @@
         </div>
     </div>
 
+    <!-- Insights about goals: one compact line each -->
+    {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=goals&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
     <div class="row g-4">
         {% for goal in goals %}
         <div class="col-12 col-md-6 col-xl-4">

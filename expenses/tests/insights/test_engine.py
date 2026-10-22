@@ -338,7 +338,7 @@ class QueryCountTests(StoredBase):
         self.assertLessEqual(len(quick), 16)        # measured: 15 (what a dashboard visit may run)
         with CaptureQueriesContext(connection) as small:
             engine.refresh(self.user, today=TODAY)
-        self.assertLessEqual(len(small), 31)        # measured: 29 (the nightly run: heavy rules, net worth included)
+        self.assertLessEqual(len(small), 33)        # measured: 32 (the nightly run: heavy rules, net worth and income included)
 
     def test_refresh_does_not_grow_with_the_amount_of_data(self):
         self.life()
@@ -350,4 +350,4 @@ class QueryCountTests(StoredBase):
                                    balance=D('1000'), deposit_maturity_date=TODAY + timedelta(days=5 + n))
         with CaptureQueriesContext(connection) as big:
             engine.refresh(self.user, today=TODAY)
-        self.assertLessEqual(len(big), 31)
+        self.assertLessEqual(len(big), 33)

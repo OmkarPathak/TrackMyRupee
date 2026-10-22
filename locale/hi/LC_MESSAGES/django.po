@@ -20658,3 +20658,250 @@ msgstr "%(name)s अब थोड़ा महंगा है"
 #, python-format
 msgid "%(name)s now costs a bit less"
 msgstr "%(name)s अब थोड़ा सस्ता है"
+
+#: expenses/insights
+msgid "How steady your income is"
+msgstr "आपकी आय कितनी स्थिर है"
+
+#: expenses/insights
+#, python-format
+msgid "About %(share)s of your income came from salary; the rest varied between %(low)s and %(high)s a cycle."
+msgstr "आपकी आय का लगभग %(share)s वेतन से आया; बाकी हर चक्र में %(low)s से %(high)s के बीच रहा।"
+
+#: expenses/insights
+#, python-format
+msgid "About %(share)s of your income came from salary; the rest came to around %(avg)s a cycle."
+msgstr "आपकी आय का लगभग %(share)s वेतन से आया; बाकी हर चक्र में करीब %(avg)s रहा।"
+
+#: expenses/insights
+msgid "Other income"
+msgstr "अन्य आय"
+
+#: expenses/insights
+msgid "Salary has not arrived yet"
+msgstr "वेतन अभी नहीं आया"
+
+#: expenses/insights
+#, python-format
+msgid "It usually lands around day %(day)s of the month and none is recorded this cycle. If it is on its way, there is nothing to do."
+msgstr "यह आम तौर पर महीने की %(day)s तारीख के आसपास आता है और इस चक्र में कोई दर्ज नहीं है। अगर वह रास्ते में है, तो कुछ करने की ज़रूरत नहीं।"
+
+#: expenses/insights
+msgid "Add income"
+msgstr "आय जोड़ें"
+
+#: expenses/insights
+msgid "No income recorded for a while"
+msgstr "कुछ समय से कोई आय दर्ज नहीं"
+
+#: expenses/insights
+#, python-format
+msgid "There has been no income entry for %(days)s days. You can add income whenever you are ready."
+msgstr "%(days)s दिनों से कोई आय प्रविष्टि नहीं है। जब आप तैयार हों, आय जोड़ सकते हैं।"
+
+#: expenses/insights
+msgid "Last income"
+msgstr "पिछली आय"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s is on track for %(month)s"
+msgstr "%(name)s %(month)s तक सही राह पर"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s may finish a little later"
+msgstr "%(name)s शायद कुछ देर से पूरा होगा"
+
+#: expenses/insights
+#, python-format
+msgid "At the pace of the last 3 months, it reaches %(target)s around %(when)s."
+msgstr "पिछले 3 महीनों की रफ़्तार से यह %(when)s के आसपास %(target)s तक पहुँचेगा।"
+
+#: expenses/insights
+#, python-format
+msgid "At the pace of the last 3 months, it reaches %(target)s around %(when)s, a little after your %(date)s date. A small top-up could close the gap."
+msgstr "पिछले 3 महीनों की रफ़्तार से यह %(when)s के आसपास %(target)s तक पहुँचेगा, यानी आपकी %(date)s की तारीख़ से थोड़ा बाद। थोड़ी सी अतिरिक्त राशि इस अंतर को भर सकती है।"
+
+#: expenses/insights
+msgid "Saved so far"
+msgstr "अब तक बचाया"
+
+#: expenses/insights
+msgid "Open the goal"
+msgstr "लक्ष्य खोलें"
+
+#: expenses/insights
+msgid "A small change for a goal"
+msgstr "एक लक्ष्य के लिए एक छोटा बदलाव"
+
+#: expenses/insights
+#, python-format
+msgid "A small change for %(name)s"
+msgstr "%(name)s के लिए एक छोटा बदलाव"
+
+#: expenses/insights
+#, python-format
+msgid "Adding %(amount)s a month would bring the finish forward by about %(n)s months. It is one option; the current pace is fine too."
+msgstr "हर महीने %(amount)s जोड़ने से समाप्ति लगभग %(n)s महीने पहले हो सकती है। यह बस एक विकल्प है; मौजूदा रफ़्तार भी ठीक है।"
+
+#: expenses/insights
+msgid "Extra each month"
+msgstr "हर महीने अतिरिक्त"
+
+#: expenses/insights
+msgid "A goal has been quiet lately"
+msgstr "एक लक्ष्य में हाल में कोई हलचल नहीं"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s has been quiet lately"
+msgstr "%(name)s में हाल में कोई हलचल नहीं"
+
+#: expenses/insights
+#, python-format
+msgid "There has been no contribution for %(days)s days; it stands at %(pct)s of %(target)s. A small top-up or a pause are both fine."
+msgstr "%(days)s दिनों से कोई योगदान नहीं हुआ; यह %(target)s का %(pct)s है। थोड़ी राशि जोड़ना या रुकना, दोनों ठीक हैं।"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s is complete"
+msgstr "%(name)s पूरा हो गया"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s is nearly there"
+msgstr "%(name)s लगभग पूरा होने को है"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s is halfway"
+msgstr "%(name)s आधा पूरा हुआ"
+
+#: expenses/insights
+#, python-format
+msgid "You have reached all of %(target)s. Steady contributions got you here."
+msgstr "आप पूरे %(target)s तक पहुँच गए हैं। नियमित योगदान ने आपको यहाँ तक पहुँचाया।"
+
+#: expenses/insights
+#, python-format
+msgid "You have reached %(pct)s of %(target)s. Steady contributions got you here."
+msgstr "आप %(target)s का %(pct)s तक पहुँच गए हैं। नियमित योगदान ने आपको यहाँ तक पहुँचाया।"
+
+#: expenses/insights
+msgid "Share of income you invest"
+msgstr "निवेश में गया आय का हिस्सा"
+
+#: expenses/insights
+#, python-format
+msgid "About %(share)s of income went into investments this cycle, against your usual %(usual)s."
+msgstr "इस चक्र में आय का लगभग %(share)s निवेश में गया, जबकि आपका सामान्य %(usual)s रहता है।"
+
+#: expenses/insights
+msgid "A SIP has not been recorded"
+msgstr "एक SIP दर्ज नहीं हुई"
+
+#: expenses/insights
+#, python-format
+msgid "Your %(amount)s SIP (%(name)s) was due on %(day)s and is not recorded yet. If it went through, you can add it."
+msgstr "आपकी %(amount)s की SIP (%(name)s) %(day)s को देय थी और अभी दर्ज नहीं है। अगर वह हो गई है, तो आप उसे जोड़ सकते हैं।"
+
+#: expenses/insights
+msgid "Due on"
+msgstr "देय तिथि"
+
+#: expenses/insights
+msgid "Add the transfer"
+msgstr "ट्रांसफ़र जोड़ें"
+
+#: expenses/insights
+msgid "Where your invested money sits"
+msgstr "आपका निवेशित पैसा कहाँ है"
+
+#: expenses/insights
+#, python-format
+msgid "%(kind)s are about %(kind_share)s of your invested money and %(name)s about %(share)s. This is just a picture of your mix."
+msgstr "%(kind)s आपके निवेशित पैसे का लगभग %(kind_share)s हैं और %(name)s लगभग %(share)s। यह बस आपके मिश्रण की एक तस्वीर है।"
+
+#: expenses/insights
+#, python-format
+msgid "%(kind)s are about %(kind_share)s of your invested money. This is just a picture of your mix."
+msgstr "%(kind)s आपके निवेशित पैसे का लगभग %(kind_share)s हैं। यह बस आपके मिश्रण की एक तस्वीर है।"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s is about %(share)s of your invested money. This is just a picture of your mix."
+msgstr "%(name)s आपके निवेशित पैसे का लगभग %(share)s है। यह बस आपके मिश्रण की एक तस्वीर है।"
+
+#: expenses/insights
+msgid "Invested value"
+msgstr "निवेशित मूल्य"
+
+#: expenses/insights
+msgid "Mutual funds"
+msgstr "म्यूचुअल फ़ंड"
+
+#: expenses/insights
+msgid "Stocks"
+msgstr "शेयर"
+
+#: expenses/insights
+msgid "Recurring deposits"
+msgstr "आवर्ती जमा"
+
+#: expenses/insights
+msgid "Other holdings"
+msgstr "अन्य होल्डिंग्स"
+
+#: expenses/insights
+msgid "A one-off cost shaped this cycle"
+msgstr "एकमुश्त खर्च का इस चक्र पर असर"
+
+#: expenses/insights
+#, python-format
+msgid "Your savings rate is %(rate)s, or %(with)s with %(name)s counted. One-off costs are normal and are kept out of averages by default."
+msgstr "आपकी बचत दर %(rate)s है, या %(name)s को गिनने पर %(with)s। एकमुश्त खर्च सामान्य हैं और डिफ़ॉल्ट रूप से औसत से बाहर रखे जाते हैं।"
+
+#: expenses/insights
+msgid "One-off costs"
+msgstr "एकमुश्त खर्च"
+
+#: expenses/insights
+msgid "A busy week of payments ahead"
+msgstr "आगे भुगतानों से भरा एक व्यस्त सप्ताह"
+
+#: expenses/insights
+#, python-format
+msgid "About %(amount)s is scheduled over the next 7 days, around %(times)s times a typical week for you."
+msgstr "अगले 7 दिनों में लगभग %(amount)s निर्धारित है, जो आपके सामान्य सप्ताह का करीब %(times)s गुना है।"
+
+#: expenses/insights
+msgid "A typical week"
+msgstr "एक सामान्य सप्ताह"
+
+#: expenses/insights
+msgid "Open the calendar"
+msgstr "कैलेंडर खोलें"
+
+#: expenses/insights
+msgid "What moved your net worth"
+msgstr "आपकी कुल संपत्ति में क्या बदला"
+
+#: expenses/insights
+#, python-format
+msgid "It is up about %(change)s this cycle: roughly %(kept)s from what you kept and %(rest)s from changes in value."
+msgstr "इस चक्र में यह लगभग %(change)s बढ़ी है: करीब %(kept)s आपकी बचत से और %(rest)s मूल्य में बदलाव से।"
+
+#: expenses/insights
+#, python-format
+msgid "It is up about %(change)s this cycle: you kept %(kept)s, and changes in value took back %(rest)s."
+msgstr "इस चक्र में यह लगभग %(change)s बढ़ी है: आपने %(kept)s बचाए, और मूल्य में बदलाव ने %(rest)s वापस ले लिए।"
+
+#: expenses/insights
+#, python-format
+msgid "It is down about %(change)s this cycle: you kept %(kept)s, and changes in value took away %(rest)s."
+msgstr "इस चक्र में यह लगभग %(change)s घटी है: आपने %(kept)s बचाए, और मूल्य में बदलाव ने %(rest)s घटा दिए।"
+
+#: expenses/insights
+msgid "Kept this cycle"
+msgstr "इस चक्र में बचाया"

@@ -92,6 +92,11 @@ class Fmt:
         return translate_digits(date_format(value, 'M'))
 
     @staticmethod
+    def month_year(value: date) -> str:
+        """October 2026"""
+        return translate_digits(date_format(value, 'F Y'))
+
+    @staticmethod
     def day_year(value: date) -> str:
         """24 Oct 2026"""
         return translate_digits(date_format(value, 'j M Y'))

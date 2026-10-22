@@ -65,6 +65,9 @@ def _next_unposted(rt: RecurringTransaction) -> date | None:
     return rt.first_due_date()
 
 
+next_unposted = _next_unposted      # public name for the insights rules: an entry due on or before today has not been posted
+
+
 def occurrences(rt: RecurringTransaction, start: date, end: date) -> list[date]:
     """Dates in [start, end] on which ``rt`` is due and still unposted."""
     current = _next_unposted(rt)

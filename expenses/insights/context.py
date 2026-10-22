@@ -13,6 +13,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from datetime import date, timedelta
 from decimal import Decimal
+from types import SimpleNamespace
 from typing import NamedTuple
 
 from django.utils import timezone
@@ -22,10 +23,12 @@ from .. import budget_cycle
 from ..analytics.facts import (
     ExpenseRow,
     Facts,
+    IncomeRow,
     LoanPaid,
     Summary,
     load_expense_rows,
     load_facts,
+    load_income_rows,
     load_loan_paid,
 )
 from ..analytics.links import LinkBuilder
@@ -39,6 +42,8 @@ ROW_DAYS = 180
 PENDING_DAYS = 14
 POSTING_DAYS = 400
 MATURITY_DAYS = 30
+INCOME_DAYS = 240
+SNAPSHOT_SLACK_DAYS = 3         # how far before the cycle began a net worth snapshot may be and still stand for it
 ZERO = Decimal('0')
 
 
@@ -48,6 +53,19 @@ class BudgetHistory(NamedTuple):
     months: list
     limits: dict
     spend: dict
+
+
+class GoalFacts(NamedTuple):
+    """A savings goal with what has gone into it, and where it stands for the person's plan."""
+    goal: object
+    contributions: list              # [(date, amount)] oldest first, in the goal's own currency
+    locked: bool                     # beyond the number of goals the plan includes
+
+
+class HoldingValue(NamedTuple):
+    """An active holding with what it is worth now, in the person's currency."""
+    holding: object
+    value: Decimal
 
 
 class UndeclaredNeed(Exception):
@@ -219,7 +237,7 @@ class InsightContext:
         from django.contrib.auth.models import User
         from django.db.models import Exists, OuterRef
 
-        from ..models import Account, Loan, RecurringTransaction
+        from ..models import Account, Holding, Loan, RecurringTransaction, SavingsGoal
 
         row = User.objects.filter(pk=self.user.pk).annotate(
             has_loans=Exists(Loan.objects.filter(user=OuterRef('pk'), is_active=True)),
@@ -227,9 +245,12 @@ class InsightContext:
                                                     account_type__in=revolving_codes(),
                                                     credit_card_billing_day__isnull=False)),
             has_recurring=Exists(RecurringTransaction.objects.filter(user=OuterRef('pk'), is_active=True)),
-        ).values('has_loans', 'has_cards', 'has_recurring').first() or {}
+            has_goals=Exists(SavingsGoal.objects.filter(user=OuterRef('pk'))),
+            has_holdings=Exists(Holding.objects.filter(account__user=OuterRef('pk'), is_active=True)),
+        ).values('has_loans', 'has_cards', 'has_recurring', 'has_goals', 'has_holdings').first() or {}
         return {'loans': bool(row.get('has_loans')), 'cards': bool(row.get('has_cards')),
-                'recurring': bool(row.get('has_recurring'))}
+                'recurring': bool(row.get('has_recurring')), 'goals': bool(row.get('has_goals')),
+                'holdings': bool(row.get('has_holdings'))}
 
     @property
     def recurring_all(self) -> list:
@@ -238,7 +259,8 @@ class InsightContext:
 
     def _load_recurring_all(self) -> list:
         from ..models import RecurringTransaction
-        return list(RecurringTransaction.objects.filter(user=self.user, is_active=True).order_by('id'))
+        return list(RecurringTransaction.objects.filter(user=self.user, is_active=True).select_related(
+            'to_account').order_by('id'))
 
     @property
     def postings(self) -> dict[str, list[tuple]]:
@@ -333,6 +355,82 @@ class InsightContext:
     def _load_loan_paid(self) -> LoanPaid:
         first, last = self.financial_year
         return load_loan_paid(self.user, first, min(last, self.today))
+
+    @property
+    def income_rows(self) -> list[IncomeRow]:
+        """About eight months of income entries (a few dozen rows): where money came from and when it arrived. One query."""
+        return self._get('income_rows', lambda: load_income_rows(self.user, self.today - timedelta(days=INCOME_DAYS), self.today))
+
+    @property
+    def goals(self) -> list[GoalFacts]:
+        """Every savings goal, oldest first, with its contributions. Two queries."""
+        return self._get('goals', self._load_goals)
+
+    def _load_goals(self) -> list[GoalFacts]:
+        from finance_tracker.plans import get_limit
+
+        from ..models import GoalContribution, SavingsGoal
+
+        goals = list(SavingsGoal.objects.filter(user=self.user).order_by('created_at', 'id'))
+        if not goals:
+            return []
+        by_goal: dict[int, list] = {g.pk: [] for g in goals}
+        for goal_id, day, amount in GoalContribution.active.filter(goal_id__in=by_goal).order_by('date', 'id').values_list(
+                'goal_id', 'date', 'amount'):
+            by_goal[goal_id].append((day, Decimal(str(amount))))
+        limit = get_limit(getattr(self.profile, 'active_tier', 'FREE'), 'savings_goals')
+        return [GoalFacts(g, by_goal[g.pk], limit != -1 and i >= limit) for i, g in enumerate(goals)]
+
+    @property
+    def holdings(self) -> list[HoldingValue]:
+        """Active holdings, each with its latest valuation in the person's currency (the cost when none was entered). One
+        query, plus an exchange rate for each other currency."""
+        return self._get('holdings', self._load_holdings)
+
+    def _load_holdings(self) -> list[HoldingValue]:
+        from django.db.models import OuterRef, Subquery
+
+        from ..models import Holding, Valuation
+        from ..utils import get_exchange_rate
+
+        latest = Valuation.objects.filter(holding=OuterRef('pk')).order_by('-as_of_date', '-created_at')
+        rows = Holding.objects.filter(account__user=self.user, is_active=True).annotate(
+            last_value=Subquery(latest.values('value')[:1]), last_nav=Subquery(latest.values('unit_nav')[:1])).order_by('id')
+        base, rates, out = self.profile.currency, {}, []
+        for holding in rows:
+            if holding.last_value is None:
+                value = holding.cost_basis
+            elif holding.last_nav is not None and holding.units:
+                value = (Decimal(holding.units) * holding.last_nav).quantize(Decimal('0.01'))
+            else:
+                value = Decimal(str(holding.last_value))
+            if holding.currency != base:
+                if holding.currency not in rates:
+                    try:
+                        rates[holding.currency] = Decimal(str(get_exchange_rate(holding.currency, base)))
+                    except Exception:                   # no rate: use the figure as it is rather than say nothing
+                        rates[holding.currency] = Decimal(1)
+                value = (value * rates[holding.currency]).quantize(Decimal('0.01'))
+            out.append(HoldingValue(holding, value))
+        return out
+
+    @property
+    def networth(self) -> tuple:
+        """(net worth at the end of the day before this cycle began, net worth today), each with a `.total`. The earlier
+        figure is the nightly snapshot nearest that day (one query; None when there is none, and the rule then says
+        nothing); today's is the point the cash rules already worked out, so it costs nothing more."""
+        return self._get('networth', self._load_networth)
+
+    def _load_networth(self) -> tuple:
+        from ..analytics.networth import net_worth_points
+        from ..models import NetWorthSnapshot
+
+        start = self.cycle[0] - timedelta(days=1)
+        snap = NetWorthSnapshot.objects.filter(user=self.user, as_of_date__range=(start - timedelta(days=SNAPSHOT_SLACK_DAYS), start)
+                                               ).order_by('-as_of_date').values_list('total_net_worth', flat=True).first()
+        if snap is None:
+            return None, None
+        return SimpleNamespace(total=Decimal(str(snap))), net_worth_points(self.user, [self.today], self.today)[0]
 
     @property
     def reconciliations(self) -> dict[int, date]:

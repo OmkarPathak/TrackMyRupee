@@ -383,14 +383,14 @@ class RealLoaderTests(InsightBase):
 
     def test_the_inventory_says_what_the_person_has_in_one_query(self):
         with self.assertNumQueries(1):
-            self.assertEqual(self.ctx().inventory, {'loans': False, 'cards': False, 'recurring': False})
+            self.assertEqual(self.ctx().inventory, {'loans': False, 'cards': False, 'recurring': False, 'goals': False, 'holdings': False})
         self.loan()
         Account.objects.create(user=self.user, name='Card', account_type='CREDIT_CARD', currency='₹',
                                balance=D('0'), credit_card_billing_day=5)
         RecurringTransaction.objects.create(user=self.user, transaction_type='EXPENSE', amount=D('100'), currency='₹',
                                             description='x', category='Food', frequency='MONTHLY',
                                             start_date=TODAY - timedelta(days=5), account=self.cash, is_active=True)
-        self.assertEqual(self.ctx().inventory, {'loans': True, 'cards': True, 'recurring': True})
+        self.assertEqual(self.ctx().inventory, {'loans': True, 'cards': True, 'recurring': True, 'goals': False, 'holdings': False})
 
     def test_loans_arrive_totalled_and_the_loan_services_maths_runs_without_more_queries(self):
         loan = self.loan()

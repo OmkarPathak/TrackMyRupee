@@ -7,6 +7,7 @@ ones in ``expenses.savings`` (savings, savings rate, what counts as spending).
 """
 from __future__ import annotations
 
+import copy
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -43,6 +44,22 @@ def load_expense_rows(user, first: date, last: date) -> list[ExpenseRow]:
     return [ExpenseRow(i, d, c or '', a or ZERO, acc, made, x.decode('utf-8', 'replace') if isinstance(x, bytes) else (x or ''),
                        batch is not None)
             for i, d, c, a, acc, made, x, batch in rows]
+
+
+class IncomeRow(NamedTuple):
+    """One income entry, for the rules that look at where money came from and when it arrived."""
+    date: date
+    source_type: str
+    amount: Decimal                  # base currency
+
+
+def load_income_rows(user, first: date, last: date) -> list[IncomeRow]:
+    """The user's income entries between two dates, oldest first, in one query and without building model objects."""
+    from ..models import Income
+
+    rows = Income.objects.filter(user=user, date__range=(first, last)).order_by('date', 'id').values_list(
+        'date', 'source_type', 'base_amount')
+    return [IncomeRow(d, t or '', a or ZERO) for d, t, a in rows]
 
 
 class LoanPaid(NamedTuple):
@@ -155,6 +172,13 @@ class Facts:
         )
         return Summary(savings=result, invested=sum((self.invested[i] for i in span), ZERO),
                        categories=categories, invested_to=invested_to, capital_extra=extra)
+
+    def with_capital_events(self, counted: bool) -> Facts:
+        """The same facts with the "count one-off capital events" switch set the other way (nothing is reloaded:
+        the days are shared, only what `summarize` counts changes)."""
+        other = copy.copy(self)
+        other.include_capital_events = counted
+        return other
 
     def daily_spending(self, start: date, end: date) -> list[Decimal]:
         """Spending on each day from start to end, as the savings definition counts it."""

@@ -48,6 +48,9 @@
     {% render_filter_toolbar filter_config applied_state %}
     {% endif %}
 
+    <!-- Insights about one-off costs: one compact line each -->
+    {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=capital_events&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
     {% if events %}
     <div class="card border-0 shadow-sm rounded-4" id="mainCardContainer">
         <div class="card-body p-0">

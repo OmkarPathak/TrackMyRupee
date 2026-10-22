@@ -41,9 +41,10 @@
                 {% endif %}
             </div>
         </form>
-
-        <a href="{% url 'home' %}" class="cal-btn-ink d-none d-md-inline-block">{% trans "Back to Dashboard" %}</a>
     </div>
+
+    <!-- Insights about the week ahead: one compact line each -->
+    {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=calendar&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
 
     <!-- Legend -->
     <div class="cal-legend" aria-label="{% trans 'Legend' %}">
