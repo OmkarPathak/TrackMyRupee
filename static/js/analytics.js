@@ -157,6 +157,27 @@
   function bar(label, values, color, extra) {
     return Object.assign({ label: label, data: values, backgroundColor: color, borderRadius: 4, maxBarThickness: 24 }, extra || {});
   }
+  /* Stacked bars: wide, rounded segments with a thin gap between them (a border in the card's own colour). The radius
+     is an object because Chart.js only rounds the ends of a stack when it is a plain number, and it is worked out per
+     segment (at most a third of its width or height) so a small or narrow one stays a rounded rectangle, never a circle. */
+  function pill(label, values, color) {
+    var BAR_SHARE = 0.8 * 0.8, MAX_WIDTH = 44, MAX_RADIUS = 8;
+    function radius(ctx) {
+      var chart = ctx.chart, y = chart.scales && chart.scales.y, area = chart.chartArea;
+      var value = ctx.parsed && ctx.parsed.y;
+      var r = 4;
+      if (y && area && value) {
+        var width = Math.min(MAX_WIDTH, area.width / Math.max(1, chart.data.labels.length) * BAR_SHARE);
+        var height = Math.abs(y.getPixelForValue(value) - y.getPixelForValue(0));
+        r = Math.min(MAX_RADIUS, Math.max(1, Math.min(width, height) / 3));
+      }
+      return { topLeft: r, topRight: r, bottomLeft: r, bottomRight: r };
+    }
+    return bar(label, values, color, {
+      borderRadius: radius, borderSkipped: false, borderWidth: 1, borderColor: css('--bs-body-bg'),
+      barPercentage: 0.8, categoryPercentage: 0.8, maxBarThickness: MAX_WIDTH
+    });
+  }
   function line(label, values, color, extra) {
     return Object.assign({ label: label, data: values, borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 0, pointHoverRadius: 5, tension: 0.25, spanGaps: false }, extra || {});
   }
@@ -180,7 +201,7 @@
     var t = data('anx-data-trend');
     if (t && t.series && t.series.length) {
       var palette = ['cat0', 'cat1', 'cat2', 'cat3', 'cat4'];
-      var stacks = t.series.map(function (values, i) { return bar(t.names[i], values, tone(palette[i]), { borderRadius: 2 }); });
+      var stacks = t.series.map(function (values, i) { return pill(t.names[i], values, tone(palette[i])); });
       makeChart('anx-trend', 'bar', { labels: t.labels, datasets: stacks }, t.tips, { x: { stacked: true }, y: { stacked: true } });
     }
   }
@@ -216,7 +237,7 @@
       labels: s.labels,
       datasets: [line('net worth', s.total, tone('income'), { fill: true, backgroundColor: tone('income') + '26', borderWidth: 2.5, pointRadius: 3 })]
     }, s.tips, { y: { beginAtZero: false } });
-    var groups = s.groups.map(function (g) { return bar(g.label, g.data, tone(g.key), { borderRadius: 2 }); });
+    var groups = s.groups.map(function (g) { return pill(g.label, g.data, tone(g.key)); });
     makeChart('anx-mix', 'bar', { labels: s.labels, datasets: groups }, s.tips, { x: { stacked: true }, y: { stacked: true } });
   }
 
