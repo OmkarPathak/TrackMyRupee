@@ -248,4 +248,6 @@ def build_wrapped(user, year: int, review: dict) -> dict:
         money['net_worth_change'] = None
         money['net_worth_pct'] = None
     out['money'] = money
+    from .insights import composers
+    out['insights'] = [{'title': i.title, 'message': i.message} for i in composers.year_lines(user, year)]
     return out

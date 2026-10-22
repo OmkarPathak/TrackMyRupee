@@ -1,14 +1,35 @@
 {% extends 'expenses/settings_base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load insights_tags %}
 
 {% block settings_content %}
 <div class="fade-in">
+    <style>
+        /* the same pill tabs as the Analytics page */
+        .set-tabs { display: flex; width: fit-content; max-width: 100%; padding: 3px; gap: 2px; border: 1px solid var(--bs-border-color); border-radius: 12px; background: var(--bs-tertiary-bg); }
+        .set-tabs .nav-link { display: inline-flex; align-items: center; justify-content: center; height: 32px; padding: 0 .9rem; border: 1px solid transparent; border-radius: 9px; font-weight: 600; font-size: .9rem; white-space: nowrap; color: var(--color-muted-text); background: transparent; }
+        .set-tabs .nav-link:hover { color: var(--bs-body-color); }
+        .set-tabs .nav-link.active, .set-tabs .nav-link.active:hover { color: var(--bs-body-color); background: var(--bs-body-bg); border-color: var(--bs-border-color); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+        [data-bs-theme="dark"] .set-tabs { background: rgba(255, 255, 255, .04); }
+        [data-bs-theme="dark"] .set-tabs .nav-link.active, [data-bs-theme="dark"] .set-tabs .nav-link.active:hover { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .12); box-shadow: none; }
+        .set-tabs .nav-link .bi { color: var(--color-muted-text); }
+        .set-tabs .nav-link.active .bi { color: var(--color-success-text); }
+        @media (max-width: 575.98px) { .set-tabs { width: 100%; } .set-tabs .nav-item { flex: 1 1 0; min-width: 0; } .set-tabs .nav-link { width: 100%; height: 38px; font-size: 1rem; padding: 0 .25rem; } .set-tabs .nav-link .bi { display: none; } }
+    </style>
     <div class="mb-3">
-        <h2 class="h4 mb-0 fw-bold">{% trans "Profile Settings" %}</h2>
+        <h2 class="h4 mb-3 fw-bold">{% trans "Profile Settings" %}</h2>
+        <ul class="nav set-tabs" role="tablist" aria-label="{% trans 'Profile Settings' %}">
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link active" id="set-tab-profile" role="tab" data-set-tab="profile" aria-controls="set-pane-profile" aria-selected="true"><i class="bi bi-person me-1" aria-hidden="true"></i>{% trans "Profile" %}</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" id="set-tab-insights" role="tab" data-set-tab="insights" aria-controls="set-pane-insights" aria-selected="false"><i class="bi bi-lightbulb me-1" aria-hidden="true"></i>{% trans "Insights" %}</button>
+            </li>
+        </ul>
     </div>
-    
-    <div>
+
+    <div id="set-pane-profile" role="tabpanel" aria-labelledby="set-tab-profile">
         <form method="post">
             {% csrf_token %}
             
@@ -84,18 +105,39 @@
             {% endif %}
 
             <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-stretch align-items-sm-center gap-3 mt-4 mb-4">
-                <a href="{% url 'account_change_password' %}" class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center text-nowrap py-2 px-3 {% if is_social_user %}disabled{% endif %}">
-                    <i class="bi bi-shield-lock me-2"></i> {% trans "Change Password" %}
+                <a href="{% url 'account_change_password' %}" class="btn-action-outline{% if is_social_user %} disabled{% endif %}"{% if is_social_user %} aria-disabled="true" tabindex="-1"{% endif %}>
+                    <i class="bi bi-shield-lock me-2" aria-hidden="true"></i> {% trans "Change Password" %}
                 </a>
-                <button type="submit" class="btn btn-primary d-inline-flex align-items-center justify-content-center text-nowrap py-2 px-4 shadow-sm">
-                    <i class="bi bi-save me-2"></i> {% trans "Save Changes" %}
+                <button type="submit" class="btn-action-primary">
+                    <i class="bi bi-save me-2" aria-hidden="true"></i> {% trans "Save Changes" %}
                 </button>
             </div>
         </form>
     </div>
+    <div id="set-pane-insights" role="tabpanel" aria-labelledby="set-tab-insights" hidden>
+        {% insights_settings %}
+    </div>
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // the two tabs: the address names the open one (#insights), so a link or a redirect lands on it
+    var tabs = document.querySelectorAll('[data-set-tab]');
+    function openTab(name) {
+        tabs.forEach(function(t) {
+            var on = t.getAttribute('data-set-tab') === name;
+            t.classList.toggle('active', on);
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            document.getElementById('set-pane-' + t.getAttribute('data-set-tab')).hidden = !on;
+        });
+    }
+    tabs.forEach(function(t) {
+        t.addEventListener('click', function() {
+            var name = t.getAttribute('data-set-tab');
+            openTab(name);
+            try { history.replaceState(null, '', name === 'insights' ? '#insights' : location.pathname + location.search); } catch (e) {}
+        });
+    });
+    openTab(location.hash === '#insights' ? 'insights' : 'profile');
     var form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function() {

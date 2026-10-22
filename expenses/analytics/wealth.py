@@ -10,6 +10,7 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
 from ..account_types import ACCOUNT_TYPES
+from ..insights.types import Tone
 from ..models import Expense
 from ..utils import translate_digits
 from .common import Page
@@ -79,8 +80,9 @@ def allocation(last) -> dict:
             'idle': idle, 'growing': growing}
 
 
-def rising_categories(page: Page) -> list[dict]:
-    """Categories whose monthly spending rose three complete months in a row, fastest first."""
+def _legacy_rising(page: Page) -> list[dict]:
+    """Categories whose monthly spending rose three complete calendar months in a row, fastest first. Used while the
+    Insights Engine is off for the person; with it on the rule is `expenses.categories_creeping_up`."""
     first_of_month = page.today.replace(day=1)
     months = []
     for back in (3, 2, 1):
@@ -103,6 +105,29 @@ def rising_categories(page: Page) -> list[dict]:
     return [{'name': _(name), 'pct': percent(growth * 100), 'tone': 'bad' if growth >= Decimal('0.1') else 'warn',
              'href': page.links.transactions(start, end, (EXPENSE,), category=name)}
             for name, growth in out[:CREEP_ROWS]]
+
+
+def rising_categories(page: Page) -> list[dict]:
+    """Categories whose spending rose three complete budget months in a row, fastest first: with the Insights Engine
+    on, the `expenses.categories_creeping_up` rule (cycle-aware, and following the toolbar's filters)."""
+    from ..insights import engine, is_engine_on
+    from ..insights.pagectx import PageContext
+    if not is_engine_on(page.user):
+        return _legacy_rising(page)
+    return [{'name': i.evidence[0].label, 'pct': i.evidence[0].value, 'href': i.evidence[0].link,
+             'tone': 'bad' if i.tone == Tone.GENTLE_ATTENTION else 'warn'}
+            for i in engine.inline(PageContext(page), ['expenses.categories_creeping_up'])]
+
+
+def moved(page: Page, start, change_amount) -> str:
+    """The Net worth tab's sentence about what moved net worth (engine on only; the rule says nothing while filters apply)."""
+    from ..insights import engine, is_engine_on
+    from ..insights.pagectx import PageContext
+    if not is_engine_on(page.user) or page.filters_active:
+        return ''
+    kept = page.facts.summarize(start, page.period.end).saved
+    found = engine.inline(PageContext(page, change=change_amount, kept=kept), ['networth.what_moved_period'], limit=1)
+    return found[0].message if found else ''
 
 
 def build(page: Page) -> dict:
@@ -133,6 +158,7 @@ def build(page: Page) -> dict:
                    'tone': 'good' if change_amount >= 0 else 'bad'},
         'allocation': rows,
         'rising': rising_categories(page),
+        'moved': moved(page, start, change_amount),
         'limited': limited,
         'limit_months': getattr(getattr(page.user, 'profile', None), 'net_worth_history_limit', -1),
         'shown_from': page.range_text(start, start) if limited else '',

@@ -103,6 +103,9 @@
     {% render_filter_toolbar filter_config applied_state %}
     {% endif %}
 
+    <!-- Insights about spending: one compact line each, under the title and filters and above the entries -->
+    {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=expenses,cashflow&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
+
     <!-- Legacy filter form, retired now that the chip filter toolbar above covers both desktop and mobile. Left in place (hidden) rather than deleted since other scripts on this page still reference its inputs (multiselects, time-period pills). -->
     <div class="collapse d-none" id="expenseFilters">
         <form method="get" class="mb-4 bg-body p-4 rounded-4 border" style="border-color: rgba(0,0,0,0.08) !important;" id="filter-form" hx-get="{% url 'expense-list' %}" hx-target="#expense-list-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">

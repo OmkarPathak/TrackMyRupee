@@ -1769,6 +1769,12 @@ class UserProfile(models.Model):
     )
     onboarding_completed_at = models.DateTimeField(null=True, blank=True)
 
+    # Insights Engine: the person's choices (see expenses/insights/prefs.py) and whether the stored insights
+    # need a refresh. Kept on the profile because the profile is already loaded on every request.
+    insights_prefs = models.JSONField(default=dict, blank=True)
+    insights_generated_at = models.DateTimeField(null=True, blank=True)
+    insights_stale = models.BooleanField(default=True)
+
     @property
     def pays_by_subscription(self):
         """True when the latest successful payment was a recurring Razorpay subscription charge
@@ -2001,6 +2007,66 @@ class SubscriptionPlan(models.Model):
     def __str__(self):
         return f"{self.name} ({self.get_duration_display()}) - ₹{self.price}"
 
+class InsightState(models.Model):
+    """One insight shown (or about to be shown) to one person, and what they did with it.
+
+    `rule_id` + `dedupe_key` name the insight (the key carries the subject and the period, so a new period is a
+    new row). `payload` is the finished insight, already worded in `lang`, so a page, a notification and an email
+    all read the same thing without recomputing it. Only the person's own row holds amounts; nothing here is logged.
+    """
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='insight_states')
+    rule_id = models.CharField(max_length=64)
+    dedupe_key = models.CharField(max_length=120)
+    payload = models.JSONField(default=dict)
+    lang = models.CharField(max_length=5, default='en')
+    priority = models.PositiveSmallIntegerField(default=50)
+    valid_until = models.DateField()
+    generated_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+    locked = models.BooleanField(default=False, help_text=_('Above the plan: only the figure-free preview is kept'))
+
+    first_shown = models.DateTimeField(null=True, blank=True)
+    last_shown = models.DateTimeField(null=True, blank=True)
+    times_shown = models.PositiveIntegerField(default=0)
+    dismissed_at = models.DateTimeField(null=True, blank=True)
+    snoozed_until = models.DateTimeField(null=True, blank=True)
+    acted_at = models.DateTimeField(null=True, blank=True)
+    bell_at = models.DateTimeField(null=True, blank=True)
+    push_at = models.DateTimeField(null=True, blank=True)
+    email_at = models.DateTimeField(null=True, blank=True)
+
+    KEEP_DAYS = 60
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'rule_id', 'dedupe_key'], name='unique_insight_state'),
+        ]
+        indexes = [
+            models.Index(fields=['user', 'valid_until'], name='insight_user_valid_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}: {self.rule_id} {self.dedupe_key}"
+
+
+class InsightFeedback(models.Model):
+    """"Was this helpful?" per rule: one yes or no, never free text."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='insight_feedback')
+    rule_id = models.CharField(max_length=64)
+    helpful = models.BooleanField()
+    not_helpful_count = models.PositiveSmallIntegerField(default=0, help_text=_('Two "not helpful" votes mute the rule for this person'))
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'rule_id'], name='unique_insight_feedback'),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}: {self.rule_id} {'helpful' if self.helpful else 'not helpful'}"
+
+
 class Notification(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     NOTIFICATION_TYPES = [
@@ -2008,6 +2074,7 @@ class Notification(models.Model):
         ('ANALYTICS', _('AI Analytics/Insights')),
         ('MILESTONE', _('Financial Milestone')),
         ('SYSTEM', _('System/Subscription Alert')),
+        ('INSIGHT', _('Insight')),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
@@ -2026,6 +2093,7 @@ class Notification(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=['user', 'is_read', 'created_at'], name='notif_user_read_at_idx'),
+            models.Index(fields=['user', 'slug'], name='notif_user_slug_idx'),
         ]
 
     def __str__(self):

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 32rem;">
+    <h1 class="h4 fw-bold mb-3">{% trans "Insight emails" %}</h1>
+    {% if done %}
+    <p class="text-secondary">{% trans "You will not get the insight digest any more. You can switch it back on in Settings whenever you like." %}</p>
+    {% else %}
+    <p class="text-secondary">{% trans "Stop the weekly insight digest?" %}</p>
+    <form method="post">
+        <button type="submit" class="btn-action-primary">{% trans "Unsubscribe" %}</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

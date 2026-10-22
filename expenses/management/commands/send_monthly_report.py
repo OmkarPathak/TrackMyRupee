@@ -207,8 +207,12 @@ class Command(BaseCommand):
                 savings=compact_amount(potential, currency_symbol)
             )
 
+        from expenses.insights import composers
+        insights = composers.monthly(user, end_date)
+
         return {
             'has_data': True,
+            'insights': insights,
             'income': total_income,
             'expense': total_expense,
             'regular_expense': total_regular_expense,

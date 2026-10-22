@@ -7,18 +7,95 @@ ones in ``expenses.savings`` (savings, savings rate, what counts as spending).
 """
 from __future__ import annotations
 
+import copy
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
+from typing import NamedTuple
 
-from django.db.models import F, Q, Sum
+from django.db.models import Count, F, Q, Sum
 
 from ..account_types import investment_codes
 from ..budgets import capital_report_name, normalize_category
 from ..savings import CASHBACK_REFUND_TYPES, SavingsResult, calculate_savings
 
 ZERO = Decimal('0')
+
+
+class ExpenseRow(NamedTuple):
+    """One expense, for the rules that look at single entries (a larger-than-usual one, a possible duplicate)."""
+    id: int
+    date: date
+    category: str
+    amount: Decimal                  # base currency
+    account_id: int | None
+    created_at: datetime
+    description: str
+    from_import: bool
+
+
+def load_expense_rows(user, first: date, last: date) -> list[ExpenseRow]:
+    """The user's expenses between two dates, oldest first, in one query and without building model objects."""
+    from ..models import Expense
+
+    rows = Expense.objects.filter(user=user, date__range=(first, last)).order_by('date', 'id').values_list(
+        'id', 'date', 'category', 'base_amount', 'account_id', 'created_at', 'description', 'import_batch_id')
+    return [ExpenseRow(i, d, c or '', a or ZERO, acc, made, x.decode('utf-8', 'replace') if isinstance(x, bytes) else (x or ''),
+                       batch is not None)
+            for i, d, c, a, acc, made, x, batch in rows]
+
+
+class IncomeRow(NamedTuple):
+    """One income entry, for the rules that look at where money came from and when it arrived."""
+    date: date
+    source_type: str
+    amount: Decimal                  # base currency
+
+
+def load_income_rows(user, first: date, last: date) -> list[IncomeRow]:
+    """The user's income entries between two dates, oldest first, in one query and without building model objects."""
+    from ..models import Income
+
+    rows = Income.objects.filter(user=user, date__range=(first, last)).order_by('date', 'id').values_list(
+        'date', 'source_type', 'base_amount')
+    return [IncomeRow(d, t or '', a or ZERO) for d, t, a in rows]
+
+
+def load_category_cycles(user, ranges, *, categories: Iterable[str] = (), account_ids: Iterable[int] = ()
+                         ) -> dict[str, list[Decimal]]:
+    """What the user spent in each category over each of some consecutive (first, last) date ranges, oldest first, in
+    one query. Expenses only, narrowed by the toolbar's category and account filters."""
+    from ..models import Expense
+
+    ranges, categories, account_ids = list(ranges), list(categories), list(account_ids)
+    rows = Expense.objects.filter(user=user, date__gte=ranges[0][0], date__lte=ranges[-1][1])
+    if categories:
+        rows = rows.filter(category__in=categories)
+    if account_ids:
+        rows = rows.filter(account_id__in=account_ids)
+    sums = {f'c{i}': Sum('base_amount', filter=Q(date__range=span)) for i, span in enumerate(ranges)}
+    return {row['category']: [row[f'c{i}'] or ZERO for i in range(len(ranges))]
+            for row in rows.values('category').annotate(**sums)}
+
+
+class LoanPaid(NamedTuple):
+    """What repayments between two dates were made of (base currency)."""
+    interest: Decimal
+    principal: Decimal
+    repayments: int
+
+
+def load_loan_paid(user, first: date, last: date) -> LoanPaid:
+    """Interest and principal paid on all the user's loans between two dates, in one query. Uses the same
+    interest * exchange rate the savings definition does, so the two always agree."""
+    from ..models import LoanRepayment
+
+    row = LoanRepayment.objects.filter(loan__user=user, date__range=(first, last)).aggregate(
+        interest=Sum(F('interest_portion') * F('exchange_rate')),
+        principal=Sum(F('principal_portion') * F('exchange_rate')),
+        n=Count('id'))
+    return LoanPaid(row['interest'] or ZERO, row['principal'] or ZERO, row['n'] or 0)
 
 
 @dataclass
@@ -113,6 +190,13 @@ class Facts:
         return Summary(savings=result, invested=sum((self.invested[i] for i in span), ZERO),
                        categories=categories, invested_to=invested_to, capital_extra=extra)
 
+    def with_capital_events(self, counted: bool) -> Facts:
+        """The same facts with the "count one-off capital events" switch set the other way (nothing is reloaded:
+        the days are shared, only what `summarize` counts changes)."""
+        other = copy.copy(self)
+        other.include_capital_events = counted
+        return other
+
     def daily_spending(self, start: date, end: date) -> list[Decimal]:
         """Spending on each day from start to end, as the savings definition counts it."""
         out = []
@@ -126,6 +210,15 @@ class Facts:
             if self.expense_cats[day_index]:
                 total += sum(self.expense_cats[day_index].values(), ZERO)
             out.append(total)
+        return out
+
+    def daily_expenses(self, start: date, end: date) -> list[Decimal]:
+        """Expenses only (no loan interest, no capital events) on each day from start to end: the shape of everyday
+        spending, without the lumps."""
+        out = []
+        for day_index in range(self.index(start), self.index(end) + 1):
+            slot = self.expense_cats[day_index] if 0 <= day_index < self.size else None
+            out.append(sum(slot.values(), ZERO) if slot else ZERO)
         return out
 
     def category_series(self, start: date, end: date, key: str) -> Decimal:

@@ -12,6 +12,8 @@ from django.utils import timezone
 from .ledger_service import LedgerPostingService
 from .models import (
     Account,
+    BudgetLimitVersion,
+    BudgetMonthOverride,
     CapitalEvent,
     Category,
     Expense,
@@ -275,6 +277,17 @@ def invalidate_dashboard_cache(sender=None, instance=None, user_id=None, **kwarg
         ])
     except Exception:
         pass
+    _mark_insights_stale(user_id)
+
+
+def _mark_insights_stale(user_id):
+    """The person's stored insights were worked out before this change: the next time they open the dashboard (or a
+    page with an insights strip) the quick rules run again. A cache write, so a save costs no extra query."""
+    try:
+        from .insights.engine import mark_stale
+        mark_stale(user_id)
+    except Exception:
+        pass
 
 
 _DASHBOARD_CACHE_MODELS = (
@@ -297,6 +310,16 @@ _DASHBOARD_CACHE_MODELS = (
 for _model in _DASHBOARD_CACHE_MODELS:
     post_save.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_save_{_model.__name__}')
     post_delete.connect(invalidate_dashboard_cache, sender=_model, dispatch_uid=f'dashboard_cache_invalidate_delete_{_model.__name__}')
+
+
+def _insights_stale_on_budget_change(sender=None, instance=None, **kwargs):
+    if not kwargs.get('raw', False):
+        _mark_insights_stale(getattr(instance, 'user_id', None))
+
+
+for _model in (BudgetLimitVersion, BudgetMonthOverride):
+    post_save.connect(_insights_stale_on_budget_change, sender=_model, dispatch_uid=f'insights_stale_save_{_model.__name__}')
+    post_delete.connect(_insights_stale_on_budget_change, sender=_model, dispatch_uid=f'insights_stale_delete_{_model.__name__}')
 
 
 # --- global_badge_data cache invalidation (see context_processors.global_badge_data) ---

@@ -1,0 +1,50 @@
+{% load i18n %}
+<div data-insights-panel>
+{% if items %}
+    <div class="d-flex flex-column gap-4">
+    <style>.insight-link { color: var(--color-secondary, #0F7657); } [data-bs-theme="dark"] .insight-link { color: #4cc9a0; } .insight-link:hover { text-decoration: underline !important; } .insight-title { font-weight: 400; } @media (min-width: 768px) { .insight-title { font-weight: 600; } }</style>
+    {% for p in items %}{% with i=p.insight %}
+        <article class="d-flex align-items-start gap-3" data-insight id="insight-{{ p.state_uuid }}" aria-labelledby="insight-title-{{ p.state_uuid }}">
+            <i class="bi bi-{{ i.icon }} text-secondary opacity-75 flex-shrink-0" style="font-size: 1rem; margin-top: 0.2rem;" aria-hidden="true"></i>
+            <div class="flex-grow-1" style="min-width: 0;">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <h3 class="insight-title h6 mb-1 text-body" id="insight-title-{{ p.state_uuid }}">
+                        <span class="visually-hidden">{% if i.tone == 'positive' %}{% trans "Good news:" %}{% elif i.tone == 'gentle_attention' %}{% trans "Worth a look:" %}{% else %}{% trans "For your information:" %}{% endif %}</span>
+                        {{ i.title }}
+                    </h3>
+                    {% if not p.locked %}
+                    <button class="btn btn-sm btn-link text-muted p-0 flex-shrink-0 no-caret" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#insight-menu-{{ p.state_uuid }}" aria-expanded="false" aria-controls="insight-menu-{{ p.state_uuid }}"
+                            aria-label="{% trans 'More options for this insight' %}" title="{% trans 'More options' %}">
+                        <i class="bi bi-three-dots" aria-hidden="true"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                {% if not p.locked %}
+                <div class="collapse" id="insight-menu-{{ p.state_uuid }}">
+                    {% include 'expenses/partials/_insight_options.html' %}
+                </div>
+                {% endif %}
+                {% include 'expenses/partials/_insight_body.html' %}
+                {% include 'expenses/partials/_insight_action.html' with as_link=True %}
+            </div>
+        </article>
+    {% endwith %}{% endfor %}
+    </div>
+{% elif switched_off %}
+    <div class="text-center py-4">
+        <p class="text-muted mb-2">{% trans "Insights are switched off." %}</p>
+        <a href="{% url 'profile-settings' %}#insights" class="btn-action-outline">{% trans "Turn them back on" %}</a>
+    </div>
+{% elif learning %}
+    <div class="text-center py-4">
+        <div class="mb-3">{% include 'illustrations/empty_home.svg' %}</div>
+        <p class="text-muted mb-0">{% trans "We are still learning your patterns. A few more weeks of entries and we will have something useful to say." %}</p>
+    </div>
+{% else %}
+    <div class="text-center py-4">
+        <div class="mb-3">{% include 'illustrations/empty_notifications.svg' %}</div>
+        <p class="text-muted mb-0">{% trans "Nothing needs a look right now. We will mention it here when something is worth your time." %}</p>
+    </div>
+{% endif %}
+</div>

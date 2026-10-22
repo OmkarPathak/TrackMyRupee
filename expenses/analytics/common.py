@@ -151,16 +151,11 @@ class Page:
         ]
 
     def insight(self) -> str:
-        now, before = self.summary, self.compare
-        if not now.income:
-            return _('No income was recorded in this period.')
-        text = _('You kept %(saved)s of %(income)s (%(rate)s).') % {
-            'saved': self.money.full(now.saved), 'income': self.money.full(now.income), 'rate': percent(now.rate)}
-        if before is not None and before.income:
-            text += ' ' + (_('That is ahead of the comparison period (%(rate)s).')
-                           if now.rate >= before.rate else _('That is behind the comparison period (%(rate)s).')
-                           ) % {'rate': percent(before.rate)}
-        return text
+        """The one sentence under the tiles. It is the `analytics.period_summary` rule's, worked out for this page."""
+        from ..insights import engine
+        from ..insights.pagectx import PageContext
+        found = engine.inline(PageContext(self), ['analytics.period_summary'], limit=1)
+        return found[0].message if found else ''
 
     def _investment_account_ids(self) -> list[int]:
         from ..account_types import investment_codes

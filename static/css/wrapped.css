@@ -77,6 +77,11 @@ body:has(.demo-banner) .wr { padding-top: 64px; --wr-extra: 52px; }
 .wr-fact i { font-style: normal; font-size: 7.7cqw; text-align: center; }
 .wr-fact b { display: block; font-size: 5.1cqw; line-height: 1.2; overflow-wrap: anywhere; }
 .wr-fact span { font-size: 4.5cqw; opacity: .88; }
+/* sentences, not figures: no icon column, a quieter title, and room to breathe */
+.wr-fact--text { display: block; padding: 3.6cqw 4.2cqw; }
+.wr-fact--text b { font-size: 4.7cqw; font-weight: 600; margin-bottom: 1.2cqw; }
+.wr-fact--text span { display: block; font-size: 4.1cqw; line-height: 1.45; opacity: .78; }
+.wr-facts:has(.wr-fact--text) { gap: 2.6cqw; }
 
 .wr-glow { margin-top: 5.6cqw; display: grid; gap: 2.8cqw; }
 .wr-glow div { display: flex; justify-content: space-between; align-items: center; gap: 3cqw; background: rgba(255,255,255,.14); border-radius: 3.9cqw; padding: 3.3cqw 3.9cqw; font-weight: 600; font-size: 4.9cqw; }
