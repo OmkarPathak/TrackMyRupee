@@ -71,10 +71,7 @@ if IS_TESTING:
     PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 
 # Only our own hosts; set ALLOWED_HOSTS (comma separated) in the environment to change them.
-ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
-    'ALLOWED_HOSTS',
-    'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1'
-).split(',') if host.strip()]
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com').split(',')
 CSRF_FAILURE_VIEW = 'finance_tracker.csrf.csrf_failure'  # friendly recovery + reason logging for expired login forms
@@ -276,10 +273,16 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Whitenoise optimization settings
 WHITENOISE_MAX_AGE = 31536000  # 1 year in seconds
 
-if 'test' in sys.argv:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# (Django 5.1 removed the STATICFILES_STORAGE setting; STORAGES is the only way to choose the static files storage.)
+# Outside tests, files get a content hash in their name (so they can be cached for a year and a new deploy is picked
+# up at once) and a gzip/brotli copy for WhiteNoise.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {
+        'BACKEND': ('django.contrib.staticfiles.storage.StaticFilesStorage' if 'test' in sys.argv
+                    else 'whitenoise.storage.CompressedManifestStaticFilesStorage'),
+    },
+}
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
