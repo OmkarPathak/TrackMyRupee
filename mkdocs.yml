@@ -132,6 +132,19 @@ nav:
   - FAQ: 22-faq/index.md
 
 extra:
+  # Measured only after the reader accepts (Material shows the banner and loads Google Analytics only on Accept)
+  analytics:
+    provider: google
+    property: G-EYJX7BCKVD
+  consent:
+    title: Cookies
+    description: >-
+      With your permission, we use Google Analytics cookies to count visits to this guide and see which pages help.
+      If you decline, nothing is loaded. See the
+      <a href="https://trackmyrupee.com/privacy-policy/#section-3">Privacy Policy</a>.
+    actions:
+      - accept
+      - reject
   social:
     - icon: fontawesome/solid/globe
       link: https://trackmyrupee.com
