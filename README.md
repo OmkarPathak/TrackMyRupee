@@ -74,7 +74,8 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 *   **Auto-Refunding**: Delete a goal and its contributions go back to their source accounts.
 
 ### 📊 Insights and Analytics
-*   **Visual Dashboards**: Deep dives into your spending by category and account, with a financial health score.
+*   **Insights Engine**: Calm, specific observations from your own entries (a budget about to run out early, a category creeping up, a deposit about to mature, a bill that changed price), each with the numbers behind it. Rule-based and private: no outside AI service, no peer comparison.
+*   **Visual Dashboards**: Deep dives into your spending by category and account, with a health check in four plain numbers.
 *   **Month-over-Month Trends**: Compare your financial habits over time.
 *   **Year in Review**: A wrap-up of your annual spending story.
 *   **Automated Reports**: Monthly financial summaries delivered to your inbox.

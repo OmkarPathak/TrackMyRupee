@@ -1543,6 +1543,24 @@
         .cat-loan .tmr-row-amt { color: #A63C28; }
         .cat-insurance .tmr-row-icon { background: #E1F5EE; color: #085041; }
         .cat-insurance .tmr-row-amt { color: #0F6E56; }
+
+        /* Insights section: examples drawn like the in-app strips */
+        .ins-example { background: #ffffff; border: 1px solid var(--tmr-surface-3); border-radius: 16px; padding: 16px 18px;
+                       display: flex; gap: 14px; align-items: flex-start; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+        .ins-example + .ins-example { margin-top: 12px; }
+        .ins-ico { flex: none; width: 32px; height: 32px; border-radius: 10px; background: var(--tmr-teal-50); color: var(--tmr-teal-600);
+                   display: inline-flex; align-items: center; justify-content: center; font-size: 15px; }
+        .ins-title { font-size: 15px; font-weight: 700; color: var(--tmr-ink-900); margin-bottom: 2px; }
+        .ins-text { font-size: 14px; color: var(--tmr-ink-600); line-height: 1.5; margin: 0; }
+        .ins-meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .ins-chip { font-size: 12px; font-weight: 600; color: var(--tmr-ink-600); background: var(--tmr-surface-1); border: 1px solid var(--tmr-surface-2);
+                    border-radius: 999px; padding: 2px 10px; }
+        .ins-step { font-size: 13px; font-weight: 700; color: var(--tmr-teal-600); margin-left: auto; }
+        .ins-point { display: flex; gap: 12px; align-items: flex-start; }
+        .ins-point + .ins-point { margin-top: 16px; }
+        .ins-point i { color: var(--tmr-teal-600); font-size: 18px; margin-top: 2px; }
+        .ins-point strong { color: var(--tmr-ink-900); display: block; font-size: 16px; }
+        .ins-point span { color: var(--tmr-ink-600); font-size: 14px; line-height: 1.55; }
     </style>
 </head>
 
@@ -1808,7 +1826,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="pain-card h-100">
                     <div class="pain-q">"{% trans "I want to save more but don't know where to cut." %}"</div>
-                    <div class="pain-a">{% trans "AI insights surface which categories are quietly bleeding money month over month — and by exactly how much." %}</div>
+                    <div class="pain-a">{% trans "Insights point out which categories are quietly rising month over month, and by exactly how much." %}</div>
                 </div>
             </div>
         </div>
@@ -1877,6 +1895,66 @@
 
 
 
+<!-- INSIGHTS: the differentiator -->
+<section class="landing-section" id="insights" style="background: #ffffff; border-top: 1px solid var(--tmr-surface-2); border-bottom: 1px solid var(--tmr-surface-2);">
+    <div class="container py-5">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6 text-center text-lg-start">
+                <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-400); margin-bottom: var(--space-3);">{% trans "Insights" %}</div>
+                <h2 class="section-title">{% trans "It notices. You decide." %}</h2>
+                <p style="color: var(--tmr-ink-600); font-size: 16px; line-height: 1.6; max-width: 520px;" class="mx-auto mx-lg-0">{% trans "Most apps show you a list and leave the reading to you. TrackMyRupee reads your own entries and says what is worth a look, in one calm sentence, with the numbers behind it." %}</p>
+                <div class="mt-4 text-start" style="max-width: 520px;">
+                    <div class="ins-point"><i class="bi bi-bell"></i><div><strong>{% trans "Before it becomes a problem" %}</strong><span>{% trans "A budget running out early, a deposit about to mature, a card billing date, a bill that changed price, a salary that is late." %}</span></div></div>
+                    <div class="ins-point"><i class="bi bi-search"></i><div><strong>{% trans "Every number opens the entries behind it" %}</strong><span>{% trans "Tap a figure and see the exact transactions. Nothing is a black box." %}</span></div></div>
+                    <div class="ins-point"><i class="bi bi-heart"></i><div><strong>{% trans "Calm, never alarming" %}</strong><span>{% trans "It leads with what is going well, never compares you with other people, and never predicts the markets." %}</span></div></div>
+                    <div class="ins-point"><i class="bi bi-calendar-check"></i><div><strong>{% trans "Follows your real month" %}</strong><span>{% trans "Built on your salary cycle, your budgets and your currency, so it always agrees with the rest of the app." %}</span></div></div>
+                    <div class="ins-point"><i class="bi bi-sliders"></i><div><strong>{% trans "You set the volume" %}</strong><span>{% trans "Choose the topics and how often it speaks, or keep it to the pages. Included on every plan." %}</span></div></div>
+                </div>
+                <div class="mt-4 d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                    <a href="{% url 'demo_login' %}" class="btn-primary-landing">{% trans "See it in the live demo" %} <i class="bi bi-arrow-right"></i></a>
+                    <a href="{% url 'features' %}#noticing" class="btn-secondary-landing">{% trans "How insights work" %}</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div aria-label="{% trans 'Examples of insights' %}">
+                    <div class="ins-example">
+                        <span class="ins-ico"><i class="bi bi-piggy-bank"></i></span>
+                        <div>
+                            <div class="ins-title">{% trans "Transport may reach its limit early" %}</div>
+                            <p class="ins-text">{% trans "At this pace, Transport could reach its ₹5k limit around the 28th; ₹4k is used so far. If that sounds right, you could ease the pace or leave it." %}</p>
+                            <div class="ins-meta"><span class="ins-chip">{% trans "Used so far" %} ₹4,000</span><span class="ins-chip">{% trans "Limit" %} ₹5,000</span><span class="ins-step">{% trans "Review the limit" %} &rarr;</span></div>
+                        </div>
+                    </div>
+                    <div class="ins-example">
+                        <span class="ins-ico"><i class="bi bi-bank"></i></span>
+                        <div>
+                            <div class="ins-title">{% trans "A deposit matures soon" %}</div>
+                            <p class="ins-text">{% trans "Your FD matures on 3 Nov, with about ₹2.1L coming back to you. You might decide where it goes next, or leave it for now." %}</p>
+                            <div class="ins-meta"><span class="ins-chip">{% trans "Matures" %} 3 Nov</span><span class="ins-chip">₹2,10,000</span></div>
+                        </div>
+                    </div>
+                    <div class="ins-example">
+                        <span class="ins-ico"><i class="bi bi-arrow-repeat"></i></span>
+                        <div>
+                            <div class="ins-title">{% trans "Netflix now costs a bit more" %}</div>
+                            <p class="ins-text">{% trans "Netflix went up from ₹499 to ₹649 on the latest entry. If you expected this, you can dismiss it." %}</p>
+                            <div class="ins-meta"><span class="ins-chip">₹499 &rarr; ₹649</span><span class="ins-step">{% trans "Review subscriptions" %} &rarr;</span></div>
+                        </div>
+                    </div>
+                    <div class="ins-example">
+                        <span class="ins-ico"><i class="bi bi-graph-up-arrow"></i></span>
+                        <div>
+                            <div class="ins-title">{% trans "A steady run of saving" %}</div>
+                            <p class="ins-text">{% trans "You have kept more than you spent for 6 months in a row. Small habits like this add up quietly." %}</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center text-lg-start mt-3 mb-0" style="font-size: 12px; color: var(--tmr-ink-400);">{% trans "Examples. Yours are written from your own entries." %}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- FEATURES (THE EXPERIENCE) -->
 <section class="landing-section" id="features">
     <div class="container py-5 text-center text-lg-start">
@@ -1887,7 +1965,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="feature-card h-100">
                     <div class="feature-title" style="color: var(--tmr-teal-600);">{% trans "Spot spending leaks before they become habits" %}</div>
-                    <div class="feature-desc">{% trans "AI categorises your trends and shows exactly which buckets are growing month over month." %}</div>
+                    <div class="feature-desc">{% trans "Insights read your own entries and show exactly which categories are growing month over month, in one calm sentence." %}</div>
                 </div>
             </div>
             <!-- 3: Visual Net Worth -->
@@ -2265,7 +2343,7 @@
                             </li>
                             <li class="feature-item">
                                 <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                <span>{% trans "AI insights included" %}</span>
+                                <span>{% trans "Insights on every page" %}</span>
                             </li>
                             <li class="feature-item">
                                 <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -2366,6 +2444,10 @@
                                 <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 <span>{% trans "Year in Review + alert emails" %}</span>
                             </li>
+                        <li class="feature-item">
+                                <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>{% trans "Weekly insights email" %}</span>
+                            </li>
                             <li class="feature-item">
                                 <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px !important; height: 18px !important; min-width: 18px !important; max-width: 18px !important; flex-shrink: 0 !important;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                                 <span>{% trans "7-day free trial · Priority support" %}</span>
@@ -2386,7 +2468,7 @@
 
         <!-- Guarantee Footer Note -->
         <div class="text-center text-muted small mt-4 mb-2">
-            <span class="fw-semibold text-body">{% trans "AI insights and net worth tracking" %}</span> {% trans "are included on every plan. Cancel anytime, no lock-in." %}
+            <span class="fw-semibold text-body">{% trans "Insights and net worth tracking" %}</span> {% trans "are included on every plan. Cancel anytime, no lock-in." %}
         </div>
     </div>
 </section>

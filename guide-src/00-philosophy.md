@@ -30,7 +30,7 @@ Mixing predictable recurring income with lumpy one-off receipts hides your true 
 
 ## 4. What Smart Insights and Financial Health Actually Are
 
-The Financial Health score and Smart Insights panel perform descriptive pattern-matching over your own historical data. For example, they can tell you that you are spending a higher percentage on a category this cycle compared to last cycle.
+The health check and the Insights engine perform descriptive pattern-matching over your own historical data, by fixed rules that run inside the app (there is no outside AI service). For example, they can tell you that you are spending a higher percentage on a category this cycle compared to last cycle.
 
 They are not financial advice and are not predictions about the future. Use them as data-informed prompts for your own judgment.
 

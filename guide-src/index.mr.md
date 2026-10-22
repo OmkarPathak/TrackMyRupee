@@ -78,6 +78,7 @@
 | [कॅपिटल इव्हेंट्स](09-capital-events/index.md) | मोठे एकरकमी व्यवहार |
 | [कॅलेंडर](10-calendar/index.md) | दैनिक ऑडिट ट्रेल |
 | [Analytics](11-analytics-and-health/index.md) | खर्च, कॅशफ्लो, एकूण संपत्ती, बचत दर |
+| [Insights](18-insights/index.md) | तुमच्या स्वतःच्या पैशांबद्दल शांत निरीक्षणे, आणि ती नियंत्रित करणे |
 | [बचत ध्येये](12-goals/index.md) | प्रगती बार आणि टप्पे |
 | [मोबाइल ॲप](20-mobile-app/index.md) | iOS ॲप मार्गदर्शक |
 | [स्व-होस्टिंग](21-self-hosting/index.md) | Docker वर सेटअप |

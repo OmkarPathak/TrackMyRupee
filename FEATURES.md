@@ -4,7 +4,7 @@ TrackMyRupee is a privacy-first personal finance tracker built for India. There 
 
 ![Dashboard](misc/dashboard2.png)
 
-**Contents:** [Log money in seconds](#tracking) · [Your whole balance sheet](#accounts) · [Investments, fund by fund](#investments) · [Plan ahead](#planning) · [Guided setup with TMR Flows](#flows) · [Know where you stand](#insights) · [Reminders that reach you](#alerts) · [Your data stays yours](#trust) · [Works the way you do](#everywhere)
+**Contents:** [Log money in seconds](#tracking) · [Your whole balance sheet](#accounts) · [Investments, fund by fund](#investments) · [Plan ahead](#planning) · [Guided setup with TMR Flows](#flows) · [Insights that notice for you](#noticing) · [Know where you stand](#insights) · [Reminders that reach you](#alerts) · [Your data stays yours](#trust) · [Works the way you do](#everywhere)
 
 <a id="tracking"></a>
 ## Log money in seconds
@@ -62,13 +62,26 @@ _Say what happened. The app sets up everything that goes with it._
 - **A flow for the moments that matter.** Loans and credit cards, salary, rent and insurance, SIPs, FDs, PPF, EPF and NPS, savings goals, a car and gold. Your progress panel shows which of the core setups you have done.
 - **Safe to get wrong.** You review before anything is saved, a flow saves everything or nothing, and a double-click cannot create things twice. You can switch on historical entries to fill in the months already gone.
 
+<a id="noticing"></a>
+## Insights that notice for you
+
+_Calm, specific observations from your own entries, so you do not have to go looking._
+
+- **About fifty things it watches for.** A budget about to run out early, a category creeping up, a deposit about to mature, a card billing date, a salary that is late, idle cash, a subscription that changed price, a goal that is slipping or on track, and more. Each one is a plain sentence about your own money.
+- **Every number opens the entries behind it.** The sentence uses rounded figures. The exact amounts sit in small chips under it, and each chip opens the transactions that make up the number.
+- **Calm by design.** We lead with what is going well, never compare you with other people, and never predict the markets. Insights about debt, a shortfall or a long gap in income are written extra gently, and are never pushed or emailed.
+- **It follows your real month.** Insights use your salary cycle, your Capital Events choices and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app.
+- **You choose how loud it is.** Pick the topics, and whether the bell mentions things normally, quietly or only on the pages. Snooze or dismiss any insight, and say whether it was helpful so you see less of what is not.
+- **Where it shows up.** A short strip on your Dashboard and on pages like Budgets, Expenses, Accounts, Loans and Goals, the sentences on your Analytics tabs, a "What we noticed" card in your Year in Review, and on Pro a weekly email and a monthly report section.
+- **Runs on your entries, nowhere else.** Insights are worked out inside the app from what you logged. No bank feed, no outside AI service, and your data is never sold or used for advertising. Insights are included on every plan.
+
 <a id="insights"></a>
 ## Know where you stand
 
 _Plain answers from your own numbers._
 
 - **A dashboard you can read at a glance.** Net worth, cash flow, where the money went and a year-to-date projection, for any period you choose.
-- **A financial health score.** A score out of 100 built from your savings rate, with four checks behind it: savings rate, spending growth, consistency, and how many months you could live on your savings.
+- **A health check in four plain numbers.** Your savings rate, whether spending is rising or falling, how many months your cash would last, and how many months you spent less than you earned. Each one says what it measures.
 - **Trends and month-on-month.** See how each category moves over the year and against last month, so a growing habit shows up early.
 - **Year in Review and monthly reports.** A yearly wrap-up of what you earned, spent, saved and invested, and a monthly summary in your inbox.
 
@@ -103,7 +116,7 @@ _Your language, your device, your currency._
 
 ## Plans
 
-The Free plan never expires. Plus and Pro raise the limits on accounts, budgets, subscriptions, goals and loans, and unlock net worth history, alert emails and Year in Review. Exporting your data is free on every plan. A 7-day Pro trial is available once, with no card needed. See the [plans guide](guide-src/23-plans-and-billing/index.md) for the exact limits and the [pricing page](https://trackmyrupee.com/pricing/) for prices.
+The Free plan never expires. Plus and Pro raise the limits on accounts, budgets, subscriptions, goals and loans, and unlock net worth history, alert emails and Year in Review. Insights are on every plan; the weekly insights email and the monthly report section are Pro. Exporting your data is free on every plan. A 7-day Pro trial is available once, with no card needed. See the [plans guide](guide-src/23-plans-and-billing/index.md) for the exact limits and the [pricing page](https://trackmyrupee.com/pricing/) for prices.
 
 ## Not included, on purpose
 

@@ -13,7 +13,8 @@ ICONS = {
     'investments': ('📊', ['🗂️', '🔄', '🔗', '⏰', '🧩', '💸']),
     'planning': ('🗓️', ['🔁', '🎚️', '🏁', '🏠', '🎉']),
     'flows': ('🧭', ['🪄', '🗺️', '🛟']),
-    'insights': ('💡', ['📊', '💯', '📉', '🎁']),
+    'noticing': ('✨', ['👀', '🔢', '🌿', '🗓️', '🎛️', '🧭', '🔒']),
+    'insights': ('💡', ['📊', '✅', '📉', '🎁']),
     'alerts': ('🔔', ['⏰', '🌙']),
     'trust': ('🔒', ['🙈', '⚖️', '🗑️', '🔓']),
     'everywhere': ('🌏', ['🗣️', '📲', '💱', '🌗', '🎬']),
@@ -173,6 +174,41 @@ def _feature_categories():
             ],
         },
         {
+            'id': 'noticing',
+            'title': _('Insights that notice for you'),
+            'description': _('Calm, specific observations from your own entries, so you do not have to go looking.'),
+            'items': [
+                {
+                    'title': _('About fifty things it watches for'),
+                    'desc': _('A budget about to run out early, a category creeping up, a deposit about to mature, a card billing date, a salary that is late, idle cash, a subscription that changed price, a goal that is slipping or on track, and more. Each one is a plain sentence about your own money.'),
+                },
+                {
+                    'title': _('Every number opens the entries behind it'),
+                    'desc': _('The sentence uses rounded figures. The exact amounts sit in small chips under it, and each chip opens the transactions that make up the number.'),
+                },
+                {
+                    'title': _('Calm by design'),
+                    'desc': _('We lead with what is going well, never compare you with other people, and never predict the markets. Insights about debt, a shortfall or a long gap in income are written extra gently, and are never pushed or emailed.'),
+                },
+                {
+                    'title': _('It follows your real month'),
+                    'desc': _('Insights use your salary cycle, your Capital Events choices and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app.'),
+                },
+                {
+                    'title': _('You choose how loud it is'),
+                    'desc': _('Pick the topics, and whether the bell mentions things normally, quietly or only on the pages. Snooze or dismiss any insight, and say whether it was helpful so you see less of what is not.'),
+                },
+                {
+                    'title': _('Where it shows up'),
+                    'desc': _('A short strip on your Dashboard and on pages like Budgets, Expenses, Accounts, Loans and Goals, the sentences on your Analytics tabs, a "What we noticed" card in your Year in Review, and on Pro a weekly email and a monthly report section.'),
+                },
+                {
+                    'title': _('Runs on your entries, nowhere else'),
+                    'desc': _('Insights are worked out inside the app from what you logged. No bank feed, no outside AI service, and your data is never sold or used for advertising. Insights are included on every plan.'),
+                },
+            ],
+        },
+        {
             'id': 'insights',
             'title': _('Know where you stand'),
             'description': _('Plain answers from your own numbers.'),
@@ -182,8 +218,8 @@ def _feature_categories():
                     'desc': _('Net worth, cash flow, where the money went and a year-to-date projection, for any period you choose.'),
                 },
                 {
-                    'title': _('A financial health score'),
-                    'desc': _('A score out of 100 built from your savings rate, with four checks behind it: savings rate, spending growth, consistency, and how many months you could live on your savings.'),
+                    'title': _('A health check in four plain numbers'),
+                    'desc': _('Your savings rate, whether spending is rising or falling, how many months your cash would last, and how many months you spent less than you earned. Each one says what it measures.'),
                 },
                 {
                     'title': _('Trends and month-on-month'),
