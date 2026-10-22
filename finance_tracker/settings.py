@@ -160,6 +160,7 @@ TEMPLATES = [
                 'expenses.context_processors.currency_symbol',
                 'expenses.context_processors.global_badge_data',
                 'expenses.context_processors.personalization',
+                'expenses.insights.context_processors.insights_flags',
                 'finance_tracker.context_processors.google_analytics',
                 'finance_tracker.context_processors.posthog',
                 'finance_tracker.context_processors.plan_details',
@@ -288,6 +289,15 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Insights Engine. INSIGHTS_ENGINE_MODE: "off" (legacy dashboard only), "shadow" (legacy renders, the engine is
+# compared with it) or "on". INSIGHTS_ENGINE_USER_IDS (comma separated) turns the engine on for just those users.
+# INSIGHTS_CHANNELS picks which delivery channels may send ("bell", "push", "email"); empty sends nothing.
+INSIGHTS_ENGINE_MODE = os.environ.get('INSIGHTS_ENGINE_MODE', 'off').strip().lower()
+INSIGHTS_ENGINE_USER_IDS = frozenset(
+    int(i) for i in os.environ.get('INSIGHTS_ENGINE_USER_IDS', '').split(',') if i.strip().isdigit())
+INSIGHTS_CHANNELS = frozenset(c.strip() for c in os.environ.get('INSIGHTS_CHANNELS', '').split(',') if c.strip())
+INSIGHTS_SHADOW_PERCENT = int(os.environ.get('INSIGHTS_SHADOW_PERCENT', 10))
 
 # How long a finished Analytics tab is kept (seconds). Any write by the user clears it sooner; tests turn it off.
 ANALYTICS_CACHE_SECONDS = 0 if IS_TESTING else 300

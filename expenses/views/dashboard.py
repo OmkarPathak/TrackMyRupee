@@ -63,6 +63,7 @@ from ..utils import (
     get_exchange_rate,
 )
 from ..cache_utils import suppress_dashboard_cache_invalidation
+from ..insights import shadow as insights_shadow
 from .mixins import HtmxPartialTemplateMixin, process_user_recurring_transactions
 from .utils import parse_month_year
 
@@ -829,6 +830,7 @@ def home_view(request):
     comparison_label = _("vs last month")
     prev_year = None
     prev_month = None
+    prev_window = None
     if len(selected_years) == 1 and len(selected_months) == 1:
         try:
             sel_year = int(selected_years[0])
@@ -970,7 +972,7 @@ def home_view(request):
             transfers_qs = transfers_qs.filter(date__month__in=selected_months)
 
     # --- NEW: Savings Projection (Linear Extrapolation) ---
-    current_date = date.today()
+    current_date = timezone.localdate()
     current_year = current_date.year
     current_month = current_date.month 
 
@@ -1094,6 +1096,8 @@ def home_view(request):
     # --- Emotional Feedback / Insights Logic (Enhanced) ---
     
     insights = []
+    # What this legacy code concludes for each migrated insight, for the Insights Engine's shadow comparison
+    shadow_legacy = {}
 
     # Pre-fetch maturing accounts once — used in both the Anomaly Detection alert block
     # (is_current_month_view only) and the Smart Bullet Insights block (always).
@@ -1153,6 +1157,7 @@ def home_view(request):
     # 0. Anomaly Detection (Spending Spike)
     # Only if viewing current month (or default view)
     if is_current_month_view and total_expenses > 0:
+        shadow_legacy['cashflow.pace_vs_usual'] = None
         # Calculate last 3 months average
         last_3_months_total = 0
         months_counted = 0
@@ -1181,6 +1186,7 @@ def home_view(request):
                 
                 if projected_spend > avg_past_spend_float * 1.25 and float(total_expenses) > 1000: # 25% Higher + Min Threshold
                     pct_higher = int(((projected_spend - avg_past_spend_float) / avg_past_spend_float) * 100)
+                    shadow_legacy['cashflow.pace_vs_usual'] = {'pct': pct_higher}
                     insights.append({
                         'type': 'warning',
                         'icon': 'graph-up-arrow',
@@ -1190,6 +1196,7 @@ def home_view(request):
                     })
 
         # 0.5 Fixed-Income Maturing Soon Alert (uses pre-fetched list from above)
+        shadow_legacy['accounts.deposit_maturing'] = {a.name.strip().lower() for a in maturing_soon_accounts}
         for mat_acc in maturing_soon_accounts:
             mat_date_str = date_format(mat_acc.deposit_maturity_date, 'd M Y')
             mat_amount_str = f"{mat_acc.currency}{compact_amount(mat_acc.balance, mat_acc.currency)}"
@@ -1211,6 +1218,7 @@ def home_view(request):
             if cat['limit'] and cat['projected_percent'] and cat['projected_percent'] > 100 and (cat['used_percent'] or 0) <= 100:
                 speed_alert_categories.append(cat['name'])
                 
+        shadow_legacy['budgets.category_runout'] = {n.strip().lower() for n in speed_alert_categories}
         if speed_alert_categories:
             if len(speed_alert_categories) == 1:
                 msg = _("Trends show you might overspend on %(category)s soon. Take care!") % {'category': escape(speed_alert_categories[0])}
@@ -1242,6 +1250,8 @@ def home_view(request):
         
         # 3. AI Insight (Trend analysis for top category)
         viral_insight = None
+        if is_current_month_view:
+            shadow_legacy['expenses.category_above_usual'] = None
         if top_5_categories:
             top_cat = top_5_categories[0]['category']
             top_amount = top_5_categories[0]['total']
@@ -1288,6 +1298,8 @@ def home_view(request):
                 cat_avg = float(cat_3_month_total) / cat_months_counted
                 if float(top_amount) > cat_avg * 1.1: # 10% higher
                     diff_pct = int(((float(top_amount) - cat_avg) / cat_avg) * 100)
+                    if is_current_month_view:
+                        shadow_legacy['expenses.category_above_usual'] = {'category': normalize_category(top_cat), 'pct': diff_pct}
                     viral_insight = _("You spent %(diff_pct)s%% more on %(category)s than your 3-month average.") % {
                         'diff_pct': diff_pct,
                         'category': _(top_cat)
@@ -1320,7 +1332,8 @@ def home_view(request):
 
         # 5. Relatable Metric (Fun/Viral)
         relatable_metric = None
-        if top_5_categories:
+        # The prices below are rupee prices, so the comparison is only offered to rupee users.
+        if top_5_categories and currency_symbol == '₹':
             top_amount = float(top_5_categories[0]['total'])
             top_cat_name = top_5_categories[0]['category']
             
@@ -1499,6 +1512,10 @@ def home_view(request):
     over_budget_cats = [c for c in category_limits if c['used_percent'] is not None and c['used_percent'] > 100]
     near_budget_cats = [c for c in category_limits if c['status'] == 'limit']   # 85%+ like the Budget page
     
+    if is_current_month_view:
+        shadow_legacy['budgets.limit_passed'] = {c['name'].strip().lower() for c in over_budget_cats}
+        shadow_legacy['budgets.limit_nearing'] = set() if over_budget_cats else {c['name'].strip().lower() for c in near_budget_cats}
+
     # Check savings rate for "Softener" context
     savings_rate_alert = float(current_savings.rate)
     
@@ -1545,9 +1562,11 @@ def home_view(request):
 
     # 2. Wins & Cause-Based Praise (Specific & Celebratory)
     if prev_month_data:
+        if is_current_month_view:
+            shadow_legacy['cashflow.savings_momentum'] = False
         # Calculate Category Savings (Cause of the win)
         # We need prev month category breakdown
-        prev_cat_qs = Expense.objects.filter(user=request.user, date__year=prev_year, date__month=prev_month).values('category').annotate(total=Sum('base_amount'))
+        prev_cat_qs = Expense.objects.filter(user=request.user, **prev_window).values('category').annotate(total=Sum('base_amount'))
         prev_cat_map = {item['category'].strip(): float(item['total']) for item in prev_cat_qs}
         
         # Add micro trend indicators to category_limits
@@ -1593,6 +1612,8 @@ def home_view(request):
                         'share_text': share_text
                     })
             elif prev_month_data['savings_pct'] and prev_month_data['savings_pct'] > 0:
+                 if is_current_month_view:
+                     shadow_legacy['cashflow.savings_momentum'] = True
                  savings_str = "10x+" if prev_month_data['savings_pct_abs'] > 999 else f"{prev_month_data['savings_pct_abs']:.0f}%"
                  insights.append({
                     'type': 'success',
@@ -1627,6 +1648,8 @@ def home_view(request):
 
     # 3. Streak & Identity (Reassuring / Habit Forming)
     # Only calculate if current status is good
+    if is_current_month_view:
+        shadow_legacy['cashflow.saving_streak'] = None
     if savings > 0 and len(selected_years) == 1 and len(selected_months) == 1:
         streak = 1 # Current month counts
         check_to_go = 5 # check max 5 months back
@@ -1646,6 +1669,8 @@ def home_view(request):
                 break
         
         if streak > 1:
+            if is_current_month_view:
+                shadow_legacy['cashflow.saving_streak'] = streak
             def get_ordinal(n):
                 if 11 <= (n % 100) <= 13:
                     return f"{n}th"
@@ -1660,6 +1685,8 @@ def home_view(request):
                 'share_text': _("I've stayed under budget for %(streak)s months in a row! via TrackMyRupee") % {'streak': streak}
             })
 
+    if is_current_month_view:
+        shadow_legacy['cashflow.year_pace'] = Decimal(str(projected_savings)) if projected_savings > 0 else None
     # NEW: Wealth Projection
     if projected_savings > 0:
         def format_indian_lakhs(amount):
@@ -1712,7 +1739,7 @@ def home_view(request):
             smart_insights.append(insight)
             
     # Add Upcoming Subscriptions to Alerts
-    today_date = date.today()
+    today_date = timezone.localdate()
     seven_days_later = today_date + timedelta(days=7)
 
     upcoming_payments = list(
@@ -1724,8 +1751,9 @@ def home_view(request):
         ).order_by('next_due_date')[:3]
     )
     
+    shadow_legacy['recurring.bills_soon'] = [(p.description.strip(), p.next_due_date.isoformat()) for p in upcoming_payments]
     for payment in upcoming_payments:
-        days_left = (payment.next_due_date - date.today()).days
+        days_left = (payment.next_due_date - today_date).days
         if days_left == 0:
             when = _("Today")
         elif days_left == 1:
@@ -1742,6 +1770,9 @@ def home_view(request):
         })
         
     smart_insights = smart_insights[:3] # Limit to 3 (Layer 3 rule)
+
+    if insights_shadow.should_compare(request.user):
+        insights_shadow.compare(request.user, shadow_legacy)
     
     # Layer 5: Monthly Story Generation
     if len(selected_months) == 1 and len(selected_years) == 1:
@@ -1895,18 +1926,18 @@ def home_view(request):
         if capital_event_callout['count'] == 1:
             ev = capital_event_callout['events'][0]
             if ev.note and ev.note.strip():
-                title_text = _("Capital Event: <b>{}</b> this month").format(ev.note.strip())
+                title_text = format_html(_("Capital Event: <b>{}</b> this month"), ev.note.strip())
             else:
-                title_text = _("<b>One-off Capital Event</b>")
+                title_text = mark_safe(_("<b>One-off Capital Event</b>"))
         else:
-            title_text = _("<b>{} Capital Events this month</b>").format(capital_event_callout['count'])
+            title_text = format_html(_("<b>{} Capital Events this month</b>"), capital_event_callout['count'])
         
         curr_symbol = capital_event_callout['events'][0].currency
         event_text = format_html(
             _("{title}"
               " You made a one-off payment of {curr}{total}. "
               "<a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>View Capital Events &rarr;</a>"),
-            title=mark_safe(title_text),
+            title=title_text,
             curr=curr_symbol,
             total=compact_amount(capital_event_callout['total'], curr_symbol),
             regular=compact_amount(capital_event_callout['regular_spent'], curr_symbol),

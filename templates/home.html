@@ -1027,6 +1027,7 @@
             </div>
             {% endif %}
 
+            {% if not INSIGHTS_ON %}
             <!-- SMART INSIGHTS & ACTIONABLE ALERTS (Layers 3 & 4) -->
             <div class="row g-4 mb-4">
                 <!-- SMART INSIGHTS (Layer 3) -->
@@ -1137,6 +1138,8 @@
                     </div>
                 </div>
             </div>
+
+            {% endif %}
 
             <!-- SHAREABLE MONEY REPORT (Layer 6) -->
             {% if salary_breakdown or total_income > 0 %}
@@ -1777,6 +1780,57 @@ document.addEventListener('DOMContentLoaded', function() {
         </div><!-- /bento-metrics-grid -->
     </div><!-- /col -->
 
+    {% if INSIGHTS_ON %}
+    <!-- Insights: one panel from the Insights Engine, loaded after the page has painted -->
+    <style>
+        /* The insights card never makes the row taller: beside the metrics it takes their height, stacked it stops at
+           30rem, and when there are more insights than fit they scroll inside the card. */
+        .insights-card { max-height: 30rem; overflow: hidden; }          /* clips the scrolling body to the card's rounded corners */
+        .insights-card .card-body {
+            min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+            /* a soft shadow at an edge that has more to scroll to (the card's own colour, so it works in both themes) */
+            --ins-bg: var(--bs-card-bg, var(--bs-body-bg)); --ins-clear: color-mix(in srgb, var(--ins-bg) 0%, transparent);
+            background:
+                linear-gradient(var(--ins-bg) 30%, var(--ins-clear)) center top / 100% 36px no-repeat local,
+                linear-gradient(var(--ins-clear), var(--ins-bg) 70%) center bottom / 100% 36px no-repeat local,
+                radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .16), transparent) center top / 100% 10px no-repeat scroll,
+                radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .16), transparent) center bottom / 100% 10px no-repeat scroll,
+                var(--ins-bg);
+        }
+        @media (min-width: 992px) {
+            .insights-col { position: relative; min-height: 22rem; }
+            .insights-col .insights-card { position: absolute; inset: 0; max-height: none; }
+        }
+    </style>
+    <div class="col-12 col-lg-6 nw-animate-in insights-col" id="tour-smart-insights-card" style="animation-delay: 0.2s;">
+        <div class="card shadow-lg border-0 h-100 rounded-4 insights-card">
+            <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center fw-bold flex-shrink-0">
+                <div class="d-inline-flex align-items-center">
+                    <i class="bi bi-lightbulb me-2 text-muted" aria-hidden="true"></i>
+                    <span class="cursor-pointer" data-bs-toggle="tooltip" data-bs-placement="top"
+                          title="{% trans 'Calm observations about your own money. Descriptive only, never financial advice.' %}">{% trans "Insights" %}</span>
+                </div>
+            </div>
+            <div class="card-body p-3 p-md-4" tabindex="0" role="region" aria-label="{% trans 'Insights' %}">
+                <div id="insights-panel" hx-get="{% url 'insights-panel' %}?surface=dashboard" hx-trigger="load" hx-swap="innerHTML"
+                     hx-on::after-request="this.removeAttribute('aria-busy')" aria-live="polite" aria-busy="true">
+                    <div class="d-flex flex-column gap-4" aria-hidden="true">
+                        {% for _i in "123" %}
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="skeleton-block rounded-circle flex-shrink-0" style="width: 42px; height: 42px;"></div>
+                            <div class="flex-grow-1">
+                                <div class="skeleton-block mb-2" style="height: 14px; width: 40%;"></div>
+                                <div class="skeleton-block" style="height: 12px; width: 85%;"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <span class="visually-hidden">{% trans "Loading insights" %}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
     <!-- Smart Insights Card -->
     <div class="col-12 col-lg-6 nw-animate-in" id="tour-smart-insights-card" style="animation-delay: 0.2s;">
         <div class="card shadow-lg border-0 h-100 rounded-4">
@@ -1845,6 +1899,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
+
+    {% endif %}
 
     <!-- Spending Pace Card -->
     <div class="col-12 col-lg-4">

@@ -1,6 +1,7 @@
 {% extends 'expenses/settings_base.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load insights_tags %}
 
 {% block settings_content %}
 <div class="fade-in">
@@ -92,6 +93,7 @@
                 </button>
             </div>
         </form>
+        {% insights_settings %}
     </div>
 </div>
 <script>

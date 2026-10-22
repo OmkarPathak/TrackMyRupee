@@ -1,0 +1,73 @@
+{% load i18n %}
+<div data-insights-panel>
+{% if items %}
+    <div class="d-flex flex-column gap-4">
+    {% for p in items %}{% with i=p.insight %}
+        <article class="d-flex align-items-start gap-3" data-insight id="insight-{{ p.state_uuid }}" aria-labelledby="insight-title-{{ p.state_uuid }}">
+            <div class="d-flex align-items-center justify-content-center rounded-circle border flex-shrink-0 {% if i.tone == 'positive' %}border-success border-opacity-25 bg-success bg-opacity-10 text-success{% elif i.tone == 'gentle_attention' %}border-warning border-opacity-25 bg-warning bg-opacity-10 text-warning{% else %}bg-primary bg-opacity-10 text-primary{% endif %}" style="width: 42px; height: 42px;">
+                <i class="bi bi-{{ i.icon }}" style="font-size: 1.2rem;" aria-hidden="true"></i>
+            </div>
+            <div class="flex-grow-1" style="min-width: 0;">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <h3 class="h6 fw-bold mb-1 text-body" id="insight-title-{{ p.state_uuid }}">
+                        <span class="visually-hidden">{% if i.tone == 'positive' %}{% trans "Good news:" %}{% elif i.tone == 'gentle_attention' %}{% trans "Worth a look:" %}{% else %}{% trans "For your information:" %}{% endif %}</span>
+                        {{ i.title }}
+                    </h3>
+                    {% if not p.locked %}
+                    <button class="btn btn-sm btn-link text-muted p-0 flex-shrink-0 no-caret" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#insight-menu-{{ p.state_uuid }}" aria-expanded="false" aria-controls="insight-menu-{{ p.state_uuid }}"
+                            aria-label="{% trans 'More options for this insight' %}" title="{% trans 'More options' %}">
+                        <i class="bi bi-three-dots" aria-hidden="true"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                {% if not p.locked %}
+                <div class="collapse" id="insight-menu-{{ p.state_uuid }}">
+                    <div class="d-flex align-items-center gap-3 small mb-1" id="insight-opts-{{ p.state_uuid }}" role="group" aria-label="{% trans 'More options for this insight' %}">
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" hx-post="{% url 'insights-snooze' p.state_uuid %}" hx-target="#insight-{{ p.state_uuid }}" hx-swap="outerHTML">{% trans "Not now" %}</button>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" hx-post="{% url 'insights-dismiss' p.state_uuid %}" hx-target="#insight-{{ p.state_uuid }}" hx-swap="outerHTML">{% trans "Dismiss" %}</button>
+                        <span class="ms-auto d-inline-flex align-items-center gap-3">
+                            <button type="button" class="btn btn-link btn-sm p-0 text-muted" hx-post="{% url 'insights-helpful' p.state_uuid 'yes' %}" hx-target="#insight-opts-{{ p.state_uuid }}" hx-swap="outerHTML" aria-label="{% trans 'This was helpful' %}" title="{% trans 'This was helpful' %}"><i class="bi bi-hand-thumbs-up" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-link btn-sm p-0 text-muted" hx-post="{% url 'insights-helpful' p.state_uuid 'no' %}" hx-target="#insight-opts-{{ p.state_uuid }}" hx-swap="outerHTML" aria-label="{% trans 'This was not helpful' %}" title="{% trans 'This was not helpful' %}"><i class="bi bi-hand-thumbs-down" aria-hidden="true"></i></button>
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+                <p class="mb-1 text-muted" style="font-size: 0.9rem;">{{ i.message }}</p>
+                {% if i.detail %}<p class="mb-1 text-muted small">{{ i.detail }}</p>{% endif %}
+                {% if i.evidence %}
+                <ul class="list-unstyled d-flex flex-wrap gap-2 mt-2 mb-2">
+                    {% for e in i.evidence %}
+                    <li>
+                        {% if e.link %}<a href="{{ e.link }}" class="badge rounded-pill bg-body-secondary text-body border text-decoration-none fw-normal">{% else %}<span class="badge rounded-pill bg-body-secondary text-body border fw-normal">{% endif %}
+                            <span class="text-muted">{{ e.label }}</span> <span class="fw-semibold">{{ e.value }}</span>
+                        {% if e.link %}</a>{% else %}</span>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if i.action %}
+                    {% if p.locked %}<a href="{{ i.action.url }}" class="btn-action-outline">{{ i.action.label }}</a>
+                    {% else %}<a href="{% url 'insights-go' p.state_uuid %}" class="btn-action-outline">{{ i.action.label }}</a>{% endif %}
+                {% endif %}
+            </div>
+        </article>
+    {% endwith %}{% endfor %}
+    </div>
+{% elif switched_off %}
+    <div class="text-center py-4">
+        <p class="text-muted mb-2">{% trans "Insights are switched off." %}</p>
+        <a href="{% url 'profile-settings' %}#insights" class="btn-action-outline">{% trans "Turn them back on" %}</a>
+    </div>
+{% elif learning %}
+    <div class="text-center py-4">
+        <div class="mb-3">{% include 'illustrations/empty_home.svg' %}</div>
+        <p class="text-muted mb-0">{% trans "We are still learning your patterns. A few more weeks of entries and we will have something useful to say." %}</p>
+    </div>
+{% else %}
+    <div class="text-center py-4">
+        <div class="mb-3">{% include 'illustrations/empty_notifications.svg' %}</div>
+        <p class="text-muted mb-0">{% trans "Nothing needs a look right now. We will mention it here when something is worth your time." %}</p>
+    </div>
+{% endif %}
+</div>

@@ -19868,3 +19868,357 @@ msgstr "साझा करने के लिए कुछ नहीं।"
 
 msgid "Your salary cycle: %(start)s – %(end)s"
 msgstr "आपका वेतन चक्र: %(start)s – %(end)s"
+
+#: expenses/insights
+msgctxt "amount suffix: thousand"
+msgid "k"
+msgstr "हज़ार"
+
+#: expenses/insights
+msgctxt "amount suffix: lakh"
+msgid "L"
+msgstr "लाख"
+
+#: expenses/insights
+msgctxt "amount suffix: crore"
+msgid "Cr"
+msgstr "करोड़"
+
+#: expenses/insights
+msgctxt "amount suffix: million"
+msgid "M"
+msgstr "मिलियन"
+
+#: expenses/insights
+msgctxt "amount suffix: billion"
+msgid "B"
+msgstr "अरब"
+
+#: expenses/insights
+msgid "Recurring payments"
+msgstr "आवर्ती भुगतान"
+
+#: expenses/insights
+msgid "Transfers and investing"
+msgstr "ट्रांसफ़र और निवेश"
+
+#: expenses/insights
+msgid "Cash flow"
+msgstr "नकदी प्रवाह"
+
+#: expenses/insights
+msgid "Spending is running a little higher"
+msgstr "खर्च थोड़ा ज़्यादा चल रहा है"
+
+#: expenses/insights
+#, python-format
+msgid "At this pace you could end up about %(pct)s above your usual %(usual)s. Money moves in waves, so this may simply be a busy stretch."
+msgstr "इसी रफ़्तार से आप अपने सामान्य %(usual)s से लगभग %(pct)s ऊपर पहुँच सकते हैं। पैसे की चाल लहरों जैसी होती है, इसलिए यह बस एक व्यस्त दौर हो सकता है।"
+
+#: expenses/insights
+msgid "If it is on purpose, you can dismiss this."
+msgstr "अगर यह जानबूझकर है, तो आप इसे हटा सकते हैं।"
+
+#: expenses/insights
+msgid "At this pace"
+msgstr "इसी रफ़्तार से"
+
+#: expenses/insights
+msgid "See where it went"
+msgstr "देखें कहाँ गया"
+
+#: expenses/insights
+msgid "A steady run of saving"
+msgstr "लगातार बचत का सिलसिला"
+
+#: expenses/insights
+#, python-format
+msgid "You have kept more than you spent for %(n)s month in a row. Small habits like this add up quietly."
+msgid_plural "You have kept more than you spent for %(n)s months in a row. Small habits like this add up quietly."
+msgstr[0] "आपने लगातार %(n)s महीने खर्च से ज़्यादा बचाया है। ऐसी छोटी आदतें चुपचाप जुड़ती जाती हैं।"
+msgstr[1] "आपने लगातार %(n)s महीने खर्च से ज़्यादा बचाया है। ऐसी छोटी आदतें चुपचाप जुड़ती जाती हैं।"
+
+#: expenses/insights
+msgid "Kept so far"
+msgstr "अब तक बचा"
+
+#: expenses/insights
+msgid "Your savings are growing"
+msgstr "आपकी बचत बढ़ रही है"
+
+#: expenses/insights
+#, python-format
+msgid "You have kept about %(now)s so far, up from %(before)s in the previous cycle. That is a good sign."
+msgstr "अब तक आपने लगभग %(now)s बचाया है, जो पिछले चक्र के %(before)s से ज़्यादा है। यह अच्छा संकेत है।"
+
+#: expenses/insights
+#, python-format
+msgid "You have kept about %(now)s so far, up from %(before)s last month. That is a good sign."
+msgstr "अब तक आपने लगभग %(now)s बचाया है, जो पिछले महीने के %(before)s से ज़्यादा है। यह अच्छा संकेत है।"
+
+#: expenses/insights
+msgid "Kept before"
+msgstr "पहले बचा"
+
+#: expenses/insights
+msgid "Your year is shaping up well"
+msgstr "आपका साल अच्छा बन रहा है"
+
+#: expenses/insights
+#, python-format
+msgid "If this year's average continues, you could keep around %(amount)s by the end of the year. It is only an estimate and will move as your months do."
+msgstr "अगर इस साल का औसत ऐसा ही रहा, तो आप साल के अंत तक लगभग %(amount)s बचा सकते हैं। यह सिर्फ़ एक अनुमान है और आपके महीनों के साथ बदलता रहेगा।"
+
+#: expenses/insights
+msgid "Kept so far this year"
+msgstr "इस साल अब तक बचा"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s is a little above usual"
+msgstr "%(category)s सामान्य से थोड़ा ऊपर है"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s is about %(pct)s above your recent average so far, %(now)s against %(usual)s. One higher stretch is common, especially around festivals and travel."
+msgstr "%(category)s अब तक आपके हाल के औसत से लगभग %(pct)s ऊपर है, %(usual)s के मुकाबले %(now)s। कभी-कभार ज़्यादा खर्च आम बात है, खासकर त्योहारों और यात्राओं के दौरान।"
+
+#: expenses/insights
+msgid "See the entries"
+msgstr "प्रविष्टियाँ देखें"
+
+#: expenses/insights
+msgid "Recent average"
+msgstr "हाल का औसत"
+
+#: expenses/insights
+#, python-format
+msgid "%(n)s other category with a limit is within it."
+msgid_plural "%(n)s other categories with limits are within them."
+msgstr[0] "%(n)s और श्रेणी अपनी सीमा के भीतर है।"
+msgstr[1] "%(n)s और श्रेणियाँ अपनी सीमा के भीतर हैं।"
+
+#: expenses/insights
+#, python-format
+msgid "%(spent)s of %(limit)s"
+msgstr "%(limit)s में से %(spent)s"
+
+#: expenses/insights
+msgid "Review the limit"
+msgstr "सीमा देखें"
+
+#: expenses/insights
+msgid "A deposit matures soon"
+msgstr "एक जमा जल्द परिपक्व होगी"
+
+#: expenses/insights
+#, python-format
+msgid "%(name)s matures on %(date)s, with about %(amount)s coming back to you. You might decide where it goes next, or leave it for now."
+msgstr "%(name)s %(date)s को परिपक्व होगी, और लगभग %(amount)s आपके पास लौटेंगे। आप तय कर सकते हैं कि आगे यह कहाँ जाए, या अभी इसे वैसे ही रहने दें।"
+
+#: expenses/insights
+msgid "Matures on"
+msgstr "परिपक्वता तिथि"
+
+#: expenses/insights
+msgid "View account"
+msgstr "खाता देखें"
+
+#: expenses/insights
+msgid "Bills coming up this week"
+msgstr "इस हफ़्ते आने वाले बिल"
+
+#: expenses/insights
+msgid "View recurring payments"
+msgstr "आवर्ती भुगतान देखें"
+
+#: expenses/insights
+#, python-format
+msgid "There is a little more to see with %(plan)s."
+msgstr "%(plan)s के साथ यहाँ थोड़ा और देखने को मिलेगा।"
+
+#: expenses/insights
+msgid "See plans"
+msgstr "प्लान देखें"
+
+#: expenses/insights
+msgid "Your Insights settings are saved."
+msgstr "आपकी अंतर्दृष्टि सेटिंग सहेज ली गई हैं।"
+
+#: expenses/insights
+msgid "Insights"
+msgstr "अंतर्दृष्टि"
+
+#: expenses/insights
+msgid "Calm observations about your own money. Descriptive only, never financial advice."
+msgstr "आपके अपने पैसे के बारे में शांत अवलोकन। केवल वर्णन, कभी वित्तीय सलाह नहीं।"
+
+#: expenses/insights
+msgid "Loading insights"
+msgstr "अंतर्दृष्टि लोड हो रही हैं"
+
+#: expenses/insights
+msgid "Good news:"
+msgstr "अच्छी खबर:"
+
+#: expenses/insights
+msgid "Worth a look:"
+msgstr "देखने लायक:"
+
+#: expenses/insights
+msgid "For your information:"
+msgstr "आपकी जानकारी के लिए:"
+
+#: expenses/insights
+msgid "More options for this insight"
+msgstr "इस अंतर्दृष्टि के लिए और विकल्प"
+
+#: expenses/insights
+msgid "More options"
+msgstr "और विकल्प"
+
+#: expenses/insights
+msgid "This was helpful"
+msgstr "यह उपयोगी था"
+
+#: expenses/insights
+msgid "This was not helpful"
+msgstr "यह उपयोगी नहीं था"
+
+#: expenses/insights
+msgid "Insights are switched off."
+msgstr "अंतर्दृष्टि बंद हैं।"
+
+#: expenses/insights
+msgid "Turn them back on"
+msgstr "उन्हें फिर चालू करें"
+
+#: expenses/insights
+msgid "We are still learning your patterns. A few more weeks of entries and we will have something useful to say."
+msgstr "हम अभी आपके पैटर्न सीख रहे हैं। कुछ और हफ़्तों की प्रविष्टियों के बाद हमारे पास कुछ उपयोगी कहने को होगा।"
+
+#: expenses/insights
+msgid "Nothing needs a look right now. We will mention it here when something is worth your time."
+msgstr "अभी कुछ भी देखने की ज़रूरत नहीं है। जब कुछ आपके समय के लायक होगा, हम यहाँ बता देंगे।"
+
+#: expenses/insights
+msgid "Thanks, noted. We will use it to say less of what is not useful."
+msgstr "धन्यवाद, नोट कर लिया। हम इसका उपयोग उन बातों को कम बताने में करेंगे जो उपयोगी नहीं हैं।"
+
+#: expenses/insights
+msgid "Calm observations about your own money, drawn only from your own entries. They describe what we notice and never advise."
+msgstr "आपके अपने पैसे के बारे में शांत अवलोकन, केवल आपकी अपनी प्रविष्टियों से। वे बताते हैं कि हम क्या देखते हैं, सलाह कभी नहीं देते।"
+
+#: expenses/insights
+msgid "Show insights"
+msgstr "अंतर्दृष्टि दिखाएँ"
+
+#: expenses/insights
+msgid "Turn this off to hide insights everywhere in the app."
+msgstr "ऐप में हर जगह अंतर्दृष्टि छिपाने के लिए इसे बंद करें।"
+
+#: expenses/insights
+msgid "Topics"
+msgstr "विषय"
+
+#: expenses/insights
+msgid "How often should we mention things?"
+msgstr "हम कितनी बार बातें बताएँ?"
+
+#: expenses/insights
+msgid "Normally: at most one new insight a day in the bell"
+msgstr "सामान्य: घंटी में दिन में अधिकतम एक नई अंतर्दृष्टि"
+
+#: expenses/insights
+msgid "Quietly: at most one a week, and no push"
+msgstr "शांत: हफ़्ते में अधिकतम एक, और कोई पुश नहीं"
+
+#: expenses/insights
+msgid "Only on the pages, never in the bell"
+msgstr "केवल पृष्ठों पर, घंटी में कभी नहीं"
+
+#: expenses/insights
+msgid "Push for time-sensitive insights"
+msgstr "समय-संवेदी अंतर्दृष्टि के लिए पुश"
+
+#: expenses/insights
+msgid "At most two a week, and only for things like a deposit maturing or a limit being reached. Never late at night."
+msgstr "हफ़्ते में अधिकतम दो, और केवल जमा के परिपक्व होने या सीमा तक पहुँचने जैसी बातों के लिए। रात देर से कभी नहीं।"
+
+#: expenses/insights
+msgid "Save insight settings"
+msgstr "अंतर्दृष्टि सेटिंग सहेजें"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s went past its limit"
+msgstr "%(category)s की सीमा पार हो गई"
+
+#: expenses/insights
+#, python-format
+msgid "%(n)s categories went past their limits"
+msgstr "%(n)s श्रेणियों की सीमाएँ पार हो गईं"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s is about %(over)s over its %(limit)s limit. It happens in many months, and you could raise the limit or leave it as it is."
+msgstr "%(category)s अपनी %(limit)s की सीमा से लगभग %(over)s ऊपर है। ऐसा कई महीनों में होता है; आप चाहें तो सीमा बढ़ा सकते हैं या इसे वैसे ही रहने दें।"
+
+#: expenses/insights
+#, python-format
+msgid "%(n)s categories are over their limits so far, the largest being %(category)s by about %(over)s. It happens in many months, and a limit can be adjusted if it no longer fits."
+msgstr "%(n)s श्रेणियाँ अब तक अपनी सीमा से ऊपर हैं, सबसे ज़्यादा %(category)s लगभग %(over)s से। ऐसा कई महीनों में होता है, और अगर कोई सीमा अब ठीक न बैठे तो उसे बदला जा सकता है।"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s is close to its limit"
+msgstr "%(category)s अपनी सीमा के करीब है"
+
+#: expenses/insights
+#, python-format
+msgid "%(n)s categories are close to their limits"
+msgstr "%(n)s श्रेणियाँ अपनी सीमा के करीब हैं"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s has used about %(percent)s of its %(limit)s limit so far. If that feels right, there is nothing to do."
+msgstr "%(category)s में अब तक %(limit)s की सीमा का लगभग %(percent)s इस्तेमाल हो चुका है। अगर यह ठीक लगता है, तो कुछ करने की ज़रूरत नहीं।"
+
+#: expenses/insights
+#, python-format
+msgid "%(n)s categories have used most of their limits so far, %(category)s the most at about %(percent)s. If that feels right, there is nothing to do."
+msgstr "%(n)s श्रेणियों में अब तक सीमा का ज़्यादातर हिस्सा इस्तेमाल हो चुका है, सबसे ज़्यादा %(category)s में लगभग %(percent)s। अगर यह ठीक लगता है, तो कुछ करने की ज़रूरत नहीं।"
+
+#: expenses/insights
+#, python-format
+msgid "%(category)s may reach its limit early"
+msgstr "%(category)s की सीमा जल्दी पूरी हो सकती है"
+
+#: expenses/insights
+#, python-format
+msgid "%(n)s categories may reach their limits early"
+msgstr "%(n)s श्रेणियों की सीमाएँ जल्दी पूरी हो सकती हैं"
+
+#: expenses/insights
+#, python-format
+msgid "At this pace, %(category)s could reach its %(limit)s limit around %(date)s; %(spent)s is used so far. If that sounds right, you could ease the pace or leave it."
+msgstr "इसी रफ़्तार से %(category)s की %(limit)s की सीमा %(date)s के आसपास पूरी हो सकती है; अब तक %(spent)s इस्तेमाल हुआ है। अगर यह ठीक लगता है, तो आप रफ़्तार धीमी कर सकते हैं या इसे ऐसे ही रहने दें।"
+
+#: expenses/insights
+#, python-format
+msgid "At this pace, %(n)s categories could reach their limits before the period ends, the first being %(category)s around %(date)s. If that sounds right, there is nothing to do."
+msgstr "इसी रफ़्तार से %(n)s श्रेणियों की सीमाएँ अवधि खत्म होने से पहले पूरी हो सकती हैं, सबसे पहले %(category)s की %(date)s के आसपास। अगर यह ठीक लगता है, तो कुछ करने की ज़रूरत नहीं।"
+
+#: expenses/insights
+#, python-format
+msgid "%(description)s, about %(total)s, is due on %(date)s. It is scheduled, so there is nothing to do unless plans have changed."
+msgstr "%(description)s, लगभग %(total)s, %(date)s को देय है। यह निर्धारित है, इसलिए योजना न बदली हो तो कुछ करने की ज़रूरत नहीं।"
+
+#: expenses/insights
+#, python-format
+msgid "%(n)s payments totalling about %(total)s are due in the next 7 days, the first on %(date)s. They are scheduled, so there is nothing to do unless plans have changed."
+msgstr "अगले ७ दिनों में कुल लगभग %(total)s के %(n)s भुगतान देय हैं, पहला %(date)s को। ये निर्धारित हैं, इसलिए योजना न बदली हो तो कुछ करने की ज़रूरत नहीं।"
+
+#: expenses/insights
+msgid "Thanks, glad it was useful."
+msgstr "धन्यवाद, अच्छा लगा कि यह उपयोगी रहा।"

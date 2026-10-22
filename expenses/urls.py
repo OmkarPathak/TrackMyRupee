@@ -4,6 +4,7 @@ from expenses.cache_utils import anonymous_cache_page
 from django.views.generic import RedirectView, TemplateView
 
 from . import views, views_payment
+from .insights import views as insight_views
 from .converters import UUIDOrIntConverter
 
 register_converter(UUIDOrIntConverter, 'uuid_or_int')
@@ -175,6 +176,15 @@ urlpatterns = [
     path('notifications/mark-all-read/', views.mark_notifications_read, name='mark-all-read'),
     path('notifications/<uuid_or_int:pk>/read/', views.mark_single_notification_read, name='mark-single-notification-read'),
     path('notifications/<uuid_or_int:pk>/redirect/', views.notification_redirect, name='notification-redirect'),
+    # Insights Engine
+    path('insights/panel/', insight_views.panel, name='insights-panel'),
+    path('insights/settings/', insight_views.settings_save, name='insights-settings'),
+    path('insights/<uuid:state_uuid>/dismiss/', insight_views.dismiss, name='insights-dismiss'),
+    path('insights/<uuid:state_uuid>/snooze/', insight_views.snooze, name='insights-snooze'),
+    path('insights/<uuid:state_uuid>/helpful/<str:verdict>/', insight_views.helpful, name='insights-helpful'),
+    path('insights/<uuid:state_uuid>/go/', insight_views.go, name='insights-go'),
+    path('api/cron/generate-insights/', insight_views.trigger_generate, name='cron-generate-insights'),
+    path('api/cron/deliver-insights/', insight_views.trigger_deliver, name='cron-deliver-insights'),
     path('api/cron/send-notifications/', views.trigger_notifications, name='cron-send-notifications'),
     path('api/cron/send-lifecycle-emails/', views.trigger_lifecycle_emails, name='cron-send-lifecycle-emails'),
     path('api/cron/send-monthly-reports/', views.trigger_monthly_reports_view, name='cron-send-monthly-reports'),
