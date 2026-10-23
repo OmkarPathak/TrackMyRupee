@@ -17,8 +17,9 @@ from django.urls import reverse
 
 from expenses.models import Account, Expense, Income
 
-# Measured on a small dataset: cold ~80 queries, warm 5. Ceilings leave modest headroom.
-COLD_QUERY_CEILING = 110
+# Measured on a small dataset: cold 62 queries (was 80 before the per-table aggregates were combined
+# into UNION ALL queries), warm 3. Ceilings leave modest headroom.
+COLD_QUERY_CEILING = 70
 WARM_QUERY_CEILING = 4  # session, user, profile (+1 headroom); was 5 before the has_any_data/category caching
 
 

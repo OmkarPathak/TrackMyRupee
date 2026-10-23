@@ -49,11 +49,11 @@ from ..budgets import (
 )
 from ..savings import (
     calculate_savings,
-    counted_capital_total,
-    income_totals,
-    monthly_savings,
+    monthly_parts,
+    period_totals,
     savings_for_period,
     savings_from_querysets,
+    totals_by_period,
 )
 from ..services import FinancialService, LoanService, SalaryAnalysisService
 from ..templatetags.digit_filters import compact_amount
@@ -392,8 +392,6 @@ def home_view(request):
             incomes = incomes.filter(date__month__in=selected_months)
             investments = investments.filter(date__month__in=selected_months)
     
-    # One aggregate call for income and its cashback/refund part (see expenses/savings.py)
-    total_income, total_cb_rf_income = income_totals(incomes)
     total_investments = sum_transfers_base(investments)
     
     # Fetch loan repayments for the selected period (moved up to fix UnboundLocalError)
@@ -411,11 +409,15 @@ def home_view(request):
         if selected_months:
             loan_repayments_selected = loan_repayments_selected.filter(date__month__in=selected_months)
     
-    loan_stats = loan_repayments_selected.aggregate(
-        total_interest=Sum(F('interest_portion') * F('exchange_rate')),
-        total_emi=Sum('base_amount'),
-        repayment_count=Count('id'),  # reused for transaction_count below (saves a COUNT query)
-    )
+    # Income (with its cashback/refund part) and the loan repayments come back in one query (expenses/savings.py);
+    # the repayment count is reused for transaction_count below.
+    _period = period_totals(incomes, Expense.objects.none(), loan_repayments_selected, CapitalEvent.objects.none())
+    total_income, total_cb_rf_income = _period['income'], _period['cashback_refund']
+    loan_stats = {
+        'total_interest': _period['interest'] or None,
+        'total_emi': _period['emi'] or None,
+        'repayment_count': _period['repayments'],
+    }
     total_loan_interest = loan_stats['total_interest'] or 0
     total_loan_emi = loan_stats['total_emi'] or 0
     total_loan_principal = total_loan_emi - total_loan_interest
@@ -434,43 +436,30 @@ def home_view(request):
 
     if monthly_summary_map is None:
         hist_start = (timezone.now().replace(day=1) - timedelta(days=730)).date()
-        batch_inc = Income.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
-        batch_exp = Expense.objects.filter(user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
-        batch_loan = LoanRepayment.objects.filter(loan__user=request.user, date__gte=hist_start).annotate(m=TruncMonth('date')).values('m').annotate(total_interest=Sum(F('interest_portion') * F('exchange_rate')))
-        batch_cap_exp = CapitalEvent.objects.filter(user=request.user, date__gte=hist_start, exclude_from_averages=False).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
-        
         # 'expense' is the combined total (expense + loan interest + capital events) used by
         # the trend/average code below. 'expense_base' and 'loan_interest' are kept separate
         # too, so YTD / historical-average figures elsewhere can be derived without extra queries.
+        # All four tables come back in one query (see expenses/savings.py).
         monthly_summary_map = {} # (year, month) -> {'income': 0, 'expense': 0, 'expense_base': 0, 'loan_interest': 0}
-        for item in batch_inc:
-            dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
-            monthly_summary_map[(dt.year, dt.month)] = {'income': float(item['total']), 'expense': 0.0, 'expense_base': 0.0, 'loan_interest': 0.0}
-        for item in batch_exp:
-            dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
-            if (dt.year, dt.month) not in monthly_summary_map:
-                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0, 'expense_base': 0.0, 'loan_interest': 0.0}
-            monthly_summary_map[(dt.year, dt.month)]['expense'] = float(item['total'])
-            monthly_summary_map[(dt.year, dt.month)]['expense_base'] = float(item['total'])
-        for item in batch_loan:
-            dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
-            if (dt.year, dt.month) not in monthly_summary_map:
-                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0, 'expense_base': 0.0, 'loan_interest': 0.0}
-            monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total_interest'] or 0)
-            monthly_summary_map[(dt.year, dt.month)]['loan_interest'] += float(item['total_interest'] or 0)
-        for item in batch_cap_exp:
-            dt = item['m'].date() if hasattr(item['m'], 'date') else item['m']
-            if (dt.year, dt.month) not in monthly_summary_map:
-                monthly_summary_map[(dt.year, dt.month)] = {'income': 0.0, 'expense': 0.0, 'expense_base': 0.0, 'loan_interest': 0.0}
-            monthly_summary_map[(dt.year, dt.month)]['expense'] += float(item['total'] or 0)
-        
+        for key, part in monthly_parts(request.user, hist_start).items():
+            expense_base, interest = float(part['expenses']), float(part['interest'])
+            monthly_summary_map[key] = {
+                'income': float(part['income']),
+                'expense': expense_base + interest + float(part['capital']),
+                'expense_base': expense_base,
+                'loan_interest': interest,
+            }
+
         if monthly_summary_cache_key:
             cache.set(monthly_summary_cache_key, monthly_summary_map, 300) # Cache for 5 minutes
 
 
     # 1. Category Chart Data (Distribution) & Summary Table
     # We need to fetch raw values and merge them in Python to handle whitespace duplicates
-    raw_category_data = expenses.values('category').annotate(total=Sum('base_amount'))
+    # One grouped query feeds the category chart, the payment-method split and the totals below.
+    expense_groups = list(expenses.order_by().values('category', 'payment_method')
+                          .annotate(total=Sum('base_amount'), n=Count('id')))
+    raw_category_data = expense_groups
     
     # Process and merge duplicates
     merged_category_map = {}
@@ -713,29 +702,17 @@ def home_view(request):
     # --- NEW: Income vs Expenses Trend Data ---
     trunc_func = TruncDay if trend_is_daily else TruncMonth
         
-    inc_trend = incomes.annotate(period=trunc_func('date')).values('period').annotate(total=Sum('base_amount')).order_by('period')
-    exp_trend_base = expenses.annotate(period=trunc_func('date')).values('period').annotate(total=Sum('base_amount')).order_by('period')
-    
-    # Include loan repayments in expense trend
-    loan_repayments_filtered = LoanRepayment.objects.filter(loan__user=request.user).select_related('loan')
-    if selected_accounts:
-        loan_repayments_filtered = loan_repayments_filtered.filter(from_account_id__in=selected_accounts)
-    if effective_start_date or effective_end_date:
-        if effective_start_date:
-            loan_repayments_filtered = loan_repayments_filtered.filter(date__gte=effective_start_date)
-        if effective_end_date:
-            loan_repayments_filtered = loan_repayments_filtered.filter(date__lte=effective_end_date)
-    else:
-        if selected_years:
-            loan_repayments_filtered = loan_repayments_filtered.filter(date__year__in=selected_years)
-        if selected_months:
-            loan_repayments_filtered = loan_repayments_filtered.filter(date__month__in=selected_months)
+    # The expense trend is the one already fetched for the Total Spent chart (same period, same filters). Income,
+    # loan interest and counted capital events for the same periods come back in one query. The loan repayments
+    # are filtered exactly like loan_repayments_selected above.
+    exp_trend_base = total_data
+    _trend = totals_by_period(
+        trunc_func,
+        income=(incomes, Sum('base_amount')),
+        interest=(loan_repayments_selected, Sum(F('interest_portion') * F('exchange_rate'))),
+        capital=(included_events_qs, Sum('base_amount')),
+    )
 
-    loan_trend = loan_repayments_filtered.annotate(period=trunc_func('date')).values('period').annotate(
-        total_interest=Sum(F('interest_portion') * F('exchange_rate')),
-        total_emi=Sum('base_amount')
-    ).order_by('period')
-    
     # Merge periods
     def normalize_period(p):
         if hasattr(p, 'date'):
@@ -754,22 +731,19 @@ def home_view(request):
             amt = float(t.amount)
         invest_map[p_key] = invest_map.get(p_key, 0.0) + amt
 
-    inc_periods = set(normalize_period(i['period']) for i in inc_trend)
+    inc_map = {normalize_period(p): float(v) for p, v in _trend['income'].items()}
+    inc_periods = set(inc_map)
     exp_periods_base = set(normalize_period(e['period']) for e in exp_trend_base)
-    loan_periods = set(normalize_period(l['period']) for l in loan_trend)
+    loan_map = {normalize_period(p): {'interest': float(v or 0)} for p, v in _trend['interest'].items()}
+    loan_periods = set(loan_map)
     invest_periods = set(invest_map.keys())
-    cap_map = {
-        normalize_period(c['period']): float(c['total'] or 0)
-        for c in included_events_qs.annotate(period=trunc_func('date')).values('period').annotate(total=Sum('base_amount'))
-    }
+    cap_map = {normalize_period(p): float(v or 0) for p, v in _trend['capital'].items()}
     all_periods_sorted = sorted(list(inc_periods.union(exp_periods_base).union(loan_periods).union(invest_periods).union(cap_map.keys())))
     
     ie_labels = [p.strftime(date_fmt) for p in all_periods_sorted]
     
     # Optimization: Use dict lookup instead of filter inside loop
-    inc_map = {normalize_period(i['period']): float(i['total']) for i in inc_trend}
     exp_map = {normalize_period(e['period']): float(e['total']) for e in exp_trend_base}
-    loan_map = {normalize_period(l['period']): {'interest': float(l['total_interest'] or 0)} for l in loan_trend}
     # Add loan interest to exp_map and calculate savings
     ie_income_data = []
     ie_expense_data = []
@@ -789,11 +763,11 @@ def home_view(request):
         ie_invested_data.append(inv_val)
 
     # --- NEW: Payment Method Distribution ---
-    raw_payment_data = expenses.values('payment_method').annotate(total=Sum('base_amount')).order_by('payment_method')
+    raw_payment_data = expense_groups
     payment_map = {}
     for item in raw_payment_data:
         pm_name = item['payment_method'] or 'Unknown'
-        payment_map[pm_name] = float(item['total'])
+        payment_map[pm_name] = payment_map.get(pm_name, 0.0) + float(item['total'])
     
     # Sort by total desc
     sorted_payment_items = sorted(payment_map.items(), key=lambda x: x[1], reverse=True)
@@ -802,7 +776,8 @@ def home_view(request):
 
 
     # 4. Summary Stats
-    _expense_agg = expenses.aggregate(total=Sum('base_amount'), count=Count('id'))
+    _expense_agg = {'total': sum((g['total'] or 0 for g in expense_groups), Decimal('0')) if expense_groups else None,
+                    'count': sum(g['n'] for g in expense_groups)}
     total_expenses_base = _expense_agg['total'] or 0
     
     # Single aggregate replaces both the Python-loop sum and the separate .count() call
@@ -874,16 +849,13 @@ def home_view(request):
                     Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts)
                 )
 
-            prev_expenses_op = prev_expenses_all.aggregate(Sum('base_amount'))['base_amount__sum'] or 0
             prev_investments = sum_transfers_base(prev_investments_qs)
-            prev_income, prev_cb_rf = income_totals(prev_incomes_qs)
-            prev_loan_stats = prev_repayments_qs.aggregate(
-                total_interest=Sum(F('interest_portion') * F('exchange_rate')),
-                total_emi=Sum('base_amount')
-            )
-            prev_cap_events = counted_capital_total(prev_capital_qs)
-            prev_loan_interest = prev_loan_stats['total_interest'] or 0
-            prev_loan_emi = prev_loan_stats['total_emi'] or 0
+            _prev = period_totals(prev_incomes_qs, prev_expenses_all, prev_repayments_qs, prev_capital_qs)
+            prev_expenses_op = _prev['expenses'] or 0
+            prev_income, prev_cb_rf = _prev['income'], _prev['cashback_refund']
+            prev_cap_events = _prev['capital']
+            prev_loan_interest = _prev['interest'] or 0
+            prev_loan_emi = _prev['emi'] or 0
             prev_loan_principal = prev_loan_emi - prev_loan_interest
             prev_result = calculate_savings(
                 income=prev_income,

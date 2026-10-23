@@ -34,7 +34,9 @@ from expenses.savings import (
     expense_total,
     income_totals,
     loan_interest_total,
+    monthly_parts,
     monthly_savings,
+    period_totals,
     savings_for_period,
 )
 from expenses.services import SalaryAnalysisService
@@ -237,8 +239,46 @@ class TestSavingsHelpers(SavingsDbBase):
         for m in range(1, 7):
             self.income(100, when=date(2026, m, 5))
             self.expense(10, when=date(2026, m, 6))
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(1):    # all four tables in one UNION ALL query
             monthly_savings(self.user, date(2026, 1, 1), date(2026, 6, 30))
+
+    def test_period_totals_match_the_separate_helpers_in_one_query(self):
+        loan = self.loan()
+        self.income(10000)
+        self.income(500, 'Cashback & Rewards')
+        self.expense(1000)
+        self.repayment(loan, 4000, 800)
+        self.capital(300, excluded=False)
+        self.capital(9000, excluded=True)
+        self.income(7777, user=self.other_user())
+        incomes = Income.objects.filter(user=self.user)
+        expenses = Expense.objects.filter(user=self.user)
+        repayments = LoanRepayment.objects.filter(loan__user=self.user)
+        capital = CapitalEvent.objects.filter(user=self.user)
+        with self.assertNumQueries(1):
+            got = period_totals(incomes, expenses, repayments, capital)
+        self.assertEqual((got['income'], got['cashback_refund']), income_totals(incomes))
+        self.assertEqual(got['expenses'], expense_total(expenses))
+        self.assertEqual(got['interest'], loan_interest_total(repayments))
+        self.assertEqual(got['capital'], counted_capital_total(capital))
+        self.assertEqual((got['emi'], got['repayments']), (D('4000'), 1))
+
+    def test_period_totals_are_zero_for_nothing_and_skip_empty_querysets(self):
+        got = period_totals(Income.objects.none(), Expense.objects.none(),
+                            LoanRepayment.objects.none(), CapitalEvent.objects.none())
+        self.assertEqual(got['income'], D('0'))
+        self.assertEqual(got['repayments'], 0)
+        self.expense(50)
+        got = period_totals(Income.objects.filter(user=self.user), Expense.objects.filter(user=self.user),
+                            LoanRepayment.objects.none(), CapitalEvent.objects.none())
+        self.assertEqual((got['income'], got['expenses'], got['interest']), (D('0'), D('50'), D('0')))
+
+    def test_monthly_parts_without_an_end_date_has_no_upper_bound(self):
+        self.income(100, when=date(2026, 5, 5))
+        self.expense(10, when=date(2030, 1, 5))
+        parts = monthly_parts(self.user, date(2026, 1, 1))
+        self.assertEqual(parts[(2026, 5)]['income'], D('100'))
+        self.assertEqual(parts[(2030, 1)]['expenses'], D('10'))
 
 
 class TestEveryScreenReportsTheSameRate(SavingsDbBase):

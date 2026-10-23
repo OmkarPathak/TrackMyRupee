@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 
-from django.db.models import F, Q, Sum
+from django.db.models import Count, DecimalField, F, IntegerField, Q, Sum, Value
 from django.db.models.functions import TruncMonth
 
 CASHBACK_REFUND_TYPES = ('Cashback & Rewards', 'Refund / Reimbursement')
@@ -108,14 +108,59 @@ def counted_capital_total(capital_qs) -> Decimal:
     return _dec(capital_qs.filter(exclude_from_averages=False).aggregate(total=Sum('base_amount'))['total'])
 
 
+def _zero():
+    return Value(ZERO, output_field=DecimalField())
+
+
+def _fetch_together(parts) -> list:
+    """Rows of several querysets that each return the same number of columns, in one UNION ALL query
+    (one database round trip instead of one per queryset)."""
+    parts = [p for p in parts if not p.query.is_empty()]
+    if not parts:
+        return []
+    return list(parts[0].union(*parts[1:], all=True)) if len(parts) > 1 else list(parts[0])
+
+
+def _one_row(qs, kind, a, b=None, c=None):
+    """`qs` reduced to one row (kind, a, b, c): the building block of `period_totals`."""
+    return (qs.order_by().annotate(_kind=Value(kind, output_field=IntegerField())).values('_kind')
+            .annotate(_a=a, _b=b if b is not None else _zero(),
+                      _c=c if c is not None else Value(0, output_field=IntegerField()))
+            .values_list('_kind', '_a', '_b', '_c'))
+
+
+def period_totals(income_qs, expense_qs, repayment_qs, capital_qs) -> dict:
+    """Everything the savings maths needs from four querysets, in one query:
+    income, cashback_refund, expenses, interest (loan), emi (loan, whole repayment), repayments (count),
+    capital (counted in averages). Missing rows are zero."""
+    rows = _fetch_together([
+        _one_row(income_qs, 0, Sum('base_amount'), Sum('base_amount', filter=Q(source_type__in=CASHBACK_REFUND_TYPES))),
+        _one_row(expense_qs, 1, Sum('base_amount')),
+        _one_row(repayment_qs, 2, Sum(F('interest_portion') * F('exchange_rate')), Sum('base_amount'), Count('id')),
+        _one_row(capital_qs.filter(exclude_from_averages=False), 3, Sum('base_amount')),
+    ])
+    out = {'income': ZERO, 'cashback_refund': ZERO, 'expenses': ZERO, 'interest': ZERO, 'emi': ZERO,
+           'repayments': 0, 'capital': ZERO}
+    for kind, a, b, c in rows:
+        if kind == 0:
+            out['income'], out['cashback_refund'] = _dec(a), _dec(b)
+        elif kind == 1:
+            out['expenses'] = _dec(a)
+        elif kind == 2:
+            out['interest'], out['emi'], out['repayments'] = _dec(a), _dec(b), int(c or 0)
+        else:
+            out['capital'] = _dec(a)
+    return out
+
+
 def savings_from_querysets(income_qs, expense_qs, repayment_qs, capital_qs, extra_capital_events=0) -> SavingsResult:
-    income, cashback_refund = income_totals(income_qs)
+    t = period_totals(income_qs, expense_qs, repayment_qs, capital_qs)
     return calculate_savings(
-        income=income,
-        cashback_refund=cashback_refund,
-        operating_expenses=expense_total(expense_qs),
-        loan_interest=loan_interest_total(repayment_qs),
-        capital_events=counted_capital_total(capital_qs),
+        income=t['income'],
+        cashback_refund=t['cashback_refund'],
+        operating_expenses=t['expenses'],
+        loan_interest=t['interest'],
+        capital_events=t['capital'],
         extra_capital_events=extra_capital_events,
     )
 
@@ -137,39 +182,57 @@ def _month_key(value):
     return (value.year, value.month)
 
 
+def totals_by_period(trunc, **sources) -> dict:
+    """{name: {period: Decimal}} for several querysets, grouped by `trunc('date')` (e.g. TruncMonth), in one query.
+    `sources` maps a name to (queryset, aggregate expression)."""
+    names = list(sources)
+    parts = [(qs.order_by().annotate(_kind=Value(i, output_field=IntegerField()), _p=trunc('date'))
+              .values('_kind', '_p').annotate(_a=agg).values_list('_kind', '_p', '_a'))
+             for i, (qs, agg) in enumerate(sources.values())]
+    out = {name: {} for name in names}
+    for kind, period, total in _fetch_together(parts):
+        out[names[kind]][period] = _dec(total)
+    return out
+
+
+def monthly_parts(user, start: date, end: date | None = None) -> dict:
+    """{(year, month): {'income', 'cb_rf', 'expenses', 'interest', 'capital'}} for every month with activity,
+    in one query. `end` None means no upper bound. Capital events count only when not excluded from averages."""
+    from .models import CapitalEvent, Expense, Income, LoanRepayment
+
+    window = {'date__gte': start} if end is None else {'date__range': (start, end)}
+
+    def by_month(qs, kind, total, extra=None):
+        return (qs.order_by().annotate(_kind=Value(kind, output_field=IntegerField()), _m=TruncMonth('date'))
+                .values('_kind', '_m').annotate(_a=total, _b=extra if extra is not None else _zero())
+                .values_list('_kind', '_m', '_a', '_b'))
+
+    names = ('income', 'expenses', 'interest', 'capital')
+    parts: dict = {}
+    for kind, month, a, b in _fetch_together([
+        by_month(Income.objects.filter(user=user, **window), 0, Sum('base_amount'),
+                 Sum('base_amount', filter=Q(source_type__in=CASHBACK_REFUND_TYPES))),
+        by_month(Expense.objects.filter(user=user, **window), 1, Sum('base_amount')),
+        by_month(LoanRepayment.objects.filter(loan__user=user, **window), 2, Sum(F('interest_portion') * F('exchange_rate'))),
+        by_month(CapitalEvent.objects.filter(user=user, exclude_from_averages=False, **window), 3, Sum('base_amount')),
+    ]):
+        slot = parts.setdefault(_month_key(month), {'income': ZERO, 'cb_rf': ZERO, 'expenses': ZERO, 'interest': ZERO, 'capital': ZERO})
+        slot[names[kind]] = _dec(a)
+        if kind == 0:
+            slot['cb_rf'] = _dec(b)
+    return parts
+
+
 def monthly_savings(user, start: date, end: date, extra_capital_by_month=None) -> dict:
-    """{(year, month): SavingsResult} for every month that has any activity, in 5 queries.
+    """{(year, month): SavingsResult} for every month that has any activity, in one query.
 
     ``extra_capital_by_month`` maps (year, month) -> amount to count as spending on top
     (used by the Analytics "include capital events" toggle).
     """
-    from .models import CapitalEvent, Expense, Income, LoanRepayment
-
-    def by_month(qs, **aggregates):
-        return qs.annotate(m=TruncMonth('date')).values('m').annotate(**aggregates)
-
-    parts: dict = {}
-
-    def slot(key):
-        return parts.setdefault(key, {'income': ZERO, 'cb_rf': ZERO, 'expenses': ZERO, 'interest': ZERO, 'capital': ZERO})
-
-    window = {'date__range': (start, end)}
-    for row in by_month(Income.objects.filter(user=user, **window), total=Sum('base_amount'),
-                        cb_rf=Sum('base_amount', filter=Q(source_type__in=CASHBACK_REFUND_TYPES))):
-        slot(_month_key(row['m']))['income'] = _dec(row['total'])
-        parts[_month_key(row['m'])]['cb_rf'] = _dec(row['cb_rf'])
-    for row in by_month(Expense.objects.filter(user=user, **window), total=Sum('base_amount')):
-        slot(_month_key(row['m']))['expenses'] = _dec(row['total'])
-    for row in by_month(LoanRepayment.objects.filter(loan__user=user, **window),
-                        total=Sum(F('interest_portion') * F('exchange_rate'))):
-        slot(_month_key(row['m']))['interest'] = _dec(row['total'])
-    for row in by_month(CapitalEvent.objects.filter(user=user, exclude_from_averages=False, **window),
-                        total=Sum('base_amount')):
-        slot(_month_key(row['m']))['capital'] = _dec(row['total'])
-
+    parts = monthly_parts(user, start, end)
     extra = extra_capital_by_month or {}
     for key in extra:
-        slot(key)
+        parts.setdefault(key, {'income': ZERO, 'cb_rf': ZERO, 'expenses': ZERO, 'interest': ZERO, 'capital': ZERO})
 
     return {
         key: calculate_savings(
