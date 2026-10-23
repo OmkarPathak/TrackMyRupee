@@ -1,0 +1,3 @@
+{# What the Dashboard asks for after it has painted: the Net Worth figures, and (out of band) the Asset Allocation body. #}
+{% include 'expenses/partials/_dashboard_networth.html' %}
+<div id="nw-allocation-slot" hx-swap-oob="innerHTML">{% include 'expenses/partials/_dashboard_allocation.html' %}</div>

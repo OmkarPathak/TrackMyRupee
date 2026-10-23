@@ -5,6 +5,7 @@ from django.views.generic import RedirectView, TemplateView
 
 from . import views, views_payment
 from .insights import views as insight_views
+from .views.dashboard_networth import dashboard_networth
 from .converters import UUIDOrIntConverter
 
 register_converter(UUIDOrIntConverter, 'uuid_or_int')
@@ -16,6 +17,7 @@ urlpatterns = [
     path('features/', views.FeaturesPageView.as_view(), name='features'),
     path('loan-emi-calculator/', views.LoanEMICalculatorPageView.as_view(), name='loan-emi-calculator'),
     path('dashboard/', views.home_view, name='home'),
+    path('dashboard/networth/', dashboard_networth, name='dashboard-networth'),
     path('budget/', views.BudgetDashboardView.as_view(), name='budget'),
     path('api/budgets/', views.budgets_page, name='budgets-api'),
     path('api/budgets/limit/', views.budgets_set_limit, name='budgets-api-limit'),

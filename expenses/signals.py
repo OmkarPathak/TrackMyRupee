@@ -269,6 +269,7 @@ def invalidate_dashboard_cache(sender=None, instance=None, user_id=None, **kwarg
             f'monthly_history_{user_id}_6',
             f'recurring_processed_{user_id}_{today}',
             f'account_net_worth_{user_id}',
+            f'dashboard_networth_{user_id}',
             f'budget_dashboard_{user_id}',
             f'budget_suggestion_rows_{user_id}',
             f'analytics_version_{user_id}',

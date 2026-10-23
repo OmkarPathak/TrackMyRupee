@@ -1590,39 +1590,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         <a href="{% url 'account-list' %}" class="text-muted text-decoration-none d-inline-flex align-items-center justify-content-center px-1" style="min-width: 24px; min-height: 24px;" aria-label="{% trans 'View accounts' %}"> →</a>
                     </div>
                 </div>
-                <div class="bento-metric-value text-body-emphasis">
-                    {{ currency_symbol }}{{ net_worth|compact_amount:currency_symbol|translate_digits }}
-                </div>
-                <div class="bento-metric-delta">
-                    {% if net_worth_change >= 0 %}
-                        <span class="text-success d-inline-flex align-items-center gap-1">
-                            <i class="bi bi-caret-up-fill"></i>
-                            {{ currency_symbol }}{{ net_worth_change|compact_amount:currency_symbol|translate_digits }}
-                        </span>
-                        {% if net_worth_percent > 999 %}
-                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">10x+</span>
-                        {% else %}
-                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ net_worth_percent|translate_digits }}%</span>
-                        {% endif %}
-                    {% else %}
-                        <span class="text-danger d-inline-flex align-items-center gap-1">
-                            <i class="bi bi-caret-down-fill"></i>
-                            {{ currency_symbol }}{{ net_worth_change|abs_val|compact_amount:currency_symbol|translate_digits }}
-                        </span>
-                        {% if net_worth_percent > 999 %}
-                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">10x+</span>
-                        {% else %}
-                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">{{ net_worth_percent|translate_digits }}%</span>
-                        {% endif %}
-                    {% endif %}
-                    <span class="bento-comparison-label">{% trans "this month" %}</span>
-                </div>
-                {% if net_worth_trend %}
-                <div class="bento-sparkline-wrap">
-                    <canvas id="bentoNwSparkline"></canvas>
-                    <div id="bento-nw-tooltip" class="custom-chart-tooltip shadow-sm"></div>
-                </div>
+                <div id="nw-slot" style="display: contents">
+                {% if nw %}
+                    {% include 'expenses/partials/_dashboard_networth.html' %}
+                {% else %}
+                    {# not worked out yet: the figures are fetched once the page has painted #}
+                    <div hx-get="{% url 'dashboard-networth' %}" hx-trigger="load" hx-target="#nw-slot" hx-swap="innerHTML" aria-busy="true" style="display: contents"
+                         hx-on::response-error="this.innerHTML = '<div class=&quot;bento-metric-value text-muted&quot;>&mdash;</div>'"
+                         hx-on::send-error="this.innerHTML = '<div class=&quot;bento-metric-value text-muted&quot;>&mdash;</div>'">
+                        <div class="skeleton-block mb-2" style="height: 1.75rem; width: 70%;"></div>
+                        <div class="skeleton-block mb-2" style="height: 1rem; width: 50%;"></div>
+                        <div class="skeleton-block mt-auto" style="height: 48px; width: 100%;"></div>
+                    </div>
                 {% endif %}
+                </div>
             </div>
 
             <!-- ── Card 2: Total Income ── -->
@@ -2117,83 +2098,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     </span>
                 </div>
             </div>
-            {% if asset_allocation %}
-            <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
-                <!-- SVG Donut Chart for Allocation (Desktop) -->
-                <div class="position-relative mb-3 d-none d-lg-block" style="width: 170px; height: 170px;">
-                    <svg viewBox="0 0 120 120" class="w-100 h-100" style="transform: rotate(-90deg);">
-                        <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bs-tertiary-bg)" stroke-width="12"/>
-                        {% for item in asset_allocation %}
-                        <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="text-decoration-none" aria-label="{{ item.type }}">
-                            <circle cx="60" cy="60" r="45" fill="none" class="allocation-segment"
-                                stroke-width="12"
-                                stroke-dasharray="{{ item.arc_length|floatformat:2 }} 282.74"
-                                stroke-dashoffset="-{{ item.offset_length|floatformat:2 }}"
-                                style="transition: stroke-dashoffset 1.2s ease, stroke-dasharray 1.2s ease; stroke: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %}; cursor: pointer;"/>
-                        </a>
-                        {% endfor %}
-                    </svg>
-                    <div class="position-absolute top-50 start-50 translate-middle text-center">
-                        <span class="text-body-emphasis allocation-center-value">{{ asset_allocation.0.percent|translate_digits }}%</span>
-                        <span class="d-block text-muted allocation-center-label" style="margin-top: -2px;">{{ asset_allocation.0.type }}</span>
-                    </div>
-                </div>
-
-                <!-- Horizontal Stacked Bar (Mobile) -->
-                <div class="d-lg-none w-100 mb-4 px-1">
-                    <div class="progress rounded-pill overflow-hidden bg-body-tertiary" style="height: 24px;">
-                        {% for item in asset_allocation %}
-                            <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active"
-                               class="progress-bar {% if not forloop.last %}border-end border-white border-opacity-25{% endif %} text-decoration-none"
-                               aria-label="{{ item.type }}: {{ item.percent|floatformat:0|translate_digits }}%"
-                               style="display: flex; align-items: center; justify-content: center; width: {{ item.percent }}%; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %}; cursor: pointer;">
-                                 {% if item.percent > 12 %}
-                                    <span class="fw-bold text-white" style="font-size: 0.75rem;">{{ item.percent|floatformat:0|translate_digits }}%</span>
-                                 {% endif %}
-                            </a>
-                        {% endfor %}
-                    </div>
-                    <!-- Label Row for small segments -->
-                    <div class="mt-3 row g-3 text-start">
-                        {% for item in asset_allocation %}
-                        <div class="col-6">
-                            <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="d-flex align-items-start gap-2 text-decoration-none text-reset">
-                                <span class="rounded-circle d-inline-block mt-1" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %}; flex-shrink: 0;"></span>
-                                <div>
-                                    <div class="small text-body-emphasis lh-sm fw-bold allocation-legend-label">{{ item.type }}</div>
-                                    <div class="text-body-emphasis fs-4 lh-1 mt-1 allocation-legend-value">{{ item.percent|translate_digits }}%</div>
-                                    <div class="text-muted small mt-1 opacity-75">({{ currency_symbol }}{{ item.total|humanize_currency:currency_symbol|translate_digits }})</div>
-                                </div>
-                            </a>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Legend (Desktop) -->
-                <div class="d-none d-lg-flex flex-wrap justify-content-center gap-3 mb-3">
-                    {% for item in asset_allocation %}
-                    <a href="{% url 'account-list' %}?type={{ item.type_key }}&status=active" class="text-center px-1 text-decoration-none text-reset allocation-type-link">
-                        <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
-                            <span class="rounded-circle d-inline-block flex-shrink-0" style="width: 10px; height: 10px; background-color: {% if 'CASH' in item.type_key or 'LIQUID' in item.type_key %}var(--alloc-cash){% elif 'DEPOSIT' in item.type_key or 'FIXED' in item.type_key %}var(--alloc-fixed){% elif 'INVEST' in item.type_key or 'MARKET' in item.type_key %}var(--alloc-invest){% elif 'CREDIT' in item.type_key or 'SHORT' in item.type_key %}var(--alloc-credit){% elif 'LOAN' in item.type_key or 'LIABIL' in item.type_key %}var(--alloc-loan){% elif 'PHYSICAL' in item.type_key or 'INSURANCE' in item.type_key %}var(--alloc-physical){% else %}var(--alloc-other){% endif %};"></span>
-                            <span class="text-muted allocation-legend-label">{{ item.type }}</span>
-                        </div>
-                        <div class="allocation-legend-value">{{ item.percent|translate_digits }}% <span class="text-muted small opacity-50">({{ currency_symbol }}{{ item.total|humanize_currency:currency_symbol|translate_digits }})</span></div>
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
+            <div id="nw-allocation-slot" style="display: contents">
+            {% if nw %}
+                {% include 'expenses/partials/_dashboard_allocation.html' %}
             {% else %}
-            <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center">
-                <div class="empty-state-container py-4">
-                    <div class="mb-3">
-                        {% include 'illustrations/empty_chart_allocation.svg' %}
-                    </div>
-                    <p class="text-muted small mb-0">{% trans "Add accounts to see your allocation." %}</p>
-                    <a href="{% url 'account-create' %}" class="btn btn-outline-primary btn-sm rounded-pill mt-3 px-4">{% trans "Add Account" %}</a>
-                </div>
+            <div class="card-body p-4 d-flex flex-column justify-content-center align-items-center text-center" aria-hidden="true">
+                <div class="skeleton-block rounded-circle mb-3 d-none d-lg-block" style="width: 170px; height: 170px;"></div>
+                <div class="skeleton-block mb-3 d-lg-none" style="height: 24px; width: 100%;"></div>
+                <div class="skeleton-block" style="height: 14px; width: 60%;"></div>
             </div>
             {% endif %}
+            </div>
         </div>
     </div>
 
@@ -2765,8 +2680,6 @@ document.addEventListener('DOMContentLoaded', function() {
 {{ proj_labels|json_script:"proj-labels" }}
 {{ proj_historical|json_script:"proj-historical" }}
 {{ proj_forecast|json_script:"proj-forecast" }}
-{{ net_worth_trend|json_script:"net-worth-trend" }}
-{{ net_worth_labels|json_script:"net-worth-labels" }}
 {{ capital_event_annotations|json_script:"capital-event-annotations" }}
 {{ bento_income_data|json_script:"bento-income-data" }}
 {{ bento_income_labels|json_script:"bento-income-labels" }}
@@ -2846,8 +2759,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const sYears = safeParse('selected-years-data');
         const paymentLabels = safeParse('payment-labels');
         const paymentData = safeParse('payment-data');
-        const nwTrend = safeParse('net-worth-trend');
-        const nwLabels = safeParse('net-worth-labels');
         const salaryCycleActive = {{ salary_cycle_active|yesno:"true,false" }};
         const salaryCycleStart = "{{ salary_cycle_start|date:'Y-m-d' }}";
         const salaryCycleEnd = "{{ salary_cycle_end|date:'Y-m-d' }}";
@@ -3160,14 +3071,20 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         // ── Bento 1: Net Worth (historical only, no forecast segment in bento) ──
-        const bentoNwData = nwTrend.slice(0, forecastIndexStart);
-        const bentoNwLabels = nwLabels.slice(0, forecastIndexStart);
-        makeBentoSparkline(
-            'bentoNwSparkline', 'bento-nw-tooltip',
-            bentoNwData, bentoNwLabels,
-            'rgb(14, 157, 184)', 0.22,  // CHART_COLORS.teal
-            false, null
-        );
+        // Its figures come with the card (inline, or fetched after the page paints), so the card draws it.
+        window.tmrDash = {
+            netWorthSparkline: function () {
+                const trend = safeParse('net-worth-trend') || [];
+                const labels = safeParse('net-worth-labels') || [];
+                makeBentoSparkline(
+                    'bentoNwSparkline', 'bento-nw-tooltip',
+                    trend.slice(0, forecastIndexStart), labels.slice(0, forecastIndexStart),
+                    'rgb(14, 157, 184)', 0.22,  // CHART_COLORS.teal
+                    false, null
+                );
+            }
+        };
+        document.dispatchEvent(new Event('tmr:dashboard-ready'));
 
         // Shared period labels for Spent & Invested sparklines
         const bentoPeriodLabels = safeParse('bento-period-labels');

@@ -19,7 +19,7 @@ from django.utils.html import escape, format_html, format_html_join, mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
-from ..account_types import investment_codes, is_liability
+from ..account_types import investment_codes
 from ..filters import DASHBOARD_FILTERS
 from ..ledger_read_service import LedgerReadService
 from ..models import (
@@ -49,13 +49,18 @@ from ..budgets import (
 )
 from ..savings import (
     calculate_savings,
-    monthly_parts,
     period_totals,
     savings_for_period,
     savings_from_querysets,
     totals_by_period,
 )
-from ..services import FinancialService, LoanService, SalaryAnalysisService
+from ..services import FinancialService, SalaryAnalysisService
+from .dashboard_networth import (
+    NET_WORTH_KEYS,
+    cached_net_worth_card,
+    net_worth_card,
+)
+from .dashboard_networth import monthly_summary_map as get_monthly_summary_map
 from ..templatetags.digit_filters import compact_amount
 from ..utils import (
     format_indian_number,
@@ -63,6 +68,7 @@ from ..utils import (
     get_exchange_rate,
 )
 from ..cache_utils import suppress_dashboard_cache_invalidation
+from ..insights import is_engine_on
 from ..insights import shadow as insights_shadow
 from .mixins import HtmxPartialTemplateMixin, process_user_recurring_transactions
 from .utils import parse_month_year
@@ -122,6 +128,8 @@ def home_view(request):
         context = dict(cached_context)
         # Refresh the handful of fields that are request/profile-specific and must never be stale.
         context['is_net_worth_locked'] = not request.user.profile.has_net_worth_access
+        if is_engine_on(request.user):
+            context['nw'] = cached_net_worth_card(request.user.pk)    # None: the page asks for it after it paints
         context['is_ai_locked'] = not request.user.profile.has_ai_access
         context['show_tutorial'] = not request.user.profile.has_seen_tutorial or request.GET.get('tour') == 'true'
         context['is_new_user'] = not has_any_data
@@ -431,28 +439,7 @@ def home_view(request):
     # --- PERFORMANCE OPTIMIZATION: BATCH MONTHLY TOTALS ---
     # Fetch 2 years of monthly totals in one go to avoid multiple N+1 aggregations in loops
     # Using Django Cache to prevent hitting the DB on every single dashboard load.
-    monthly_summary_cache_key = f'monthly_summary_map_{request.user.id}' if not is_testing else None
-    monthly_summary_map = cache.get(monthly_summary_cache_key) if monthly_summary_cache_key else None
-
-    if monthly_summary_map is None:
-        hist_start = (timezone.now().replace(day=1) - timedelta(days=730)).date()
-        # 'expense' is the combined total (expense + loan interest + capital events) used by
-        # the trend/average code below. 'expense_base' and 'loan_interest' are kept separate
-        # too, so YTD / historical-average figures elsewhere can be derived without extra queries.
-        # All four tables come back in one query (see expenses/savings.py).
-        monthly_summary_map = {} # (year, month) -> {'income': 0, 'expense': 0, 'expense_base': 0, 'loan_interest': 0}
-        for key, part in monthly_parts(request.user, hist_start).items():
-            expense_base, interest = float(part['expenses']), float(part['interest'])
-            monthly_summary_map[key] = {
-                'income': float(part['income']),
-                'expense': expense_base + interest + float(part['capital']),
-                'expense_base': expense_base,
-                'loan_interest': interest,
-            }
-
-        if monthly_summary_cache_key:
-            cache.set(monthly_summary_cache_key, monthly_summary_map, 300) # Cache for 5 minutes
-
+    monthly_summary_map = get_monthly_summary_map(request.user, is_testing)
 
     # 1. Category Chart Data (Distribution) & Summary Table
     # We need to fetch raw values and merge them in Python to handle whitespace duplicates
@@ -2083,24 +2070,29 @@ def home_view(request):
     # 4. Financial Coach Moments (Milestones)
     # Net Worth Milestone (match Net Worth card logic to avoid contradictory insights)
     # NOTE: _ledger_net_worth_result is reused below in the Net Worth section to avoid a second bulk query.
-    _ledger_net_worth_result = LedgerReadService.get_net_worth(request.user)
-    milestone_net_worth = _ledger_net_worth_result[0]
-    milestones = [100000, 500000, 1000000, 2500000, 5000000, 10000000]
-    applicable_milestone = None
-    for m in milestones:
-        if float(milestone_net_worth) >= m:
-            applicable_milestone = m
-        else:
-            break
+    # Only the legacy insights card shows the milestone; with the Insights Engine on, the Net Worth card is
+    # fetched after the page paints (dashboard_networth.py) and net worth is not worked out here at all.
+    defer_net_worth = is_engine_on(request.user)
+    _ledger_net_worth_result = None
+    if not defer_net_worth:
+        _ledger_net_worth_result = LedgerReadService.get_net_worth(request.user)
+        milestone_net_worth = _ledger_net_worth_result[0]
+        milestones = [100000, 500000, 1000000, 2500000, 5000000, 10000000]
+        applicable_milestone = None
+        for m in milestones:
+            if float(milestone_net_worth) >= m:
+                applicable_milestone = m
+            else:
+                break
 
-    if applicable_milestone:
-        raw_insights.append({
-            'text': format_html(_("You crossed <span class='fw-bold'>{}</span> in net worth! <br> <span class='small opacity-50'>That's years of discipline showing up as a number. Most people never get here. You did.</span>"), compact_amount(applicable_milestone, currency_symbol)),
-            'icon': 'bi-trophy',
-            'theme': 'warning',
-            'score': 10 # Milestone
-        })
-            
+        if applicable_milestone:
+            raw_insights.append({
+                'text': format_html(_("You crossed <span class='fw-bold'>{}</span> in net worth! <br> <span class='small opacity-50'>That's years of discipline showing up as a number. Most people never get here. You did.</span>"), compact_amount(applicable_milestone, currency_symbol)),
+                'icon': 'bi-trophy',
+                'theme': 'warning',
+                'score': 10 # Milestone
+            })
+
     # Good Month Moment
     if prev_month_data and prev_month_data.get('savings', 0) > 0 and savings > prev_month_data['savings'] * Decimal('1.2'):
         projected_annual = savings * 12
@@ -2249,106 +2241,42 @@ def home_view(request):
         proj_historical.append(None)
         proj_forecast.append(float(avg_spend))
 
-    # Net Worth & Asset Allocation Calculation (multi-currency aware)
-    accounts = Account.objects.filter(user=request.user, is_active=True)
-    base_currency = currency_symbol  # user's profile currency
-
-    # Convert balances to base currency from adapter (feature-flagged with fallback).
-    # Reuse the result already fetched for the milestone section above (avoids duplicate bulk queries).
-    net_worth, account_base_balances = _ledger_net_worth_result
-
-    # Net Worth Change Calculation (Growth this month)
-    # We estimate start-of-month net worth as current net worth minus this month's net cashflow (income - expense)
-    # This assumes all income/expense transactions affect the total net worth.
-    
-    total_liabilities = Decimal(str(LoanService.get_total_liabilities(request.user)))
-    net_worth_before_liabilities = net_worth + total_liabilities
-    # Note: LedgerReadService.get_net_worth already subtracted liabilities. Do not double subtract.
-    
-    net_worth_change = Decimal('0.00')
-    net_worth_percent = Decimal('0.00')
-    
-    # Get income and expense sums for the current month ONLY (for change indicators)
-    curr_mon_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
-    # If the view above already computed totals for exactly this calendar month (the default,
-    # unfiltered dashboard view — including the common case where the salary cycle happens to
-    # span the full calendar month), reuse them instead of firing 4 duplicate queries.
-    _reuse_month_totals = (
-        not (start_date or end_date)
-        and is_current_month_view
-        and not selected_categories
-        and not selected_payment_methods
-        and not selected_accounts
-        and (
-            not salary_cycle_active
-            or (salary_cycle_start == curr_mon_start.date() and salary_cycle_end and salary_cycle_end >= now.date())
-        )
-    )
-    if _reuse_month_totals:
-        # The page already computed this month's savings (same definition).
-        month_savings = current_savings
+    # Net Worth and Asset Allocation (multi-currency aware) are worked out in dashboard_networth.py. With the Insights
+    # Engine on they are not worked out here: the page includes the cached figures, or asks for them after it paints.
+    accounts = Account.objects.filter(user=request.user, is_active=True)    # evaluated by the nudges below
+    if defer_net_worth:
+        nw = cached_net_worth_card(request.user.pk)
     else:
-        month_savings = savings_for_period(request.user, curr_mon_start.date(), timezone.localdate())
+        # Get income and expense sums for the current month ONLY (for change indicators)
+        curr_mon_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-    # Net worth grows by what you save: income minus spending, where repaying loan principal is
-    # not spending (cash becomes less debt) and capital events count per their own switches.
-    net_worth_change = month_savings.savings
-    start_net_worth = net_worth - net_worth_change
-    
-    if start_net_worth > 0:
-        net_worth_percent = (net_worth_change / start_net_worth * 100).quantize(Decimal('0.1'))
-    elif start_net_worth == 0 and net_worth_change > 0:
-        net_worth_percent = Decimal('100.0')
+        # If the view above already computed totals for exactly this calendar month (the default,
+        # unfiltered dashboard view — including the common case where the salary cycle happens to
+        # span the full calendar month), reuse them instead of firing 4 duplicate queries.
+        _reuse_month_totals = (
+            not (start_date or end_date)
+            and is_current_month_view
+            and not selected_categories
+            and not selected_payment_methods
+            and not selected_accounts
+            and (
+                not salary_cycle_active
+                or (salary_cycle_start == curr_mon_start.date() and salary_cycle_end and salary_cycle_end >= now.date())
+            )
+        )
+        if _reuse_month_totals:
+            # The page already computed this month's savings (same definition).
+            month_savings = current_savings
+        else:
+            month_savings = savings_for_period(request.user, curr_mon_start.date(), timezone.localdate())
 
-    # --- NET WORTH TREND (Sparkline and Chart) ---
-    net_worth_trend = FinancialService.get_cumulative_net_worth_history(request.user, net_worth, 6)
-    
-    # For the main chart context
-    net_worth_history_formatted = FinancialService.get_monthly_history(request.user, 6)
-    net_worth_labels = [date_format(m['month'], 'M Y') for m in net_worth_history_formatted]
-    net_worth_data = net_worth_trend # Use the cumulative values for the trend
-
-    # Group by account type group for Asset Allocation chart (using converted balances)
-    code_to_group = {}
-    for group_name, choices in Account.ACCOUNT_TYPES:
-        for val, label in choices:
-            if val not in code_to_group:
-                code_to_group[val] = group_name
-
-    from collections import defaultdict
-    group_totals = defaultdict(Decimal)
-    liability_pks = set()
-    for acc in accounts:
-        if is_liability(acc.account_type):
-            # Cards and loans are what you owe, not what you hold (a loan account's value is the
-            # outstanding principal, a positive number), so they never belong in the allocation.
-            liability_pks.add(acc.pk)
-            continue
-        group_name = code_to_group.get(acc.account_type, 'Other')
-        group_totals[group_name] += account_base_balances[acc.pk]
-
-    asset_allocation = []
-    cumulative_percent = 0
-    circumference = 2 * 3.14159 * 45
-    
-    # Use sum of positive balances for allocation donut to avoid >100% or negative segments
-    total_assets = sum(float(v) for pk, v in account_base_balances.items() if v > 0 and pk not in liability_pks)
-    
-    import re
-    for group_name, total in sorted(group_totals.items(), key=lambda x: x[1], reverse=True):
-        if total <= 0: continue # Skip liabilities in allocation donut
-        percent = round((float(total) / float(total_assets) * 100), 1) if total_assets > 0 else 0
-        group_type_id = re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
-        asset_allocation.append({
-            'type_key': group_type_id,
-            'type': group_name,
-            'total': float(total),
-            'percent': percent,
-            'arc_length': (percent / 100) * circumference,
-            'offset_length': (cumulative_percent / 100) * circumference
-        })
-        cumulative_percent += percent
+        # Net worth grows by what you save: income minus spending, where repaying loan principal is
+        # not spending (cash becomes less debt) and capital events count per their own switches.
+        nw = net_worth_card(request.user, currency_symbol=currency_symbol, accounts=list(accounts),
+                            ledger_result=_ledger_net_worth_result, month_savings=month_savings,
+                            summary_map=monthly_summary_map)
+    if nw:
+        hero_metrics['savings_amount'] = nw['net_worth_change']
 
     # 5. Unified Activity Feed (Combined Expenses, Incomes, Transfers)
     # We'll tag each with 'transaction_type' for the template
@@ -2373,44 +2301,6 @@ def home_view(request):
         reverse=True
     )[:10]
 
-    # Add Savings Amount to hero_metrics for the hero card
-    hero_metrics['savings_amount'] = net_worth_change
-
-    # --- NET WORTH FORECAST (Next 3 Months) ---
-    # Derive the 3-month historical average from monthly_summary_map (0 extra DB queries)
-    # instead of FinancialService.get_historical_average, which re-queries the same data.
-    _hist_y, _hist_m = now.year, now.month
-    _hist_months = []
-    for _hist_i in range(3):
-        _hist_m -= 1
-        if _hist_m == 0:
-            _hist_m = 12
-            _hist_y -= 1
-        _hist_months.append((_hist_y, _hist_m))
-    _hist_income_sum = sum(monthly_summary_map.get(k, {}).get('income', 0.0) for k in _hist_months)
-    _hist_expense_sum = sum(
-        monthly_summary_map.get(k, {}).get('expense_base', 0.0) + monthly_summary_map.get(k, {}).get('loan_interest', 0.0)
-        for k in _hist_months
-    )
-    avg_monthly_savings = Decimal(str((_hist_income_sum - _hist_expense_sum) / 3))
-    
-    # 0.5 Integrated Sparkline Logic
-    # History is 6 months. We append 3 forecast months.
-    forecast_index_start = len(net_worth_trend) # Usually 6
-    
-    for i in range(1, 4):
-        f_month = now.month + i
-        f_year = now.year
-        while f_month > 12:
-            f_month -= 12
-            f_year += 1
-        
-        month_date = date(f_year, f_month, 1)
-        projected_val = net_worth + (avg_monthly_savings * i)
-        
-        # Add to the integrated sparkline arrays
-        net_worth_labels.append(date_format(month_date, 'M Y'))
-        net_worth_trend.append(float(projected_val))
     # Onboarding Checklist State
     profile = request.user.profile
     checklist_cache_key = f'checklist_done_{request.user.id}'
@@ -2475,17 +2365,11 @@ def home_view(request):
         'show_onboarding_checklist': show_onboarding_checklist,
         'onboarding_checklist_completed_count': completed_count,
         'onboarding_checklist_items': checklist_items,
-        'net_worth': net_worth,
-        'net_worth_change': net_worth_change,
-        'net_worth_percent': net_worth_percent,
-        'net_worth_trend': net_worth_trend,
-        'forecast_index_start': forecast_index_start,
-        'net_worth_labels': net_worth_labels,
+        'nw': nw,
+        **({k: nw[k] for k in NET_WORTH_KEYS} if nw else {}),
         'is_net_worth_locked': not request.user.profile.has_net_worth_access,
         'is_ai_locked': not request.user.profile.has_ai_access,
         'accounts': list(accounts),
-        'net_worth_before_liabilities': net_worth_before_liabilities,
-        'asset_allocation': asset_allocation,
         'recent_activity': recent_activity,
         'has_projection': has_projection,
         'projected_savings': projected_savings,

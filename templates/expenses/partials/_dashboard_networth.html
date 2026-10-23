@@ -1,0 +1,44 @@
+{% load i18n digit_filters currency_filters expense_extras %}
+{# The Net Worth card's figures and sparkline (the card itself, with its title and lock, is in home.html). #}
+{# Rendered inline when the figures are already known, else fetched after the page paints (dashboard-networth). #}
+<div class="bento-metric-value text-body-emphasis">
+    {{ currency_symbol }}{{ nw.net_worth|compact_amount:currency_symbol|translate_digits }}
+</div>
+<div class="bento-metric-delta">
+    {% if nw.net_worth_change >= 0 %}
+        <span class="text-success d-inline-flex align-items-center gap-1">
+            <i class="bi bi-caret-up-fill"></i>
+            {{ currency_symbol }}{{ nw.net_worth_change|compact_amount:currency_symbol|translate_digits }}
+        </span>
+        {% if nw.net_worth_percent > 999 %}
+        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">10x+</span>
+        {% else %}
+        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ nw.net_worth_percent|translate_digits }}%</span>
+        {% endif %}
+    {% else %}
+        <span class="text-danger d-inline-flex align-items-center gap-1">
+            <i class="bi bi-caret-down-fill"></i>
+            {{ currency_symbol }}{{ nw.net_worth_change|abs_val|compact_amount:currency_symbol|translate_digits }}
+        </span>
+        {% if nw.net_worth_percent > 999 %}
+        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">10x+</span>
+        {% else %}
+        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">{{ nw.net_worth_percent|translate_digits }}%</span>
+        {% endif %}
+    {% endif %}
+    <span class="bento-comparison-label">{% trans "this month" %}</span>
+</div>
+{% if nw.net_worth_trend %}
+<div class="bento-sparkline-wrap">
+    <canvas id="bentoNwSparkline"></canvas>
+    <div id="bento-nw-tooltip" class="custom-chart-tooltip shadow-sm"></div>
+</div>
+{{ nw.net_worth_trend|json_script:"net-worth-trend" }}
+{{ nw.net_worth_labels|json_script:"net-worth-labels" }}
+<script>
+(function () {
+    function draw() { window.tmrDash.netWorthSparkline(); }
+    if (window.tmrDash) draw(); else document.addEventListener('tmr:dashboard-ready', draw, { once: true });
+})();
+</script>
+{% endif %}
