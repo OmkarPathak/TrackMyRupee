@@ -1787,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', function() {
            30rem, and when there are more insights than fit they scroll inside the card. */
         .insights-card { max-height: 30rem; overflow: hidden; }          /* clips the scrolling body to the card's rounded corners */
         .insights-card .card-body {
-            min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
+            min-height: 0; overflow-y: auto; overscroll-behavior: auto; scrollbar-width: thin;
             /* a soft shadow at an edge that has more to scroll to (the card's own colour, so it works in both themes) */
             --ins-bg: var(--bs-card-bg, var(--bs-body-bg)); --ins-clear: color-mix(in srgb, var(--ins-bg) 0%, transparent);
             background:
