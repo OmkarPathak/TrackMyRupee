@@ -1,0 +1,7 @@
+{% load i18n %}{# One Django message as a toast. Shown by the script in base.html (Bootstrap Toast). #}
+<div class="toast tmr-toast tmr-toast--{% if message.level_tag == 'error' %}danger{% elif message.level_tag == 'success' %}success{% elif message.level_tag == 'warning' %}warning{% else %}info{% endif %}"
+     role="alert" aria-live="assertive" aria-atomic="true">
+    <span class="tmr-toast__icon" aria-hidden="true"><i class="bi bi-{% if message.level_tag == 'error' %}exclamation-circle-fill{% elif message.level_tag == 'success' %}check-circle-fill{% elif message.level_tag == 'warning' %}exclamation-triangle-fill{% else %}info-circle-fill{% endif %}"></i></span>
+    <span class="tmr-toast__msg">{{ message }}</span>
+    <button type="button" class="tmr-toast__x" data-bs-dismiss="toast" aria-label="{% trans 'Close' %}"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+</div>

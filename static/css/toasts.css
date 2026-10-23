@@ -1,0 +1,157 @@
+/* The one toast style for the whole app: a frosted-glass pill with a tinted icon, the message, an optional action and
+   a close button. It is used by the Django messages (base.html, _oob_messages.html), the "Added ... Undo / Edit" toast
+   (expense_toast.js) and the Budget page's toast (budget.js).
+   Phones: sits above the bottom bar, centred. Desktop: bottom centre. Tones: success (default), danger, warning, info. */
+
+:root {
+  --tmr-toast-bg: rgba(255, 255, 255, 0.78);
+  --tmr-toast-solid: #ffffff;
+  --tmr-toast-border: rgba(255, 255, 255, 0.7);
+  --tmr-toast-ring: rgba(26, 26, 24, 0.08);
+  --tmr-toast-ink: #1a1a18;
+  --tmr-toast-muted: #595855;
+  --tmr-toast-shadow: 0 10px 34px rgba(26, 26, 24, 0.16), 0 2px 8px rgba(26, 26, 24, 0.06);
+  --tmr-toast-radius: 28px;          /* half the one-line height, so one line is a pill and taller ones keep the same corners */
+  --tmr-tone-success: #0f7657;
+  --tmr-tone-danger: #b93822;
+  --tmr-tone-warning: #8a4b00;
+  --tmr-tone-info: #1b6ea8;
+}
+[data-bs-theme="dark"] {
+  --tmr-toast-bg: rgba(38, 38, 35, 0.72);
+  --tmr-toast-solid: #262623;
+  --tmr-toast-border: rgba(255, 255, 255, 0.14);
+  --tmr-toast-ring: rgba(0, 0, 0, 0.35);
+  --tmr-toast-ink: #f2f0eb;
+  --tmr-toast-muted: #b4b2aa;
+  --tmr-toast-shadow: 0 10px 34px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --tmr-tone-success: #5dcaa5;
+  --tmr-tone-danger: #ff9a87;
+  --tmr-tone-warning: #f2b45f;
+  --tmr-tone-info: #7fb8ea;
+}
+
+@keyframes tmr-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ── Where toasts appear ──────────────────────────────────────────────────── */
+.tmr-toast-region,
+.tmr-toast--fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  z-index: 11000;
+}
+.tmr-toast-region {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  pointer-events: none;      /* only the toasts take clicks */
+}
+.tmr-toast--fixed { margin: 0 auto; width: fit-content; max-width: min(460px, calc(100% - 32px)); }
+@media (min-width: 992px) {
+  .tmr-toast-region, .tmr-toast--fixed { bottom: 24px; }
+}
+
+/* ── The toast ────────────────────────────────────────────────────────────── */
+.tmr-toast {
+  --tmr-tone: var(--tmr-tone-success);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(460px, 100%);
+  box-sizing: border-box;
+  min-height: 56px;
+  padding: 8px 10px;
+  border: 1px solid var(--tmr-toast-border);
+  border-radius: var(--tmr-toast-radius);
+  background: var(--tmr-toast-bg);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  color: var(--tmr-toast-ink);
+  box-shadow: var(--tmr-toast-shadow), 0 0 0 1px var(--tmr-toast-ring);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  pointer-events: auto;
+  animation: tmr-rise 0.2s ease-out;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tmr-toast { background: var(--tmr-toast-solid); }
+}
+.tmr-toast[hidden] { display: none; }
+/* Bootstrap's own toast states (Django messages) decide when one is shown */
+.tmr-toast.toast { max-width: 100%; border-radius: var(--tmr-toast-radius); transition: opacity 0.2s ease; }
+.tmr-toast.toast:not(.show) { display: none; }
+.tmr-toast.toast.show, .tmr-toast.toast.showing { display: flex; }
+.tmr-toast.toast.showing { opacity: 0; }
+/* One without an action sizes to its text */
+.tmr-toast:not(:has(.tmr-toast__btn)) { width: auto; max-width: min(460px, 100%); }
+
+.tmr-toast--success { --tmr-tone: var(--tmr-tone-success); }
+.tmr-toast--danger  { --tmr-tone: var(--tmr-tone-danger); }
+.tmr-toast--warning { --tmr-tone: var(--tmr-tone-warning); }
+.tmr-toast--info    { --tmr-tone: var(--tmr-tone-info); }
+
+.tmr-toast__icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tmr-tone) 16%, transparent);
+  color: var(--tmr-tone);
+  font-size: 1.1rem;
+}
+.tmr-toast__msg {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.tmr-toast__btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--tmr-tone);
+  border-radius: 50rem;
+  background: transparent;
+  color: var(--tmr-tone);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+.tmr-toast__btn:hover { background: color-mix(in srgb, var(--tmr-tone) 14%, transparent); color: var(--tmr-tone); }
+.tmr-toast__btn:disabled { opacity: 0.5; cursor: default; }
+.tmr-toast__x {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tmr-toast-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.tmr-toast__x:hover { background: color-mix(in srgb, var(--tmr-toast-ink) 8%, transparent); color: var(--tmr-toast-ink); }
+.tmr-toast__btn:focus-visible, .tmr-toast__x:focus-visible { outline: 2px solid var(--tmr-tone); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .tmr-toast { animation: none !important; transition: none !important; } }

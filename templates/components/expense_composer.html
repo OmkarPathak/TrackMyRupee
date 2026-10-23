@@ -1,8 +1,8 @@
 {% load i18n %}
 {% comment %}
   Shared pieces of the New Expense flow, mounted from base.html for signed-in users: the
-  translated strings/URLs the script reads and the toast region (the "Added ... Undo / Edit" toast
-  appears on whichever page the user lands on after adding). The form itself is
+  translated strings/URLs the script reads (the "Added ... Undo / Edit" toast is shown in the
+  shared toast region of base.html, on whichever page the user lands on after adding). The form itself is
   expense_composer_card.html, rendered on /expenses/add/ only.
 {% endcomment %}
 
@@ -16,4 +16,3 @@
   <span data-k="undoFailed">{% trans "Couldn't undo that. Delete it from the expense list instead." %}</span>
 </div>
 
-<div class="tmr-toast-region" id="tmr-toasts" role="region" aria-label="{% trans 'Notifications' %}" aria-live="polite"></div>

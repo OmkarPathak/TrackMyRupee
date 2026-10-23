@@ -23,7 +23,7 @@
   var TOAST_KEY = 'tmr_composer_toast';
   var TOAST_MS = 6000;
 
-  var toastsEl = $('tmr-toasts');
+  var toastsEl = $('django-messages-toast-container');   // the one toast region (base.html)
   // Pages other than the form just reload after an undo; the form page swaps these out below.
   var hooks = {
     nextUrl: function () { return window.location.pathname + window.location.search; },
@@ -33,11 +33,16 @@
   // ── Toasts ────────────────────────────────────────────────────────────────
   function showToast(opts, ms) {
     var box = document.createElement('div');
-    box.className = 'tmr-toast';
+    box.className = 'tmr-toast tmr-toast--' + (opts.tone || 'success');
+    var icon = document.createElement('span');
+    icon.className = 'tmr-toast__icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.innerHTML = '<i class="bi bi-' + (opts.tone === 'danger' ? 'exclamation-circle-fill' : 'check-circle-fill') + '"></i>';
+    box.appendChild(icon);
     var msg = document.createElement('span');
     msg.className = 'tmr-toast__msg';
     msg.textContent = opts.plain || t('addedToast', { summary: opts.summary });
-    msg.title = msg.textContent;      // full text on hover when it is cut with an ellipsis
+    msg.title = msg.textContent;      // full text on hover when it is cut short
     box.appendChild(msg);
     var timer;
     function dismiss() { clearTimeout(timer); if (box.parentNode) box.parentNode.removeChild(box); }
@@ -70,11 +75,11 @@
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {
         dismiss();
-        if (!res.ok || !res.j.success) { showToast({ plain: (res.j && res.j.error) || t('undoFailed') }, 5000); return; }
+        if (!res.ok || !res.j.success) { showToast({ plain: (res.j && res.j.error) || t('undoFailed'), tone: 'danger' }, 5000); return; }
         showToast({ plain: t('undone') }, 3000);
         hooks.afterUndo(res.j);
       })
-      .catch(function () { if (btn) btn.disabled = false; showToast({ plain: t('undoFailed') }, 5000); });
+      .catch(function () { if (btn) btn.disabled = false; showToast({ plain: t('undoFailed'), tone: 'danger' }, 5000); });
   }
 
   // Toast that survives the post-add page refresh.

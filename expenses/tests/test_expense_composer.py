@@ -589,7 +589,7 @@ class DeepLinkAndEntryPointTests(ComposerBase):
     def test_form_only_on_add_page_toasts_everywhere_for_signed_in_users(self):
         other = self.client.get(reverse('expense-list'))
         self.assertNotContains(other, 'id="tmr-composer"')
-        self.assertContains(other, 'id="tmr-toasts"')
+        self.assertContains(other, 'id="tmr-c-i18n"')
         self.assertContains(other, 'js/expense_toast.js')
         # the form's script and styles are only sent with the add page
         self.assertNotContains(other, 'js/expense_composer.js')
@@ -598,7 +598,7 @@ class DeepLinkAndEntryPointTests(ComposerBase):
         self.assertContains(add, 'js/expense_composer.js')
         self.assertContains(add, 'css/expense_composer.css')
         self.client.logout()
-        self.assertNotContains(self.client.get(reverse('about')), 'id="tmr-toasts"')
+        self.assertNotContains(self.client.get(reverse('about')), 'id="tmr-c-i18n"')
 
     def test_manifest_has_add_expense_shortcut(self):
         manifest = json.loads(self.client.get(reverse('manifest')).content)

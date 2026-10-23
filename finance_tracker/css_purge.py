@@ -15,7 +15,7 @@ SOURCE_CSS = BASE / 'static/vendor/bootstrap/bootstrap.min.css'
 OUTPUT_CSS = BASE / 'static/vendor/bootstrap/bootstrap.purged.min.css'
 
 SCAN_DIRS = ['templates', 'static/js', 'expenses', 'blog', 'finance_tracker']
-SCAN_FILES = ['static/style.css', 'static/skeleton-loader.css', 'static/css/expense_toast.css']
+SCAN_FILES = ['static/style.css', 'static/skeleton-loader.css', 'static/css/toasts.css']
 SCAN_SUFFIXES = {'.html', '.js', '.py', '.css', '.txt', '.json'}
 SKIP_PARTS = {'tests', 'migrations', 'management', '__pycache__'}
 

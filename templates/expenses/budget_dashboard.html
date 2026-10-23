@@ -5,7 +5,7 @@
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=2.5">
     <script src="{% static 'js/tmr_filter.js' %}?v=2.1" defer></script>
-    <link rel="stylesheet" href="{% static 'css/budget.css' %}?v=1.5">
+    <link rel="stylesheet" href="{% static 'css/budget.css' %}?v=1.6">
 {% endblock %}
 
 {% block content %}
@@ -129,10 +129,11 @@
     </div>
 
     <!-- Toast (errors with retry, confirmations) -->
-    <div class="bdx-toast" id="bdx-toast" role="status" aria-live="polite" hidden>
-        <span id="bdx-toast-msg"></span>
-        <button type="button" class="bdx-link" id="bdx-toast-action" hidden></button>
-        <button type="button" class="bdx-toast-x" id="bdx-toast-close" aria-label="{% trans 'Dismiss' %}"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+    <div class="tmr-toast tmr-toast--fixed" id="bdx-toast" role="status" aria-live="polite" hidden>
+        <span class="tmr-toast__icon" aria-hidden="true"><i class="bi bi-check-circle-fill" id="bdx-toast-icon"></i></span>
+        <span class="tmr-toast__msg" id="bdx-toast-msg"></span>
+        <button type="button" class="tmr-toast__btn" id="bdx-toast-action" hidden></button>
+        <button type="button" class="tmr-toast__x" id="bdx-toast-close" aria-label="{% trans 'Dismiss' %}"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
     </div>
 
     <!-- Strings for the script (translated here so there is no second catalog) -->

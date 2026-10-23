@@ -41,6 +41,10 @@
         btn.hidden = !actionLabel;
         btn.textContent = actionLabel || '';
         btn.onclick = function () { hideToast(); if (action) action(); };
+        // a message with an action is a failure with a retry; the rest are confirmations
+        box.classList.toggle('tmr-toast--danger', !!actionLabel);
+        box.classList.toggle('tmr-toast--success', !actionLabel);
+        $('#bdx-toast-icon').className = 'bi bi-' + (actionLabel ? 'exclamation-circle-fill' : 'check-circle-fill');
         box.hidden = false;
         clearTimeout(toastTimer);
         if (!actionLabel) toastTimer = setTimeout(hideToast, 4000);
