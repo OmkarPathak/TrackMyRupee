@@ -1,7 +1,7 @@
 /* The one toast style for the whole app: a frosted-glass pill with a tinted icon, the message, an optional action and
    a close button. It is used by the Django messages (base.html, _oob_messages.html), the "Added ... Undo / Edit" toast
    (expense_toast.js) and the Budget page's toast (budget.js).
-   Phones: sits above the bottom bar, centred. Desktop: bottom centre. Tones: success (default), danger, warning, info. */
+   Phones: sits above the bottom bar, centred. Desktop: top right, under the header. Tones: success (default), danger, warning, info. */
 
 :root {
   --tmr-toast-bg: rgba(255, 255, 255, 0.78);
@@ -31,6 +31,7 @@
   --tmr-tone-info: #7fb8ea;
 }
 
+@keyframes tmr-drop { from { transform: translateY(-16px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes tmr-rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* ── Where toasts appear ──────────────────────────────────────────────────── */
@@ -51,8 +52,12 @@
   pointer-events: none;      /* only the toasts take clicks */
 }
 .tmr-toast--fixed { margin: 0 auto; width: fit-content; max-width: min(460px, calc(100% - 32px)); }
+/* Desktop: top right, under the header, where the eye already is (phones keep the bottom) */
 @media (min-width: 992px) {
-  .tmr-toast-region, .tmr-toast--fixed { bottom: 24px; }
+  .tmr-toast-region, .tmr-toast--fixed { top: 72px; right: 24px; bottom: auto; left: auto; }
+  .tmr-toast-region { align-items: flex-end; padding: 0; }
+  .tmr-toast--fixed { margin: 0; }
+  .tmr-toast { animation-name: tmr-drop; }
 }
 
 /* ── The toast ────────────────────────────────────────────────────────────── */
