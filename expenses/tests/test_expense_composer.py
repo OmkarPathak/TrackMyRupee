@@ -269,6 +269,11 @@ class DataEndpointTests(ComposerBase):
         self.assertEqual(data['default_account_source'], 'first')
         self.assertEqual(data['today'], timezone.localdate().isoformat())
 
+    def test_payload_says_from_what_amount_to_offer_a_capital_event(self):
+        data = self.client.get(reverse('expense-composer-data')).json()['data']
+        self.assertEqual(data['capital_hint_thresholds']['₹'], 5000)
+        self.assertEqual(set(data['capital_hint_thresholds']), {c['symbol'] for c in data['currencies']})
+
     def test_inactive_accounts_are_hidden(self):
         Account.objects.create(user=self.user, name='Old Bank', balance=0, is_active=False)
         data = self.client.get(reverse('expense-composer-data')).json()['data']
@@ -596,6 +601,7 @@ class DeepLinkAndEntryPointTests(ComposerBase):
         self.assertNotContains(other, 'css/expense_composer.css')
         add = self.client.get(reverse('expense-create'))
         self.assertContains(add, 'js/expense_composer.js')
+        self.assertContains(add, 'id="tmr-capital-hint"')
         self.assertContains(add, 'css/expense_composer.css')
         self.client.logout()
         self.assertNotContains(self.client.get(reverse('about')), 'id="tmr-c-i18n"')

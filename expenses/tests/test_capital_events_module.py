@@ -397,6 +397,29 @@ class TestCapitalEventCreate(CapBase):
         self.client.logout()
         self.assertEqual(self.client.get(self.url).status_code, 302)
 
+    def test_get_prefills_from_the_new_expense_form(self):
+        from expenses.models import Category
+        Category.objects.create(user=self.user, name='Electronics')
+        response = self.client.get(self.url, {
+            'amount': '45000', 'currency': '₹', 'date': '2026-03-14', 'account': str(self.bank.id),
+            'note': 'Laptop', 'category': 'Electronics'})
+        initial = response.context['form'].initial
+        self.assertEqual(initial['amount'], '45000')
+        self.assertEqual(initial['currency'], '₹')
+        self.assertEqual(str(initial['date']), '2026-03-14')
+        self.assertEqual(initial['account'], self.bank.id)
+        self.assertEqual(initial['note'], 'Laptop')
+        self.assertEqual(initial['category'], 'Electronics')
+
+    def test_prefill_ignores_what_does_not_check_out(self):
+        other = self.make_user('someone-else')
+        theirs = Account.objects.create(user=other, name='Theirs', account_type='SAVINGS_ACCOUNT', balance=D('1'), currency='₹')
+        response = self.client.get(self.url, {
+            'amount': '6000', 'currency': 'XYZ', 'date': 'not-a-date', 'account': str(theirs.id),
+            'category': 'No such category', 'note': ' '})
+        initial = response.context['form'].initial
+        self.assertEqual(initial, {'amount': '6000'})
+
     def test_create_saves_debits_and_redirects(self):
         response = self.client.post(self.url, self.payload())
         self.assertRedirects(response, reverse('capital-event-list'))

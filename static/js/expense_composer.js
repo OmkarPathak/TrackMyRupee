@@ -69,6 +69,7 @@
     foot: $('tmr-foot'), cancel: $('tmr-cancel'), addAnother: $('tmr-add-another'), add: $('tmr-add'),
     cLarge: $('tmr-confirm-large'), largeText: $('tmr-large-text'), largeYes: $('tmr-large-yes'),
     largeEdit: $('tmr-large-edit'), largeCapital: $('tmr-large-capital'),
+    capHint: $('tmr-capital-hint'), capHintText: $('tmr-capital-hint-text'), capLink: $('tmr-capital-link'),
     live: $('tmr-live')
   };
   var fieldEl = {};
@@ -154,6 +155,27 @@
     return cur + formatAmount(String(Math.round(n * 100) / 100), cur);
   }
 
+  // Big purchases can be logged as a Capital Event instead (kept out of monthly spending and budgets). The link
+  // carries what has been entered so nothing has to be typed again.
+  function capitalUrl() {
+    var q = ['amount=' + encodeURIComponent(S.v.amount), 'currency=' + encodeURIComponent(S.v.currency)];
+    if (S.v.date) q.push('date=' + encodeURIComponent(S.v.date));
+    if (S.v.description) q.push('note=' + encodeURIComponent(S.v.description));
+    if (S.v.accountId) q.push('account=' + encodeURIComponent(S.v.accountId));
+    if (S.v.category) q.push('category=' + encodeURIComponent(S.v.category));
+    return URLS.capital + '?' + q.join('&');
+  }
+  function updateCapitalHint() {
+    var limit = S.data && S.data.capital_hint_thresholds ? (S.data.capital_hint_thresholds[S.v.currency] || 5000) : 5000;
+    var on = amountNumber() >= limit;
+    show(el.capHint, on);
+    if (on) {
+      el.capHintText.textContent = t('capitalHint');
+      el.capLink.textContent = t('capitalLink');
+      el.capLink.href = capitalUrl();
+    }
+  }
+
   // ── Fields: painting state onto the DOM ───────────────────────────────────
   var TAG_TEXT = { auto: 'tagAuto', lastused: 'tagLastUsed', today: 'tagToday', check: 'tagCheck' };
 
@@ -208,6 +230,7 @@
     paintDate();
     FIELDS.forEach(paintTag);
     updateDateNote();
+    updateCapitalHint();
   }
   // The app's searchable-select component hides the real <select> and shows its own button; it must
   // be told when options or the value change from script, and focus goes to its button.
@@ -566,14 +589,17 @@
     try { el.amount.setSelectionRange(pos, pos); } catch (e) { /* not supported */ }
     userEdit('amount');
     el.amountMsg.hidden = true;
+    updateCapitalHint();
   });
+  el.capLink.addEventListener('click', function () { el.capLink.href = capitalUrl(); });   // whatever changed since the hint was drawn
   el.currency.addEventListener('change', function () {
     S.v.currency = el.currency.value;
     el.amount.value = formatAmount(S.v.amount, S.v.currency);
     userEdit('currency');
+    updateCapitalHint();
   });
-  el.description.addEventListener('input', function () { S.v.description = el.description.value; userEdit('description'); });
-  el.account.addEventListener('change', function () { S.v.accountId = el.account.value ? +el.account.value : ''; userEdit('account'); el.accountMsg.hidden = true; fieldEl.account.classList.remove('is-invalid'); });
+  el.description.addEventListener('input', function () { S.v.description = el.description.value; userEdit('description'); if (!el.capHint.hidden) el.capLink.href = capitalUrl(); });
+  el.account.addEventListener('change', function () { S.v.accountId = el.account.value ? +el.account.value : ''; userEdit('account'); if (!el.capHint.hidden) el.capLink.href = capitalUrl(); el.accountMsg.hidden = true; fieldEl.account.classList.remove('is-invalid'); });
   el.payGroup.addEventListener('change', function (e) {
     if (e.target.name !== 'tmr-pay') return;
     S.v.payment = e.target.value; userEdit('payment'); el.payMsg.hidden = true; syncActive();
@@ -690,7 +716,7 @@
     el.largeText.textContent = t('largeAmount', { amount: symbolFmt(amountNumber(), S.v.currency) });
     el.largeYes.textContent = t('yesAdd'); el.largeEdit.textContent = t('editAmount');
     el.largeCapital.textContent = t('asCapital');
-    el.largeCapital.href = URLS.capital + '?amount=' + encodeURIComponent(S.v.amount);
+    el.largeCapital.href = capitalUrl();
     el.largeYes.onclick = function () { S.largeOk = true; show(el.cLarge, false); save(another); };
     el.largeEdit.onclick = function () { show(el.cLarge, false); el.amount.focus(); el.amount.select(); };
     show(el.cLarge, true); el.largeYes.focus();

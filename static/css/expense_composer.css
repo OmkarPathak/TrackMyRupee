@@ -291,6 +291,24 @@
   .tmr-field--wide { grid-column: 1 / -1; }
 }
 
+.tmr-capital-hint {
+  grid-column: 1 / -1;          /* the full row at every width (the form is a 2-column grid on phones too) */
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: var(--tmr-radius);
+  background: color-mix(in srgb, var(--color-success-text, #0F7657) 9%, var(--bs-body-bg));
+  border: 1px solid color-mix(in srgb, var(--color-success-text, #0F7657) 28%, transparent);
+  color: var(--bs-body-color);
+  font-size: 0.875rem;
+}
+.tmr-capital-hint[hidden] { display: none; }
+.tmr-capital-hint > i { color: var(--color-success-text, #0F7657); margin-top: 2px; }
+.tmr-capital-hint__text { margin: 0; line-height: 1.4; }
+@media (max-width: 575.98px) { .tmr-capital-hint { padding: 9px 11px; font-size: 0.82rem; gap: 8px; } }
+.tmr-capital-hint__link { color: var(--color-success-text, #0F7657); font-weight: 700; white-space: nowrap; }
+
 .tmr-field { min-width: 0; }
 .tmr-field[hidden] { display: none; }
 .tmr-field__label {

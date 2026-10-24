@@ -34,6 +34,10 @@ CURRENCY_CODES = {
 # Amounts at or above this (per currency symbol) ask "is that right?" before saving.
 LARGE_AMOUNT_THRESHOLDS = {'₹': 100000, '¥': 1000000, '₩': 10000000, '元': 50000}
 LARGE_AMOUNT_DEFAULT = 5000
+# From this amount the form offers to log the purchase as a Capital Event (a big one-off that is kept out of
+# monthly spending and budgets) instead of an everyday expense.
+CAPITAL_HINT_THRESHOLDS = {'₹': 5000, '¥': 50000, '₩': 500000, '元': 2500}
+CAPITAL_HINT_DEFAULT = 5000
 
 UNDO_WINDOW = timedelta(minutes=10)
 USUAL_WINDOW_DAYS = 60
@@ -189,6 +193,9 @@ def build_payload(user):
         ],
         'large_amount_thresholds': {
             sym: LARGE_AMOUNT_THRESHOLDS.get(sym, LARGE_AMOUNT_DEFAULT) for sym, _label in CURRENCY_CHOICES
+        },
+        'capital_hint_thresholds': {
+            sym: CAPITAL_HINT_THRESHOLDS.get(sym, CAPITAL_HINT_DEFAULT) for sym, _label in CURRENCY_CHOICES
         },
         'usuals': usual_expenses(user),
         'category_icons': dict(Category.objects.filter(user=user).values_list('name', 'icon')),

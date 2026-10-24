@@ -21258,3 +21258,7 @@ msgstr "फक्त काही सांगण्यासारखे अस
 #: expenses/insights
 msgid "TrackMyRupee insight"
 msgstr "TrackMyRupee इनसाइट"
+
+#: templates/components/expense_composer_card.html
+msgid "A big one-off purchase? Log it as a Capital Event so it doesn't skew your monthly spending and budgets."
+msgstr "मोठी एकदाच केलेली खरेदी? ती कॅपिटल इव्हेंट म्हणून नोंदवा, म्हणजे तुमचा मासिक खर्च आणि बजेट बिघडणार नाही."

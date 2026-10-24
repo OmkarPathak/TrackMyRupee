@@ -27,6 +27,8 @@
   <span data-k="yesAdd">{% trans "Yes, add it" %}</span>
   <span data-k="editAmount">{% trans "Edit amount" %}</span>
   <span data-k="asCapital">{% trans "Log as Capital Event instead" %}</span>
+  <span data-k="capitalHint">{% trans "A big one-off purchase? Log it as a Capital Event so it doesn't skew your monthly spending and budgets." %}</span>
+  <span data-k="capitalLink">{% trans "Log as Capital Event" %}</span>
   <span data-k="saveFailed">{% trans "We couldn't reach the server. Your details are kept, so you can try again." %}</span>
   <span data-k="upgrade">{% trans "Upgrade" %}</span>
   <span data-k="adding">{% trans "Adding…" %}</span>
@@ -135,6 +137,11 @@
               </label>
             </div>
             <p class="tmr-field__msg tmr-field__msg--info" id="tmr-date-msg" hidden></p>
+          </div>
+
+          <div class="tmr-capital-hint tmr-field--wide" id="tmr-capital-hint" hidden>
+            <i class="bi bi-lightbulb" aria-hidden="true"></i>
+            <p class="tmr-capital-hint__text"><span id="tmr-capital-hint-text"></span> <a class="tmr-capital-hint__link" id="tmr-capital-link" href="#"></a></p>
           </div>
 
           <div class="tmr-field tmr-field--wide" data-field="description">

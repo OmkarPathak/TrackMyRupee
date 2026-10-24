@@ -16,7 +16,7 @@ from expenses.views.utils import get_safe_redirect_url
 from ..filters.definitions import CAPITAL_EVENT_FILTERS
 from ..filters.engine import apply_filter_config
 from ..forms import CapitalEventForm
-from ..models import CapitalEvent, Expense, Loan
+from ..models import Account, CapitalEvent, Category, Expense, Loan
 from ..posthog_utils import ph_capture
 from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 from .utils import (
@@ -95,6 +95,32 @@ class CapitalEventListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListVie
         return ctx
 
 
+def _prefill_from_query(request):
+    """What the New Expense form carries over when someone logs a big purchase as a Capital Event instead: the
+    date, currency, account, note and category they had entered. Anything that does not check out is left out."""
+    from datetime import date as _date
+
+    out = {}
+    raw_date = request.GET.get('date')
+    if raw_date:
+        try:
+            out['date'] = _date.fromisoformat(raw_date)
+        except ValueError:
+            pass
+    if request.GET.get('currency') in dict(CapitalEvent._meta.get_field('currency').choices):
+        out['currency'] = request.GET['currency']
+    account = request.GET.get('account', '')
+    if account.isdigit() and Account.objects.filter(pk=int(account), user=request.user).exists():
+        out['account'] = int(account)
+    note = (request.GET.get('note') or '').strip()
+    if note:
+        out['note'] = note[:500]
+    category = (request.GET.get('category') or '').strip()
+    if category and Category.objects.filter(user=request.user, name=category).exists():
+        out['category'] = category
+    return out
+
+
 class CapitalEventCreateView(LoginRequiredMixin, View):
     template_name = 'expenses/capital_event_form.html'
 
@@ -120,6 +146,7 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
             initial['amount'] = request.GET.get('amount')
         if 'subtype' in request.GET:
             initial['subtype'] = request.GET.get('subtype')
+        initial.update(_prefill_from_query(request))
 
         form = CapitalEventForm(initial=initial, user=request.user)
         return render(request, self.template_name, {

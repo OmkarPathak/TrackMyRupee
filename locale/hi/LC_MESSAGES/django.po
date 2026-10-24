@@ -21195,3 +21195,7 @@ msgstr "केवल तब भेजा जाता है जब कुछ �
 #: expenses/insights
 msgid "TrackMyRupee insight"
 msgstr "TrackMyRupee इनसाइट"
+
+#: templates/components/expense_composer_card.html
+msgid "A big one-off purchase? Log it as a Capital Event so it doesn't skew your monthly spending and budgets."
+msgstr "कोई बड़ी एक-बार की खरीद? इसे कैपिटल इवेंट के रूप में दर्ज करें, ताकि यह आपके मासिक खर्च और बजट को न बिगाड़े।"
