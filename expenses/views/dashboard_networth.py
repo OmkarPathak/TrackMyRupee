@@ -167,9 +167,13 @@ def dashboard_networth(request):
     user = request.user
     nw = cached_net_worth_card(user.pk)
     if nw is None:
+        from ..dashboard_warm import dashboard_version
+
+        version = dashboard_version(user.pk)
         profile = getattr(user, 'profile', None)
         nw = net_worth_card(user, currency_symbol=profile.currency if profile else '₹')
-        cache.set(networth_cache_key(user.pk), nw, NETWORTH_CACHE_SECONDS)
+        if dashboard_version(user.pk) == version:       # keep it only when nothing was saved while it was worked out
+            cache.set(networth_cache_key(user.pk), nw, NETWORTH_CACHE_SECONDS)
     # No request: the page's context processors (badges, announcements) would cost queries this fragment never uses
     html = render_to_string('expenses/partials/_dashboard_networth_fragment.html',
                             {'nw': nw, 'currency_symbol': nw['currency_symbol']})

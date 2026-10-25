@@ -23,6 +23,7 @@ from ..composer import (
     visible_accounts,
     visible_categories,
 )
+from ..dashboard_warm import schedule_dashboard_warm
 from ..models import Account, Expense
 from ..parser import parse_expense_nl
 from ..posthog_utils import ph_capture
@@ -152,6 +153,7 @@ def expense_composer_save(request):
         }, status=exc.status)
 
     if created:
+        schedule_dashboard_warm(request.user.pk)      # the page they land on next is served from a rebuilt Dashboard
         meta = body.get('meta') if isinstance(body.get('meta'), dict) else {}
         edited = [f for f in (meta.get('edited') or []) if f in COMPOSER_FIELDS]
         duration = meta.get('duration_ms')
@@ -205,6 +207,7 @@ def expense_composer_undo(request, pk):
         }, status=409)
     account_id = expense.account_id
     expense.delete()
+    schedule_dashboard_warm(request.user.pk)
     cache.delete(usual_cache_key(request.user.id))
     ph_capture(request.user, 'expense_undone', {})
     return JsonResponse({

@@ -278,6 +278,8 @@ def invalidate_dashboard_cache(sender=None, instance=None, user_id=None, **kwarg
         ])
     except Exception:
         pass
+    from .dashboard_warm import bump_dashboard_version
+    bump_dashboard_version(user_id)
     _mark_insights_stale(user_id)
 
 

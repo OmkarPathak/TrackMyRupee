@@ -20,6 +20,7 @@ from .mixins import (
     RecurringTransactionMixin,
     UUIDOrIntLookupMixin,
 )
+from ..dashboard_warm import schedule_dashboard_warm
 from ..filters import EXPENSE_FILTERS, apply_filter_config
 from ..filters.definitions import get_user_categories
 from .utils import apply_date_filters, get_object_by_uuid_or_pk
@@ -140,6 +141,7 @@ class ExpenseUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
                 'category': self.object.category or '',
             })
             messages.success(self.request, _("Expense updated successfully!"))
+            schedule_dashboard_warm(self.request.user.pk)       # the Dashboard is ready when the next page asks for it
             return response
         except (RuntimeError, ValidationError):
             messages.error(self.request, _("Unable to update expense because currency conversion failed or data is invalid."))
@@ -170,7 +172,9 @@ class ExpenseDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, _("Expense deleted successfully."))
         ph_capture(self.request.user, 'expense_deleted', {})
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        schedule_dashboard_warm(self.request.user.pk)
+        return response
 
     def get_success_url(self):
         url = reverse('expense-list')

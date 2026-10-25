@@ -55,6 +55,7 @@ from ..savings import (
     totals_by_period,
 )
 from ..services import FinancialService, SalaryAnalysisService
+from ..dashboard_warm import dashboard_version, wait_for_warm
 from .dashboard_networth import (
     NET_WORTH_KEYS,
     cached_net_worth_card,
@@ -97,6 +98,9 @@ def home_view(request):
     )
     home_cache_key = f'home_default_data_{request.user.id}' if (is_default_filter_view and not is_testing) else None
     cached_context = cache.get(home_cache_key) if home_cache_key else None
+    dashboard_ver = dashboard_version(request.user.id)       # a write while this builds retires the result (see below)
+    if cached_context is None and home_cache_key and not getattr(request, 'is_dashboard_warm', False) and wait_for_warm(request.user.id):
+        cached_context = cache.get(home_cache_key)           # a rebuild after the person's save was already under way
     if cached_context is not None:
         user_salary_date = getattr(getattr(request.user, 'profile', None), 'salary_date', 1) or 1
         if cached_context.get('salary_date', 1) != user_salary_date:
@@ -2445,7 +2449,7 @@ def home_view(request):
         'capital_event_annotations': capital_event_annotations,
     }
 
-    if home_cache_key:
+    if home_cache_key and dashboard_version(request.user.id) == dashboard_ver:   # nothing was saved while this built
         cache.set(home_cache_key, context, 14400)  # 4 hours (was 300s)
 
     # --- SMART CONTEXTUAL NUDGES ---

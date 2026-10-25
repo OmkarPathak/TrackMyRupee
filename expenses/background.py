@@ -16,8 +16,17 @@ logger = logging.getLogger(__name__)
 _slots = threading.BoundedSemaphore(4)
 
 
-def run_after_response(fn, *args, name='after-response', **kwargs) -> None:
-    if not getattr(settings, 'BACKGROUND_TASKS_ENABLED', True) or not _slots.acquire(blocking=False):
+def run_after_response(fn, *args, name='after-response', if_busy='run', on_skip=None, **kwargs) -> None:
+    """`if_busy` says what to do when every thread is taken: 'run' it right away (nothing is dropped) or 'skip' it
+    (for jobs that only save time, calling `on_skip` so the caller can clean up)."""
+    if not getattr(settings, 'BACKGROUND_TASKS_ENABLED', True):
+        _run(fn, args, kwargs, name)
+        return
+    if not _slots.acquire(blocking=False):
+        if if_busy == 'skip':
+            if on_skip:
+                on_skip()
+            return
         _run(fn, args, kwargs, name)
         return
     threading.Thread(target=_run_in_thread, args=(fn, args, kwargs, name), daemon=True, name=name).start()
