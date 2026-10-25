@@ -307,7 +307,7 @@
 .tmr-capital-hint > i { color: var(--color-success-text, #0F7657); margin-top: 2px; }
 .tmr-capital-hint__text { margin: 0; line-height: 1.4; }
 @media (max-width: 575.98px) { .tmr-capital-hint { padding: 9px 11px; font-size: 0.82rem; gap: 8px; } }
-.tmr-capital-hint__link { color: var(--color-success-text, #0F7657); font-weight: 700; white-space: nowrap; }
+.tmr-capital-hint__link, .tmr-capital-hint__link:hover { color: var(--color-success-text, #0F7657); font-weight: 700; white-space: nowrap; text-decoration: none; }
 
 .tmr-field { min-width: 0; }
 .tmr-field[hidden] { display: none; }
