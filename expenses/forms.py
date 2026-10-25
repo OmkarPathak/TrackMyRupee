@@ -103,6 +103,22 @@ class AccountRequiredMixin:
         return bool(instance is not None and instance.pk and getattr(instance, f'{name}_id', None) is None)
 
 
+def form_category_names(user):
+    """The category names this user may pick on an expense (their own, within what their plan unlocks), in order.
+    Loaded once per request: the result is kept on the user object."""
+    active_tier = user.profile.active_tier
+    cache_ = getattr(user, '_expense_form_category_cache', None)
+    if cache_ and cache_.get('tier') == active_tier:
+        return [name for name, _label in cache_['choices']]
+    categories = Category.objects.filter(user=user).order_by('id')
+    limit = get_limit(active_tier, 'budget_categories')
+    if limit != -1:
+        categories = categories[:limit]
+    choices = [(cat.name, cat.name) for cat in categories]
+    user._expense_form_category_cache = {'tier': active_tier, 'choices': choices}
+    return [name for name, _label in choices]
+
+
 class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Expense
@@ -132,22 +148,8 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
             profile = user.profile
             active_tier = profile.active_tier
 
-            # Cache category choices for this request/user object to avoid repeated queries
-            category_cache = getattr(user, '_expense_form_category_cache', None)
-            if category_cache and category_cache.get('tier') == active_tier:
-                choices = category_cache.get('choices', [])
-            else:
-                categories = Category.objects.filter(user=user).order_by('id')
-                # Enforce Tier Limits
-                limit = get_limit(active_tier, 'budget_categories')
-                if limit != -1:
-                    categories = categories[:limit]
-
-                choices = [(cat.name, cat.name) for cat in categories]
-                user._expense_form_category_cache = {
-                    'tier': active_tier,
-                    'choices': choices,
-                }
+            # Category choices are loaded once per request/user object (see form_category_names)
+            choices = [(name, name) for name in form_category_names(user)]
 
             self.fields['category'].widget = forms.Select(choices=choices, attrs={'class': 'form-select django-multi-select'})
             self._allowed_categories = {name for name, _label in choices}
@@ -160,15 +162,16 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
                 account_map = account_cache.get('account_map', {})
             else:
                 all_accounts = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id')
+                loaded = list(all_accounts)       # one query: the unlocked ones, the lookup map and the default come from it
                 limit = get_limit(active_tier, 'accounts')
                 if limit != -1:
-                    unlocked_ids = list(all_accounts.values_list('id', flat=True)[:limit])
-                    accounts_qs = all_accounts.filter(id__in=unlocked_ids)
+                    loaded = loaded[:limit]
+                    accounts_qs = all_accounts.filter(id__in=[acc.id for acc in loaded])
                 else:
                     accounts_qs = all_accounts
 
-                account_map = {acc.id: acc for acc in accounts_qs}
-                default_account_id = accounts_qs.filter(name='Cash').values_list('id', flat=True).first()
+                account_map = {acc.id: acc for acc in loaded}
+                default_account_id = next((acc.id for acc in loaded if acc.name == 'Cash'), None)
                 user._expense_form_account_cache = {
                     'tier': active_tier,
                     'queryset': accounts_qs,

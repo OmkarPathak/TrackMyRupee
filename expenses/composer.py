@@ -15,7 +15,8 @@ from django.utils import timezone
 
 from finance_tracker.plans import get_limit
 
-from .forms import ExpenseForm
+from .background import run_after_response
+from .forms import ExpenseForm, form_category_names
 from .models import (
     CURRENCY_CHOICES,
     Account,
@@ -67,11 +68,8 @@ def visible_accounts(user):
 
 
 def visible_categories(user):
-    categories = Category.objects.filter(user=user).order_by('id')
-    limit = get_limit(user.profile.active_tier, 'budget_categories')
-    if limit is not None and limit != -1:
-        categories = categories[:limit]
-    return list(categories.values_list('name', flat=True))
+    # the same list the Expense form offers, loaded once per request
+    return form_category_names(user)
 
 
 def account_info(accounts):
@@ -223,29 +221,33 @@ def fetch_hints(user, text):
 
 
 def learn_from_expense(user, description, category, account, payment_method):
-    """Remember the final choices for this expense's keyword (latest choice wins)."""
+    """Remember the final choices for this expense's keyword (latest choice wins).
+
+    ``user`` and ``account`` may be objects or ids, so it can run after the response (see save_expense)."""
     keyword = keyword_for_description(description)[:60]
     if not keyword:
         return
+    user_id = getattr(user, 'pk', user)
+    account_id = getattr(account, 'pk', account)
     now = timezone.now()
     hint, created = ExpenseKeywordHint.objects.get_or_create(
-        user=user, keyword=keyword,
+        user_id=user_id, keyword=keyword,
         defaults={
             'category': category or '',
-            'account': account,
+            'account_id': account_id,
             'payment_method': payment_method or '',
             'last_used': now,
         },
     )
     if not created:
         hint.category = category or ''
-        hint.account = account
+        hint.account_id = account_id
         hint.payment_method = payment_method or ''
         hint.use_count += 1
         hint.last_used = now
         hint.save(update_fields=['category', 'account', 'payment_method', 'use_count', 'last_used'])
     else:
-        _prune_hints(user)
+        _prune_hints(user_id)
 
 
 def _prune_hints(user):
@@ -348,7 +350,9 @@ def save_expense(user, payload):
     except (RuntimeError, ValidationError):
         raise ComposerError('currency', code='currency')
 
-    learn_from_expense(user, expense.description, expense.category, expense.account, expense.payment_method)
+    # Remembering the keyword is housekeeping nobody is waiting for: do it once the response has gone
+    run_after_response(learn_from_expense, user.pk, expense.description, expense.category, expense.account_id,
+                       expense.payment_method, name='expense-keyword-hint')
     cache.delete(usual_cache_key(user.id))
     return expense, True
 

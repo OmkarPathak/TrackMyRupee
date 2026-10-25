@@ -8,6 +8,7 @@ from decimal import Decimal
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.budget_cycle import current_budget_month
 from expenses.filters.definitions import BUDGET_FILTERS
 from expenses.models import Category, Expense
 from expenses.tests.test_budget_api import Base, add_months
@@ -58,7 +59,9 @@ class BudgetFilterTests(Base):
         profile.salary_date = 25
         profile.save()
         ctx = self.page(time_period='this_month').context
-        self.assertEqual(ctx['month_start'], CUR)
+        # "this month" is the person's current budget month: the salary cycle that names today's month (day 25 or
+        # later, that is next month's), whatever day the suite runs on
+        self.assertEqual(ctx['month_start'], current_budget_month(self.user, timezone.localdate()))
         self.assertFalse(ctx['applied_state']['cycle_active'])
 
     def test_unsupported_periods_fall_back_to_this_month(self):

@@ -222,7 +222,8 @@ class ReadPathTests(StoredBase):
     def test_snoozed_means_gone_until_the_date(self):
         temp_rule(self, id='cashflow.snz', module=Module.CASHFLOW, surfaces={Surface.DASHBOARD},
                   sample=sampling.default_sample)(lambda ctx: [])
-        row = self.store('cashflow.snz', insight(rule_id='cashflow.snz'))
+        # snooze() counts from the real clock, so the insight must outlive it whatever day the suite runs on
+        row = self.store('cashflow.snz', insight(rule_id='cashflow.snz'), valid_until=TODAY + timedelta(days=400))
         self.assertTrue(engine.snooze(self.user, row.uuid, days=7))
         stored = InsightState.objects.get(pk=row.pk).snoozed_until
         self.assertEqual(self.generate(now=stored - timedelta(minutes=1)), [])

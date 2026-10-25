@@ -19,7 +19,6 @@ from .mixins import (
     HtmxPartialTemplateMixin,
     RecurringTransactionMixin,
     UUIDOrIntLookupMixin,
-    process_user_recurring_transactions,
 )
 from ..filters import EXPENSE_FILTERS, apply_filter_config
 from ..filters.definitions import get_user_categories
@@ -32,10 +31,6 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
     htmx_template_name = 'expenses/partials/_expense_list.html'
     context_object_name = 'expenses'
     paginate_by = 20
-
-    def dispatch(self, request, *args, **kwargs):
-        process_user_recurring_transactions(request.user, max_catchup=2)
-        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         base_qs = Expense.objects.filter(user=self.request.user).select_related('account', 'category_fk')
@@ -151,7 +146,7 @@ class ExpenseUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
             return self.form_invalid(form)
 
     def get_queryset(self):
-        return Expense.objects.filter(user=self.request.user).select_related('account', 'category_fk')
+        return Expense.objects.filter(user=self.request.user).select_related('account', 'category_fk', 'user__profile')
 
     def get_success_url(self):
         next_url = self.request.POST.get('next') or self.request.GET.get('next')
