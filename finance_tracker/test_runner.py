@@ -1,3 +1,4 @@
+import atexit
 import copyreg
 import os
 import sys
@@ -94,12 +95,24 @@ def _start_fx_stub():
         _start_fx_stub.patcher.start()
 
 
+def _exit_without_finalizing():
+    """A worker that exits has already sent its results, so there is nothing left to clean up. Skipping Python's
+    final garbage-collection pass avoids a segmentation fault there (the patched and re-pickled objects this suite
+    uses confuse it), which made macOS show a "Python quit unexpectedly" report for every worker of every run."""
+    try:
+        sys.stdout.flush()
+        sys.stderr.flush()
+    finally:
+        os._exit(0)
+
+
 def _init_worker_offline(counter, *args, **kwargs):
     """Django's worker initialiser, then the stub. On macOS/Windows workers are spawned fresh and never
     run the runner's setup_test_environment, so without this the stub only worked for serial runs."""
     _init_worker(counter, *args, **kwargs)
     _start_fx_stub()
     _install_test_timing()
+    atexit.register(_exit_without_finalizing)
 
 
 class _OfflineParallelTestSuite(ParallelTestSuite):
