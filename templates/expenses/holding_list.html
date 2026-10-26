@@ -79,7 +79,7 @@
     {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=holdings&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
 
     <!-- Main Holdings Card Container -->
-    <div class="card rounded-4 border-0 shadow-sm" style="border: 1px solid rgba(0,0,0,0.07) !important;">
+    <div class="card rounded-4 border-0 shadow-sm hld-outer" style="border: 1px solid var(--hld-outer-border, rgba(0,0,0,0.07)) !important;">
         <div class="card-header bg-transparent border-0 p-3 p-md-4 d-flex align-items-center justify-content-between">
             <h2 class="h5 mb-0 fw-bold">{% trans "All Holdings" %}</h2>
         </div>
@@ -187,18 +187,35 @@
                     </table>
                 </div>
 
+                <style>
+                    /* Phone cards: name and source on top, then labelled figures (same look as the Accounts rows) */
+                    /* On a phone every holding is its own card on the page background, not a row in one big card */
+                    @media (max-width: 767.98px) {
+                        .hld-outer { background: transparent !important; box-shadow: none !important; --hld-outer-border: transparent; }
+                        .hld-outer .card-header { padding-left: .25rem !important; padding-right: .25rem !important; }
+                    }
+                    .hld-cards { display: grid; gap: .75rem; }
+                    .hld-card { padding: 1rem; border: 1px solid var(--bs-border-color-translucent); border-radius: 1rem; background: var(--bs-body-bg); box-shadow: 0 1px 3px rgba(0, 0, 0, .05); }
+                    .hld-sub { font-size: .78rem; color: var(--bs-secondary-color); margin-top: .15rem; overflow-wrap: anywhere; }
+                    .hld-sep { display: inline-block; width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .5; margin: 0 .45rem; vertical-align: middle; }
+                    .hld-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem .75rem; padding-top: .75rem; margin-top: .6rem; border-top: 1px solid var(--bs-border-color-translucent); }
+                    .hld-span2 { grid-column: span 2; }
+                    .hld-label { font-size: .66rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--bs-secondary-color); margin-bottom: .1rem; }
+                    .hld-value { font-size: 1rem; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; line-height: 1.25; }
+                    .hld-pct { font-size: .78rem; font-weight: 700; }
+                    .hld-num { font-size: .88rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+                    .hld-note { font-size: .7rem; color: var(--bs-secondary-color); }
+                </style>
                 <!-- Mobile List View (Clean Single Card Container) -->
-                <div class="d-md-none">
+                <div class="d-md-none hld-cards">
                     {% for h in holdings %}
-                        <div class="p-3 {% if not forloop.last %}border-bottom{% endif %} bg-body">
+                        <div class="hld-card">
                             <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                                <div class="d-flex align-items-start gap-2.5 min-w-0 flex-grow-1">
-                                    <div class="min-w-0 flex-grow-1">
-                                        <a href="{% url 'holding-detail' h.pk %}" class="fw-bold text-body-emphasis text-wrap text-decoration-none d-block" style="font-size: 0.92rem; line-height: 1.3;">{{ h.instrument_name }}</a>
-                                        <div class="small text-muted mt-0.5" style="font-size: 0.78rem;">{{ h.account.name }}</div>
-                                        {% if h.scheme_code %}
-                                            <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.68rem;">AMFI: {{ h.scheme_code }}</span>
-                                        {% endif %}
+                                <div class="min-w-0 flex-grow-1">
+                                    <a href="{% url 'holding-detail' h.pk %}" class="fw-bold text-body-emphasis text-wrap text-decoration-none d-block" style="font-size: 0.95rem; line-height: 1.3;">{{ h.instrument_name }}</a>
+                                    <div class="hld-sub">
+                                        <a href="{% url 'account-detail' h.account.uuid %}" class="text-reset text-decoration-none">{{ h.account.name }}</a>
+                                        {% if h.scheme_code %}<span class="hld-sep"></span>{% trans "AMFI Code:" %} {{ h.scheme_code }}{% endif %}
                                     </div>
                                 </div>
 
@@ -241,25 +258,38 @@
                                 </div>
                             </div>
 
-                            <div class="d-flex align-items-end justify-content-between pt-2 border-top mt-1" style="font-size: 0.82rem;">
-                                <div class="text-body-secondary">
-                                    <div><span class="fw-semibold text-body-emphasis">{{ h.units|ind_comma|translate_digits }}</span> {% trans "units" %}</div>
-                                    <div class="small opacity-75">{% trans "Avg:" %} {{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</div>
+                            {% with val=h.valuations.all.0 %}
+                            <div class="hld-grid">
+                                <div>
+                                    <div class="hld-label">{% trans "Current value" %}</div>
+                                    <div class="hld-value {% if val %}text-success{% endif %}">{{ h.currency }}{{ h.current_value|ind_comma:h.currency|translate_digits }}</div>
+                                    {% if not val %}<div class="hld-note">({% trans "Cost Basis" %})</div>{% endif %}
                                 </div>
-                                <div class="text-end">
-                                    {% with val=h.valuations.all.0 %}
-                                        {% if val %}
-                                            <div class="fw-bold text-success fs-6">{{ h.currency }}{{ val.value|ind_comma:h.currency|translate_digits }}</div>
-                                            {% if val.unit_nav %}
-                                                <div class="small text-muted" style="font-size: 0.72rem;">{% trans "NAV:" %} {{ h.currency }}{{ val.unit_nav|translate_digits }}</div>
-                                            {% endif %}
-                                        {% else %}
-                                            <div class="fw-bold text-body-emphasis fs-6">{{ h.currency }}{{ h.cost_basis|ind_comma:h.currency|translate_digits }}</div>
-                                            <div class="small text-muted" style="font-size: 0.72rem;">({% trans "Cost Basis" %})</div>
-                                        {% endif %}
-                                    {% endwith %}
+                                <div class="hld-span2">
+                                    <div class="hld-label">{% trans "Gain / Loss" %}</div>
+                                    {% if h.has_gain %}
+                                        <div class="hld-value {% if h.gain >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {% if h.gain >= 0 %}+{% else %}&minus;{% endif %}{{ h.currency }}{{ h.gain|abs_val|ind_comma:h.currency|translate_digits }}
+                                            <span class="hld-pct">({% if h.gain >= 0 %}+{% else %}&minus;{% endif %}{{ h.gain_pct|abs_val|translate_digits }}%)</span>
+                                        </div>
+                                    {% else %}
+                                        <div class="hld-value text-muted">&mdash;</div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="hld-label">{% trans "Units" %}</div>
+                                    <div class="hld-num">{{ h.units|ind_comma|translate_digits }}</div>
+                                </div>
+                                <div>
+                                    <div class="hld-label">{% trans "Avg Cost" %}</div>
+                                    <div class="hld-num">{{ h.currency }}{{ h.avg_cost|ind_comma:h.currency|translate_digits }}</div>
+                                </div>
+                                <div>
+                                    <div class="hld-label">{% trans "NAV" %}</div>
+                                    <div class="hld-num">{% if val and val.unit_nav %}{{ h.currency }}{{ val.unit_nav|translate_digits }}{% else %}&mdash;{% endif %}</div>
                                 </div>
                             </div>
+                            {% endwith %}
                         </div>
                     {% endfor %}
                 </div>

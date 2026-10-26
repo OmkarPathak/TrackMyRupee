@@ -68,3 +68,15 @@ class HoldingListGainTests(TestCase):
         self.assertContains(response, 'AMFI Code: 118834')
         self.assertNotContains(response, 'font-size: 0.7rem;">AMFI Code:')         # the old badge
         self.assertContains(response, 'text-muted fw-normal" style="font-size: 0.75rem;">AMFI Code: 118834')
+
+    def test_phone_cards_carry_every_figure_the_table_has(self):
+        self.holding('Phone Fund', '10', '100', nav='120', code='118834')
+        self.holding('Unpriced Phone Fund', '5', '100')
+        _, response = self.rows()
+        html = response.content.decode()
+        phone = html[html.index('d-md-none">\n'):] if 'd-md-none">\n' in html else html
+        for label in ('Current value', 'Gain / Loss', 'Units', 'Avg Cost', 'NAV', 'AMFI Code: 118834'):
+            self.assertIn(label, phone, label)
+        self.assertIn('hld-grid', phone)
+        self.assertIn('+₹200', phone)
+        self.assertIn('(Cost Basis)', phone)          # the unpriced one still says its value is only the cost
