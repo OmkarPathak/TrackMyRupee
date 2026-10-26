@@ -15,11 +15,11 @@ Contents: 1 Headline findings · 2 Inventory of what exists · 3 Architecture ·
    - *Spending* (savings.py / facts.py): expenses + loan interest + capital events with `exclude_from_averages=False` (plus the Analytics switch).
    - *Budget-counted spend* (budgets.py): capital events with `exclude_from_budget=False`, loan interest as a "Loan Interest" category.
    Budget rules read the budget payload. Cash-flow rules read facts. A rule may not mix them.
-4. **Nothing in the repo schedules any job.** Jobs run only when an external caller (cron-job.org per code comments) POSTs to `/api/cron/...` with `CRON_SECRET`. The cadence is not in the repo, so I cannot see or change it. The cron lock uses Django cache; production cache is LocMem per process unless `REDIS_URL` is set (`settings.py:296-330`), so that lock is not global across gunicorn workers. Consequence for the design: **the database is the source of truth, caches are only a micro-optimisation**, and generation must be idempotent.
+4. **Scheduled jobs are triggered from outside the app.** The schedule and the call details are operational and are kept in private notes.
 5. **Existing notifications are English-only and baked in.** `send_notifications` is `@no_translations`; `Notification.title/message` store rendered English. Hindi and Marathi users get English bell items, push and emails. The engine must render in `profile.language` at generation time (`translation.override`).
 6. **There is no email opt-out of any kind** (monthly report goes to every verified user; the digest is tier-gated only; `daily_reminder` is the only preference). A daily or weekly insight digest needs a settings flag and a one-click unsubscribe before it ships.
 7. **Plan facts** (`plans.py`): Free has 0 loans, 2 accounts, 2 recurring, 5 budget categories, 1 goal, `email_notifications=False`. Plus has `email_notifications=True`, 1 loan. `ai_insights` and `has_ai_access` are True on every tier (they gate the Analytics page; the name is historical, nothing uses AI). I propose **no change to plans.py**.
-8. **Security issue found in existing code, not mine to fix silently:** capital-event notes (`ev.note`) go through `.format()`, `mark_safe` and `|safe` on the dashboard bullet card, so HTML in a note is rendered (stored XSS, user-to-self). Recommend a small separate fix commit before Phase A (D13).
+8. **A pre-existing output-escaping defect was found in the old dashboard card and fixed before the engine work (D13).** The details are kept in private notes.
 9. **Soft delete is off.** `SOFT_DELETE_ENABLED` is never set, so rows are hard-deleted and the `is_deleted` gap between dashboard and `facts.py` is dormant. The engine will use `facts.py` (which filters capital events by `is_deleted=False`). No action needed.
 10. **Privacy hazard to design around:** Sentry's default captures local variables in stack frames, and exception messages can contain values (`KeyError('Dining')`). The engine's failure isolation must log only the rule id and the exception class name, never `exc_info` or the message.
 
@@ -247,7 +247,7 @@ All in **one migration**: `expenses/migrations/00xx_insights_engine.py`.
 - **Light refresh in the fragment**: if `insights_stale` is set and `insights_generated_at` is older than 10 minutes, the fragment runs `refresh(user, cost='light')` once (budget pacing, bills, goals; ceiling about 15 queries, only on this path, only after paint), then serves from state.
 - **How a write marks staleness**: the existing `invalidate_dashboard_cache` signal path gains `UserProfile.objects.filter(pk=..., insights_stale=False).update(insights_stale=True)`. After the first write it matches 0 rows (a cheap no-op). Bulk imports already suppress that signal. Alternative (D6): time-based only, no signal change.
 - **Cache**: no reliance on shared cache (LocMem is per worker). An optional 60-second per-process cache of the rendered fragment keyed by `(user, state-version)` is a micro-optimisation I would skip unless measurement asks for it.
-- **Cron endpoint**: `/api/cron/generate_insights` and `/api/cron/deliver_insights` following the existing pattern (secret, thread, lock). **You will need to add them to your external cron service**; I cannot see or edit that. Suggested: generate 02:30 IST, deliver 09:00 IST.
+- **Cron endpoints** for generate and deliver follow the existing pattern (secret, thread, lock). The schedule is configured outside the repo and kept in private notes.
 - **Idempotency**: upserts keyed by the unique constraint; dismissal and snooze are never reset; delivery columns are set inside the same transaction as the send decision (`UPDATE … WHERE bell_at IS NULL`), so a double run does not double-send even when the cache lock fails.
 
 ### 3.8 Surfaces and adapters (adapters only format)
@@ -402,7 +402,7 @@ Modules in your list with no rule in this catalogue: **import** (the import prev
 | **D4** | Bell/push/email text rendered in `profile.language` at generation (engine only). The existing cron's English-only output is a separate problem. | Yes for the engine; fix the cron separately |
 | **D5** | New persistence: `InsightState`, `InsightFeedback`, 3 `UserProfile` fields, `Notification` type `INSIGHT` plus `(user, slug)` index, one migration. | Approve |
 | **D6** | Freshness: nightly batch + light inline refresh of stale users on first panel load, with a "stale" flag set by the existing invalidation signal (no-op after the first write). Alternative: time-based only. | Flag-based as described; measure, drop the signal hook if it costs anything |
-| **D7** | You must add two external cron entries (generate, deliver); I cannot see the current cron setup. | Generate 02:30 IST, deliver 09:00 IST |
+| **D7** | Two scheduled jobs (generate, deliver) must be added to the external scheduler. | Details in private notes. |
 | **D8** | Email digest needs an unsubscribe flag and one-click link before shipping. The existing monthly report also has no opt-out. | Ship digest opt-out in Phase A settings; flag monthly report separately |
 | **D9** | New preferences: emergency-fund months (default 6) and optional invest-share target, so "versus your own target" is real. | Add, stored in `insights_prefs`, no new tables |
 | **D10** | Credit cards only have a billing day, not a payment due date. Copy says "billing date". Adding a due-day field is a schema change. | Not now |
@@ -453,7 +453,7 @@ Each phase ships as its own commit (as you asked), each flagged off by default f
 - Whether recurring-generated Expenses link back to their `RecurringTransaction` (decides whether `recurring.price_change` is feasible) and how recurring posting reports failures (decides `holdings.sip_missed`).
 - The salary-cycle `prev_month=None` behaviour (reasoned from the code by the audit, not run).
 - Whether `expiry_reminder_sent` is reset on renewal, the payment views, `email_backends.py`, `mobile/`, and the allauth emails (outside this feature).
-- The external cron schedule and whether production runs Redis.
+- Anything about the deployment environment (kept in private notes).
 - Guide pages: Budgets has en/hi/mr; Notifications and several others are English only. The Insights page will be en/hi/mr as the philosophy and budgets pages are.
 
 ---

@@ -1,8 +1,8 @@
 # TrackMyRupee: decisions and trade-offs
 
-A running record of why the codebase looks the way it does. For every decision: what we chose, what we gave up, what
-we rejected, and when to revisit it. Written so that you can (a) remember the reasoning months later, (b) explain it in
-an interview, and (c) onboard someone else.
+A running record of why the codebase looks the way it does. This is the public copy: hosting, incident history and interview preparation are kept in private notes. For every decision: what we chose, what we gave up, what
+we rejected, and when to revisit it. Written so that you can (a) remember the reasoning months later, (b) explain it to
+someone else, and (c) onboard a new contributor.
 
 **How to keep it useful**
 
@@ -33,8 +33,7 @@ made. "Measured" means a number we actually observed; "estimate" means reasoning
 12. [Incidents and lessons](#12-incidents-and-lessons)
 13. [Open questions and future work](#13-open-questions-and-future-work)
 14. [Changelog](#changelog)
-15. [Interview cheat sheet](#interview-cheat-sheet)
-16. [Entry template](#entry-template)
+15. [Entry template](#entry-template)
 
 ---
 
@@ -51,9 +50,7 @@ parts).
 | Choice | Why | What we gave up |
 |---|---|---|
 | **Django (server-rendered templates), htmx for partial updates, vanilla JS for widgets** | One codebase, fast first paint, SEO for public pages, no build pipeline or API versioning, easy for one person to keep consistent. | A rich client-side app feel. Some interactions (instant tile filters, charts) need hand-written JS that is not shared with a component framework. |
-| **Postgres on Supabase** (SQLite locally and in tests) | Managed backups and a free/cheap tier; no database to operate. | We cannot run Postgres locally in tests, so Postgres-only behaviour (UNION column typing, locking) is checked by reasoning and by compiling SQL for the Postgres backend, not by executing it. See [8.3](#83-combine-per-table-aggregates-into-one-query). |
-| **Docker image built on every push to `main`; pushing is releasing** | Zero release ceremony. | No staging gate: a bad push is live in minutes. This is why "do not push until I say so" is a working rule, and why [12](#12-incidents-and-lessons) has so many entries about config reaching production. |
-| **Single gunicorn worker with 8 threads, in-process (LocMem) cache** | A shared cache without running Redis; one cache means one warm cache. See [8.1](#81-cache-the-whole-dashboard-context). | Cannot scale out by adding workers without first adding a shared cache. A restart empties the cache. |
+| **Managed Postgres** (SQLite locally and in tests) | No database to operate. | We cannot run Postgres locally in tests, so Postgres-only behaviour (UNION column typing, locking) is checked by reasoning and by compiling SQL for the Postgres backend, not by executing it. See [8.3](#83-combine-per-table-aggregates-into-one-query). |
 | **Bootstrap (purged build) + Bootstrap Icons, self-hosted** | Familiar components and consistent look; purged CSS is about half the size. | A generated file (`bootstrap.purged.min.css`) that a test keeps in sync; new classes need `purge_css`. |
 | **English, Hindi, Marathi** via Django i18n | The audience. | Every new string needs two translations. We edit `.po` files by appending text, never by re-saving them with a tool that re-wraps the whole file (huge diffs). |
 
@@ -206,31 +203,13 @@ picker, which hid the bug).
 
 ## 8. Performance
 
-How we found out: a `Server-Timing` middleware (`finance_tracker/server_timing.py`, off unless `ENABLE_SERVER_TIMING`)
-reports total time, database time and query count per request, with no SQL or user data. An optional slow-query log
-names the file and line. We measured production with it. **Measured on production, 2026-10:**
-
-| Request | Server total | DB time | Queries |
-|---|---|---|---|
-| Landing page (CDN hit, replayed header) | 103 ms | 51 ms | 3 |
-| Dashboard, warm | 190 to 350 ms | about 48 ms | 3 |
-| Dashboard, cold, before our changes | 1,943 ms | 1,455 ms | 73 |
-| Dashboard, cold, after stages 1 and 2 | 2,360 ms (first request after a deploy) | 1,235 ms | 55 |
-| Transactions page | 664 ms | 320 ms | 16 |
-
-Conclusions that drove everything below: **a database round trip costs about 17 to 20 ms** (app and database in
-different cities), so *query count* dominates a cold page; and **the server CPU is slow** (a redirect that renders
-nothing takes about 75 ms outside the database).
+How we found out: a `Server-Timing` middleware (`finance_tracker/server_timing.py`, off unless `ENABLE_SERVER_TIMING`) reports total time, database time and query count per request, with no SQL or user data, and an optional slow-query log names the file and line. Two facts drove everything below: a database round trip costs real time, so **query count dominates a cold page**; and the CPU is small, so avoid per-request Python work you can cache. Numbers in this section are query counts on a demo account unless stated.
 
 ### 8.1 Cache the whole dashboard context
 - **Decision.** The default dashboard view caches its entire context for four hours per user (`home_default_data_{id}`);
   any write invalidates it by signal (`invalidate_dashboard_cache`). A warm load is 3 queries.
 - **Trade-off.** A cold build is large (see 8.3) and happens after every write, deploy and worker recycle. Invalidation
   must be complete or numbers go stale; a set of tests guards it.
-
-### 8.2 Single worker, threads, LocMem cache
-- See [2](#2-stack-and-shape). **Consequences to remember:** the warm cache and the background rebuild (8.6) only work
-  because there is one process; adding workers makes a landing request possibly hit a worker that was not warmed.
 
 ### 8.3 Combine per-table aggregates into one query
 - **Decision.** Income, expenses, loan repayments and capital events were summed in about six separate places. Each
@@ -260,7 +239,7 @@ nothing takes about 75 ms outside the database).
 - **Decision.** With the Insights Engine on, the page no longer reads the ledger. Net Worth and Asset Allocation show a
   skeleton and fetch `/dashboard/networth/` (18 queries, rendered without context processors). Figures are cached four
   hours and retired by the same signal; when cached the page includes them directly, so a warm load makes **no extra
-  request**. **Measured:** cold build 66 to 53 queries (demo data); production cold 73 to 55.
+  request**. **Measured (demo data):** cold build 66 to 53 queries.
 - **Trade-off.** Engine-off users still compute net worth inline because the legacy "net worth milestone" insight needs
   it. A second code path, and a cache key that must be invalidated with the rest.
 
@@ -290,17 +269,9 @@ nothing takes about 75 ms outside the database).
 
 ### 8.8 Landing page and static assets
 - Self-hosted fonts and vendor files, content-hashed static files (WhiteNoise manifest storage), no third-party request
-  before first paint on public pages, the anonymous English landing page cached briefly at the CDN (`s-maxage 300`;
-  everyone else gets a private copy). **User-reported PageSpeed:** mobile about 90, accessibility 96.
-- **Trade-off.** Cache rules live in Cloudflare, outside the repo; they have to be re-checked after changes (purge cache,
-  "respect existing headers").
+  before first paint on public pages, the anonymous landing page may be cached briefly by a CDN (everyone else gets a private copy).
 
-### 8.9 What is still slow, and why it is not code
-1. **App server and database are in different cities** (see [10.2](#102-the-database-is-far-from-the-app)): about 20 ms per
-   query. Moving them together is the biggest remaining lever.
-2. **One shared CPU on a 1 GB droplet:** about 75 ms of fixed cost per request and 140 to 260 ms of Python on a warm
-   dashboard. Template slimming was considered and rejected: the page renders in about 30 ms on a laptop, so bytes are not
-   the problem, CPU is.
+---
 
 ## 9. Frontend and UX
 
@@ -339,30 +310,13 @@ Quick-add line with parsing, "your usual" chips, a review state with tags (Auto,
 prompt. A learned keyword hint ("swiggy" to Food, account, payment method) makes the next entry faster; it is saved after
 the response because nothing waits for it.
 
-### 9.6 Analytics and consent
-Analytics scripts load only after the person accepts (landing and docs). A Cloudflare feature that injected its own tag
-bypassed that consent, so the gateway was switched off and the landing page has its own banner and loader.
+---
 
 ## 10. Infrastructure and deployment
 
-### 10.1 Deploy on push
-A GitHub Action builds the image on every push to `main`; the entrypoint runs `migrate`, `collectstatic` and
-`compilemessages` on each container start. Python 3.12 (`python:3.12-slim`) in production; the local virtualenv for tests
-is Python 3.13. Indirect dependencies are unpinned, so builds can differ.
+_Kept in private notes (not in the public repository)._
 
-### 10.2 The database is far from the app
-- App: a DigitalOcean droplet (1 vCPU, 1 GB). Database: Supabase, project region `ap-south-1` (Mumbai) through the
-  connection pooler (port 6543), connections kept 600 seconds, server-side cursors disabled (required with a
-  transaction pooler).
-- **Finding.** About 17 to 20 ms per query from the app. DigitalOcean's India region is Bangalore, so the likely cause is
-  Bangalore to Mumbai. Not fixed yet. **Options:** move the app next to the database (for example an instance in AWS
-  Mumbai), or move the database next to the app; and move up one CPU tier.
-- **Why it matters.** Every query-count optimisation in section 8 is worth about 20 ms per query removed. Fixing the
-  distance would shrink all of them tenfold.
-
-### 10.3 Static files
-Django 5.1 removed the `STATICFILES_STORAGE` setting, so production silently lost hashed, compressed static files until
-the `STORAGES` setting was used. See [12](#12-incidents-and-lessons).
+---
 
 ## 11. Testing
 
@@ -401,25 +355,15 @@ it (`pkill -f "manage.py test"`), delete `default_*.sqlite3`, and start one run.
 
 ## 12. Incidents and lessons
 
-| When | What happened | Lesson / rule |
-|---|---|---|
-| 2026-10 | `ALLOWED_HOSTS = ['*']` (a local edit) was committed and pushed twice. | Stage hunks, not whole files. `ALLOWED_HOSTS` now defaults to our own hosts and is environment-configurable. |
-| 2026-10 | Django 5.1 removed `STATICFILES_STORAGE`; production lost hashed/compressed static files unnoticed. | After a framework upgrade, read the release notes for removed settings; add a test that the storage backend is what we expect. |
-| 2026-10 | A Cloudflare-injected analytics tag ignored the consent banner. | Third-party tag injection by the CDN bypasses your own consent logic; own the loader. |
-| 2026-10 | A line-based patch inserted two settings in the middle of a multi-line statement, so the *committed* `settings.py` had a syntax error while the suite (run on the working copy) passed. | Verify what is committed, not what is on disk: parse the committed file. Never apply `-U0` hunks by line number. History was rebuilt before anything was pushed. |
-| 2026-10-26 | Overlapping parallel test runs (and deleting the SQLite clone files mid-run) made workers fail, hang the run and produce a burst of macOS crash reports. | One suite at a time; clean up `default_*.sqlite3` only when nothing is running. |
-| 2026-10 | The first estimate of the fragment plan ("about 3 queries cold") was wrong once the code was read. | Say so early and re-plan; do not build the thing you already know will not deliver. |
-| 2026-10 | The background rebuild waited for its own flag for 2.5 s. | When a lock/flag guards work, the worker that does the work must be exempt from waiting on it. Dump thread stacks to find stalls. |
-| 2026-10 | Toasts looked fine on a phone and were missed on desktop. | Test placement at both widths with real use, not only that it renders. |
+_Kept in private notes (not in the public repository)._
+
+---
 
 ## 13. Open questions and future work
 
-- **Co-locate app and database** (or upgrade the droplet CPU). Biggest remaining performance lever. No code.
 - **Option C: lighter ledger posting.** Drop nested savepoints where they are not needed; about 150 ms per write on
   Postgres. Needs per-transaction-type tests.
 - **Holdings reconciliation hint** where holdings exceed ledger cash (the `max(0, ...)` floor hides it).
-- **Shared cache (Redis)** if we ever want more than one worker; then the background rebuild's warm cache works across
-  workers.
 - **Insights deferred review items:** legacy dashboard insight code when the engine is on, goal-pace and small-change
   rules, currency-scaled thresholds, regularity check in recurring detection, overlapping rules, cron batch running in the
   web thread, an index on `valid_until`.
@@ -449,43 +393,6 @@ trade-off.
 | 2026-10 | Insights | Insights Engine reviewed, optimised and marketed (landing, features, pricing, docs). |
 | 2026-10 | Budgets | Salary-day (cycle) budget months. |
 | 2026-10 | Wrapped | Redesign with a privacy-aware share sheet. |
-
----
-
-## Interview cheat sheet
-
-Short stories with real numbers. Each one is: situation, what you did, the trade-off, the result. Keep the numbers honest
-and say "on demo data" or "on production" as appropriate.
-
-1. **Cutting database round trips.** *Situation:* dashboard cold build took 84 queries on demo data; production showed
-   about 20 ms per query. *Action:* profiled every query back to its source line, combined per-table aggregates into
-   `UNION ALL`, deferred net worth to a cached fragment. *Result:* 84 to 53 on demo data (73 to 55 on production);
-   rendered HTML identical across eight filter variants. *Trade-off:* Postgres typing risk I could not execute locally;
-   mitigated by following an existing pattern and compiling for the Postgres backend.
-2. **Being wrong early and saying so.** I told you cold loads could drop to about 3 queries, then read the code, found the
-   shared 2,600-line view, and corrected the estimate before building anything.
-3. **Cache invalidation you can trust.** Whole-page context cache for four hours; every write bumps a version and a build
-   is stored only if the version did not move. Mention the race this closed and the self-deadlock found with a thread-stack
-   dump.
-4. **Where the time really was.** Used a Server-Timing header on production to separate database time, Python time and
-   network; concluded the remaining problem was infrastructure (app and database in different cities, one shared CPU), not
-   templates. Chose not to slim the template.
-5. **A ledger without a big-bang migration.** Shadow-posted double-entry entries, compared them to the old balances, cut
-   reads over by cohort percentage. Why shadow first; what the extra write cost is (about 14 statements per posting).
-6. **Privacy as a feature.** Holdings tracking sends only a public scheme code to fetch a NAV; Wrapped renders images in
-   the browser and splits shareable from sensitive content.
-7. **A calm insights engine.** Rules to stored insights to many surfaces; descriptive only; delivery caps; shadow rollout
-   against legacy code. Tone as an engineering constraint.
-8. **Versioned budgets and salary cycles.** Why a limit is "from this month" rows plus overrides, and the rule that gives
-   every month exactly one cycle. The day-of-month tests that failed on the 25th and what they taught.
-9. **Incident: the `settings.py` that did not parse.** Passing tests proved nothing about the committed file; rebuilt
-   history before pushing. Habit: verify what is committed.
-10. **Solo-operator trade-offs.** Single worker plus in-process cache instead of Redis; deploy on push; why those are right
-    for now and what breaks first when you scale (a shared cache is the first thing to add).
-
-**Numbers to have ready (all measured):** warm dashboard 3 queries; cold 84 to 53 (demo) and 73 to 55 (production); about
-17 to 20 ms per query from the app to the database; about 4,400 automated tests in about 70 to 90 seconds; add expense 34
-to 27 queries and edit 47 to 43 locally; landing after a save 48 to 3 queries locally with the background rebuild.
 
 ---
 
