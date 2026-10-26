@@ -97,7 +97,7 @@ An insurance account holds the details of one policy. When you create it, choose
 - **Savings / endowment** (pays back on maturity): premiums paid so far count as the policy's value.
 - **Pure protection** (term, health): worth nothing in net worth. The account shows **Premiums Paid** instead of a balance, with the note that it is not counted in your net worth. A new Health / Medical Insurance account starts as pure protection and a Life Insurance account as savings, and you can change it.
 
-On the account's page you also see the policy number, sum assured, start date, policy type, premium and frequency, the **next premium** date and the account it is **paid from**. If any of your accounts has a policy number, the Accounts list gets a **Policy number** column.
+On the account's page you also see the policy number, sum assured, start date, policy type, premium and frequency, the **next premium** date and the account it is **paid from**. Open the **Insurance** group on the Accounts page and the list gets a **Policy number** column. The list shows the columns that matter for the group you are looking at (on a wide screen): **Rate** and **Matures** for Fixed income, **Limit**, **Used** and **Next bill** for credit cards, and just **Last updated** and **Balance** everywhere else.
 
 Premiums are posted as expenses tied to the policy, from the **premium payment account** you pick, on the schedule you choose. If the policy started in the past, switch on **Create past premium records** to add the premiums that fell due since the start date. Left off, only upcoming premiums are scheduled and the premium day of the policy is kept.
 

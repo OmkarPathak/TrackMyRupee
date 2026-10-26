@@ -131,13 +131,27 @@
     .acx-list { padding: 0; }
     .acx-list-head, .acx-row { display: grid; align-items: center; gap: .75rem; padding: .85rem 1.25rem; grid-template-columns: minmax(0, 1fr) auto auto; }
     @media (min-width: 768px) { .acx-list-head, .acx-row { grid-template-columns: minmax(0, 1fr) 190px 170px 32px; gap: 1rem; } }
-    @media (min-width: 768px) { .acx-has-policy .acx-list-head, .acx-has-policy .acx-row { grid-template-columns: minmax(0, 1fr) 160px 190px 170px 32px; } }
-    .acx-policy { font-size: .8rem; color: var(--acx-muted); overflow-wrap: anywhere; }
+    .acx-policy, .acx-x { font-size: .8rem; color: var(--acx-muted); overflow-wrap: anywhere; }
     .acx-list-head { font-size: .7rem; letter-spacing: .08em; font-weight: 700; color: var(--acx-muted); text-transform: uppercase; border-bottom: 1px solid var(--acx-line); padding-top: .9rem; padding-bottom: .7rem; }
-    .acx-list-head > :nth-child(3) { text-align: right; }
-    .acx-has-policy .acx-list-head > :nth-child(3) { text-align: left; }
-    .acx-has-policy .acx-list-head > :nth-child(4) { text-align: right; }
+    .acx-list-head .acx-h-balance { text-align: right; }
     @media (max-width: 767.98px) { .acx-list-head { display: none; } .acx-row { padding: .8rem 1rem; } }
+    /* Extra columns follow the group in view (the tiles set data-view-type on the shell, in the browser too):
+       Insurance shows the policy number; Fixed income the rate and maturity; Cards the limit, use and next bill.
+       The "All" view and every other group keep just Last updated and Balance. */
+    .acx-x { display: none; }
+    @media (min-width: 768px) {
+        .acx[data-view-type="INSURANCE"] .acx-list-head, .acx[data-view-type="INSURANCE"] .acx-row { grid-template-columns: minmax(0, 1fr) 170px 190px 170px 32px; }
+        .acx[data-view-type="INSURANCE"] .acx-x-policy { display: block; }
+    }
+    @media (min-width: 1200px) {
+        .acx[data-view-type="FIXED_INCOME"] .acx-list-head, .acx[data-view-type="FIXED_INCOME"] .acx-row { grid-template-columns: minmax(0, 1fr) 80px 130px 160px 150px 32px; }
+        .acx[data-view-type="FIXED_INCOME"] .acx-x-rate, .acx[data-view-type="FIXED_INCOME"] .acx-x-maturity { display: block; }
+        .acx[data-view-type="FIXED_INCOME"] .acx-sub-rate, .acx[data-view-type="FIXED_INCOME"] .acx-sub-maturity { display: none; }
+        .acx[data-view-type="SHORT_TERM_CREDIT"] .acx-list-head, .acx[data-view-type="SHORT_TERM_CREDIT"] .acx-row { grid-template-columns: minmax(0, 1fr) 100px 130px 80px 150px 140px 32px; }
+        .acx[data-view-type="SHORT_TERM_CREDIT"] .acx-x-limit, .acx[data-view-type="SHORT_TERM_CREDIT"] .acx-x-used, .acx[data-view-type="SHORT_TERM_CREDIT"] .acx-x-bill { display: block; }
+        .acx[data-view-type="SHORT_TERM_CREDIT"] .acx-credit, .acx[data-view-type="SHORT_TERM_CREDIT"] .acx-sub-bill { display: none; }
+    }
+    .acx-x-used .progress { height: 5px; margin-bottom: .25rem; }
     .acx-row { border-bottom: 1px solid var(--acx-line); transition: background-color .12s; }
     .acx-row:hover { background: var(--acx-soft); }
     .acx-row:has(.dropdown-menu.show) { position: relative; z-index: 20; }
@@ -403,12 +417,14 @@
 
 <!-- ACCOUNT LIST -->
 {% if overall_count %}
-<section class="acx-card acx-list{% if show_policy_column %} acx-has-policy{% endif %}" aria-label="{% trans 'Accounts' %}">
+<section class="acx-card acx-list" aria-label="{% trans 'Accounts' %}">
     <div class="acx-list-head" aria-hidden="true">
         <span>{% trans "Account" %}</span>
-        {% if show_policy_column %}<span class="acx-hide-mobile">{% trans "Policy number" %}</span>{% endif %}
+        {% if show_policy_column %}<span class="acx-x acx-x-policy">{% trans "Policy number" %}</span>{% endif %}
+        {% if show_fixed_columns %}<span class="acx-x acx-x-rate">{% trans "Rate" %}</span><span class="acx-x acx-x-maturity">{% trans "Matures" %}</span>{% endif %}
+        {% if show_credit_columns %}<span class="acx-x acx-x-limit">{% trans "Limit" %}</span><span class="acx-x acx-x-used">{% trans "Used" %}</span><span class="acx-x acx-x-bill">{% trans "Next bill" %}</span>{% endif %}
         <span>{% trans "Last updated" %}</span>
-        <span>{% trans "Balance" %}</span>
+        <span class="acx-h-balance">{% trans "Balance" %}</span>
         <span></span>
     </div>
     <div class="acx-rows" id="acx-rows">
@@ -428,25 +444,25 @@
                 </div>
                 <div class="acx-sub {% if account.needs_update %}acx-hide-mobile{% endif %}">
                     {{ account.get_account_type_display }}
-                    {% if account.deposit_rate %}<span class="acx-sep"></span>{{ account.deposit_rate|floatformat:1|translate_digits }}% {% trans "p.a." %}{% endif %}
+                    {% if account.deposit_rate %}<span class="acx-sub-rate"><span class="acx-sep"></span>{{ account.deposit_rate|floatformat:1|translate_digits }}% {% trans "p.a." %}</span>{% endif %}
                     {% if account.is_deposit_type %}
                         {% if account.deposit_maturity_date %}
-                            <span class="acx-sep"></span>{% trans "Matures" %} {{ account.deposit_maturity_date|date:"j M Y" }}
+                            <span class="acx-sub-maturity"><span class="acx-sep"></span>{% trans "Matures" %} {{ account.deposit_maturity_date|date:"j M Y" }}</span>
                         {% else %}
-                            <span class="acx-sep"></span>{% trans "Maturity date not set" %}
-                            {% if not account.is_locked and account.is_active %}<a href="{% url 'account-edit' account.uuid %}" class="ms-1">{% trans "Set date" %}</a>{% endif %}
+                            <span class="acx-sub-maturity"><span class="acx-sep"></span>{% trans "Maturity date not set" %}
+                            {% if not account.is_locked and account.is_active %}<a href="{% url 'account-edit' account.uuid %}" class="ms-1">{% trans "Set date" %}</a>{% endif %}</span>
                         {% endif %}
                     {% elif account.deposit_maturity_date %}
-                        <span class="acx-sep"></span>{% trans "Matures" %} {{ account.deposit_maturity_date|date:"j M Y" }}
+                        <span class="acx-sub-maturity"><span class="acx-sep"></span>{% trans "Matures" %} {{ account.deposit_maturity_date|date:"j M Y" }}</span>
                     {% endif %}
-                    {% if account.next_billing_date %}<span class="acx-sep"></span>{% trans "Next Bill on: " %}{{ account.next_billing_date|date:"d M" }}{% endif %}
+                    {% if account.next_billing_date %}<span class="acx-sub-bill"><span class="acx-sep"></span>{% trans "Next Bill on: " %}{{ account.next_billing_date|date:"d M" }}</span>{% endif %}
 
                 </div>
                 {% if account.linked_physical_asset.policy_number %}
                 <div class="acx-sub acx-only-mobile">{% trans "Policy no." %} {{ account.linked_physical_asset.policy_number }}</div>
                 {% endif %}
                 {% if account.account_type == 'CREDIT_CARD' or account.has_credit_limit %}
-                <div class="acx-sub">
+                <div class="acx-sub acx-credit">
                     {% if account.has_credit_limit %}
                         {% trans "Limit:" %} {{ account.currency }}{{ account.credit_limit|compact_amount:account.currency|translate_digits }}
                         <span class="acx-sep"></span><b class="text-body-emphasis">{{ account.currency }}{{ account.available_credit|compact_amount:account.currency|translate_digits }} {% trans "avail" %}</b>
@@ -477,9 +493,33 @@
                 {% endif %}
             </div>
 
+            <!-- Extra columns, shown only for the group in view (see the CSS above); phones show these details under the name -->
             {% if show_policy_column %}
-            <!-- Policy number (tablet and up; phones show it under the name) -->
-            <div class="acx-policy acx-hide-mobile">{{ account.linked_physical_asset.policy_number|default:"—" }}</div>
+            <div class="acx-x acx-x-policy">{{ account.linked_physical_asset.policy_number|default:"—" }}</div>
+            {% endif %}
+            {% if show_fixed_columns %}
+            <div class="acx-x acx-x-rate">{% if account.deposit_rate %}{{ account.deposit_rate|floatformat:1|translate_digits }}%{% else %}&mdash;{% endif %}</div>
+            <div class="acx-x acx-x-maturity">
+                {% if account.deposit_maturity_date %}{{ account.deposit_maturity_date|date:"j M Y" }}
+                {% elif account.is_deposit_type %}{% trans "Not set" %}{% if not account.is_locked and account.is_active %} <a href="{% url 'account-edit' account.uuid %}">{% trans "Set date" %}</a>{% endif %}
+                {% else %}&mdash;{% endif %}
+            </div>
+            {% endif %}
+            {% if show_credit_columns %}
+            <div class="acx-x acx-x-limit">
+                {% if account.has_credit_limit %}{{ account.currency }}{{ account.credit_limit|compact_amount:account.currency|translate_digits }}
+                {% elif account.account_type == 'CREDIT_CARD' %}{% trans "Not set" %}{% if not account.is_locked and account.is_active %} <a href="{% url 'account-edit' account.uuid %}">{% trans "Set limit" %}</a>{% endif %}
+                {% else %}&mdash;{% endif %}
+            </div>
+            <div class="acx-x acx-x-used">
+                {% if account.has_credit_limit %}
+                    <div class="progress" role="progressbar" aria-label="{% trans 'Credit utilization' %}" aria-valuenow="{{ account.credit_utilization_pct|stringformat:'f' }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar rounded-pill {% if account.credit_utilization_pct > 75 %}bg-danger{% elif account.credit_utilization_pct > 40 %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ account.credit_utilization_pct|stringformat:'f' }}%;"></div>
+                    </div>
+                    {{ account.credit_utilization_pct|floatformat:0|translate_digits }}% &middot; {{ account.currency }}{{ account.available_credit|compact_amount:account.currency|translate_digits }} {% trans "avail" %}
+                {% else %}&mdash;{% endif %}
+            </div>
+            <div class="acx-x acx-x-bill">{% if account.next_billing_date %}{{ account.next_billing_date|date:"j M" }}{% else %}&mdash;{% endif %}</div>
             {% endif %}
 
             <!-- Last updated (tablet and up) -->
@@ -640,8 +680,12 @@
         var q = input ? input.value.trim().toLowerCase() : '';
         var rowsBox = document.getElementById('acx-rows');
         if (!rowsBox) return;
-        var shown = 0;
+        var shown = 0, pinnedCount = 0, staleCount = 0;
         rowsBox.querySelectorAll('.acx-row').forEach(function (row) {
+            // the tab counts follow the group and the search, so each says what a click on it would show
+            var inScope = (!state.type || row.dataset.group === state.type) && (!q || row.dataset.name.indexOf(q) !== -1);
+            if (inScope && row.dataset.pinned === '1') pinnedCount += 1;
+            if (inScope && row.dataset.stale === '1') staleCount += 1;
             var match = (!state.type || row.dataset.group === state.type)
                 && (state.tab !== 'pinned' || row.dataset.pinned === '1')
                 && (state.tab !== 'needs_update' || row.dataset.stale === '1')
@@ -665,6 +709,9 @@
             tile.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
         shell.querySelectorAll('.acx-tab').forEach(function (tab) {
+            var counter = tab.querySelector('small');
+            if (counter && tab.dataset.acxTab === 'pinned') counter.textContent = pinnedCount;
+            if (counter && tab.dataset.acxTab === 'needs_update') counter.textContent = staleCount;
             var on = tab.dataset.acxTab === state.tab;
             tab.classList.toggle('is-active', on);
             tab.setAttribute('aria-selected', on ? 'true' : 'false');

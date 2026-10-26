@@ -676,9 +676,13 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             context['stale_count'] = 0
 
         # Tabs. The counts ignore the tab itself but follow type/search, so they match what a click shows.
-        base = list(all_accounts)
+        # (the page's script keeps these in step as the group or the search changes)
+        needle = (request.GET.get('search') or '').strip().lower()
+        base = [a for a in all_accounts
+                if (not selected_type or getattr(a, 'group_type', '') == selected_type)
+                and (not needle or needle in a.name.lower())]
         context['tab_counts'] = {
-            'all': len(all_accounts),
+            'all': len(base),
             'pinned': sum(1 for a in base if a.is_pinned),
             'needs_update': sum(1 for a in base if a.needs_update),
         }
@@ -723,9 +727,14 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                 a.is_protection = True
                 a.premiums_paid = get_premiums_paid(a, ledger.get(a.id, a.balance), by_asset=by_asset)
         context['display_accounts'] = rows
+        # Which extra columns the list carries (the CSS shows them only for the group in view): the policy number for
+        # insurance, rate and maturity for fixed income, limit / use / next bill for cards
         context['show_policy_column'] = any(
-            getattr(r.linked_physical_asset, 'policy_number', None) for r in rows
+            strategy_for(r.account_type) == STRATEGY.INSURANCE_SURRENDER
+            or getattr(r.linked_physical_asset, 'policy_number', None) for r in rows
         )
+        context['show_fixed_columns'] = any(getattr(r, 'group_type', '') == 'FIXED_INCOME' for r in rows)
+        context['show_credit_columns'] = any(getattr(r, 'group_type', '') == 'SHORT_TERM_CREDIT' for r in rows)
         context['display_count'] = position
         context['view_type'] = selected_type if selected_type in {t['type'] for t in tiles} else ''
         context['sort_label'] = {
