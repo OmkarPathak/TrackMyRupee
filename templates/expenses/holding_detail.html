@@ -15,10 +15,10 @@
 <div>
     <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
         <div class="min-w-0">
-            <a href="{% url 'holding-list' %}" class="small text-decoration-none text-body-secondary"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "All holdings" %}</a>
+            <a href="{% url 'holding-list' %}" class="small text-decoration-none text-body-secondary d-inline-flex align-items-center gap-1"><i class="bi bi-arrow-left lh-1" aria-hidden="true"></i><span>{% trans "All holdings" %}</span></a>
             <h1 class="h3 fw-bold mb-1 mt-1 d-flex align-items-center gap-2">
                 <span class="text-break">{{ holding.instrument_name }}</span>
-                <button type="button" class="btn btn-link p-0 text-body-secondary" data-bs-toggle="modal" data-bs-target="#renameHoldingModal" aria-label="{% trans 'Rename holding' %}" title="{% trans 'Rename holding' %}">
+                <button type="button" class="btn btn-link p-0 text-body-secondary d-inline-flex align-items-center lh-1" data-bs-toggle="modal" data-bs-target="#renameHoldingModal" aria-label="{% trans 'Rename holding' %}" title="{% trans 'Rename holding' %}">
                     <i class="bi bi-pencil" aria-hidden="true"></i>
                 </button>
             </h1>
@@ -29,18 +29,18 @@
         </div>
         <div class="d-flex gap-2">
             {% if not has_feed %}
-            <button type="button" class="btn btn-action-outline" data-bs-toggle="modal" data-bs-target="#holdingValueModal"
+            <button type="button" class="btn btn-action-outline d-inline-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#holdingValueModal"
                     data-url="{% url 'holding-valuation' holding.pk %}" data-name="{{ holding.instrument_name }}">
-                <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>{% trans "Update value" %}
+                <i class="bi bi-pencil-square lh-1" aria-hidden="true"></i><span>{% trans "Update value" %}</span>
             </button>
             {% endif %}
-            <button type="button" class="btn btn-action-outline" data-bs-toggle="modal" data-bs-target="#purchaseModal"
+            <button type="button" class="btn btn-action-outline d-inline-flex align-items-center justify-content-center gap-2" data-bs-toggle="modal" data-bs-target="#purchaseModal"
                     data-mode="sell" data-url="{% url 'holding-sell' holding.pk %}">
-                <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{% trans "Sell" %}
+                <i class="bi bi-box-arrow-up-right lh-1" aria-hidden="true"></i><span>{% trans "Sell" %}</span>
             </button>
             <button type="button" class="btn btn-primary rounded-pill px-3 fw-semibold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#purchaseModal"
                     data-mode="add" data-url="{% url 'holding-buy' holding.pk %}">
-                <i class="bi bi-plus-lg" aria-hidden="true"></i><span>{% trans "Buy more" %}</span>
+                <i class="bi bi-plus-lg lh-1" aria-hidden="true"></i><span>{% trans "Buy more" %}</span>
             </button>
         </div>
     </div>
@@ -52,7 +52,7 @@
     </div>
     {% endif %}
     {% if has_estimates %}
-    <div class="small text-muted mb-3"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{% trans "Estimated units use the NAV the AMFI cut-off rules give, minus 0.005% stamp duty. Compare them with your statement and edit a purchase to confirm it." %}</div>
+    <div class="small text-muted mb-3 d-flex gap-2"><span class="d-inline-flex align-items-center flex-shrink-0" style="height: 1.5em;"><i class="bi bi-info-circle lh-1" aria-hidden="true"></i></span><span>{% trans "Estimated units use the NAV the AMFI cut-off rules give, minus 0.005% stamp duty. Compare them with your statement and edit a purchase to confirm it." %}</span></div>
     {% endif %}
 
     <div class="row g-3 mb-4">
@@ -111,7 +111,7 @@
                             <div class="text-muted" style="font-size: 0.72rem;">
                                 {% if tx.units is None %}{% trans "Waiting for NAV" %}{% else %}@ {{ holding.currency }}{{ tx.price|floatformat:2|translate_digits }}{% endif %}
                                 {% if tx.kind == 'SELL' %}&middot; {% include 'expenses/partials/_holding_sale_result.html' %}
-                                {% elif tx.transfer %}&middot; <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
+                                {% elif tx.transfer %}&middot; <a href="{% url 'transfer-edit' tx.transfer.uuid %}" class="text-decoration-none d-inline-flex align-items-center gap-1"><i class="bi bi-arrow-left-right lh-1" aria-hidden="true"></i>{% blocktrans with name=tx.transfer.from_account.name %}Transfer from {{ name }}{% endblocktrans %}</a>
                                 {% elif tx.note %}&middot; {{ tx.note }}{% endif %}
                             </div>
                         </div>
