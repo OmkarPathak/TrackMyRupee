@@ -2392,7 +2392,12 @@ class HoldingsListView(LoginRequiredMixin, ListView):
 
         for h in holdings:
             val = h.valuations.first()
-            total_valuation += to_user_currency(val.value_for(h.units) if val else h.cost_basis, h.currency)
+            # What the row shows: today's value, and the gain or loss against cost (none while the value is only the cost)
+            h.current_value = val.value_for(h.units) if val else h.cost_basis
+            h.has_gain = bool(val and h.cost_basis > 0)
+            h.gain = h.current_value - h.cost_basis if h.has_gain else Decimal('0.00')
+            h.gain_pct = (h.gain / h.cost_basis * Decimal('100')).quantize(Decimal('0.1')) if h.has_gain else Decimal('0.0')
+            total_valuation += to_user_currency(h.current_value, h.currency)
             total_cost += to_user_currency(h.cost_basis, h.currency)
             
         unrealized_gain = total_valuation - total_cost

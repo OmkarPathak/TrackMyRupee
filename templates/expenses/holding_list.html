@@ -87,8 +87,8 @@
             {% if holdings %}
                 <!-- Desktop Table View -->
                 <div class="table-responsive d-none d-md-block">
-                    <table class="table table-hover table-striped align-middle mb-0 tmr-table" style="min-width: 820px;">
-                        <colgroup><col><col style="width: 200px"><col style="width: 130px"><col style="width: 150px"><col style="width: 200px"><col style="width: 92px"></colgroup>
+                    <table class="table table-hover table-striped align-middle mb-0 tmr-table" style="min-width: 960px;">
+                        <colgroup><col><col style="width: 170px"><col style="width: 100px"><col style="width: 120px"><col style="width: 170px"><col style="width: 160px"><col style="width: 72px"></colgroup>
                         <thead>
                             <tr>
                                 <th class="ps-4">{% trans "Holding / Fund" %}</th>
@@ -96,6 +96,7 @@
                                 <th>{% trans "Units" %}</th>
                                 <th>{% trans "Avg Cost" %}</th>
                                 <th>{% trans "Current Val / NAV" %}</th>
+                                <th class="text-end">{% trans "Gain / Loss" %}</th>
                                 <th class="text-end pe-4">{% trans "Actions" %}</th>
                             </tr>
                         </thead>
@@ -105,7 +106,7 @@
                                     <td class="ps-4">
                                         <a href="{% url 'holding-detail' h.pk %}" class="fw-bold text-body-emphasis text-decoration-none tmr-truncate d-block" title="{{ h.instrument_name }}">{{ h.instrument_name }}</a>
                                         {% if h.scheme_code %}
-                                            <span class="badge bg-secondary-subtle text-secondary border small mt-1" style="font-size: 0.7rem;">{% trans "AMFI Code:" %} {{ h.scheme_code }}</span>
+                                            <div class="text-muted fw-normal" style="font-size: 0.75rem;">{% trans "AMFI Code:" %} {{ h.scheme_code }}</div>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -118,7 +119,7 @@
                                     <td class="tmr-amount">
                                         {% with val=h.valuations.all.0 %}
                                             {% if val %}
-                                                <span class="fw-bold text-success">{{ h.currency }}{{ val.value|ind_comma:h.currency|translate_digits }}</span>
+                                                <span class="fw-bold text-success">{{ h.currency }}{{ h.current_value|ind_comma:h.currency|translate_digits }}</span>
                                                 {% if val.unit_nav %}
                                                     <div class="small text-muted" style="font-size: 0.75rem;">{% trans "NAV:" %} {{ h.currency }}{{ val.unit_nav|translate_digits }}</div>
                                                 {% endif %}
@@ -127,6 +128,14 @@
                                                 <div class="small text-muted" style="font-size: 0.75rem;">({% trans "Cost Basis" %})</div>
                                             {% endif %}
                                         {% endwith %}
+                                    </td>
+                                    <td class="tmr-amount text-end">
+                                        {% if h.has_gain %}
+                                            <span class="fw-semibold {% if h.gain >= 0 %}text-success{% else %}text-danger{% endif %}">{% if h.gain >= 0 %}+{% else %}&minus;{% endif %}{{ h.currency }}{{ h.gain|abs_val|ind_comma:h.currency|translate_digits }}</span>
+                                            <div class="small {% if h.gain >= 0 %}text-success{% else %}text-danger{% endif %}" style="font-size: 0.75rem;">{% if h.gain >= 0 %}+{% else %}&minus;{% endif %}{{ h.gain_pct|abs_val|translate_digits }}%</div>
+                                        {% else %}
+                                            <span class="text-muted">&mdash;</span>
+                                        {% endif %}
                                     </td>
                                     <td class="text-end pe-4">
                                         <div class="dropdown">
