@@ -717,6 +717,8 @@
             if (prefill.holding_id && list.some((f) => String(f.id) === String(prefill.holding_id))) sel.value = String(prefill.holding_id);
             else if (prefill.name || !list.length || prefill.holding_id === null) sel.value = NEW;
             if (!list.length) sel.value = NEW;
+            // rows are made after the page's one-time set-up, so give this row's fund list the app's searchable select
+            if (window.initSearchableSelects) window.initSearchableSelects(row);
             name.value = prefill.name || ''; code.value = prefill.scheme_code || '';
             q('amount').value = prefill.amount || '';
             const syncName = () => name.classList.toggle('d-none', sel.value !== NEW);

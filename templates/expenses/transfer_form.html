@@ -293,6 +293,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (prefill.holding_id && prefill.holding_id !== NEW) sel.value = String(prefill.holding_id);
         else if (prefill.name || !acct.holdings.length) sel.value = NEW;
         if (!acct.holdings.length) sel.value = NEW;
+        // rows are made after the page's one-time set-up, so give this row's fund list the app's searchable select
+        if (window.initSearchableSelects) window.initSearchableSelects(row);
         name.value = prefill.name || '';
         row.querySelector('[data-f=amount]').value = prefill.amount || '';
         row.querySelector('[data-f=units]').value = prefill.units || '';
