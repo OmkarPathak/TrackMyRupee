@@ -1,11 +1,14 @@
-from django.db import migrations
+from django.db import migrations, transaction
 
 
 def backfill_next_due_date(apps, schema_editor):
     try:
-        from expenses.models import RecurringTransaction
-        for rt in RecurringTransaction.objects.filter(next_due_date__isnull=True):
-            rt.save()
+        # A savepoint, so that a failed query here does not abort the whole migration transaction
+        # on PostgreSQL (the fallback below could not run in an aborted transaction).
+        with transaction.atomic():
+            from expenses.models import RecurringTransaction
+            for rt in RecurringTransaction.objects.filter(next_due_date__isnull=True):
+                rt.save()
     except Exception:
         # Fallback for fresh test DB migration runs before future schema columns exist
         HistoricalRecurring = apps.get_model('expenses', 'RecurringTransaction')
