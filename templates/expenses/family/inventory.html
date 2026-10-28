@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters family_tags %}
+
+{% block title %}{% trans "Who holds what" %} | TrackMyRupee{% endblock %}
+
+{% block content %}
+<div class="fam fade-in">
+{% include 'expenses/family/_styles.html' %}
+{% include 'expenses/family/_tabs.html' %}
+
+<div class="fam-head">
+    <div class="fam-title">
+        <h1>{% trans "Accounts" %}</h1>
+        <p class="fam-sub">{% trans "Family view: who in the family holds which cards, policies and accounts." %}</p>
+    </div>
+</div>
+
+{% include 'expenses/family/_banner.html' %}
+
+{% if not data %}
+    <section class="card fam-card fam-center">
+        <h2 class="fam-h2">{% trans "Family view is paused" %}</h2>
+        <p>{% trans "It resumes as soon as everyone in the family is on Pro. Your own data and everyone's sharing choices are untouched." %}</p>
+        <div class="fam-actions"><a href="{% url 'family-home' %}" class="btn btn-action-primary">{% trans "See members and plans" %}</a></div>
+    </section>
+{% else %}
+<div class="fam-banner is-paused" role="note" style="background:var(--fam-soft);border-color:var(--fam-line);color:var(--bs-body-color)">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    <div><b>{% trans "Based on what is shared." %}</b> {% trans "If someone has not shared an item, it does not appear here. Numbers add up only what is listed." %}</div>
+</div>
+
+<div class="fam-stack">
+    {% if gentle_on and gentle_notes %}
+    <section class="card fam-card fam-gentle" aria-labelledby="fam-gn-h">
+        <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+            <div><h2 id="fam-gn-h">{% trans "Gentle notes" %}</h2><p class="fam-note">{% trans "Small, optional observations from what is shared. Nothing to fix, just good to know." %}</p></div>
+            <form method="post" action="{% url 'family-notes-toggle' %}">{% csrf_token %}<input type="hidden" name="on" value="0"><button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Turn off gentle notes" %}</button></form>
+        </div>
+        <div class="fam-rows">
+            {% for note in gentle_notes %}
+            <div class="fam-row">
+                <div class="fam-row-main">{{ note.text }}</div>
+                <form method="post" action="{% url 'family-note-dismiss' %}" class="fam-row-end">{% csrf_token %}<input type="hidden" name="key" value="{{ note.key }}"><button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Dismiss" %}</button></form>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% elif not gentle_on %}
+    <form method="post" action="{% url 'family-notes-toggle' %}" class="fam-note">{% csrf_token %}<input type="hidden" name="on" value="1">{% trans "Gentle notes are off for you." %} <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">{% trans "Turn on" %}</button></form>
+    {% endif %}
+
+    <section class="card fam-card" aria-labelledby="fam-mx-h">
+        <h2 id="fam-mx-h">{% trans "Who holds what" %}</h2>
+        {% if data.counts %}
+        <div class="fam-scroll">
+            <table class="fam-table">
+                <thead><tr>
+                    <th scope="col">{% trans "Item" %}</th>
+                    {% for m in data.members %}<th scope="col" class="c"><span class="fam-who"><span class="fam-avatar is-sm bg-{{ m.tone }}-subtle text-{{ m.tone }}-emphasis" aria-hidden="true">{{ m.initials }}</span><span class="fam-onlydesk">{{ m.name }}</span><span class="visually-hidden fam-onlymobile">{{ m.name }}</span></span></th>{% endfor %}
+                    <th scope="col" class="c">{% trans "Family" %}</th>
+                </tr></thead>
+                <tbody>
+                {% for key, heading, per_member, total in data.counts %}
+                    <tr>
+                        <th scope="row">{{ heading }}</th>
+                        {% for m in data.members %}{% with n=per_member|get_item:m.user_id %}<td class="c{% if not n %} none{% endif %}">{% if n %}{{ n|translate_digits }}{% else %}{% trans "None" %}{% endif %}</td>{% endwith %}{% endfor %}
+                        <td class="c"><b>{{ total|translate_digits }}</b></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="fam-note">{% trans '"None" means none shared.' %}</p>
+        {% else %}
+        <p class="fam-note">{% trans "Nothing is shared yet. Each member chooses what to share on the What I share page." %}</p>
+        {% endif %}
+    </section>
+
+    {% if data.upcoming %}
+    <section class="card fam-card" aria-labelledby="fam-soon-h">
+        <h2 id="fam-soon-h">{% trans "Coming up in the next 30 days" %}</h2>
+        <p class="fam-note">{% trans "Card bills and premiums for what is shared." %}</p>
+        <div class="fam-soon">
+            {% for u in data.upcoming %}
+            <div>
+                <span class="when">{{ u.when|date:"j M" }}</span>
+                <span class="what">{% if u.kind == 'bill' %}{% blocktrans trimmed with name=u.name %}{{ name }} bill{% endblocktrans %}{% else %}{% blocktrans trimmed with name=u.name %}{{ name }} premium{% endblocktrans %}{% if u.amount %} · {{ u.amount|money_exact:data.currency }}{% endif %}{% endif %}</span>
+                <span class="fam-who fam-row-sub"><span class="fam-avatar is-sm bg-{{ u.owner_tone }}-subtle text-{{ u.owner_tone }}-emphasis" aria-hidden="true">{{ u.owner_initials }}</span>{{ u.owner_name }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if data.items %}
+    <div class="fam-pill fam-onlymobile" role="group" aria-label="{% trans 'Type' %}" id="fam-pill">
+        {% if cards %}<button type="button" data-sec="fam-sec-cards" class="is-on">{% trans "Cards" %} {{ cards|length|translate_digits }}</button>{% endif %}
+        {% if policies %}<button type="button" data-sec="fam-sec-ins">{% trans "Insurance" %} {{ policies|length|translate_digits }}</button>{% endif %}
+        {% if banks or loans_property %}<button type="button" data-sec="fam-sec-acc">{% trans "Accounts" %} {{ account_count|translate_digits }}</button>{% endif %}
+    </div>
+    {% endif %}
+
+    {% if cards %}
+    <section class="card fam-card fam-sec" id="fam-sec-cards" aria-labelledby="fam-cc-h">
+        <h2 id="fam-cc-h">{% trans "Credit cards" %}</h2>
+        <div class="fam-scroll fam-onlydesk">
+            <table class="fam-table">
+                <thead><tr><th scope="col">{% trans "Card" %}</th><th scope="col">{% trans "Held by" %}</th><th scope="col" class="r">{% trans "Used" %}</th><th scope="col" class="r">{% trans "Limit" %}</th><th scope="col" class="r">{% trans "Available" %}</th><th scope="col">{% trans "Next bill" %}</th></tr></thead>
+                <tbody>
+                {% for row in cards %}{% with item=row.item m=row.member %}
+                <tr>
+                    <td><b>{{ item.name }}</b></td>
+                    <td><span class="fam-who"><span class="fam-avatar is-sm bg-{{ m.tone }}-subtle text-{{ m.tone }}-emphasis" aria-hidden="true">{{ m.initials }}</span>{{ item.owner_name }}</span></td>
+                    {% if item.show_amounts %}
+                    <td class="r fam-amt">{% if item.amount is not None %}{{ item.amount|money_exact:item.currency }}{% endif %}</td>
+                    <td class="r fam-amt">{% if item.limit %}{{ item.limit|money_exact:item.currency }}{% endif %}</td>
+                    <td class="r fam-amt">{% if item.available is not None %}{{ item.available|money_exact:item.currency }}{% endif %}</td>
+                    <td>{% if item.next_bill %}{{ item.next_bill|date:"j M" }}{% endif %}</td>
+                    {% else %}
+                    <td class="r" colspan="3"><span class="badge badge-soft-secondary">{% trans "Amounts not shared" %}</span></td>
+                    <td class="none">{% trans "Not shared" %}</td>
+                    {% endif %}
+                </tr>
+                {% endwith %}{% endfor %}
+                </tbody>
+                {% if card_totals %}
+                <tfoot><tr><td colspan="2">{% trans "Cards with amounts shared" %}</td><td class="r">{{ card_totals.used|money_exact:card_totals.currency }}</td><td class="r">{{ card_totals.limit|money_exact:card_totals.currency }}</td><td class="r">{{ card_totals.available|money_exact:card_totals.currency }}</td><td>{% blocktrans trimmed with pct=card_totals.percent|translate_digits %}{{ pct }}% used{% endblocktrans %}</td></tr></tfoot>
+                {% endif %}
+            </table>
+        </div>
+        <div class="fam-onlymobile">
+            {% for row in cards %}{% with item=row.item m=row.member %}
+            <div class="fam-cc">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                    <div class="fam-row-name">{{ item.name }}</div>
+                    <span class="fam-who"><span class="fam-avatar is-sm bg-{{ m.tone }}-subtle text-{{ m.tone }}-emphasis" aria-hidden="true">{{ m.initials }}</span><span class="fam-row-sub">{{ item.owner_name }}</span></span>
+                </div>
+                {% if item.show_amounts %}
+                    {% if item.amount is not None %}<div class="kv"><span>{% trans "Used" %}</span><b>{{ item.amount|money_exact:item.currency }}</b></div>{% endif %}
+                    {% if item.limit %}<div class="kv"><span>{% trans "Limit" %}</span><span class="v">{{ item.limit|money_exact:item.currency }}</span></div>{% endif %}
+                    {% if item.available is not None %}<div class="kv"><span>{% trans "Available" %}</span><span class="v">{{ item.available|money_exact:item.currency }}</span></div>{% endif %}
+                    {% if item.next_bill %}<div class="kv"><span>{% trans "Next bill" %}</span><span class="v">{{ item.next_bill|date:"j M" }}</span></div>{% endif %}
+                {% else %}<span class="badge badge-soft-secondary align-self-start">{% trans "Amounts not shared" %}</span>{% endif %}
+            </div>
+            {% endwith %}{% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if policies %}
+    <section class="card fam-card fam-sec" id="fam-sec-ins" aria-labelledby="fam-ins-h">
+        <h2 id="fam-ins-h">{% trans "Insurance" %}</h2>
+        <div class="fam-scroll fam-onlydesk">
+            <table class="fam-table">
+                <thead><tr><th scope="col">{% trans "Policy" %}</th><th scope="col">{% trans "Held by" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "Covers" %}</th><th scope="col" class="r">{% trans "Cover" %}</th><th scope="col" class="r">{% trans "Premium a year" %}</th><th scope="col">{% trans "Next due" %}</th></tr></thead>
+                <tbody>
+                {% for row in policies %}{% with item=row.item m=row.member %}
+                <tr>
+                    <td><b>{{ item.name }}</b></td>
+                    <td><span class="fam-who"><span class="fam-avatar is-sm bg-{{ m.tone }}-subtle text-{{ m.tone }}-emphasis" aria-hidden="true">{{ m.initials }}</span>{{ item.owner_name }}</span></td>
+                    <td><span class="badge badge-soft-info">{{ item.type_label }}</span></td>
+                    {% if item.show_amounts %}
+                    <td>{{ item.covers }}</td>
+                    <td class="r fam-amt">{% if item.cover %}{{ item.cover|money_exact:item.currency }}{% endif %}</td>
+                    <td class="r fam-amt">{% if item.premium_yearly %}{{ item.premium_yearly|money_exact:item.currency }}{% endif %}</td>
+                    <td>{% if item.next_due %}{{ item.next_due|date:"j M" }}{% endif %}</td>
+                    {% else %}<td class="r" colspan="4"><span class="badge badge-soft-secondary">{% trans "Details not shared" %}</span></td>{% endif %}
+                </tr>
+                {% endwith %}{% endfor %}
+                </tbody>
+                <tfoot><tr>
+                    <td colspan="4">{% for label, amount in cover_by_type %}{{ label }} {{ amount|money_exact:currency }}{% if not forloop.last %} · {% endif %}{% endfor %}</td>
+                    <td></td><td class="r">{% if premium_yearly %}{{ premium_yearly|money_exact:currency }}{% endif %}</td><td>{% if premium_yearly %}{% trans "a year" %}{% endif %}</td>
+                </tr></tfoot>
+            </table>
+        </div>
+        <div class="fam-onlymobile">
+            {% for row in policies %}{% with item=row.item m=row.member %}
+            <div class="fam-cc">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                    <div><div class="fam-row-name">{{ item.name }}</div><span class="badge badge-soft-info">{{ item.type_label }}</span></div>
+                    <span class="fam-who"><span class="fam-avatar is-sm bg-{{ m.tone }}-subtle text-{{ m.tone }}-emphasis" aria-hidden="true">{{ m.initials }}</span><span class="fam-row-sub">{{ item.owner_name }}</span></span>
+                </div>
+                {% if item.show_amounts %}
+                    {% if item.covers %}<div class="kv"><span>{% trans "Covers" %}</span><span class="v">{{ item.covers }}</span></div>{% endif %}
+                    {% if item.cover %}<div class="kv"><span>{% trans "Cover" %}</span><b>{{ item.cover|money_exact:item.currency }}</b></div>{% endif %}
+                    {% if item.premium %}<div class="kv"><span>{% trans "Premium" %}</span><span class="v">{{ item.premium|money_exact:item.currency }} {{ item.premium_per }}{% if item.next_due %} · {% blocktrans trimmed with date=item.next_due|date:"j M" %}due {{ date }}{% endblocktrans %}{% endif %}</span></div>{% endif %}
+                {% else %}<span class="badge badge-soft-secondary align-self-start">{% trans "Details not shared" %}</span>{% endif %}
+            </div>
+            {% endwith %}{% endfor %}
+        </div>
+        <p class="fam-note">{% trans "Policy numbers are never shared. Held by is whose policy it is. Covers is who it protects." %}</p>
+    </section>
+    {% endif %}
+
+    {% if banks or loans_property %}
+    <div class="fam-sec" id="fam-sec-acc">
+        {% if banks %}
+        <section class="card fam-card mb-3" aria-labelledby="fam-ba-h">
+            <h2 id="fam-ba-h">{% trans "Bank accounts and deposits" %}</h2>
+            <div class="fam-rows">{% for row in banks %}{% include 'expenses/family/_item_row.html' with item=row.item tone=row.member.tone initials=row.member.initials %}{% endfor %}</div>
+        </section>
+        {% endif %}
+        {% if loans_property %}
+        <section class="card fam-card" aria-labelledby="fam-lp-h">
+            <h2 id="fam-lp-h">{% trans "Loans and property" %}</h2>
+            <div class="fam-rows">{% for row in loans_property %}{% include 'expenses/family/_item_row.html' with item=row.item tone=row.member.tone initials=row.member.initials %}{% endfor %}</div>
+        </section>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var pill = document.getElementById('fam-pill');
+        var sections = document.querySelectorAll('.fam-sec');
+        if (!pill || !sections.length) return;
+        function show(id) {
+            sections.forEach(function (s) { s.classList.toggle('is-shown', s.id === id); });
+            pill.querySelectorAll('button').forEach(function (b) {
+                var on = b.dataset.sec === id;
+                b.classList.toggle('is-on', on);
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+        }
+        pill.addEventListener('click', function (e) {
+            var b = e.target.closest('button[data-sec]');
+            if (b) show(b.dataset.sec);
+        });
+        var first = pill.querySelector('button');
+        if (first) show(first.dataset.sec);
+    })();
+</script>
+{% endblock %}

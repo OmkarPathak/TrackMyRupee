@@ -543,6 +543,7 @@ class LedgerReadService:
         include_categories: list[str] | None = None,
         exclude_categories: list[str] | None = None,
         detail: dict | None = None,
+        only_account_ids: list[int] | None = None,
     ):
         """
         Compute net worth for a user with optional category filtering.
@@ -561,6 +562,11 @@ class LedgerReadService:
 
             detail: Optional dict that is filled with 'assets' and 'liabilities' (both positive,
                     base currency) so that assets - liabilities == the returned net worth.
+            only_account_ids: Optional list of account ids: value only these accounts (the user's own, active ones;
+                    any other id is ignored). Like a category filter it adds no goal reserves and no loans that
+                    no account stands for, so the result is exactly the sum of those accounts. Family sharing
+                    uses this to value just what a member has shared, with the same valuation rules as the
+                    member's own net worth.
 
         Returns:
             (total_net_worth: Decimal, account_base_balances: dict)
@@ -576,7 +582,10 @@ class LedgerReadService:
             _exclude_codes = resolve_category_selector(exclude_categories)
 
         # Q1: accounts
-        accounts = list(user.accounts.filter(is_active=True).select_related('linked_loan', 'linked_physical_asset'))
+        account_qs = user.accounts.filter(is_active=True).select_related('linked_loan', 'linked_physical_asset')
+        if only_account_ids is not None:
+            account_qs = account_qs.filter(id__in=list(only_account_ids))
+        accounts = list(account_qs)
         extended = getattr(settings, "NET_WORTH_EXTENDED_MODELS_ENABLED", False)
 
         today = timezone.localdate()
@@ -586,6 +595,11 @@ class LedgerReadService:
         else:
             as_of_cut = as_of
 
+        if not accounts and only_account_ids is not None:
+            # An empty selection is worth nothing: no goals or loans are added to it
+            if detail is not None:
+                detail['assets'] = detail['liabilities'] = Decimal("0.00")
+            return Decimal("0.00"), {}
         if not accounts:
             return cls._net_worth_no_accounts(user, as_of=as_of_cut, extended=extended, detail=detail)
 
@@ -913,12 +927,15 @@ class LedgerReadService:
                     # Loans: the value is the outstanding principal, positive when owed.
                     total_liabilities += abs(account_value)
 
-        # If category filtering was requested, return filtered subset net worth directly
-        if _include_codes is not None or _exclude_codes is not None:
+        # If category (or account) filtering was requested, return the filtered subset net worth directly
+        if _include_codes is not None or _exclude_codes is not None or only_account_ids is not None:
             if not extended:
                 return total_assets.quantize(Decimal("0.01")), account_base_balances
             else:
                 total_net_worth = (total_assets - total_liabilities).quantize(Decimal("0.01"))
+                if detail is not None:
+                    detail['assets'] = total_assets.quantize(Decimal("0.01"))
+                    detail['liabilities'] = total_liabilities.quantize(Decimal("0.01"))
                 return total_net_worth, account_base_balances
 
         # ── Goals (internal earmarking) ─────────────────────────────────────

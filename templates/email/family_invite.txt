@@ -1,0 +1,15 @@
+{{ inviter_name }} invited you to join "{{ household_name }}" on TrackMyRupee.
+
+Joining a family lets you see the combined net worth of what each member chooses to share, and who in the family holds which cards, policies and accounts.
+
+You stay in control:
+- Joining shares nothing. {{ inviter_name }} cannot see your accounts or anything else of yours.
+- You choose which of your accounts to share, and you can stop at any time.
+- Family members never see transactions, categories, notes or account numbers, only names, types and amounts of what is shared.
+
+Everyone in a family needs a Pro plan. If you do not have one yet, you can start a free 7-day Pro trial after you sign in.
+
+Open this link to join (it works once and expires in {{ days }} days):
+{{ link }}
+
+If you were not expecting this, you can ignore this email.

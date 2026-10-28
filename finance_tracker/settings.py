@@ -161,6 +161,7 @@ TEMPLATES = [
                 'expenses.context_processors.global_badge_data',
                 'expenses.context_processors.personalization',
                 'expenses.insights.context_processors.insights_flags',
+                'expenses.family.context_processors.family_flags',
                 'finance_tracker.context_processors.google_analytics',
                 'finance_tracker.context_processors.posthog',
                 'finance_tracker.context_processors.plan_details',
@@ -519,6 +520,17 @@ LEDGER_READ_COHORT_PERCENT = max(0, min(100, _env_int('LEDGER_READ_COHORT_PERCEN
 LEDGER_READ_COHORT_USER_IDS = _env_int_set('LEDGER_READ_COHORT_USER_IDS')
 LEDGER_READ_EXCLUDE_USER_IDS = _env_int_set('LEDGER_READ_EXCLUDE_USER_IDS')
 NET_WORTH_EXTENDED_MODELS_ENABLED = _env_bool('NET_WORTH_EXTENDED_MODELS_ENABLED', True)
+
+# Family sharing (docs/FAMILY_SHARING.md). Off by default. FAMILY_ENABLED turns it on for everyone;
+# FAMILY_USER_IDS (comma separated) turns it on for just those users while it is being tried out.
+FAMILY_ENABLED = _env_bool('FAMILY_ENABLED', False)
+FAMILY_USER_IDS = _env_int_set('FAMILY_USER_IDS')
+FAMILY_MAX_MEMBERS = max(2, _env_int('FAMILY_MAX_MEMBERS', 5))
+FAMILY_INVITE_DAYS = max(1, _env_int('FAMILY_INVITE_DAYS', 7))
+FAMILY_PRO_WARNING_DAYS = max(1, _env_int('FAMILY_PRO_WARNING_DAYS', 14))
+FAMILY_EMERGENCY_DELAY_DAYS = max(1, _env_int('FAMILY_EMERGENCY_DELAY_DAYS', 7))
+FAMILY_EMERGENCY_RETRY_DAYS = max(0, _env_int('FAMILY_EMERGENCY_RETRY_DAYS', 7))
+FAMILY_SUMMARY_CACHE_SECONDS = max(0, _env_int('FAMILY_SUMMARY_CACHE_SECONDS', 60))
 
 # (Cache backend is configured above — single definition, no override needed.)
 

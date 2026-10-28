@@ -10,6 +10,7 @@ TrackMyRupee is a comprehensive financial management tool designed for the India
 - **Budget Management**: Set and monitor monthly budget limits for different categories.
 - **Analytics**: Spending, cashflow and net worth views with comparisons against earlier periods; every chart opens the transactions behind it.
 - **Insights**: Calm, specific observations written from your own entries (budgets running out early, categories creeping up, deposits maturing, bills that changed price, goals on track), with the exact numbers behind each. Rule-based, no outside AI service, no comparison with other people. Included on every plan; a weekly insights email is part of Pro.
+- **Family sharing**: Up to five people each keep their own account and share only chosen accounts (never transactions). The family sees a combined net worth and who holds which card, policy or loan, with a preview of exactly what is visible, an optional emergency sheet and gentle notes. Needs Pro for every member.
 - **Smart Notifications**: Automated reminders for recurring bills, subscriptions, and budget limits.
 - **Security First**: Data encryption at rest and in transit, with automated backups.
 - **Progressive Web App (PWA)**: Installable on mobile devices for a native app experience.

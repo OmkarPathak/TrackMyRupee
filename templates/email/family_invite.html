@@ -1,0 +1,24 @@
+{% extends "account/email/base_email.html" %}
+
+{% block title %}{{ inviter_name }} invited you to TrackMyRupee{% endblock %}
+
+{% block content %}
+    <h2>{{ inviter_name }} invited you to a family on TrackMyRupee</h2>
+
+    <p>You have been invited to join <strong>{{ household_name }}</strong>. Joining a family lets you see the combined net worth of what each member chooses to share, and who in the family holds which cards, policies and accounts.</p>
+
+    <div style="text-align: left; margin: 10px 0 25px; background: #f8f9fa; border-radius: 12px; padding: 20px; line-height: 1.6;">
+        <p style="margin: 0 0 10px;"><strong>You stay in control</strong></p>
+        <p style="margin: 0 0 8px;">Joining shares nothing. {{ inviter_name }} cannot see your accounts or anything else of yours.</p>
+        <p style="margin: 0 0 8px;">You choose which of your accounts to share, and you can stop at any time.</p>
+        <p style="margin: 0;">Family members never see transactions, categories, notes or account numbers, only names, types and amounts of what is shared.</p>
+    </div>
+
+    <p>Everyone in a family needs a Pro plan. If you do not have one yet, you can start a free 7-day Pro trial after you sign in.</p>
+
+    <div style="margin: 30px 0;">
+        <a href="{{ link }}" class="btn btn-primary">Join the family</a>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280;">The link works once and expires in {{ days }} days. If you were not expecting this, you can ignore this email.</p>
+{% endblock %}

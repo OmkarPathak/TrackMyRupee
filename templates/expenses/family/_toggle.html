@@ -1,0 +1,15 @@
+{% load i18n %}{% if show %}{% comment %}Me / Family switch. A link between two pages, never a mode inside the existing page.{% endcomment %}
+<div class="fam-seg" role="group" aria-label="{% trans 'View' %}">
+    {% if current == 'me' %}<span class="is-on" aria-current="true">{% trans "Me" %}</span>{% else %}<a href="{{ me_url }}">{% trans "Me" %}</a>{% endif %}
+    {% if current == 'family' %}<span class="is-on" aria-current="true">{% trans "Family" %}</span>
+    {% elif paused %}<a href="{{ family_home }}" class="is-off" title="{% trans 'Family view is paused until everyone is on Pro' %}">{% trans "Family" %}</a>
+    {% else %}<a href="{{ family_url }}">{% trans "Family" %}</a>{% endif %}
+</div>
+<style>
+    .fam-seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color); flex-shrink: 0; }
+    .fam-seg a, .fam-seg span { padding: .3rem .95rem; border-radius: 999px; font-size: .85rem; font-weight: 600; text-decoration: none; color: var(--color-muted-text, var(--bs-secondary-color)); line-height: 1.3; }
+    .fam-seg .is-on { background: var(--bs-body-bg); color: var(--bs-body-color); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+    .fam-seg a:hover { color: var(--bs-body-color); }
+    .fam-seg .is-off { opacity: .55; }
+</style>
+{% endif %}

@@ -27,6 +27,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 - **⚡ Fast Manual Entry**: Type "zomato 450 yesterday upi" and the app fills in the amount, date, category and payment method for you.
 - **🧭 Set Up Life Events in One Form**: TMR Flows turn "I took a loan" or "I started a new job" into every linked record you need.
 - **📈 Comprehensive Net Worth**: Cash, bank accounts, investments, deposits, physical assets and loans in one unified view.
+- **👨‍👩‍👧 Family Sharing**: One true family net worth, and who holds which card, policy or loan, with every person choosing exactly what to share.
 - **🎯 Goal-Slaying Engine**: Visual savings goals with progress tracking and celebratory confetti.
 - **🌍 Global Ready**: Multi-currency support with live exchange rates and interfaces in English, Hindi and Marathi.
 - **🛡️ Your Data, Your Control**: Export your entire history anytime, or self-host. Deleting your account removes your data from the live database; see the Privacy Policy for backups and payment records.
@@ -72,6 +73,13 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 *   **Visual Progress**: Progress bars, a per-cycle target, and a savings trend chart.
 *   **Gamified Success**: Confetti celebrations when you reach your targets.
 *   **Auto-Refunding**: Delete a goal and its contributions go back to their source accounts.
+
+### 👨‍👩‍👧 Family Sharing
+*   **One Family Net Worth**: Up to five people each keep their own account and share only what they choose. The family sees a combined, read-only net worth, built from the same valuation as everyone's own.
+*   **Who Holds What**: Every credit card, insurance policy, loan and deposit in the household, and whose it is, with limits, cover, premiums and due dates.
+*   **Default Deny**: Joining shares nothing. You pick each account and choose to show amounts or only list it. Transactions, notes and holdings inside an account are never shared, and a preview shows exactly what your family sees.
+*   **Emergency Access**: A short "if something happens to me" sheet that says where to look, never account numbers or passwords, opened on request with a delay and your right to deny.
+*   **Gentle Notes**: A few calm, optional observations (a premium falling due, a card bill coming up) that never compare people. Family view needs every member on Pro.
 
 ### 📊 Insights and Analytics
 *   **Insights Engine**: Calm, specific observations from your own entries (a budget about to run out early, a category creeping up, a deposit about to mature, a bill that changed price), each with the numbers behind it. Rule-based and private: no outside AI service, no peer comparison.

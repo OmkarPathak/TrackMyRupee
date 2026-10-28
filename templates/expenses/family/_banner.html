@@ -1,0 +1,6 @@
+{% comment %}The plan banner for a household: banner.kind is ok, warning or paused. Only a warning or a pause is worth saying; "all fine" is not shown.{% endcomment %}
+{% if banner.kind != 'ok' %}<div class="fam-banner is-{{ banner.kind }}" role="status">
+    <i class="bi {% if banner.kind == 'ok' %}bi-check-circle-fill{% elif banner.kind == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-pause-circle-fill{% endif %}" aria-hidden="true"></i>
+    <div>{{ banner.text }}</div>
+</div>
+{% endif %}

@@ -12,6 +12,7 @@ from .composer import *
 from .analytics import *
 from .dashboard import *
 from .expenses import *
+from .family import *
 from .export import *
 from .filter_api import *
 from .goals import *

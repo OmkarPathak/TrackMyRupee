@@ -1966,6 +1966,57 @@
     </div>
 </section>
 
+<!-- FAMILY SHARING -->
+<section class="landing-section" id="family" style="background: var(--tmr-surface-1); border-bottom: 1px solid var(--tmr-surface-2);">
+    <div class="container py-5">
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6 order-lg-2 text-center text-lg-start">
+                <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-400); margin-bottom: var(--space-3);">{% trans "Family sharing" %}</div>
+                <h2 class="section-title">{% trans "One family. One true net worth." %}</h2>
+                <p style="color: var(--tmr-ink-600); font-size: 16px; line-height: 1.6; max-width: 520px;" class="mx-auto mx-lg-0">{% trans "Each of you keeps your own account and chooses what to share. The family sees a combined, read-only picture of only what was shared: what you own, what you owe, and who holds which card, policy or loan." %}</p>
+                <div class="mt-4 text-start" style="max-width: 520px;">
+                    <div class="ins-point"><i class="bi bi-shield-lock"></i><div><strong>{% trans "Nothing is shared by default" %}</strong><span>{% trans "Joining shares nothing. You pick each account, and whether the family sees the amount or only that it exists." %}</span></div></div>
+                    <div class="ins-point"><i class="bi bi-bank"></i><div><strong>{% trans "Accounts, never transactions" %}</strong><span>{% trans "No one sees a transaction, category, note or account number. Only the account and the few fields you allow." %}</span></div></div>
+                    <div class="ins-point"><i class="bi bi-eye"></i><div><strong>{% trans "See exactly what they see" %}</strong><span>{% trans "Preview your family's view of your accounts before anyone else does." %}</span></div></div>
+                    <div class="ins-point"><i class="bi bi-life-preserver"></i><div><strong>{% trans "If something happens to me" %}</strong><span>{% trans "An emergency sheet that says where to look, opened on request, with a delay and a veto for you." %}</span></div></div>
+                    <div class="ins-point"><i class="bi bi-stars"></i><div><strong>{% trans "Included with Pro" %}</strong><span>{% trans "Everyone in the family needs Pro. Up to five people." %}</span></div></div>
+                </div>
+                <div class="mt-4 d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                    <a href="{% url 'features' %}#family" class="btn-primary-landing">{% trans "How family sharing works" %} <i class="bi bi-arrow-right"></i></a>
+                    <a href="https://docs.trackmyrupee.com/24-family-sharing/" class="btn-secondary-landing">{% trans "Read the guide" %}</a>
+                </div>
+            </div>
+            <div class="col-lg-6 order-lg-1">
+                <div aria-label="{% trans 'Examples of family sharing' %}">
+                    <div class="ins-example">
+                        <span class="ins-ico"><i class="bi bi-people"></i></span>
+                        <div>
+                            <div class="ins-title">{% trans "Your family net worth" %}</div>
+                            <p class="ins-text">{% trans "Together you own ₹48.2L and owe ₹6.1L, a net worth of ₹42.1L. Three of you have shared amounts." %}</p>
+                            <div class="ins-meta"><span class="ins-chip">{% trans "Owns" %} ₹48,20,000</span><span class="ins-chip">{% trans "Owes" %} ₹6,10,000</span></div>
+                        </div>
+                    </div>
+                    <div class="ins-example">
+                        <span class="ins-ico"><i class="bi bi-shield-check"></i></span>
+                        <div>
+                            <div class="ins-title">{% trans "A premium falls due" %}</div>
+                            <p class="ins-text">{% trans "Meera's health policy premium of ₹24,000 falls due on 14 Dec. Nothing to do but keep it in mind." %}</p>
+                        </div>
+                    </div>
+                    <div class="ins-example">
+                        <span class="ins-ico"><i class="bi bi-credit-card-2-front"></i></span>
+                        <div>
+                            <div class="ins-title">{% trans "Who holds what" %}</div>
+                            <p class="ins-text">{% trans "Two credit cards and four insurance policies across the family, held by Arjun, Priya and Meera." %}</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center text-lg-start mt-3 mb-0" style="font-size: 12px; color: var(--tmr-ink-400);">{% trans "Examples. Names and numbers are made up." %}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- FEATURES (THE EXPERIENCE) -->
 <section class="landing-section" id="features">
     <div class="container py-5 text-center text-lg-start">

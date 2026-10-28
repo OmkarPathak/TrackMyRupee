@@ -13,6 +13,7 @@ ICONS = {
     'investments': ('📊', ['🗂️', '🔄', '🔗', '⏰', '🧩', '💸']),
     'planning': ('🗓️', ['🔁', '🎚️', '🏁', '🏠', '🎉']),
     'flows': ('🧭', ['🪄', '🗺️', '🛟']),
+    'family': ('👨‍👩‍👧', ['👪', '🗂️', '🔐', '👁️', '🆘', '🌿', '🧾']),
     'noticing': ('✨', ['👀', '🔢', '🌿', '🗓️', '🎛️', '🧭', '🔒']),
     'insights': ('💡', ['📊', '✅', '📉', '🎁']),
     'alerts': ('🔔', ['⏰', '🌙']),
@@ -170,6 +171,41 @@ def _feature_categories():
                 {
                     'title': _('Safe to get wrong'),
                     'desc': _('You review before anything is saved, a flow saves everything or nothing, and a double-click cannot create things twice. You can switch on historical entries to fill in the months already gone.'),
+                },
+            ],
+        },
+        {
+            'id': 'family',
+            'title': _('Family sharing'),
+            'description': _('One household picture, with each person choosing what to share.'),
+            'items': [
+                {
+                    'title': _('One family net worth'),
+                    'desc': _("The family sees one combined net worth: what you own, what you owe, and how it splits across cash, investments, property and more. The numbers come from the same valuation as each person's own net worth, so they never disagree."),
+                },
+                {
+                    'title': _('Who holds what'),
+                    'desc': _('See every credit card, insurance policy, loan and deposit the family has, and whose it is. A card shows its limit and next bill date, a policy its cover, premium and due date, a loan its EMI.'),
+                },
+                {
+                    'title': _('Nothing is shared until you share it'),
+                    'desc': _('Joining a family shares nothing. You pick each account and choose Show amounts or List only. Transactions, categories, notes and the holdings inside an account are never shared.'),
+                },
+                {
+                    'title': _('See exactly what they see'),
+                    'desc': _("A preview shows your family's view of your shared accounts. Give an account a nickname if its real name is private. Stop sharing at any time and it disappears for them at once."),
+                },
+                {
+                    'title': _('Emergency access'),
+                    'desc': _('Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy.'),
+                },
+                {
+                    'title': _('Gentle notes, never comparisons'),
+                    'desc': _('A few calm, optional observations, such as a premium falling due or a card bill coming up, built only from what is shared. They never compare people or judge an amount, and each person can switch them off.'),
+                },
+                {
+                    'title': _('Your own account, your own data'),
+                    'desc': _('Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away.'),
                 },
             ],
         },

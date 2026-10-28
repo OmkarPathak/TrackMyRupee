@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters %}
+
+{% block title %}{% blocktrans with name=account.name %}Share {{ name }}{% endblocktrans %} | TrackMyRupee{% endblock %}
+
+{% block content %}
+<div class="fam fade-in">
+{% include 'expenses/family/_styles.html' %}
+
+<form method="post" class="card fam-card fam-dialog" aria-labelledby="fam-dlg-h" id="fam-share-form">
+    {% csrf_token %}
+    <div>
+        <h1 id="fam-dlg-h" style="font-size:1.35rem;font-weight:800;letter-spacing:-.02em;margin:0">{% blocktrans with name=account.name %}Share {{ name }}{% endblocktrans %}</h1>
+        <p class="fam-note">
+            {% if others %}{% blocktrans trimmed with names=others|join:", " %}With {{ names }}. Everyone in the family sees the same.{% endblocktrans %}
+            {% else %}{% trans "With your family. Nobody else has joined yet, so for now only you see it." %}{% endif %}
+        </p>
+    </div>
+
+    <fieldset class="border-0 p-0 m-0 d-flex flex-column gap-2">
+        <legend class="fw-bold fs-6 p-0 mb-1">{% trans "What can they see?" %}</legend>
+        <label class="fam-choice">
+            <input type="radio" name="level" value="AMOUNTS" {% if level == 'AMOUNTS' %}checked{% endif %}>
+            <span><b>{% trans "Show amounts" %}</b><span class="fam-row-sub">{% if item.kind == 'insurance' %}{% trans "They see the cover, premium, next due date and who it covers." %}{% elif item.kind == 'card' or item.kind == 'loan' %}{% trans "What you owe counts towards the family net worth." %}{% else %}{% trans "The amount counts towards the family net worth." %}{% endif %}</span></span>
+        </label>
+        <label class="fam-choice">
+            <input type="radio" name="level" value="LIST" {% if level == 'LIST' %}checked{% endif %}>
+            <span><b>{% trans "List only" %}</b><span class="fam-row-sub">{% trans "They see that you hold this, with no amounts. It is not counted in the family net worth." %}</span></span>
+        </label>
+    </fieldset>
+
+    <div>
+        <label for="fam-alias" class="form-label fw-bold">{% trans "Shown to family as" %}</label>
+        <input type="text" class="form-control" id="fam-alias" name="alias" maxlength="100" value="{{ alias|default:account.name }}" autocomplete="off">
+        <div class="fam-note">{% trans "Rename it if the account name is personal. Your own name for it does not change." %}</div>
+    </div>
+
+    {% if policy %}
+    <div>
+        <label for="fam-covers" class="form-label fw-bold">{% trans "Who does this policy cover?" %}</label>
+        <input type="text" class="form-control" id="fam-covers" name="covers" maxlength="255" value="{{ policy.covers }}" autocomplete="off" placeholder="{% trans 'For example: Arjun, Priya' %}">
+        <div class="fam-chips" aria-label="{% trans 'Add a name' %}">
+            {% for name in member_names %}<button type="button" data-add="{{ name }}">+ {{ name }}</button>{% endfor %}
+        </div>
+        <div class="fam-note">{% trans "Only shown to family if you show amounts. Type names, separated by commas." %}</div>
+    </div>
+    {% endif %}
+
+    <div class="fam-see" aria-live="polite">
+        <div class="fam-see-label">{% trans "Family will see" %}</div>
+        <div class="fam-see-top">
+            <span class="fam-row-name" id="fam-see-name">{{ alias|default:account.name }}</span>
+            <span class="badge badge-soft-secondary">{{ item.type_label }} · {{ item.owner_name }}</span>
+        </div>
+        <div class="fam-see-facts" id="fam-see-facts">
+            {% if item.kind == 'card' %}
+                {% if item.amount is not None %}<div><div class="fam-row-sub">{% trans "Outstanding" %}</div><div class="fam-amt">{{ item.amount|money_exact:item.currency }}</div></div>{% endif %}
+                {% if item.limit %}<div><div class="fam-row-sub">{% trans "Limit" %}</div><div class="fam-amt">{{ item.limit|money_exact:item.currency }}</div></div>{% endif %}
+                {% if item.available is not None %}<div><div class="fam-row-sub">{% trans "Available" %}</div><div class="fam-amt">{{ item.available|money_exact:item.currency }}</div></div>{% endif %}
+                {% if item.next_bill %}<div><div class="fam-row-sub">{% trans "Next bill" %}</div><div class="fam-amt">{{ item.next_bill|date:"j M" }}</div></div>{% endif %}
+            {% elif item.kind == 'insurance' %}
+                {% if item.cover %}<div><div class="fam-row-sub">{% trans "Cover" %}</div><div class="fam-amt">{{ item.cover|money_exact:item.currency }}</div></div>{% endif %}
+                {% if item.premium %}<div><div class="fam-row-sub">{% trans "Premium" %}</div><div class="fam-amt">{{ item.premium|money_exact:item.currency }} {{ item.premium_per }}</div></div>{% endif %}
+                {% if item.next_due %}<div><div class="fam-row-sub">{% trans "Next due" %}</div><div class="fam-amt">{{ item.next_due|date:"j M" }}</div></div>{% endif %}
+            {% elif item.kind == 'loan' %}
+                {% if item.amount is not None %}<div><div class="fam-row-sub">{% trans "Outstanding" %}</div><div class="fam-amt">{{ item.amount|money_exact:item.currency }}</div></div>{% endif %}
+                {% if item.emi %}<div><div class="fam-row-sub">{% trans "EMI" %}</div><div class="fam-amt">{{ item.emi|money_exact:item.currency }}</div></div>{% endif %}
+            {% elif item.amount is not None %}
+                <div><div class="fam-row-sub">{% trans "Amount" %}</div><div class="fam-amt">{{ item.amount|money_exact:item.currency }}</div></div>
+            {% endif %}
+        </div>
+        <div class="fam-row-sub" id="fam-see-none" hidden>{% trans "Just the name, the type and who holds it. No amounts." %}</div>
+    </div>
+
+    <div class="fam-banner is-ok mb-0">
+        <i class="bi bi-shield-check" aria-hidden="true"></i>
+        <div><b>{% trans "Never shared:" %}</b> {% trans "transactions, categories, notes, the account or policy number, or anything else inside this account. Family history starts today and uses month-end amounts only." %}</div>
+    </div>
+
+    <div class="fam-dialog-foot">
+        {% if share %}
+        <button type="submit" class="btn btn-action-danger btn-sm" formaction="{% url 'family-share-stop' account.uuid %}" formnovalidate>{% trans "Stop sharing" %}</button>
+        {% endif %}
+        <div class="fam-actions">
+            <a href="{% url 'family-share' %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
+            <button type="submit" class="btn btn-action-primary">{% trans "Save sharing" %}</button>
+        </div>
+    </div>
+</form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var form = document.getElementById('fam-share-form');
+        if (!form) return;
+        var facts = document.getElementById('fam-see-facts');
+        var none = document.getElementById('fam-see-none');
+        var name = document.getElementById('fam-see-name');
+        var alias = document.getElementById('fam-alias');
+        var fallback = "{{ account.name|escapejs }}";
+        function sync() {
+            var level = form.querySelector('input[name="level"]:checked');
+            var amounts = !level || level.value === 'AMOUNTS';
+            facts.hidden = !amounts;
+            none.hidden = amounts;
+            name.textContent = alias.value.trim() || fallback;
+        }
+        form.addEventListener('change', sync);
+        alias.addEventListener('input', sync);
+        var covers = document.getElementById('fam-covers');
+        form.querySelectorAll('[data-add]').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var parts = covers.value.split(',').map(function (p) { return p.trim(); }).filter(Boolean);
+                if (parts.indexOf(b.dataset.add) === -1) parts.push(b.dataset.add);
+                covers.value = parts.join(', ');
+            });
+        });
+        sync();
+    })();
+</script>
+{% endblock %}

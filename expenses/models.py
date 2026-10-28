@@ -555,6 +555,202 @@ class LedgerReconciliationReport(models.Model):
     def __str__(self):
         return f"{self.user_id}:{self.account_id}:{self.as_of_date} ({self.status})"
 
+class Household(models.Model):
+    """A family that shares part of its finances (docs/FAMILY_SHARING.md). Members each keep their own account."""
+
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    name = models.CharField(max_length=100, default='Our family', verbose_name=_('Family name'))
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_households')
+    # Bumped whenever a share, a member or a plan changes, so cached family totals are never read stale
+    cache_version = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.owner_id})"
+
+
+class HouseholdMember(models.Model):
+    """One person in a household. A user belongs to at most one household (the one-to-one enforces it)."""
+
+    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='members')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='household_membership')
+    joined_at = models.DateTimeField(default=timezone.now)
+    # Off by default: when this member shares something new, tell the other members in the app
+    notify_new_shares = models.BooleanField(default=False)
+    # Gentle notes on the family inventory: on by default, and each person can switch them off for themselves
+    gentle_notes = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['joined_at', 'id']
+
+    def __str__(self):
+        return f"{self.user_id} in {self.household_id}"
+
+
+class FamilyShare(models.Model):
+    """One account its owner has chosen to show to their household. No row means private.
+
+    Family members only ever see a fixed set of fields of a shared account (expenses/family/summary.py), and the
+    ``alias`` is what they see as its name, so a personal account name never has to be revealed.
+    """
+
+    AMOUNTS, LIST_ONLY = 'AMOUNTS', 'LIST'
+    LEVEL_CHOICES = [
+        (AMOUNTS, _('Show amounts')),
+        (LIST_ONLY, _('List only')),
+    ]
+
+    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='shares')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_shares')
+    account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='family_share')
+    level = models.CharField(max_length=8, choices=LEVEL_CHOICES, default=AMOUNTS)
+    alias = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    # When the family first got to see amounts for this account; the shared history never reaches back before it
+    amounts_since = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at', 'id']
+        indexes = [models.Index(fields=['household', 'owner'], name='famshare_household_owner_idx')]
+
+    def __str__(self):
+        return f"{self.owner_id} shares account {self.account_id} ({self.level})"
+
+
+class GentleNoteDismissal(models.Model):
+    """A gentle note one person has dismissed. The key says what the note was about, so the same note stays away
+    and a note about something new can still appear."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gentle_note_dismissals')
+    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='note_dismissals')
+    key = models.CharField(max_length=120)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'key'], name='unique_gentle_note_dismissal')]
+
+    def __str__(self):
+        return f"{self.user_id} dismissed {self.key}"
+
+
+class EmergencySheet(models.Model):
+    """What someone wants their family to find if something happens to them: which accounts and policies exist,
+    who the nominee is, where documents are. Never account numbers or passwords. Independent of any plan: it
+    must still open when a subscription has lapsed."""
+
+    REQUEST, ALWAYS = 'REQUEST', 'ALWAYS'
+    MODE_CHOICES = [
+        (REQUEST, _('On request, with a delay')),
+        (ALWAYS, _('Always visible to them')),
+    ]
+
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name='emergency_sheet')
+    mode = models.CharField(max_length=8, choices=MODE_CHOICES, default=REQUEST)
+    documents_note = models.TextField(blank=True, max_length=1000)
+    contacts_note = models.TextField(blank=True, max_length=1000)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Emergency sheet of {self.owner_id} ({self.mode})"
+
+
+class EmergencySheetItem(models.Model):
+    """An account on the sheet (no row, no mention) and who is the nominee for it."""
+
+    sheet = models.ForeignKey(EmergencySheet, on_delete=models.CASCADE, related_name='items')
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='emergency_items')
+    nominee = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['sheet', 'account'], name='unique_emergency_sheet_account')]
+
+    def __str__(self):
+        return f"{self.account_id} on sheet {self.sheet_id}"
+
+
+class EmergencyAllowed(models.Model):
+    """A person who may ask for (or, in the always-visible mode, open) a sheet."""
+
+    sheet = models.ForeignKey(EmergencySheet, on_delete=models.CASCADE, related_name='allowed')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='emergency_allowed')
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['sheet', 'user'], name='unique_emergency_allowed')]
+
+    def __str__(self):
+        return f"{self.user_id} may ask for sheet {self.sheet_id}"
+
+
+class EmergencyRequest(models.Model):
+    """A request for a sheet. If the owner does not answer by ``release_at`` the requester gets it."""
+
+    PENDING, APPROVED, DENIED, CANCELLED = 'PENDING', 'APPROVED', 'DENIED', 'CANCELLED'
+    STATUS_CHOICES = [(PENDING, 'Pending'), (APPROVED, 'Approved'), (DENIED, 'Denied'), (CANCELLED, 'Cancelled')]
+
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    sheet = models.ForeignKey(EmergencySheet, on_delete=models.CASCADE, related_name='requests')
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='emergency_requests')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    created_at = models.DateTimeField(default=timezone.now)
+    release_at = models.DateTimeField()
+    decided_at = models.DateTimeField(null=True, blank=True)
+    release_noted = models.BooleanField(default=False)     # the owner was told that the delay ran out
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        indexes = [models.Index(fields=['sheet', 'requester', 'status'], name='emreq_sheet_req_status_idx')]
+
+    def __str__(self):
+        return f"{self.requester_id} asked for sheet {self.sheet_id} ({self.status})"
+
+
+class FamilyShareEvent(models.Model):
+    """What an owner shared, changed or stopped sharing, for the owner's own "Sharing activity" list."""
+
+    SHARED, CHANGED, STOPPED = 'SHARED', 'CHANGED', 'STOPPED'
+    KIND_CHOICES = [(SHARED, 'Shared'), (CHANGED, 'Changed'), (STOPPED, 'Stopped')]
+
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_share_events')
+    kind = models.CharField(max_length=8, choices=KIND_CHOICES)
+    item_name = models.CharField(max_length=100)
+    level = models.CharField(max_length=8, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return f"{self.owner_id} {self.kind} {self.item_name}"
+
+
+class HouseholdInvitation(models.Model):
+    """A single-use invitation link. Only a hash of the token is stored, so a link cannot be read back."""
+
+    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='invitations')
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    email = models.EmailField(blank=True)
+    token_hash = models.CharField(max_length=64, unique=True)
+    invited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='household_invitations_sent')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    accepted_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name='household_invitations_accepted')
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def is_open(self):
+        return self.accepted_at is None and self.cancelled_at is None and self.expires_at > timezone.now()
+
+    def __str__(self):
+        return f"Invitation to {self.household_id} for {self.email or 'a link'}"
+
+
 class AccountReconciliation(models.Model):
     """A user-submitted check of an account's balance against a bank statement."""
 
@@ -3243,6 +3439,8 @@ class PhysicalAsset(models.Model):
         help_text=_('Savings policies count the premiums paid as their value; pure protection policies are worth nothing.'),
     )
     sum_assured = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Sum Assured'))
+    # Who the policy covers, as names ("Arjun, Priya"). Shown to family only when the owner shares the policy.
+    covers = models.CharField(max_length=255, blank=True, verbose_name=_('Covers'))
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,0 +1,231 @@
+{% comment %}Layout for the Family pages. Colours come from the app tokens (light and dark) and Bootstrap's theme
+variables, the same way the Accounts page does, so nothing here is a new colour.{% endcomment %}
+<style>
+    .fam { --fam-line: rgba(26,26,24,.10); --fam-soft: var(--bs-tertiary-bg); --fam-muted: var(--color-muted-text, #595855); --fam-green: var(--color-success-text, #0F7657); --fam-amber: var(--color-warning-text, #9C5400); --fam-red: var(--color-danger-text, #B93822); --fam-blue: var(--color-info-text, #165A9E); }
+    [data-bs-theme="dark"] .fam { --fam-line: rgba(255,255,255,.10); }
+    .fam *, .fam *::before, .fam *::after { box-sizing: border-box; }
+    .fam-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .fam-title h1 { font-size: clamp(1.5rem, 4.5vw, 2rem); font-weight: 800; letter-spacing: -.03em; margin: 0; color: var(--bs-body-color); }
+    .fam-sub { color: var(--fam-muted); font-size: .92rem; margin: .25rem 0 0; max-width: 46rem; }
+    .fam-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .fam-stack { display: flex; flex-direction: column; gap: 1rem; }
+    .fam-card { padding: 1.15rem 1.25rem; }
+    .fam-card > h2, .fam-card .fam-h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; margin: 0; color: var(--bs-body-color); }
+    .fam-note { font-size: .85rem; color: var(--fam-muted); margin: .2rem 0 0; }
+    .fam-hr { height: 1px; background: var(--fam-line); margin: .9rem 0; border: 0; }
+    @media (max-width: 575.98px) { .fam-card { padding: 1rem; } }
+
+    /* The plan banner: green when family view is on, amber when a plan is ending, blue when it is paused */
+    .fam-banner { display: flex; gap: .7rem; align-items: center; padding: .8rem 1rem; border-radius: 14px; font-size: .9rem; line-height: 1.45; border: 1px solid transparent; margin-bottom: 1rem; }
+    .fam-banner i { font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
+    .fam-banner.is-ok { background: rgba(15,118,87,.09); border-color: rgba(15,118,87,.22); color: var(--fam-green); }
+    .fam-banner.is-warning { background: rgba(212,131,26,.12); border-color: rgba(212,131,26,.28); color: var(--fam-amber); }
+    .fam-banner.is-paused { background: rgba(22,90,158,.10); border-color: rgba(22,90,158,.24); color: var(--fam-blue); }
+    [data-bs-theme="dark"] .fam-banner.is-ok { background: rgba(93,202,165,.12); border-color: rgba(93,202,165,.28); }
+    [data-bs-theme="dark"] .fam-banner.is-warning { background: rgba(244,180,78,.14); border-color: rgba(244,180,78,.30); }
+    [data-bs-theme="dark"] .fam-banner.is-paused { background: rgba(133,183,235,.14); border-color: rgba(133,183,235,.30); }
+
+    /* A list of people or items: the rows keep a one-line rhythm on a phone and use the full width on a desktop */
+    .fam-rows { display: flex; flex-direction: column; margin-top: .6rem; }
+    .fam-row { display: flex; align-items: center; gap: .85rem; padding: .8rem 0; border-top: 1px solid var(--fam-line); flex-wrap: wrap; }
+    .fam-row:first-child { border-top: 0; }
+    .fam-row-main { flex: 1 1 12rem; min-width: 0; }
+    .fam-row-name { font-weight: 700; font-size: .95rem; line-height: 1.3; overflow-wrap: anywhere; color: var(--bs-body-color); }
+    .fam-row-sub { font-size: .8rem; color: var(--fam-muted); line-height: 1.4; margin-top: .1rem; overflow-wrap: anywhere; }
+    .fam-row-end { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-left: auto; }
+    .fam-avatar { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: .85rem; flex-shrink: 0; border: 1px solid var(--fam-line); }
+    .fam-avatar.is-sm { width: 28px; height: 28px; font-size: .68rem; }
+    @media (max-width: 575.98px) { .fam-row-end { margin-left: calc(40px + .85rem); width: 100%; } }
+
+    .fam-form-row { display: flex; gap: .6rem; align-items: stretch; flex-wrap: wrap; margin-top: .75rem; }
+    .fam-form-row .form-control { flex: 1 1 14rem; min-width: 0; height: 42px; }
+    .fam-form-row .btn { flex: 0 0 auto; }
+    @media (max-width: 575.98px) { .fam-form-row .btn { flex: 1 1 100%; } }
+
+    /* The link of a new invitation, shown once */
+    .fam-link { border: 1px dashed var(--fam-line); border-radius: 14px; padding: .8rem 1rem; background: var(--fam-soft); margin-bottom: 1rem; }
+    .fam-link .fam-form-row { margin-top: .5rem; }
+
+    /* The two panels: what is shown, and what is never shown */
+    .fam-panels { display: grid; gap: .8rem; grid-template-columns: minmax(0, 1fr); margin-top: .75rem; }
+    @media (min-width: 768px) { .fam-panels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .fam-panel { border-radius: 14px; padding: .9rem 1.1rem; font-size: .88rem; }
+    .fam-panel b { display: block; margin-bottom: .35rem; }
+    .fam-panel ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .25rem; }
+    .fam-panel.is-can { background: rgba(15,118,87,.08); }
+    .fam-panel.is-can b { color: var(--fam-green); }
+    .fam-panel.is-cannot { background: rgba(185,56,34,.07); }
+    .fam-panel.is-cannot b { color: var(--fam-red); }
+    [data-bs-theme="dark"] .fam-panel.is-can { background: rgba(93,202,165,.10); }
+    [data-bs-theme="dark"] .fam-panel.is-cannot { background: rgba(244,128,110,.10); }
+
+    /* The card in the middle of a page: the empty state and the invitation */
+    .fam-center { max-width: 34rem; margin: 1.5rem auto; text-align: center; }
+    .fam-center .fam-icon { width: 56px; height: 56px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: .6rem; background: rgba(15,118,87,.10); color: var(--fam-green); }
+    [data-bs-theme="dark"] .fam-center .fam-icon { background: rgba(93,202,165,.14); }
+    .fam-center h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin-bottom: .4rem; }
+    .fam-center p { color: var(--fam-muted); }
+    .fam-center .fam-actions { justify-content: center; margin-top: 1rem; }
+    .fam-checks { text-align: left; font-size: .9rem; margin: 1rem 0; display: flex; flex-direction: column; gap: .5rem; }
+    .fam-checks li { display: flex; gap: .55rem; align-items: flex-start; list-style: none; color: var(--bs-body-color); }
+    .fam-checks i { color: var(--fam-green); margin-top: .15rem; }
+    .fam-checks { padding: 0; }
+
+    /* Sub-navigation between the family pages */
+    .fam-tabs { display: flex; gap: .25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--fam-line); overflow-x: auto; scrollbar-width: none; }
+    .fam-tabs::-webkit-scrollbar { display: none; }
+    .fam-tabs a { display: inline-flex; align-items: center; gap: .45rem; padding: .7rem .95rem; margin-bottom: -1px; font-size: .92rem; font-weight: 600; text-decoration: none; white-space: nowrap; color: var(--fam-muted); border-bottom: 2px solid transparent; }
+    .fam-tabs a .bi { font-size: 1.05rem; }
+    .fam-tabs a:hover { color: var(--bs-body-color); }
+    .fam-tabs a.is-active { color: var(--bs-body-color); border-bottom-color: var(--fam-green); }
+    .fam-tabs a.is-active .bi { color: var(--fam-green); }
+    .fam-tab-short { display: none; }
+    @media (max-width: 991.98px) and (min-width: 576px) { .fam-tabs a { padding-left: .7rem; padding-right: .7rem; font-size: .88rem; } }
+    @media (max-width: 575.98px) {
+        .fam-tabs { gap: 0; }
+        .fam-tabs a { flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: flex-start; gap: .2rem; padding: .55rem .1rem .5rem; font-size: .68rem; line-height: 1.15; white-space: normal; text-align: center; }
+        .fam-tabs a .bi { font-size: 1.2rem; }
+        .fam-tab-long { display: none; }
+        .fam-tab-short { display: inline; }
+    }
+
+    /* Group headings and the on/off switch of "What I share" */
+    .fam .fam-h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; margin: 0; color: var(--bs-body-color); }
+    .fam-gcard { margin-bottom: 1rem; padding-top: .35rem; padding-bottom: .35rem; }
+    .fam-ghead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 0 .7rem; }
+    .fam-gname { margin: 0; font-size: 1.05rem; font-weight: 800; }
+    .fam-gcount { font-size: .8rem; color: var(--fam-muted); margin-top: .1rem; }
+    .fam-gcard .fam-rows .fam-row:first-child { border-top: 1px solid var(--fam-line); }
+    .fam-item .fam-switch { width: 36px; height: 20px; }
+    .fam-item .fam-switch::after { top: 2px; left: 2px; width: 16px; height: 16px; }
+    .fam-item .fam-switch[aria-pressed="true"]::after { transform: translateX(16px); }
+    .fam-switch { width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; position: relative; flex-shrink: 0; background: var(--bs-secondary-bg); box-shadow: inset 0 0 0 1px var(--fam-line); transition: background .15s; cursor: pointer; }
+    .fam-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--bs-body-bg); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s; }
+    .fam-switch[aria-pressed="true"] { background: var(--bs-success); box-shadow: none; }
+    .fam-switch[aria-pressed="true"]::after { transform: translateX(18px); background: var(--bs-white); }
+    .fam-switch:focus-visible { outline: 2px solid var(--fam-green); outline-offset: 2px; }
+    .fam-amt { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--bs-body-color); }
+    .fam-amt.is-neg { color: var(--fam-red); }
+    .fam-private { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; color: var(--fam-muted); }
+    @media (max-width: 575.98px) {
+        .fam-item .fam-row-end { margin-left: calc(44px + .85rem); justify-content: flex-start; }
+        .fam-item.is-plain .fam-row-end { margin-left: calc(28px + .85rem); }
+        /* What I share on a phone: switch | name and type | amount, then the status and the action under the name */
+        .fam-share-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: .75rem; row-gap: .5rem; align-items: center; padding-left: 0; padding-right: 0; }
+        .fam-share-row > form { grid-column: 1; grid-row: 1; }
+        .fam-share-row .fam-row-main { grid-column: 2; grid-row: 1; min-width: 0; }
+        .fam-share-row .fam-row-end { display: contents; }
+        .fam-share-row .fam-amt { grid-column: 3; grid-row: 1; justify-self: end; font-size: .95rem; }
+        .fam-share-row .badge { grid-column: 2; grid-row: 2; justify-self: start; }
+        .fam-share-row .btn { grid-column: 3; grid-row: 2; justify-self: end; }
+    }
+
+    /* The sharing dialog, as a page: a card in the middle that works at phone width */
+    .fam-dialog { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.1rem; }
+    .fam-choice { display: flex; gap: .75rem; align-items: flex-start; border: 1px solid var(--fam-line); border-radius: 12px; padding: .75rem .9rem; cursor: pointer; }
+    .fam-choice:has(input:checked) { border-color: var(--fam-green); background: var(--fam-soft); }
+    .fam-choice input { margin-top: .3rem; flex-shrink: 0; }
+    .fam-choice b { display: block; }
+    .fam-see { border: 1px solid var(--fam-line); border-radius: 12px; padding: .85rem 1rem; display: flex; flex-direction: column; gap: .5rem; }
+    .fam-see-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--fam-muted); }
+    .fam-see-top { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; align-items: center; }
+    .fam-see-facts { display: flex; gap: .5rem 1.5rem; flex-wrap: wrap; }
+    .fam-see-facts .fam-row-sub { margin: 0; }
+    .fam-dialog-foot { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; }
+    .fam-dialog-foot .fam-actions { margin-left: auto; }
+    @media (max-width: 575.98px) { .fam-dialog-foot, .fam-dialog-foot .fam-actions { flex-direction: column-reverse; align-items: stretch; width: 100%; } .fam-dialog-foot .btn { width: 100%; } }
+    .fam-chips { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+    .fam-chips button { border: 1px solid var(--fam-line); background: transparent; color: var(--bs-body-color); border-radius: 999px; padding: .15rem .7rem; font-size: .8rem; }
+
+    /* The preview bar and the "only you see this" note */
+    .fam-pvbar { background: var(--bs-emphasis-color); color: var(--bs-body-bg); border-radius: 14px; padding: .8rem 1rem; display: flex; gap: .8rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 1rem; }
+    .fam-pvbar a, .fam-pvbar .btn { color: inherit; border: 1px solid currentColor; background: transparent; font-size: .85rem; padding: .25rem .8rem; border-radius: 999px; text-decoration: none; opacity: .9; }
+    .fam-pvbar .fam-actions { gap: .4rem; }
+    .fam-hidden { background: rgba(212,131,26,.12); border: 1px solid rgba(212,131,26,.28); color: var(--fam-amber); }
+    [data-bs-theme="dark"] .fam-hidden { background: rgba(244,180,78,.14); border-color: rgba(244,180,78,.30); }
+    .fam-hidden h2 { color: var(--fam-amber); }
+    .fam-hidden { font-size: .9rem; }
+    .fam-hid-more { margin-top: .5rem; }
+    .fam-hid-more summary { cursor: pointer; font-weight: 600; }
+    .fam-hid-more p { margin-top: .35rem; }
+    .fam-hidden ul { margin: .5rem 0 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .25rem; }
+    .fam-split { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+    @media (min-width: 992px) { .fam-split { grid-template-columns: minmax(0, 1fr) 20rem; } }
+
+    /* The family net worth page */
+    .fam-stat { font-size: clamp(2rem, 7vw, 3rem); font-weight: 800; letter-spacing: -.04em; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--bs-body-color); }
+    .fam-stat.is-neg { color: var(--fam-red); }
+    .fam-tiles { display: grid; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 1rem 0; }
+    .fam-tile { background: var(--fam-soft); border-radius: 14px; padding: .75rem 1rem; }
+    .fam-tile .fam-amt { font-size: 1.2rem; display: block; }
+    .fam-chips-r { display: flex; gap: .4rem; }
+    .fam-chip { padding: .25rem .8rem; border-radius: 999px; border: 1px solid var(--fam-line); font-size: .82rem; font-weight: 600; text-decoration: none; color: var(--fam-muted); }
+    .fam-chip.is-on { border-color: var(--fam-green); color: var(--bs-body-color); background: var(--fam-soft); }
+    .fam-chart { display: block; width: 100%; height: auto; }
+    .fam-chart .area { fill: var(--fam-green); opacity: .14; }
+    .fam-chart .line { fill: none; stroke: var(--fam-green); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+    .fam-chart .dot { fill: var(--fam-green); }
+    .fam-chart .axis { stroke: var(--fam-line); }
+    .fam-chart .mark { stroke: var(--fam-muted); stroke-dasharray: 4 4; }
+    .fam-chart text { fill: var(--fam-muted); font-size: 12px; font-family: inherit; }
+    .fam-grid2 { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 992px) { .fam-grid2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .fam-bar { display: flex; height: 12px; border-radius: 99px; overflow: hidden; gap: 2px; margin: .8rem 0; }
+    .fam-bar span { display: block; height: 100%; }
+    .fam-c0 { background: var(--bs-purple, #6f42c1); } .fam-c1 { background: var(--bs-orange, #fd7e14); } .fam-c2 { background: var(--bs-primary); }
+    .fam-c3 { background: var(--bs-success); } .fam-c4 { background: var(--bs-info); }
+    .fam-legend { display: flex; justify-content: space-between; gap: .75rem; padding: .3rem 0; font-size: .9rem; }
+    .fam-dotk { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: .5rem; }
+
+    /* Tables that become cards on a phone */
+    .fam-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .fam-table th, .fam-table td { padding: .65rem .7rem; border-top: 1px solid var(--fam-line); text-align: left; vertical-align: middle; }
+    .fam-table thead th { border-top: 0; font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--fam-muted); font-weight: 700; }
+    .fam-table .r { text-align: right; } .fam-table .c { text-align: center; }
+    .fam-table tfoot td { font-weight: 700; background: var(--fam-soft); }
+    .fam-table .none { color: var(--fam-muted); font-weight: 400; }
+    .fam-who { display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; }
+    .fam-scroll { overflow-x: auto; }
+    .fam-cc { border: 1px solid var(--fam-line); border-radius: 14px; padding: .85rem 1rem; display: flex; flex-direction: column; gap: .35rem; }
+    .fam-cc + .fam-cc { margin-top: .6rem; }
+    .fam-cc .kv { display: flex; justify-content: space-between; gap: .75rem; font-size: .88rem; color: var(--fam-muted); }
+    .fam-cc .kv b, .fam-cc .kv .v { color: var(--bs-body-color); text-align: right; }
+    .fam-soon { display: flex; flex-direction: column; }
+    .fam-soon > div { display: flex; gap: .75rem; align-items: center; padding: .6rem 0; border-top: 1px solid var(--fam-line); flex-wrap: wrap; }
+    .fam-soon > div:first-child { border-top: 0; }
+    .fam-soon .when { width: 4.5rem; font-size: .85rem; color: var(--fam-muted); flex-shrink: 0; }
+    .fam-soon .what { flex: 1 1 10rem; min-width: 0; font-weight: 600; font-size: .92rem; }
+    @media (max-width: 767.98px) { .fam-sec { display: none; } .fam-sec.is-shown { display: block; } .fam-onlydesk { display: none !important; } }
+    @media (min-width: 768px) { .fam-onlymobile { display: none !important; } }
+    .fam-pill { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .fam-pill button { flex: 1 1 0; padding: .45rem .5rem; border-radius: 999px; border: 1px solid var(--fam-line); background: transparent; color: var(--fam-muted); font-weight: 600; font-size: .88rem; }
+    .fam-pill button.is-on { background: var(--fam-soft); border-color: var(--fam-green); color: var(--bs-body-color); }
+    .fam-gentle { background: var(--fam-soft); }
+
+    /* A switch that lives inside a form: a checkbox drawn like .fam-switch */
+    .fam-tog { position: relative; display: inline-block; width: 44px; height: 26px; flex-shrink: 0; margin: 0; }
+    .fam-tog input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 1; }
+    .fam-tog span { position: absolute; inset: 0; border-radius: 999px; background: var(--bs-secondary-bg); box-shadow: inset 0 0 0 1px var(--fam-line); transition: background .15s; }
+    .fam-tog span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--bs-body-bg); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s; }
+    .fam-tog input:checked + span { background: var(--bs-success); box-shadow: none; }
+    .fam-tog input:checked + span::after { transform: translateX(18px); background: var(--bs-white); }
+    .fam-tog input:focus-visible + span { outline: 2px solid var(--fam-green); outline-offset: 2px; }
+    .fam-liab { display: flex; gap: 1.5rem; margin: 0 0 0 auto; }
+    .fam-liab > div { display: flex; flex-direction: column; align-items: flex-end; }
+    .fam-liab dt { font-size: .75rem; font-weight: 500; color: var(--fam-muted); }
+    .fam-liab dd { margin: 0; font-size: .95rem; }
+    @media (max-width: 575.98px) { .fam-liab { margin-left: 0; width: 100%; padding-left: calc(36px + .85rem); } .fam-liab > div { align-items: flex-start; } }
+    .fam-nominee { flex: 1 1 11rem; min-width: 0; }
+    .fam-nominee label { font-size: .75rem; color: var(--fam-muted); display: block; }
+    .fam-countdown { background: rgba(212,131,26,.12); color: var(--fam-amber); border-radius: 12px; padding: .7rem .9rem; }
+    [data-bs-theme="dark"] .fam-countdown { background: rgba(244,180,78,.14); }
+    .fam-countdown b { display: block; font-size: 1.4rem; line-height: 1.2; }
+    .fam-steps { display: flex; flex-direction: column; gap: .9rem; margin: .8rem 0; }
+    .fam-step { display: flex; gap: .75rem; align-items: flex-start; }
+    .fam-step .dot { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%; background: var(--bs-secondary-bg); display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; color: var(--fam-muted); }
+    .fam-step .dot.is-done { background: var(--bs-success); color: var(--bs-white); }
+    .fam-warn { display: flex; gap: .7rem; align-items: center; background: rgba(212,131,26,.12); border: 1px solid rgba(212,131,26,.28); color: var(--fam-amber); border-radius: 12px; padding: .7rem .9rem; font-size: .88rem; }
+    .fam-warn i { font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
+    [data-bs-theme="dark"] .fam-warn { background: rgba(244,180,78,.14); border-color: rgba(244,180,78,.30); }
+    @media print { .fam-tabs, .fam-noprint, .sidebar, .navbar, .fam-banner { display: none !important; } .fam-card { border: 0; box-shadow: none; } }
+</style>

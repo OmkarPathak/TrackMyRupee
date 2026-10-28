@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters family_tags %}
+
+{% block title %}{% trans "If something happens to me" %} | TrackMyRupee{% endblock %}
+
+{% block content %}
+<div class="fam fade-in">
+{% include 'expenses/family/_styles.html' %}
+{% include 'expenses/family/_tabs.html' %}
+
+<div class="fam-head">
+    <div class="fam-title">
+        <h1>{% trans "If something happens to me" %}</h1>
+        <p class="fam-sub">{% trans "Pick what goes on your emergency sheet and who can ask for it. Nothing here is visible to anyone until you decide." %}</p>
+    </div>
+    {% if sheet %}<div class="fam-actions"><a href="{% url 'family-emergency-sheet' request.user.household_membership.pk %}?print=1" class="btn btn-action-cancel" target="_blank" rel="noopener">{% trans "Print or save as PDF" %}</a></div>{% endif %}
+</div>
+
+<div class="fam-split">
+<form method="post" action="{% url 'family-emergency-save' %}" class="fam-stack" id="fam-em-form">
+    {% csrf_token %}
+    <section aria-labelledby="fam-inc-h">
+        <h2 id="fam-inc-h" class="fam-h2 mb-1">{% trans "What is on the sheet" %}</h2>
+        <p class="fam-note mb-2">{% trans "Built from what you already track. Switch off anything you want to keep off it." %}</p>
+        {% if not groups %}<p class="fam-note">{% trans "You have no accounts yet. Add one on the Accounts page, then come back." %}</p>{% endif %}
+        {% for key, label, rows in groups %}
+        <div class="card fam-card fam-gcard" data-fam-group>
+            <div class="fam-ghead">
+                <div>
+                    <h3 class="fam-gname">{{ label }}</h3>
+                    <div class="fam-gcount" data-fam-count data-template="{% blocktrans trimmed with on='%ON%' total='%TOTAL%' %}{{ on }} of {{ total }} on the sheet{% endblocktrans %}"></div>
+                </div>
+                <button type="button" class="btn btn-action-cancel btn-sm" data-fam-all data-add="{% trans 'Add all' %}" data-remove="{% trans 'Remove all' %}" aria-label="{% blocktrans with name=label %}Add or remove all in {{ name }}{% endblocktrans %}"></button>
+            </div>
+            <div class="fam-rows">
+            {% for row in rows %}{% with account=row.account item=row.item %}
+            <div class="fam-row fam-item">
+                <label class="fam-tog"><input type="checkbox" name="include_{{ account.uuid }}" {% if row.on %}checked{% endif %} aria-label="{% blocktrans with name=account.name %}Include {{ name }}{% endblocktrans %}"><span aria-hidden="true"></span></label>
+                <div class="fam-row-main">
+                    <div class="fam-row-name">{{ account.name }}</div>
+                    {% if row.liability %}<div class="fam-row-sub">{{ item.type_label }}</div>
+                    {% else %}<div class="fam-row-sub">{% include 'expenses/family/_item_sub.html' %}{% if item.amount is not None %} · <span class="fam-amt{% if item.amount < 0 %} is-neg{% endif %}">{{ item.amount|money_exact:item.currency }}</span>{% endif %}</div>{% endif %}
+                </div>
+                {% if row.liability %}
+                <dl class="fam-liab">
+                    {% if item.amount is not None %}<div><dt>{% trans "Owed" %}</dt><dd class="fam-amt is-neg">{{ item.amount|money_exact:item.currency|cut:"-" }}</dd></div>{% endif %}
+                    {% if item.limit %}<div><dt>{% trans "Limit" %}</dt><dd class="fam-amt">{{ item.limit|money_exact:item.currency }}</dd></div>{% endif %}
+                    {% if item.emi %}<div><dt>{% trans "EMI" %}</dt><dd class="fam-amt">{{ item.emi|money_exact:item.currency }}</dd></div>{% endif %}
+                </dl>
+                {% else %}
+                <div class="fam-nominee"><label for="nom-{{ account.uuid }}">{% trans "Nominee" %}</label><input type="text" class="form-control" id="nom-{{ account.uuid }}" name="nominee_{{ account.uuid }}" maxlength="100" value="{{ row.nominee }}" autocomplete="off"></div>
+                {% endif %}
+            </div>
+            {% endwith %}{% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    <script>
+    (function () {
+        document.querySelectorAll('[data-fam-group]').forEach(function (group) {
+            var boxes = group.querySelectorAll('.fam-item input[type="checkbox"]');
+            var count = group.querySelector('[data-fam-count]');
+            var button = group.querySelector('[data-fam-all]');
+            function refresh() {
+                var on = Array.prototype.filter.call(boxes, function (b) { return b.checked; }).length;
+                count.textContent = count.dataset.template.replace('%ON%', on).replace('%TOTAL%', boxes.length);
+                button.textContent = on === boxes.length ? button.dataset.remove : button.dataset.add;
+            }
+            button.addEventListener('click', function () {
+                var all = Array.prototype.every.call(boxes, function (b) { return b.checked; });
+                boxes.forEach(function (b) { b.checked = !all; });
+                refresh();
+            });
+            boxes.forEach(function (b) { b.addEventListener('change', refresh); });
+            refresh();
+        });
+    })();
+    </script>
+
+    <section class="card fam-card" aria-labelledby="fam-nt-h">
+        <h2 id="fam-nt-h">{% trans "Notes for the people you trust" %}</h2>
+        <div class="mb-3"><label for="fam-docs" class="form-label fw-bold">{% trans "Where my documents are" %}</label><textarea class="form-control" id="fam-docs" name="documents" rows="3" maxlength="1000">{{ sheet.documents_note }}</textarea></div>
+        <div class="mb-3"><label for="fam-contacts" class="form-label fw-bold">{% trans "People to call" %}</label><textarea class="form-control" id="fam-contacts" name="contacts" rows="3" maxlength="1000">{{ sheet.contacts_note }}</textarea></div>
+        <div class="fam-warn" role="note"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><div><b>{% trans "Never put account numbers, passwords or PINs here." %}</b> {% trans "This sheet says what exists and where to look. It is not a will or a legal nomination." %}</div></div>
+    </section>
+
+    <section class="card fam-card" aria-labelledby="fam-who-h">
+        <h2 id="fam-who-h">{% trans "Who can ask for it" %}</h2>
+        {% if not others %}<p class="fam-note">{% trans "Nobody else is in your family yet. Invite someone on the Members page." %}</p>{% endif %}
+        <div class="fam-rows">
+            {% for row in others %}
+            <div class="fam-row">
+                <label class="fam-tog"><input type="checkbox" name="ask_{{ row.membership.pk }}" {% if row.allowed %}checked{% endif %} aria-label="{% blocktrans with name=row.name %}{{ name }} can ask{% endblocktrans %}"><span aria-hidden="true"></span></label>
+                <span class="fam-avatar bg-{{ row.tone }}-subtle text-{{ row.tone }}-emphasis" aria-hidden="true">{{ row.initials }}</span>
+                <div class="fam-row-main fam-row-name">{{ row.name }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <fieldset class="border-0 p-0 m-0 d-flex flex-column gap-2 mt-3">
+            <legend class="fw-bold fs-6 p-0 mb-1">{% trans "How they get access" %}</legend>
+            <label class="fam-choice"><input type="radio" name="mode" value="REQUEST" {% if mode == 'REQUEST' %}checked{% endif %}><span><b>{% trans "On request, with a delay" %}</b><span class="fam-row-sub">{% blocktrans trimmed with days=delay_days|translate_digits %}They ask. You are told by email and a notification, and can deny. If you do not answer within {{ days }} days they get a read-only copy.{% endblocktrans %}</span></span></label>
+            <label class="fam-choice"><input type="radio" name="mode" value="ALWAYS" {% if mode == 'ALWAYS' %}checked{% endif %}><span><b>{% trans "Always visible to them" %}</b><span class="fam-row-sub">{% trans "They can open the sheet at any time. Best for a spouse you trust fully." %}</span></span></label>
+        </fieldset>
+        <div class="fam-actions justify-content-end mt-3"><button type="submit" class="btn btn-action-primary">{% trans "Save emergency sheet" %}</button></div>
+    </section>
+</form>
+
+<aside class="fam-stack">
+    {% for p in pending %}
+    <section class="card fam-card" aria-labelledby="fam-rq-{{ forloop.counter }}">
+        <span class="badge badge-soft-warning align-self-start">{% trans "Needs your answer" %}</span>
+        <h2 id="fam-rq-{{ forloop.counter }}" class="mt-2">{% blocktrans with name=p.name %}{{ name }} asked for your emergency sheet{% endblocktrans %}</h2>
+        <p class="fam-note">{% blocktrans trimmed with when=p.request.created_at|date:"j M, H:i" %}Asked on {{ when }}.{% endblocktrans %}</p>
+        <div class="fam-countdown"><span class="fam-row-sub">{% trans "If you do nothing, they get a read-only copy in" %}</span><b>{% blocktrans trimmed with d=p.left.days|translate_digits h=p.left.hours|translate_digits %}{{ d }} days {{ h }} hours{% endblocktrans %}</b></div>
+        <p class="fam-note">{% trans "They would see the sheet exactly as you saved it, read-only. Nothing else about your accounts." %}</p>
+        <div class="fam-actions">
+            <form method="post" action="{% url 'family-emergency-deny' p.request.uuid %}">{% csrf_token %}<button type="submit" class="btn btn-action-danger btn-sm">{% trans "Deny" %}</button></form>
+            <form method="post" action="{% url 'family-emergency-approve' p.request.uuid %}">{% csrf_token %}<button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Approve now" %}</button></form>
+        </div>
+    </section>
+    {% endfor %}
+
+    {% if access %}
+    <section class="card fam-card" aria-labelledby="fam-acc-h">
+        <h2 id="fam-acc-h">{% trans "People who can open your sheet" %}</h2>
+        <div class="fam-rows">
+            {% for a in access %}
+            <div class="fam-row"><div class="fam-row-main fam-row-name">{{ a.name }}</div>
+                <form method="post" action="{% url 'family-emergency-deny' a.request.uuid %}" class="fam-row-end">{% csrf_token %}<button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Withdraw access" %}</button></form></div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="card fam-card" aria-labelledby="fam-av-h">
+        <h2 id="fam-av-h">{% trans "Sheets shared with you" %}</h2>
+        <div class="fam-rows">
+        {% for a in available %}
+            <div class="fam-row">
+                <span class="fam-avatar is-sm bg-{{ a.row.tone }}-subtle text-{{ a.row.tone }}-emphasis" aria-hidden="true">{{ a.row.initials }}</span>
+                <div class="fam-row-main">
+                    <div class="fam-row-name">{{ a.row.name }}</div>
+                    <div class="fam-row-sub">
+                        {% if a.state == 'granted' %}{% trans "You can open it" %}{% elif a.state == 'pending' %}{% trans "Request sent" %}{% elif a.state == 'denied' %}{% trans "Not shared for now" %}{% else %}{% trans "You can ask for it" %}{% endif %}
+                    </div>
+                </div>
+                <div class="fam-row-end"><a class="btn btn-action-cancel btn-sm" href="{% url 'family-emergency-sheet' a.row.membership.pk %}">{% if a.state == 'granted' %}{% trans "Open" %}{% else %}{% trans "View" %}{% endif %}</a></div>
+            </div>
+        {% empty %}
+            <p class="fam-note">{% trans "Nobody has let you ask for their emergency sheet." %}</p>
+        {% endfor %}
+        </div>
+    </section>
+</aside>
+</div>
+</div>
+{% endblock %}
