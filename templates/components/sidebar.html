@@ -135,6 +135,15 @@
                 </a>
             </div>
 
+            <!-- Family -->
+            {% if FAMILY_ON %}
+            <a href="{% url 'family-home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'family' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Family' %}">
+                <i class="bi bi-people fs-5"></i>
+                <span class="nav-text">{% trans "Family" %}</span>
+                <span class="badge badge-soft-success ms-auto nav-text" style="font-size: 0.65rem;">{% trans "New" %}</span>
+            </a>
+            {% endif %}
+
             <!-- Loans -->
             {% if user.profile.can_track_loans %}
             <div class="d-flex align-items-center position-relative px-0">

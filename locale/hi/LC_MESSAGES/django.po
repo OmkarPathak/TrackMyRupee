@@ -21199,3 +21199,399 @@ msgstr "TrackMyRupee इनसाइट"
 #: templates/components/expense_composer_card.html
 msgid "A big one-off purchase? Log it as a Capital Event so it doesn't skew your monthly spending and budgets."
 msgstr "कोई बड़ी एक-बार की खरीद? इसे कैपिटल इवेंट के रूप में दर्ज करें, ताकि यह आपके मासिक खर्च और बजट को न बिगाड़े।"
+
+#: expenses/family
+msgid "Family"
+msgstr "परिवार"
+
+#: expenses/family
+msgid "Member"
+msgstr "सदस्य"
+
+#: expenses/family
+msgid "Members"
+msgstr "सदस्य"
+
+#: expenses/family
+msgid "Owner"
+msgstr "मालिक"
+
+#: expenses/family
+msgid "you"
+msgstr "आप"
+
+#: expenses/family
+msgid "Our family"
+msgstr "हमारा परिवार"
+
+#: expenses/family
+msgid "Plan ended"
+msgstr "प्लान समाप्त"
+
+#: expenses/family
+msgid "New link"
+msgstr "नया लिंक"
+
+#: expenses/family
+msgid "Invitation link"
+msgstr "आमंत्रण लिंक"
+
+#: expenses/family
+msgid "Copy link"
+msgstr "लिंक कॉपी करें"
+
+#: expenses/family
+msgid "Copied"
+msgstr "कॉपी हो गया"
+
+#: expenses/family
+msgid "Send invite"
+msgstr "आमंत्रण भेजें"
+
+#: expenses/family
+msgid "Invite someone"
+msgstr "किसी को आमंत्रित करें"
+
+#: expenses/family
+msgid "Leave family"
+msgstr "परिवार छोड़ें"
+
+#: expenses/family
+msgid "Join family"
+msgstr "परिवार से जुड़ें"
+
+#: expenses/family
+msgid "Join a family"
+msgstr "परिवार से जुड़ें"
+
+#: expenses/family
+msgid "Open Family"
+msgstr "परिवार खोलें"
+
+#: expenses/family
+msgid "Create your family"
+msgstr "अपना परिवार बनाएँ"
+
+#: expenses/family
+msgid "Start 7-day Pro trial"
+msgstr "7 दिन का प्रो ट्रायल शुरू करें"
+
+#: expenses/family
+msgid "Back to your dashboard"
+msgstr "अपने डैशबोर्ड पर वापस जाएँ"
+
+#: expenses/family
+#, python-format
+msgid "Ends %(date)s"
+msgstr "%(date)s को समाप्त"
+
+#: expenses/family
+#, python-format
+msgid "Joined %(date)s"
+msgstr "%(date)s को जुड़े"
+
+#: expenses/family
+#, python-format
+msgid "%(used)s of %(max)s seats used"
+msgstr "%(max)s में से %(used)s स्थान भरे हैं"
+
+#: expenses/family
+#, python-format
+msgid "Invitation expires in %(left)s"
+msgstr "आमंत्रण %(left)s में समाप्त होगा"
+
+#: expenses/family
+msgid "Share the big picture with your family"
+msgstr "पूरी तस्वीर अपने परिवार के साथ साझा करें"
+
+#: expenses/family
+msgid "See your family's combined net worth, and who holds which cards, policies and accounts. You choose which of your accounts to share."
+msgstr "अपने परिवार की संयुक्त कुल संपत्ति देखें, और यह भी कि कौन-से कार्ड, पॉलिसी और खाते किसके पास हैं। आप तय करते हैं कि अपने कौन-से खाते साझा करने हैं।"
+
+#: expenses/family
+msgid "See your family's combined net worth and who holds which cards, policies and accounts. You choose which of your accounts to share."
+msgstr "अपने परिवार की संयुक्त कुल संपत्ति देखें, और यह भी कि कौन-से कार्ड, पॉलिसी और खाते किसके पास हैं। आप तय करते हैं कि अपने कौन-से खाते साझा करने हैं।"
+
+#: expenses/family
+msgid "Nothing is shared until you choose it."
+msgstr "जब तक आप न चुनें, कुछ भी साझा नहीं होता।"
+
+#: expenses/family
+msgid "Family sees names, types and amounts, never transactions or account numbers."
+msgstr "परिवार को नाम, प्रकार और राशि दिखती है, लेन-देन या खाता नंबर कभी नहीं।"
+
+#: expenses/family
+msgid "Family sees names, types and amounts, never transactions, categories, notes or account numbers."
+msgstr "परिवार को नाम, प्रकार और राशि दिखती है, लेन-देन, श्रेणियाँ, नोट या खाता नंबर कभी नहीं।"
+
+#: expenses/family
+msgid "You can stop sharing at any time."
+msgstr "आप कभी भी साझा करना बंद कर सकते हैं।"
+
+#: expenses/family
+msgid "Family sharing needs a Pro plan, and so does everyone in your family."
+msgstr "परिवार के साथ साझा करने के लिए प्रो प्लान चाहिए, और आपके परिवार में सभी को भी।"
+
+#: expenses/family
+msgid "Your invitation link is ready"
+msgstr "आपका आमंत्रण लिंक तैयार है"
+
+#: expenses/family
+#, python-format
+msgid "We emailed it to %(email)s. You can also copy it and send it yourself. It works once, and it is shown only now."
+msgstr "हमने इसे %(email)s को ईमेल कर दिया है। आप इसे कॉपी करके खुद भी भेज सकते हैं। यह एक ही बार काम करता है और सिर्फ़ अभी दिखाया जा रहा है।"
+
+#: expenses/family
+msgid "Copy it and send it to them. It works once, and it is shown only now."
+msgstr "इसे कॉपी करके उन्हें भेजें। यह एक ही बार काम करता है और सिर्फ़ अभी दिखाया जा रहा है।"
+
+#: expenses/family
+msgid "Remove this person from the family? Everything they shared stops being visible straight away."
+msgstr "इस व्यक्ति को परिवार से हटाएँ? उन्होंने जो साझा किया वह तुरंत दिखना बंद हो जाएगा।"
+
+#: expenses/family
+msgid "Leave the email empty to get a link you can send yourself. They need their own TrackMyRupee account and a Pro plan. When they join they see nothing until you share an account."
+msgstr "ईमेल खाली छोड़ें तो आपको एक लिंक मिलेगा जिसे आप खुद भेज सकते हैं। उन्हें अपना TrackMyRupee खाता और प्रो प्लान चाहिए। जुड़ने पर उन्हें तब तक कुछ नहीं दिखता जब तक आप कोई खाता साझा न करें।"
+
+#: expenses/family
+msgid "What family can and cannot see"
+msgstr "परिवार क्या देख सकता है और क्या नहीं"
+
+#: expenses/family
+msgid "The same for everyone, always."
+msgstr "सभी के लिए हमेशा एक जैसा।"
+
+#: expenses/family
+msgid "Can see, for accounts you share"
+msgstr "आपके साझा किए खातों के लिए देख सकते हैं"
+
+#: expenses/family
+msgid "Name (or a nickname you give it), type and who holds it"
+msgstr "नाम (या आपका दिया हुआ उपनाम), प्रकार और यह किसके पास है"
+
+#: expenses/family
+msgid "The balance or amount, if you choose to show it"
+msgstr "शेष या राशि, अगर आप दिखाना चुनें"
+
+#: expenses/family
+msgid "Credit cards: limit, used credit and billing date"
+msgstr "क्रेडिट कार्ड: सीमा, इस्तेमाल की गई राशि और बिलिंग तारीख"
+
+#: expenses/family
+msgid "Insurance: cover, premium, next due date and who it covers"
+msgstr "बीमा: कवर, प्रीमियम, अगली देय तारीख और यह किसे कवर करता है"
+
+#: expenses/family
+msgid "Loans: outstanding amount and EMI"
+msgstr "लोन: बकाया राशि और EMI"
+
+#: expenses/family
+msgid "Can never see"
+msgstr "कभी नहीं देख सकते"
+
+#: expenses/family
+msgid "Any transaction, category, note or receipt"
+msgstr "कोई लेन-देन, श्रेणी, नोट या रसीद"
+
+#: expenses/family
+msgid "Holdings inside an account"
+msgstr "खाते के भीतर की होल्डिंग्स"
+
+#: expenses/family
+msgid "Account or policy numbers"
+msgstr "खाता या पॉलिसी नंबर"
+
+#: expenses/family
+msgid "Accounts you have not shared, or that they exist"
+msgstr "वे खाते जो आपने साझा नहीं किए, या उनका अस्तित्व"
+
+#: expenses/family
+msgid "Leave the family? Everything you shared stops being visible straight away, and so does everything shared with you."
+msgstr "परिवार छोड़ें? आपने जो साझा किया वह तुरंत दिखना बंद हो जाएगा, और आपके साथ साझा किया गया सब कुछ भी।"
+
+#: expenses/family
+msgid "If you leave, everything you shared stops being visible straight away, and so does everything shared with you."
+msgstr "अगर आप छोड़ते हैं, तो आपने जो साझा किया वह तुरंत दिखना बंद हो जाता है, और आपके साथ साझा किया गया सब कुछ भी।"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s invited you to join a family"
+msgstr "%(name)s ने आपको एक परिवार से जुड़ने के लिए आमंत्रित किया है"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s invited you to share finances"
+msgstr "%(name)s ने आपको वित्त साझा करने के लिए आमंत्रित किया है"
+
+#: expenses/family
+msgid "You will see the combined net worth of what each member shares, and who holds which cards, policies and accounts."
+msgstr "आप हर सदस्य द्वारा साझा की गई चीज़ों की संयुक्त कुल संपत्ति देखेंगे, और यह भी कि कौन-से कार्ड, पॉलिसी और खाते किसके पास हैं।"
+
+#: expenses/family
+msgid "Joining shares nothing. Nobody sees your accounts until you choose."
+msgstr "जुड़ने से कुछ भी साझा नहीं होता। जब तक आप न चुनें, कोई आपके खाते नहीं देखता।"
+
+#: expenses/family
+msgid "You can stop sharing, or leave, at any time."
+msgstr "आप कभी भी साझा करना बंद कर सकते हैं, या छोड़ सकते हैं।"
+
+#: expenses/family
+msgid "I understand that the accounts I choose to share will be visible to the members of this family."
+msgstr "मुझे पता है कि मेरे चुने हुए साझा खाते इस परिवार के सदस्यों को दिखाई देंगे।"
+
+#: expenses/family
+msgid "To join a family you need a Pro plan, and so does everyone in it."
+msgstr "परिवार से जुड़ने के लिए आपको प्रो प्लान चाहिए, और उसमें सभी को भी।"
+
+#: expenses/family
+#, python-format
+msgid "Joining shares nothing. %(name)s cannot see your data, and you see only what they choose to share."
+msgstr "जुड़ने से कुछ भी साझा नहीं होता। %(name)s आपका डेटा नहीं देख सकते, और आप वही देखेंगे जो वे साझा करना चुनें।"
+
+#: expenses/family
+msgid "You are already in this family"
+msgstr "आप पहले से इस परिवार में हैं"
+
+#: expenses/family
+msgid "You are already in a family"
+msgstr "आप पहले से एक परिवार में हैं"
+
+#: expenses/family
+msgid "A person can be in one family at a time. Leave your current family first if you want to join this one."
+msgstr "एक व्यक्ति एक समय में एक ही परिवार में रह सकता है। इसमें जुड़ना चाहते हैं तो पहले अपना मौजूदा परिवार छोड़ें।"
+
+#: expenses/family
+msgid "This invitation has expired"
+msgstr "यह आमंत्रण समाप्त हो चुका है"
+
+#: expenses/family
+msgid "This invitation has already been used"
+msgstr "यह आमंत्रण पहले ही इस्तेमाल हो चुका है"
+
+#: expenses/family
+msgid "This invitation link is not valid"
+msgstr "यह आमंत्रण लिंक मान्य नहीं है"
+
+#: expenses/family
+#, python-format
+msgid "Ask %(name)s to send you a new link."
+msgstr "%(name)s से नया लिंक भेजने को कहें।"
+
+#: expenses/family
+msgid "Each link works once. Ask the person who invited you for a new one."
+msgstr "हर लिंक एक ही बार काम करता है। आमंत्रित करने वाले व्यक्ति से नया लिंक माँगें।"
+
+#: expenses/family
+msgid "It may have been cancelled or copied wrongly. Ask the person who invited you for a new link."
+msgstr "हो सकता है इसे रद्द कर दिया गया हो या गलत कॉपी हुआ हो। आमंत्रित करने वाले व्यक्ति से नया लिंक माँगें।"
+
+#: expenses/family
+msgid "Your family is ready. Invite the people you want to share with."
+msgstr "आपका परिवार तैयार है। जिनके साथ साझा करना चाहते हैं उन्हें आमंत्रित करें।"
+
+#: expenses/family
+msgid "That email address does not look right."
+msgstr "यह ईमेल पता सही नहीं लग रहा।"
+
+#: expenses/family
+#, python-format
+msgid "Invitation sent to %(email)s."
+msgstr "आमंत्रण %(email)s को भेजा गया।"
+
+#: expenses/family
+msgid "Invitation link created. Copy it and send it to them."
+msgstr "आमंत्रण लिंक बन गया। इसे कॉपी करके उन्हें भेजें।"
+
+#: expenses/family
+msgid "Invitation cancelled."
+msgstr "आमंत्रण रद्द किया गया।"
+
+#: expenses/family
+msgid "A new invitation link is ready."
+msgstr "नया आमंत्रण लिंक तैयार है।"
+
+#: expenses/family
+msgid "Please tick the box to confirm you understand what joining means."
+msgstr "कृपया बॉक्स पर टिक करके पुष्टि करें कि आप समझते हैं कि जुड़ने का क्या मतलब है।"
+
+#: expenses/family
+msgid "You have joined the family. Nothing is shared until you choose."
+msgstr "आप परिवार से जुड़ गए हैं। जब तक आप न चुनें, कुछ भी साझा नहीं होता।"
+
+#: expenses/family
+msgid "You have left the family. Nothing of yours is shared any more."
+msgstr "आपने परिवार छोड़ दिया है। आपका कुछ भी अब साझा नहीं है।"
+
+#: expenses/family
+msgid "Removed from the family."
+msgstr "परिवार से हटा दिया गया।"
+
+#: expenses/family
+msgid "You are already in a family."
+msgstr "आप पहले से एक परिवार में हैं।"
+
+#: expenses/family
+msgid "You are already in a family. Leave it first to join another."
+msgstr "आप पहले से एक परिवार में हैं। दूसरे में जुड़ने के लिए पहले उसे छोड़ें।"
+
+#: expenses/family
+msgid "You are not in a family."
+msgstr "आप किसी परिवार में नहीं हैं।"
+
+#: expenses/family
+msgid "Family sharing needs a Pro plan."
+msgstr "परिवार के साथ साझा करने के लिए प्रो प्लान चाहिए।"
+
+#: expenses/family
+msgid "Your family is full. Remove a member or cancel an invitation first."
+msgstr "आपका परिवार भर चुका है। पहले किसी सदस्य को हटाएँ या कोई आमंत्रण रद्द करें।"
+
+#: expenses/family
+msgid "That invitation has already been used."
+msgstr "वह आमंत्रण पहले ही इस्तेमाल हो चुका है।"
+
+#: expenses/family
+msgid "This invitation can no longer be used."
+msgstr "यह आमंत्रण अब इस्तेमाल नहीं किया जा सकता।"
+
+#: expenses/family
+msgid "This family is full."
+msgstr "यह परिवार भर चुका है।"
+
+#: expenses/family
+msgid "Only the person who started the family can remove someone."
+msgstr "केवल परिवार शुरू करने वाला व्यक्ति ही किसी को हटा सकता है।"
+
+#: expenses/family
+msgid "You cannot remove yourself. Leave the family instead."
+msgstr "आप खुद को नहीं हटा सकते। इसके बजाय परिवार छोड़ें।"
+
+#: expenses/family
+msgid "Family view is paused because your Pro plan has ended. It resumes as soon as everyone is on Pro. Your own data and your sharing choices are untouched."
+msgstr "आपका प्रो प्लान समाप्त हो गया है, इसलिए परिवार दृश्य रुका हुआ है। सभी के प्रो पर आते ही यह फिर शुरू हो जाएगा। आपका अपना डेटा और आपकी साझा करने की पसंद जस की तस हैं।"
+
+#: expenses/family
+#, python-format
+msgid "Family view is paused. The Pro plan of %(names)s has ended. It resumes as soon as everyone is on Pro. Your own data and your sharing choices are untouched."
+msgstr "परिवार दृश्य रुका हुआ है। %(names)s का प्रो प्लान समाप्त हो गया है। सभी के प्रो पर आते ही यह फिर शुरू हो जाएगा। आपका अपना डेटा और आपकी साझा करने की पसंद जस की तस हैं।"
+
+#: expenses/family
+#, python-format
+msgid "Your Pro plan ends in %(days)d day. Family view will pause on %(date)s unless you renew. Everything you share stays exactly as it is."
+msgid_plural "Your Pro plan ends in %(days)d days. Family view will pause on %(date)s unless you renew. Everything you share stays exactly as it is."
+msgstr[0] "आपका प्रो प्लान %(days)d दिन में समाप्त हो रहा है। अगर आप नवीनीकरण नहीं करते तो %(date)s को परिवार दृश्य रुक जाएगा। आप जो साझा करते हैं वह जस का तस रहता है।"
+msgstr[1] "आपका प्रो प्लान %(days)d दिन में समाप्त हो रहा है। अगर आप नवीनीकरण नहीं करते तो %(date)s को परिवार दृश्य रुक जाएगा। आप जो साझा करते हैं वह जस का तस रहता है।"
+
+#: expenses/family
+#, python-format
+msgid "The Pro plan of %(name)s ends in %(days)d day. Family view will pause on %(date)s unless they renew. Everything you share stays exactly as it is."
+msgid_plural "The Pro plan of %(name)s ends in %(days)d days. Family view will pause on %(date)s unless they renew. Everything you share stays exactly as it is."
+msgstr[0] "%(name)s का प्रो प्लान %(days)d दिन में समाप्त हो रहा है। अगर वे नवीनीकरण नहीं करते तो %(date)s को परिवार दृश्य रुक जाएगा। आप जो साझा करते हैं वह जस का तस रहता है।"
+msgstr[1] "%(name)s का प्रो प्लान %(days)d दिन में समाप्त हो रहा है। अगर वे नवीनीकरण नहीं करते तो %(date)s को परिवार दृश्य रुक जाएगा। आप जो साझा करते हैं वह जस का तस रहता है।"
+
+#: expenses/family
+#, python-format
+msgid "Family view is on. %(count)d member is on Pro, so the Me / Family toggle is available."
+msgid_plural "Family view is on. All %(count)d members are on Pro, so the Me / Family toggle is available to everyone."
+msgstr[0] "परिवार दृश्य चालू है। %(count)d सदस्य प्रो पर है, इसलिए मैं / परिवार टॉगल उपलब्ध है।"
+msgstr[1] "परिवार दृश्य चालू है। सभी %(count)d सदस्य प्रो पर हैं, इसलिए मैं / परिवार टॉगल सभी के लिए उपलब्ध है।"

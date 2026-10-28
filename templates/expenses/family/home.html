@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters family_tags %}
+
+{% block title %}{% trans "Family" %} | TrackMyRupee{% endblock %}
+
+{% block content %}
+<div class="fam fade-in">
+{% include 'expenses/family/_styles.html' %}
+
+{% if not household %}
+    {# ---- No family yet ---- #}
+    <section class="card fam-card fam-center" aria-labelledby="fam-empty-h">
+        <div><span class="fam-icon" aria-hidden="true"><i class="bi bi-people"></i></span></div>
+        <h1 id="fam-empty-h">{% trans "Share the big picture with your family" %}</h1>
+        <p>{% trans "See your family's combined net worth, and who holds which cards, policies and accounts. You choose which of your accounts to share." %}</p>
+        <ul class="fam-checks">
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>{% trans "Nothing is shared until you choose it." %}</span></li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>{% trans "Family sees names, types and amounts, never transactions or account numbers." %}</span></li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>{% trans "You can stop sharing at any time." %}</span></li>
+        </ul>
+        {% if can_create %}
+            <form method="post" action="{% url 'family-create' %}" class="fam-actions">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-action-primary">{% trans "Create your family" %}</button>
+            </form>
+        {% else %}
+            <p class="fam-note">{% trans "Family sharing needs a Pro plan, and so does everyone in your family." %}</p>
+            <div class="fam-actions">
+                {% if user.profile.can_start_trial %}
+                    <button type="button" class="btn btn-action-primary" onclick="startTrial()">{% trans "Start 7-day Pro trial" %}</button>
+                {% endif %}
+                <a href="{% url 'pricing' %}" class="btn btn-action-cancel">{% trans "See plans" %}</a>
+            </div>
+        {% endif %}
+    </section>
+{% else %}
+    <div class="fam-head">
+        <div class="fam-title">
+            <h1>{% trans "Family" %}</h1>
+            <p class="fam-sub">{% trans "See your family's combined net worth and who holds which cards, policies and accounts. You choose which of your accounts to share." %}</p>
+        </div>
+        <div class="fam-actions"></div>
+    </div>
+
+    {% include 'expenses/family/_banner.html' %}
+
+    {% if new_invite %}
+    <div class="fam-link" role="status">
+        <b>{% trans "Your invitation link is ready" %}</b>
+        <p class="fam-note">
+            {% if new_invite.emailed %}{% blocktrans trimmed with email=new_invite.email %}We emailed it to {{ email }}. You can also copy it and send it yourself. It works once, and it is shown only now.{% endblocktrans %}
+            {% else %}{% trans "Copy it and send it to them. It works once, and it is shown only now." %}{% endif %}
+        </p>
+        <div class="fam-form-row">
+            <input type="text" class="form-control" id="fam-link-input" value="{{ new_invite.link }}" readonly aria-label="{% trans 'Invitation link' %}">
+            <button type="button" class="btn btn-action-primary" id="fam-copy-btn" data-done="{% trans 'Copied' %}">{% trans "Copy link" %}</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="fam-stack">
+        <section class="card fam-card" aria-labelledby="fam-members-h">
+            <h2 id="fam-members-h">{% trans "Members" %}</h2>
+            <p class="fam-note">{% blocktrans trimmed with used=seats_used|translate_digits max=max_members|translate_digits %}{{ used }} of {{ max }} seats used{% endblocktrans %}</p>
+            <div class="fam-rows">
+                {% for row in rows %}
+                <div class="fam-row">
+                    <span class="fam-avatar bg-{{ row.tone }}-subtle text-{{ row.tone }}-emphasis" aria-hidden="true">{{ row.initials }}</span>
+                    <div class="fam-row-main">
+                        <div class="fam-row-name">{{ row.name }}{% if row.is_you %} <span class="fam-row-sub">({% trans "you" %})</span>{% endif %}</div>
+                        <div class="fam-row-sub">
+                            {% if row.is_owner %}{% trans "Owner" %}{% else %}{% trans "Member" %}{% endif %}
+                            · {% blocktrans trimmed with date=row.joined|date:"j M Y" %}Joined {{ date }}{% endblocktrans %}
+                        </div>
+                    </div>
+                    <div class="fam-row-end">
+                        {% if row.plan.is_pro %}
+                            <span class="badge badge-soft-success">{% trans "Pro" %}</span>
+                            {% if row.plan.ending_soon %}<span class="badge badge-soft-warning">{% blocktrans trimmed with date=row.plan.ends_at|date:"j M" %}Ends {{ date }}{% endblocktrans %}</span>{% endif %}
+                        {% else %}
+                            <span class="badge badge-soft-danger">{% trans "Plan ended" %}</span>
+                        {% endif %}
+                        {% if is_owner and not row.is_owner %}
+                        <form method="post" action="{% url 'family-member-remove' row.membership.pk %}" onsubmit="return confirm('{% trans 'Remove this person from the family? Everything they shared stops being visible straight away.' %}')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-action-danger btn-sm">{% trans "Remove" %}</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% for invitation in pending %}
+                <div class="fam-row">
+                    <span class="fam-avatar bg-secondary-subtle text-secondary-emphasis" aria-hidden="true"><i class="bi bi-envelope"></i></span>
+                    <div class="fam-row-main">
+                        <div class="fam-row-name">{{ invitation.email|default:_("Invitation link") }}</div>
+                        <div class="fam-row-sub">{% blocktrans trimmed with left=invitation.expires_at|timeuntil %}Invitation expires in {{ left }}{% endblocktrans %}</div>
+                    </div>
+                    <div class="fam-row-end">
+                        <span class="badge badge-soft-warning">{% trans "Pending" %}</span>
+                        <form method="post" action="{% url 'family-invite-renew' invitation.uuid %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-action-cancel btn-sm">{% trans "New link" %}</button>
+                        </form>
+                        <form method="post" action="{% url 'family-invite-cancel' invitation.uuid %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Cancel" %}</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        {% if is_owner %}
+        <section class="card fam-card" aria-labelledby="fam-invite-h">
+            <h2 id="fam-invite-h">{% trans "Invite someone" %}</h2>
+            <form method="post" action="{% url 'family-invite' %}" class="fam-form-row">
+                {% csrf_token %}
+                <label class="visually-hidden" for="fam-invite-email">{% trans "Email" %}</label>
+                <input type="email" name="email" id="fam-invite-email" class="form-control" placeholder="{% trans 'name@example.com' %}" autocomplete="off">
+                <button type="submit" class="btn btn-action-primary">{% trans "Send invite" %}</button>
+            </form>
+            <p class="fam-note">{% trans "Leave the email empty to get a link you can send yourself. They need their own TrackMyRupee account and a Pro plan. When they join they see nothing until you share an account." %}</p>
+        </section>
+        {% endif %}
+
+        <section class="card fam-card" aria-labelledby="fam-see-h">
+            <h2 id="fam-see-h">{% trans "What family can and cannot see" %}</h2>
+            <p class="fam-note">{% trans "The same for everyone, always." %}</p>
+            <div class="fam-panels">
+                <div class="fam-panel is-can">
+                    <b>{% trans "Can see, for accounts you share" %}</b>
+                    <ul>
+                        <li>{% trans "Name (or a nickname you give it), type and who holds it" %}</li>
+                        <li>{% trans "The balance or amount, if you choose to show it" %}</li>
+                        <li>{% trans "Credit cards: limit, used credit and billing date" %}</li>
+                        <li>{% trans "Insurance: cover, premium, next due date and who it covers" %}</li>
+                        <li>{% trans "Loans: outstanding amount and EMI" %}</li>
+                    </ul>
+                </div>
+                <div class="fam-panel is-cannot">
+                    <b>{% trans "Can never see" %}</b>
+                    <ul>
+                        <li>{% trans "Any transaction, category, note or receipt" %}</li>
+                        <li>{% trans "Holdings inside an account" %}</li>
+                        <li>{% trans "Account or policy numbers" %}</li>
+                        <li>{% trans "Accounts you have not shared, or that they exist" %}</li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="fam-hr">
+            <form method="post" action="{% url 'family-leave' %}" onsubmit="return confirm('{% trans 'Leave the family? Everything you shared stops being visible straight away, and so does everything shared with you.' %}')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-action-danger">{% trans "Leave family" %}</button>
+            </form>
+            <p class="fam-note">{% trans "If you leave, everything you shared stops being visible straight away, and so does everything shared with you." %}</p>
+        </section>
+    </div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var button = document.getElementById('fam-copy-btn');
+        if (!button) return;
+        button.addEventListener('click', function () {
+            var input = document.getElementById('fam-link-input');
+            input.select();
+            input.setSelectionRange(0, input.value.length);
+            var done = function () { button.textContent = button.dataset.done; };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(input.value).then(done, function () { document.execCommand('copy'); done(); });
+            } else { document.execCommand('copy'); done(); }
+        });
+    })();
+</script>
+{% endblock %}

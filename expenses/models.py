@@ -555,6 +555,60 @@ class LedgerReconciliationReport(models.Model):
     def __str__(self):
         return f"{self.user_id}:{self.account_id}:{self.as_of_date} ({self.status})"
 
+class Household(models.Model):
+    """A family that shares part of its finances (docs/FAMILY_SHARING.md). Members each keep their own account."""
+
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    name = models.CharField(max_length=100, default='Our family', verbose_name=_('Family name'))
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_households')
+    # Bumped whenever a share, a member or a plan changes, so cached family totals are never read stale
+    cache_version = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.owner_id})"
+
+
+class HouseholdMember(models.Model):
+    """One person in a household. A user belongs to at most one household (the one-to-one enforces it)."""
+
+    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='members')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='household_membership')
+    joined_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['joined_at', 'id']
+
+    def __str__(self):
+        return f"{self.user_id} in {self.household_id}"
+
+
+class HouseholdInvitation(models.Model):
+    """A single-use invitation link. Only a hash of the token is stored, so a link cannot be read back."""
+
+    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='invitations')
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    email = models.EmailField(blank=True)
+    token_hash = models.CharField(max_length=64, unique=True)
+    invited_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='household_invitations_sent')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    accepted_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name='household_invitations_accepted')
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def is_open(self):
+        return self.accepted_at is None and self.cancelled_at is None and self.expires_at > timezone.now()
+
+    def __str__(self):
+        return f"Invitation to {self.household_id} for {self.email or 'a link'}"
+
+
 class AccountReconciliation(models.Model):
     """A user-submitted check of an account's balance against a bank statement."""
 

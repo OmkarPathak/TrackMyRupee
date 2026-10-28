@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load i18n family_tags %}
+
+{% block title %}{% trans "Join a family" %} | TrackMyRupee{% endblock %}
+
+{% block content %}
+<div class="fam fade-in">
+{% include 'expenses/family/_styles.html' %}
+
+<section class="card fam-card fam-center" aria-labelledby="fam-join-h">
+    {% if problem %}
+        <div><span class="fam-icon" aria-hidden="true"><i class="bi bi-link-45deg"></i></span></div>
+        <h1 id="fam-join-h">
+            {% if problem == 'expired' %}{% trans "This invitation has expired" %}
+            {% elif problem == 'used' %}{% trans "This invitation has already been used" %}
+            {% else %}{% trans "This invitation link is not valid" %}{% endif %}
+        </h1>
+        <p>
+            {% if problem == 'expired' and inviter_name %}{% blocktrans trimmed with name=inviter_name %}Ask {{ name }} to send you a new link.{% endblocktrans %}
+            {% elif problem == 'used' %}{% trans "Each link works once. Ask the person who invited you for a new one." %}
+            {% else %}{% trans "It may have been cancelled or copied wrongly. Ask the person who invited you for a new link." %}{% endif %}
+        </p>
+        <div class="fam-actions"><a href="{% url 'home' %}" class="btn btn-action-cancel">{% trans "Back to your dashboard" %}</a></div>
+
+    {% elif same_household %}
+        <div><span class="fam-icon" aria-hidden="true"><i class="bi bi-people"></i></span></div>
+        <h1 id="fam-join-h">{% trans "You are already in this family" %}</h1>
+        <div class="fam-actions"><a href="{% url 'family-home' %}" class="btn btn-action-primary">{% trans "Open Family" %}</a></div>
+
+    {% elif already_member %}
+        <div><span class="fam-icon" aria-hidden="true"><i class="bi bi-people"></i></span></div>
+        <h1 id="fam-join-h">{% trans "You are already in a family" %}</h1>
+        <p>{% trans "A person can be in one family at a time. Leave your current family first if you want to join this one." %}</p>
+        <div class="fam-actions"><a href="{% url 'family-home' %}" class="btn btn-action-primary">{% trans "Open Family" %}</a></div>
+
+    {% elif not is_pro %}
+        <div><span class="fam-icon" aria-hidden="true"><i class="bi bi-stars"></i></span></div>
+        <h1 id="fam-join-h">{% blocktrans trimmed with name=inviter_name %}{{ name }} invited you to share finances{% endblocktrans %}</h1>
+        <p>{% trans "To join a family you need a Pro plan, and so does everyone in it." %}</p>
+        <div class="fam-actions">
+            {% if can_trial %}<button type="button" class="btn btn-action-primary" onclick="startTrial()">{% trans "Start 7-day Pro trial" %}</button>{% endif %}
+            <a href="{% url 'pricing' %}" class="btn btn-action-cancel">{% trans "See plans" %}</a>
+        </div>
+        <p class="fam-note">{% blocktrans trimmed with name=inviter_name %}Joining shares nothing. {{ name }} cannot see your data, and you see only what they choose to share.{% endblocktrans %}</p>
+
+    {% else %}
+        <div><span class="fam-icon" aria-hidden="true"><i class="bi bi-people"></i></span></div>
+        <h1 id="fam-join-h">{% blocktrans trimmed with name=inviter_name %}{{ name }} invited you to join a family{% endblocktrans %}</h1>
+        <p>{% trans "You will see the combined net worth of what each member shares, and who holds which cards, policies and accounts." %}</p>
+        <ul class="fam-checks">
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>{% trans "Joining shares nothing. Nobody sees your accounts until you choose." %}</span></li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>{% trans "Family sees names, types and amounts, never transactions, categories, notes or account numbers." %}</span></li>
+            <li><i class="bi bi-check-circle-fill" aria-hidden="true"></i><span>{% trans "You can stop sharing, or leave, at any time." %}</span></li>
+        </ul>
+        <form method="post" class="text-start">
+            {% csrf_token %}
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="consent" id="fam-consent" required>
+                <label class="form-check-label" for="fam-consent">{% trans "I understand that the accounts I choose to share will be visible to the members of this family." %}</label>
+            </div>
+            <div class="fam-actions">
+                <button type="submit" class="btn btn-action-primary">{% trans "Join family" %}</button>
+                <a href="{% url 'home' %}" class="btn btn-action-cancel">{% trans "Not now" %}</a>
+            </div>
+        </form>
+    {% endif %}
+</section>
+</div>
+{% endblock %}

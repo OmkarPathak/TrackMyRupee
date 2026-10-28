@@ -1,0 +1,73 @@
+{% comment %}Layout for the Family pages. Colours come from the app tokens (light and dark) and Bootstrap's theme
+variables, the same way the Accounts page does, so nothing here is a new colour.{% endcomment %}
+<style>
+    .fam { --fam-line: rgba(26,26,24,.10); --fam-soft: var(--bs-tertiary-bg); --fam-muted: var(--color-muted-text, #595855); --fam-green: var(--color-success-text, #0F7657); --fam-amber: var(--color-warning-text, #9C5400); --fam-red: var(--color-danger-text, #B93822); --fam-blue: var(--color-info-text, #165A9E); }
+    [data-bs-theme="dark"] .fam { --fam-line: rgba(255,255,255,.10); }
+    .fam *, .fam *::before, .fam *::after { box-sizing: border-box; }
+    .fam-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .fam-title h1 { font-size: clamp(1.5rem, 4.5vw, 2rem); font-weight: 800; letter-spacing: -.03em; margin: 0; color: var(--bs-body-color); }
+    .fam-sub { color: var(--fam-muted); font-size: .92rem; margin: .25rem 0 0; max-width: 46rem; }
+    .fam-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .fam-stack { display: flex; flex-direction: column; gap: 1rem; }
+    .fam-card { padding: 1.15rem 1.25rem; }
+    .fam-card > h2, .fam-card .fam-h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; margin: 0; color: var(--bs-body-color); }
+    .fam-note { font-size: .85rem; color: var(--fam-muted); margin: .2rem 0 0; }
+    .fam-hr { height: 1px; background: var(--fam-line); margin: .9rem 0; border: 0; }
+    @media (max-width: 575.98px) { .fam-card { padding: 1rem; } }
+
+    /* The plan banner: green when family view is on, amber when a plan is ending, blue when it is paused */
+    .fam-banner { display: flex; gap: .7rem; align-items: flex-start; padding: .8rem 1rem; border-radius: 14px; font-size: .9rem; line-height: 1.45; border: 1px solid transparent; margin-bottom: 1rem; }
+    .fam-banner i { font-size: 1.05rem; margin-top: .1rem; flex-shrink: 0; }
+    .fam-banner.is-ok { background: rgba(15,118,87,.09); border-color: rgba(15,118,87,.22); color: var(--fam-green); }
+    .fam-banner.is-warning { background: rgba(212,131,26,.12); border-color: rgba(212,131,26,.28); color: var(--fam-amber); }
+    .fam-banner.is-paused { background: rgba(22,90,158,.10); border-color: rgba(22,90,158,.24); color: var(--fam-blue); }
+    [data-bs-theme="dark"] .fam-banner.is-ok { background: rgba(93,202,165,.12); border-color: rgba(93,202,165,.28); }
+    [data-bs-theme="dark"] .fam-banner.is-warning { background: rgba(244,180,78,.14); border-color: rgba(244,180,78,.30); }
+    [data-bs-theme="dark"] .fam-banner.is-paused { background: rgba(133,183,235,.14); border-color: rgba(133,183,235,.30); }
+
+    /* A list of people or items: the rows keep a one-line rhythm on a phone and use the full width on a desktop */
+    .fam-rows { display: flex; flex-direction: column; margin-top: .6rem; }
+    .fam-row { display: flex; align-items: center; gap: .85rem; padding: .8rem 0; border-top: 1px solid var(--fam-line); flex-wrap: wrap; }
+    .fam-row:first-child { border-top: 0; }
+    .fam-row-main { flex: 1 1 12rem; min-width: 0; }
+    .fam-row-name { font-weight: 700; font-size: .95rem; line-height: 1.3; overflow-wrap: anywhere; color: var(--bs-body-color); }
+    .fam-row-sub { font-size: .8rem; color: var(--fam-muted); line-height: 1.4; margin-top: .1rem; overflow-wrap: anywhere; }
+    .fam-row-end { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-left: auto; }
+    .fam-avatar { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: .85rem; flex-shrink: 0; border: 1px solid var(--fam-line); }
+    .fam-avatar.is-sm { width: 28px; height: 28px; font-size: .68rem; }
+    @media (max-width: 575.98px) { .fam-row-end { margin-left: calc(40px + .85rem); width: 100%; } }
+
+    .fam-form-row { display: flex; gap: .6rem; align-items: stretch; flex-wrap: wrap; margin-top: .75rem; }
+    .fam-form-row .form-control { flex: 1 1 14rem; min-width: 0; height: 42px; }
+    .fam-form-row .btn { flex: 0 0 auto; }
+    @media (max-width: 575.98px) { .fam-form-row .btn { flex: 1 1 100%; } }
+
+    /* The link of a new invitation, shown once */
+    .fam-link { border: 1px dashed var(--fam-line); border-radius: 14px; padding: .8rem 1rem; background: var(--fam-soft); margin-bottom: 1rem; }
+    .fam-link .fam-form-row { margin-top: .5rem; }
+
+    /* The two panels: what is shown, and what is never shown */
+    .fam-panels { display: grid; gap: .8rem; grid-template-columns: minmax(0, 1fr); margin-top: .75rem; }
+    @media (min-width: 768px) { .fam-panels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .fam-panel { border-radius: 14px; padding: .9rem 1.1rem; font-size: .88rem; }
+    .fam-panel b { display: block; margin-bottom: .35rem; }
+    .fam-panel ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .25rem; }
+    .fam-panel.is-can { background: rgba(15,118,87,.08); }
+    .fam-panel.is-can b { color: var(--fam-green); }
+    .fam-panel.is-cannot { background: rgba(185,56,34,.07); }
+    .fam-panel.is-cannot b { color: var(--fam-red); }
+    [data-bs-theme="dark"] .fam-panel.is-can { background: rgba(93,202,165,.10); }
+    [data-bs-theme="dark"] .fam-panel.is-cannot { background: rgba(244,128,110,.10); }
+
+    /* The card in the middle of a page: the empty state and the invitation */
+    .fam-center { max-width: 34rem; margin: 1.5rem auto; text-align: center; }
+    .fam-center .fam-icon { width: 56px; height: 56px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: .6rem; background: rgba(15,118,87,.10); color: var(--fam-green); }
+    [data-bs-theme="dark"] .fam-center .fam-icon { background: rgba(93,202,165,.14); }
+    .fam-center h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin-bottom: .4rem; }
+    .fam-center p { color: var(--fam-muted); }
+    .fam-center .fam-actions { justify-content: center; margin-top: 1rem; }
+    .fam-checks { text-align: left; font-size: .9rem; margin: 1rem 0; display: flex; flex-direction: column; gap: .5rem; }
+    .fam-checks li { display: flex; gap: .55rem; align-items: flex-start; list-style: none; color: var(--bs-body-color); }
+    .fam-checks i { color: var(--fam-green); margin-top: .15rem; }
+    .fam-checks { padding: 0; }
+</style>

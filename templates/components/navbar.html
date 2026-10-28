@@ -495,6 +495,15 @@
                     </a>
                 </div>
 
+                {% if FAMILY_ON %}
+                <div class="col">
+                    <a href="{% url 'family-home' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item {% if 'family' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-people text-primary mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Family" %}</span>
+                    </a>
+                </div>
+                {% endif %}
+
                 {% if user.profile.active_tier == 'PRO' %}
                 <div class="col">
                     <a href="{% url 'goal-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
