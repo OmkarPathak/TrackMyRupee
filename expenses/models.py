@@ -2199,7 +2199,8 @@ class GoalContribution(models.Model):
             old_instance = None
             kept_amount = None  # the amount already applied to the account, when this save leaves it unchanged
             if self.pk:
-                old_instance = GoalContribution.objects.select_related('goal', 'account').select_for_update().get(pk=self.pk)
+                # of=('self',): the account link is nullable, and PostgreSQL cannot lock the nullable side of an outer join.
+                old_instance = GoalContribution.objects.select_related('goal', 'account').select_for_update(of=('self',)).get(pk=self.pk)
                 # Revert old balance and goal amount
                 if old_instance.account_id:
                     old_account = Account.objects.select_for_update().get(pk=old_instance.account_id)

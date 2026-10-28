@@ -237,7 +237,7 @@ def record(account, statement_date, statement_balance, *, action, note=''):
     adjustment lands, the second sees no difference and records a match.
     """
     with transaction.atomic():
-        locked = Account.objects.select_for_update().select_related('user').get(pk=account.pk)
+        locked = Account.objects.select_related('user').select_for_update(of=('self',)).get(pk=account.pk)
         if not locked.is_active or not is_reconcilable(locked):
             raise ReconciliationError('This account cannot be reconciled.')
 
