@@ -285,7 +285,7 @@ class ProRuleTests(FamilyTestCase):
 
     def test_everyone_on_pro_is_on(self):
         self.assertEqual(plan_rules.household_plan_state(self.household).state, plan_rules.ON)
-        self.assertContains(self.client.get(reverse('family-home')), 'Family view is on')
+        self.assertNotContains(self.client.get(reverse('family-home')), 'Family view is on')     # nothing to say when all is well
 
     def test_a_plan_ending_within_the_window_warns(self):
         end_pro(self.partner, days_from_now=9)

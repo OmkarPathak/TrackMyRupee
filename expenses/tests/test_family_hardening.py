@@ -102,3 +102,47 @@ class QueryCountTests(FamilyTestCase):
             add_account(self.owner, f'private{i}')
         self.client.get(url)                                  # let per-request caches (bell, counts) warm
         self.assertEqual(count_queries(lambda: self.client.get(url)), few)
+
+
+class ShareWholeGroupTests(FamilyTestCase):
+    def setUp(self):
+        super().setUp()
+        make_family(self.owner, self.partner)
+        self.banks = [add_account(self.owner, f'bank{i}') for i in range(3)]
+        self.card = add_account(self.owner, 'card', account_type='CREDIT_CARD', balance='-500.00')
+        self.client.force_login(self.owner)
+
+    def post(self, key='bank'):
+        from django.urls import reverse
+        return self.client.post(reverse('family-share-group', args=[key]))
+
+    def test_switching_a_group_on_shares_every_account_in_it_and_only_it(self):
+        self.assertEqual(self.post().status_code, 302)
+        self.assertEqual(set(FamilyShare.objects.values_list('account_id', flat=True)), {a.pk for a in self.banks})
+
+    def test_a_partly_shared_group_is_completed_without_changing_earlier_choices(self):
+        shares.set_share(self.owner, self.banks[0], 'LIST', alias='Joint')
+        self.post()
+        self.assertEqual(FamilyShare.objects.count(), 3)
+        first = FamilyShare.objects.get(account=self.banks[0])
+        self.assertEqual((first.level, first.alias), ('LIST', 'Joint'))
+
+    def test_switching_a_fully_shared_group_off_stops_them_all(self):
+        self.post()
+        self.post()
+        self.assertEqual(FamilyShare.objects.count(), 0)
+
+    def test_it_is_one_cache_bump_and_one_notice_for_the_whole_group(self):
+        from expenses.models import HouseholdMember, Notification
+        HouseholdMember.objects.filter(user=self.owner).update(notify_new_shares=True)
+        household = households.household_for(self.owner)
+        before = household.cache_version
+        self.post()
+        household.refresh_from_db()
+        self.assertEqual(household.cache_version, before + 1)
+        self.assertEqual(Notification.objects.filter(user=self.partner).count(), 1)
+
+    def test_an_unknown_group_is_a_404_and_get_is_refused(self):
+        from django.urls import reverse
+        self.assertEqual(self.post('nope').status_code, 404)
+        self.assertEqual(self.client.get(reverse('family-share-group', args=['bank'])).status_code, 405)

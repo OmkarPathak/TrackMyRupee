@@ -201,8 +201,9 @@ class SharingPagesTests(SharingFixture):
         self.client.force_login(self.owner)
         page = self.client.get(reverse('family-share'))
         self.assertEqual(page.status_code, 200)
-        for text in ('Joint Savings', 'Everyday Card', 'Term Cover', 'Private', 'Amount counts', 'Sharing activity'):
+        for text in ('Joint Savings', 'Everyday Card', 'Term Cover', 'Amount counts', 'Sharing activity', '1 of '):
             self.assertContains(page, text)
+        self.assertNotContains(page, 'class="fam-private"')     # an unshared row is just an off switch, not a repeated label
         self.assertContains(page, 'Sharing 1 of your 4 items.')
 
     def test_the_switch_shares_and_unshares(self):
@@ -271,7 +272,8 @@ class PreviewTests(SharingFixture):
         self.assertContains(page, 'Joint Savings')
         self.assertContains(page, '₹50,650')
         self.assertContains(page, 'Amounts not shared')
-        self.assertContains(page, 'The amounts on Everyday Card')
+        self.assertContains(page, 'Amounts are hidden on 1 listed item.')
+        self.assertContains(page, 'Everyday Card')
         self.assertContains(page, 'Only you see this note')
 
     def test_the_preview_can_switch_between_members(self):

@@ -19,34 +19,70 @@
 <div class="fam-split">
 <form method="post" action="{% url 'family-emergency-save' %}" class="fam-stack" id="fam-em-form">
     {% csrf_token %}
-    <section class="card fam-card" aria-labelledby="fam-inc-h">
-        <h2 id="fam-inc-h">{% trans "What is on the sheet" %}</h2>
-        <p class="fam-note">{% trans "Built from what you already track. Switch off anything you want to keep off it." %}</p>
+    <section aria-labelledby="fam-inc-h">
+        <h2 id="fam-inc-h" class="fam-h2 mb-1">{% trans "What is on the sheet" %}</h2>
+        <p class="fam-note mb-2">{% trans "Built from what you already track. Switch off anything you want to keep off it." %}</p>
         {% if not groups %}<p class="fam-note">{% trans "You have no accounts yet. Add one on the Accounts page, then come back." %}</p>{% endif %}
-        <div class="fam-rows">
         {% for key, label, rows in groups %}
-            <div class="fam-grp">{{ label }}</div>
+        <div class="card fam-card fam-gcard" data-fam-group>
+            <div class="fam-ghead">
+                <div>
+                    <h3 class="fam-gname">{{ label }}</h3>
+                    <div class="fam-gcount" data-fam-count data-template="{% blocktrans trimmed with on='%ON%' total='%TOTAL%' %}{{ on }} of {{ total }} on the sheet{% endblocktrans %}"></div>
+                </div>
+                <button type="button" class="btn btn-action-cancel btn-sm" data-fam-all data-add="{% trans 'Add all' %}" data-remove="{% trans 'Remove all' %}" aria-label="{% blocktrans with name=label %}Add or remove all in {{ name }}{% endblocktrans %}"></button>
+            </div>
+            <div class="fam-rows">
             {% for row in rows %}{% with account=row.account item=row.item %}
             <div class="fam-row fam-item">
                 <label class="fam-tog"><input type="checkbox" name="include_{{ account.uuid }}" {% if row.on %}checked{% endif %} aria-label="{% blocktrans with name=account.name %}Include {{ name }}{% endblocktrans %}"><span aria-hidden="true"></span></label>
                 <div class="fam-row-main">
                     <div class="fam-row-name">{{ account.name }}</div>
-                    <div class="fam-row-sub">{% include 'expenses/family/_item_sub.html' %}{% if item.amount is not None %} · <span class="fam-amt{% if item.amount < 0 %} is-neg{% endif %}">{{ item.amount|money_exact:item.currency }}</span>{% endif %}</div>
+                    {% if row.liability %}<div class="fam-row-sub">{{ item.type_label }}</div>
+                    {% else %}<div class="fam-row-sub">{% include 'expenses/family/_item_sub.html' %}{% if item.amount is not None %} · <span class="fam-amt{% if item.amount < 0 %} is-neg{% endif %}">{{ item.amount|money_exact:item.currency }}</span>{% endif %}</div>{% endif %}
                 </div>
-                {% if not row.liability %}
+                {% if row.liability %}
+                <dl class="fam-liab">
+                    {% if item.amount is not None %}<div><dt>{% trans "Owed" %}</dt><dd class="fam-amt is-neg">{{ item.amount|money_exact:item.currency|cut:"-" }}</dd></div>{% endif %}
+                    {% if item.limit %}<div><dt>{% trans "Limit" %}</dt><dd class="fam-amt">{{ item.limit|money_exact:item.currency }}</dd></div>{% endif %}
+                    {% if item.emi %}<div><dt>{% trans "EMI" %}</dt><dd class="fam-amt">{{ item.emi|money_exact:item.currency }}</dd></div>{% endif %}
+                </dl>
+                {% else %}
                 <div class="fam-nominee"><label for="nom-{{ account.uuid }}">{% trans "Nominee" %}</label><input type="text" class="form-control" id="nom-{{ account.uuid }}" name="nominee_{{ account.uuid }}" maxlength="100" value="{{ row.nominee }}" autocomplete="off"></div>
                 {% endif %}
             </div>
             {% endwith %}{% endfor %}
-        {% endfor %}
+            </div>
         </div>
+        {% endfor %}
     </section>
+    <script>
+    (function () {
+        document.querySelectorAll('[data-fam-group]').forEach(function (group) {
+            var boxes = group.querySelectorAll('.fam-item input[type="checkbox"]');
+            var count = group.querySelector('[data-fam-count]');
+            var button = group.querySelector('[data-fam-all]');
+            function refresh() {
+                var on = Array.prototype.filter.call(boxes, function (b) { return b.checked; }).length;
+                count.textContent = count.dataset.template.replace('%ON%', on).replace('%TOTAL%', boxes.length);
+                button.textContent = on === boxes.length ? button.dataset.remove : button.dataset.add;
+            }
+            button.addEventListener('click', function () {
+                var all = Array.prototype.every.call(boxes, function (b) { return b.checked; });
+                boxes.forEach(function (b) { b.checked = !all; });
+                refresh();
+            });
+            boxes.forEach(function (b) { b.addEventListener('change', refresh); });
+            refresh();
+        });
+    })();
+    </script>
 
     <section class="card fam-card" aria-labelledby="fam-nt-h">
         <h2 id="fam-nt-h">{% trans "Notes for the people you trust" %}</h2>
         <div class="mb-3"><label for="fam-docs" class="form-label fw-bold">{% trans "Where my documents are" %}</label><textarea class="form-control" id="fam-docs" name="documents" rows="3" maxlength="1000">{{ sheet.documents_note }}</textarea></div>
         <div class="mb-3"><label for="fam-contacts" class="form-label fw-bold">{% trans "People to call" %}</label><textarea class="form-control" id="fam-contacts" name="contacts" rows="3" maxlength="1000">{{ sheet.contacts_note }}</textarea></div>
-        <div class="fam-warn"><b>{% trans "Never put account numbers, passwords or PINs here." %}</b> {% trans "This sheet says what exists and where to look. It is not a will or a legal nomination." %}</div>
+        <div class="fam-warn" role="note"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><div><b>{% trans "Never put account numbers, passwords or PINs here." %}</b> {% trans "This sheet says what exists and where to look. It is not a will or a legal nomination." %}</div></div>
     </section>
 
     <section class="card fam-card" aria-labelledby="fam-who-h">

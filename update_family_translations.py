@@ -550,6 +550,37 @@ ENTRIES = {
     ('', "Meera's health policy premium of ₹24,000 falls due on 14 Dec. Nothing to do but keep it in mind."): (None, 'मीरा की स्वास्थ्य पॉलिसी का ₹24,000 का प्रीमियम 14 दिसंबर को देय है। बस ध्यान में रखें, और कुछ करने की ज़रूरत नहीं।', 'मीराच्या आरोग्य पॉलिसीचा ₹24,000 चा प्रीमियम 14 डिसेंबरला देय आहे. फक्त लक्षात ठेवा, काही करायचे नाही.'),
     ('', 'Two credit cards and four insurance policies across the family, held by Arjun, Priya and Meera.'): (None, 'परिवार में दो क्रेडिट कार्ड और चार बीमा पॉलिसियाँ हैं, जो अर्जुन, प्रिया और मीरा के पास हैं।', 'कुटुंबात दोन क्रेडिट कार्ड आणि चार विमा पॉलिसी आहेत, ज्या अर्जुन, प्रिया आणि मीरा यांच्याकडे आहेत.'),
     ('', 'Examples. Names and numbers are made up.'): (None, 'उदाहरण। नाम और आँकड़े काल्पनिक हैं।', 'उदाहरणे. नावे आणि आकडे काल्पनिक आहेत.'),
+    # ---- sharing a whole group at once ----
+    ('', '%(on)s of %(total)s shared'): (None, '%(total)s में से %(on)s साझा', '%(total)s पैकी %(on)s शेअर केलेली'),
+    ('', 'Share all'): (None, 'सब साझा करें', 'सर्व शेअर करा'),
+    ('', 'Stop sharing all'): (None, 'सब साझा करना बंद करें', 'सर्व शेअर करणे थांबवा'),
+    ('', 'Stop sharing all in %(name)s'): (None, '%(name)s में सब साझा करना बंद करें', '%(name)s मधील सर्व शेअर करणे थांबवा'),
+    ('', '%(on)s of %(total)s on the sheet'): (None, '%(total)s में से %(on)s शीट पर', '%(total)s पैकी %(on)s शीटवर'),
+    ('', 'Add all'): (None, 'सब जोड़ें', 'सर्व जोडा'),
+    ('', 'Remove all'): (None, 'सब हटाएँ', 'सर्व काढा'),
+    ('', 'Add or remove all in %(name)s'): (None, '%(name)s में सब जोड़ें या हटाएँ', '%(name)s मधील सर्व जोडा किंवा काढा'),
+    ('', 'Owed'): (None, 'बकाया', 'देणे'),
+    ('', '%(counter)s private account is hidden.'): (
+        '%(counter)s private accounts are hidden.',
+        ('%(counter)s निजी खाता छिपा है।', '%(counter)s निजी खाते छिपे हैं।'),
+        ('%(counter)s खाजगी खाते लपवलेले आहे.', '%(counter)s खाजगी खाती लपवलेली आहेत.')),
+    ('', 'Amounts are hidden on %(counter)s listed item.'): (
+        'Amounts are hidden on %(counter)s listed items.',
+        ('%(counter)s सूचीबद्ध आइटम पर राशि छिपी है।', '%(counter)s सूचीबद्ध आइटम पर राशियाँ छिपी हैं।'),
+        ('%(counter)s यादीतील आयटमवरील रक्कम लपवलेली आहे.', '%(counter)s यादीतील आयटमवरील रकमा लपवलेल्या आहेत.')),
+    ('', 'Transactions, categories, notes and account numbers are never shown, and nothing hints that anything is hidden.'): (
+        None, 'लेन-देन, श्रेणियाँ, नोट और खाता नंबर कभी नहीं दिखाए जाते, और कुछ भी संकेत नहीं देता कि कुछ छिपा है।',
+        'व्यवहार, श्रेणी, नोंदी आणि खाते क्रमांक कधीही दाखवले जात नाहीत, आणि काहीही लपवले आहे याचा मागमूस लागत नाही.'),
+    ('', 'Which accounts?'): (None, 'कौन-से खाते?', 'कोणती खाती?'),
+    ('', 'Share all in %(name)s'): (None, '%(name)s में सब साझा करें', '%(name)s मधील सर्व शेअर करा'),
+    ('', 'Shared %(count)d item in %(group)s with your family.'): (
+        'Shared %(count)d items in %(group)s with your family.',
+        ('%(group)s में %(count)d आइटम परिवार के साथ साझा किया गया।', '%(group)s में %(count)d आइटम परिवार के साथ साझा किए गए।'),
+        ('%(group)s मधील %(count)d आयटम कुटुंबासोबत शेअर केली.', '%(group)s मधील %(count)d आयटम कुटुंबासोबत शेअर केल्या.')),
+    ('', 'Stopped sharing %(count)d item in %(group)s.'): (
+        'Stopped sharing %(count)d items in %(group)s.',
+        ('%(group)s में %(count)d आइटम साझा करना बंद किया।', '%(group)s में %(count)d आइटम साझा करना बंद किया।'),
+        ('%(group)s मधील %(count)d आयटम शेअर करणे थांबवले.', '%(group)s मधील %(count)d आयटम शेअर करणे थांबवले.')),
 }
 
 

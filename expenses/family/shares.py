@@ -74,6 +74,32 @@ def set_share(user, account, level, alias='', covers=None):
 
 
 @transaction.atomic
+def set_section(user, accounts, label):
+    """Switch a whole group on or off. If every account in it is already shared they all stop being shared;
+    otherwise the ones not yet shared are shared with their amounts (existing choices are left alone).
+    One cache bump and at most one notice for the group. Returns (changed, now_shared)."""
+    household = households.household_for(user)
+    if household is None:
+        raise households.FamilyError('not_member', _("You are not in a family."))
+    accounts = [a for a in accounts if a.user_id == user.id and a.is_active]
+    existing = {s.account_id: s for s in FamilyShare.objects.filter(owner=user, account__in=accounts)}
+    if accounts and len(existing) == len(accounts):
+        for account in accounts:
+            existing[account.pk].delete()
+            _log(user, FamilyShareEvent.STOPPED, existing[account.pk].alias or account.name)
+        households.bump(household)
+        return len(accounts), False
+    added = [a for a in accounts if a.pk not in existing]
+    for account in added:
+        FamilyShare.objects.create(household=household, owner=user, account=account, level=FamilyShare.AMOUNTS)
+        _log(user, FamilyShareEvent.SHARED, account.name, FamilyShare.AMOUNTS)
+    if added:
+        households.bump(household)
+        _notify_members(household, user, label)
+    return len(added), True
+
+
+@transaction.atomic
 def stop_share(user, account):
     """Stop sharing ``account``. Returns True if it was shared."""
     share = FamilyShare.objects.filter(owner=user, account=account).select_related('household').first()

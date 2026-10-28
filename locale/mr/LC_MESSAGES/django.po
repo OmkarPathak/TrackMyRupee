@@ -22965,3 +22965,84 @@ msgstr "कुटुंबात दोन क्रेडिट कार्ड
 #: expenses/family
 msgid "Examples. Names and numbers are made up."
 msgstr "उदाहरणे. नावे आणि आकडे काल्पनिक आहेत."
+
+#: expenses/family
+#, python-format
+msgid "%(on)s of %(total)s shared"
+msgstr "%(total)s पैकी %(on)s शेअर केलेली"
+
+#: expenses/family
+#, python-format
+msgid "Share all in %(name)s"
+msgstr "%(name)s मधील सर्व शेअर करा"
+
+#: expenses/family
+#, python-format
+msgid "Shared %(count)d item in %(group)s with your family."
+msgid_plural "Shared %(count)d items in %(group)s with your family."
+msgstr[0] "%(group)s मधील %(count)d आयटम कुटुंबासोबत शेअर केली."
+msgstr[1] "%(group)s मधील %(count)d आयटम कुटुंबासोबत शेअर केल्या."
+
+#: expenses/family
+#, python-format
+msgid "Stopped sharing %(count)d item in %(group)s."
+msgid_plural "Stopped sharing %(count)d items in %(group)s."
+msgstr[0] "%(group)s मधील %(count)d आयटम शेअर करणे थांबवले."
+msgstr[1] "%(group)s मधील %(count)d आयटम शेअर करणे थांबवले."
+
+#: expenses/family
+msgid "Share all"
+msgstr "सर्व शेअर करा"
+
+#: expenses/family
+msgid "Stop sharing all"
+msgstr "सर्व शेअर करणे थांबवा"
+
+#: expenses/family
+#, python-format
+msgid "Stop sharing all in %(name)s"
+msgstr "%(name)s मधील सर्व शेअर करणे थांबवा"
+
+#: expenses/family
+#, python-format
+msgid "%(on)s of %(total)s on the sheet"
+msgstr "%(total)s पैकी %(on)s शीटवर"
+
+#: expenses/family
+msgid "Add all"
+msgstr "सर्व जोडा"
+
+#: expenses/family
+msgid "Remove all"
+msgstr "सर्व काढा"
+
+#: expenses/family
+#, python-format
+msgid "Add or remove all in %(name)s"
+msgstr "%(name)s मधील सर्व जोडा किंवा काढा"
+
+#: expenses/family
+msgid "Owed"
+msgstr "देणे"
+
+#: expenses/family
+#, python-format
+msgid "%(counter)s private account is hidden."
+msgid_plural "%(counter)s private accounts are hidden."
+msgstr[0] "%(counter)s खाजगी खाते लपवलेले आहे."
+msgstr[1] "%(counter)s खाजगी खाती लपवलेली आहेत."
+
+#: expenses/family
+#, python-format
+msgid "Amounts are hidden on %(counter)s listed item."
+msgid_plural "Amounts are hidden on %(counter)s listed items."
+msgstr[0] "%(counter)s यादीतील आयटमवरील रक्कम लपवलेली आहे."
+msgstr[1] "%(counter)s यादीतील आयटमवरील रकमा लपवलेल्या आहेत."
+
+#: expenses/family
+msgid "Transactions, categories, notes and account numbers are never shown, and nothing hints that anything is hidden."
+msgstr "व्यवहार, श्रेणी, नोंदी आणि खाते क्रमांक कधीही दाखवले जात नाहीत, आणि काहीही लपवले आहे याचा मागमूस लागत नाही."
+
+#: expenses/family
+msgid "Which accounts?"
+msgstr "कोणती खाती?"

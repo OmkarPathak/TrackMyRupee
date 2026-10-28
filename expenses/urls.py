@@ -97,6 +97,7 @@ urlpatterns = [
     path('family/notes/toggle/', views.family_notes_toggle_view, name='family-notes-toggle'),
     path('family/share/', views.family_share_view, name='family-share'),
     path('family/share/notify/', views.family_share_notify_view, name='family-share-notify'),
+    path('family/share/group/<slug:key>/', views.family_share_group_view, name='family-share-group'),
     path('family/share/<uuid:pk>/', views.family_share_edit_view, name='family-share-edit'),
     path('family/share/<uuid:pk>/toggle/', views.family_share_toggle_view, name='family-share-toggle'),
     path('family/share/<uuid:pk>/stop/', views.family_share_stop_view, name='family-share-stop'),

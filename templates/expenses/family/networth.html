@@ -13,7 +13,6 @@
         <h1>{% trans "Net worth" %}</h1>
         <p class="fam-sub">{% trans "Family view: the combined net worth of what your family has shared." %}</p>
     </div>
-    <div class="fam-actions">{% family_toggle 'networth' 'family' %}</div>
 </div>
 
 {% include 'expenses/family/_banner.html' %}
@@ -109,12 +108,12 @@
     <section class="card fam-card" aria-labelledby="fam-inv-h">
         <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
             <div>
-                <h2 id="fam-inv-h">{% trans "Who holds what" %}</h2>
+                <h2 id="fam-inv-h" class="fam-h2">{% trans "Who holds what" %}</h2>
                 <p class="fam-note">
                     {% for key, heading, per_member, total in data.counts %}{{ total|translate_digits }} {{ heading|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "Nothing is shared yet." %}{% endfor %}
                 </p>
             </div>
-            <a href="{% url 'family-inventory' %}" class="btn btn-action-primary">{% trans "See the family inventory" %}</a>
+            <a href="{% url 'family-inventory' %}" class="btn btn-action-cancel">{% trans "See the family inventory" %}</a>
         </div>
     </section>
 </div>

@@ -16,8 +16,8 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     @media (max-width: 575.98px) { .fam-card { padding: 1rem; } }
 
     /* The plan banner: green when family view is on, amber when a plan is ending, blue when it is paused */
-    .fam-banner { display: flex; gap: .7rem; align-items: flex-start; padding: .8rem 1rem; border-radius: 14px; font-size: .9rem; line-height: 1.45; border: 1px solid transparent; margin-bottom: 1rem; }
-    .fam-banner i { font-size: 1.05rem; margin-top: .1rem; flex-shrink: 0; }
+    .fam-banner { display: flex; gap: .7rem; align-items: center; padding: .8rem 1rem; border-radius: 14px; font-size: .9rem; line-height: 1.45; border: 1px solid transparent; margin-bottom: 1rem; }
+    .fam-banner i { font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
     .fam-banner.is-ok { background: rgba(15,118,87,.09); border-color: rgba(15,118,87,.22); color: var(--fam-green); }
     .fam-banner.is-warning { background: rgba(212,131,26,.12); border-color: rgba(212,131,26,.28); color: var(--fam-amber); }
     .fam-banner.is-paused { background: rgba(22,90,158,.10); border-color: rgba(22,90,158,.24); color: var(--fam-blue); }
@@ -72,14 +72,33 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-checks { padding: 0; }
 
     /* Sub-navigation between the family pages */
-    .fam-tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .fam-tabs a { padding: .4rem .9rem; border-radius: 999px; font-size: .88rem; font-weight: 600; text-decoration: none; color: var(--fam-muted); border: 1px solid var(--fam-line); }
+    .fam-tabs { display: flex; gap: .25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--fam-line); overflow-x: auto; scrollbar-width: none; }
+    .fam-tabs::-webkit-scrollbar { display: none; }
+    .fam-tabs a { display: inline-flex; align-items: center; gap: .45rem; padding: .7rem .95rem; margin-bottom: -1px; font-size: .92rem; font-weight: 600; text-decoration: none; white-space: nowrap; color: var(--fam-muted); border-bottom: 2px solid transparent; }
+    .fam-tabs a .bi { font-size: 1.05rem; }
     .fam-tabs a:hover { color: var(--bs-body-color); }
-    .fam-tabs a.is-active { background: var(--bs-tertiary-bg); color: var(--bs-body-color); border-color: var(--fam-green); }
+    .fam-tabs a.is-active { color: var(--bs-body-color); border-bottom-color: var(--fam-green); }
+    .fam-tabs a.is-active .bi { color: var(--fam-green); }
+    .fam-tab-short { display: none; }
+    @media (max-width: 991.98px) and (min-width: 576px) { .fam-tabs a { padding-left: .7rem; padding-right: .7rem; font-size: .88rem; } }
+    @media (max-width: 575.98px) {
+        .fam-tabs { gap: 0; }
+        .fam-tabs a { flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: flex-start; gap: .2rem; padding: .55rem .1rem .5rem; font-size: .68rem; line-height: 1.15; white-space: normal; text-align: center; }
+        .fam-tabs a .bi { font-size: 1.2rem; }
+        .fam-tab-long { display: none; }
+        .fam-tab-short { display: inline; }
+    }
 
     /* Group headings and the on/off switch of "What I share" */
-    .fam-grp { font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--fam-muted); font-weight: 700; padding: 1rem 0 .1rem; }
-    .fam-grp:first-child { padding-top: 0; }
+    .fam .fam-h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; margin: 0; color: var(--bs-body-color); }
+    .fam-gcard { margin-bottom: 1rem; padding-top: .35rem; padding-bottom: .35rem; }
+    .fam-ghead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 0 .7rem; }
+    .fam-gname { margin: 0; font-size: 1.05rem; font-weight: 800; }
+    .fam-gcount { font-size: .8rem; color: var(--fam-muted); margin-top: .1rem; }
+    .fam-gcard .fam-rows .fam-row:first-child { border-top: 1px solid var(--fam-line); }
+    .fam-item .fam-switch { width: 36px; height: 20px; }
+    .fam-item .fam-switch::after { top: 2px; left: 2px; width: 16px; height: 16px; }
+    .fam-item .fam-switch[aria-pressed="true"]::after { transform: translateX(16px); }
     .fam-switch { width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; position: relative; flex-shrink: 0; background: var(--bs-secondary-bg); box-shadow: inset 0 0 0 1px var(--fam-line); transition: background .15s; cursor: pointer; }
     .fam-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--bs-body-bg); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s; }
     .fam-switch[aria-pressed="true"] { background: var(--bs-success); box-shadow: none; }
@@ -91,6 +110,14 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     @media (max-width: 575.98px) {
         .fam-item .fam-row-end { margin-left: calc(44px + .85rem); justify-content: flex-start; }
         .fam-item.is-plain .fam-row-end { margin-left: calc(28px + .85rem); }
+        /* What I share on a phone: switch | name and type | amount, then the status and the action under the name */
+        .fam-share-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: .75rem; row-gap: .5rem; align-items: center; padding-left: 0; padding-right: 0; }
+        .fam-share-row > form { grid-column: 1; grid-row: 1; }
+        .fam-share-row .fam-row-main { grid-column: 2; grid-row: 1; min-width: 0; }
+        .fam-share-row .fam-row-end { display: contents; }
+        .fam-share-row .fam-amt { grid-column: 3; grid-row: 1; justify-self: end; font-size: .95rem; }
+        .fam-share-row .badge { grid-column: 2; grid-row: 2; justify-self: start; }
+        .fam-share-row .btn { grid-column: 3; grid-row: 2; justify-self: end; }
     }
 
     /* The sharing dialog, as a page: a card in the middle that works at phone width */
@@ -117,6 +144,10 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-hidden { background: rgba(212,131,26,.12); border: 1px solid rgba(212,131,26,.28); color: var(--fam-amber); }
     [data-bs-theme="dark"] .fam-hidden { background: rgba(244,180,78,.14); border-color: rgba(244,180,78,.30); }
     .fam-hidden h2 { color: var(--fam-amber); }
+    .fam-hidden { font-size: .9rem; }
+    .fam-hid-more { margin-top: .5rem; }
+    .fam-hid-more summary { cursor: pointer; font-weight: 600; }
+    .fam-hid-more p { margin-top: .35rem; }
     .fam-hidden ul { margin: .5rem 0 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .25rem; }
     .fam-split { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
     @media (min-width: 992px) { .fam-split { grid-template-columns: minmax(0, 1fr) 20rem; } }
@@ -179,6 +210,11 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-tog input:checked + span { background: var(--bs-success); box-shadow: none; }
     .fam-tog input:checked + span::after { transform: translateX(18px); background: var(--bs-white); }
     .fam-tog input:focus-visible + span { outline: 2px solid var(--fam-green); outline-offset: 2px; }
+    .fam-liab { display: flex; gap: 1.5rem; margin: 0 0 0 auto; }
+    .fam-liab > div { display: flex; flex-direction: column; align-items: flex-end; }
+    .fam-liab dt { font-size: .75rem; font-weight: 500; color: var(--fam-muted); }
+    .fam-liab dd { margin: 0; font-size: .95rem; }
+    @media (max-width: 575.98px) { .fam-liab { margin-left: 0; width: 100%; padding-left: calc(36px + .85rem); } .fam-liab > div { align-items: flex-start; } }
     .fam-nominee { flex: 1 1 11rem; min-width: 0; }
     .fam-nominee label { font-size: .75rem; color: var(--fam-muted); display: block; }
     .fam-countdown { background: rgba(212,131,26,.12); color: var(--fam-amber); border-radius: 12px; padding: .7rem .9rem; }
@@ -188,7 +224,8 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-step { display: flex; gap: .75rem; align-items: flex-start; }
     .fam-step .dot { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%; background: var(--bs-secondary-bg); display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; color: var(--fam-muted); }
     .fam-step .dot.is-done { background: var(--bs-success); color: var(--bs-white); }
-    .fam-warn { background: rgba(212,131,26,.12); border: 1px solid rgba(212,131,26,.28); color: var(--fam-amber); border-radius: 12px; padding: .7rem .9rem; font-size: .88rem; }
+    .fam-warn { display: flex; gap: .7rem; align-items: center; background: rgba(212,131,26,.12); border: 1px solid rgba(212,131,26,.28); color: var(--fam-amber); border-radius: 12px; padding: .7rem .9rem; font-size: .88rem; }
+    .fam-warn i { font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
     [data-bs-theme="dark"] .fam-warn { background: rgba(244,180,78,.14); border-color: rgba(244,180,78,.30); }
     @media print { .fam-tabs, .fam-noprint, .sidebar, .navbar, .fam-banner { display: none !important; } .fam-card { border: 0; box-shadow: none; } }
 </style>

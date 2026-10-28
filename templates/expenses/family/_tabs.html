@@ -1,8 +1,9 @@
-{% load i18n %}{% comment %}The pages of the Family area. family_page names the current one.{% endcomment %}
+{% load i18n %}{% comment %}The pages of the Family area. family_page names the current one. Page tabs: an underline marks where you are, an icon sits on each, and on a phone they share the width with the icon above a short label.{% endcomment %}
 <nav class="fam-tabs" aria-label="{% trans 'Family pages' %}">
-    <a href="{% url 'family-networth' %}" class="{% if family_page == 'networth' %}is-active{% endif %}"{% if family_page == 'networth' %} aria-current="page"{% endif %}>{% trans "Net worth" %}</a>
-    <a href="{% url 'family-inventory' %}" class="{% if family_page == 'inventory' %}is-active{% endif %}"{% if family_page == 'inventory' %} aria-current="page"{% endif %}>{% trans "Who holds what" %}</a>
-    <a href="{% url 'family-share' %}" class="{% if family_page == 'share' %}is-active{% endif %}"{% if family_page == 'share' %} aria-current="page"{% endif %}>{% trans "What I share" %}</a>
-    <a href="{% url 'family-emergency' %}" class="{% if family_page == 'emergency' %}is-active{% endif %}"{% if family_page == 'emergency' %} aria-current="page"{% endif %}>{% trans "If something happens to me" %}</a>
-    <a href="{% url 'family-home' %}" class="{% if family_page == 'home' %}is-active{% endif %}"{% if family_page == 'home' %} aria-current="page"{% endif %}>{% trans "Members" %}</a>
+    <a href="{% url 'family-networth' %}" class="{% if family_page == 'networth' %}is-active{% endif %}"{% if family_page == 'networth' %} aria-current="page"{% endif %}><i class="bi bi-graph-up-arrow" aria-hidden="true"></i><span>{% trans "Net worth" %}</span></a>
+    <a href="{% url 'family-inventory' %}" class="{% if family_page == 'inventory' %}is-active{% endif %}"{% if family_page == 'inventory' %} aria-current="page"{% endif %}><i class="bi bi-wallet2" aria-hidden="true"></i><span>{% trans "Who holds what" %}</span></a>
+    <a href="{% url 'family-share' %}" class="{% if family_page == 'share' %}is-active{% endif %}"{% if family_page == 'share' %} aria-current="page"{% endif %}><i class="bi bi-share" aria-hidden="true"></i><span>{% trans "What I share" %}</span></a>
+    <a href="{% url 'family-emergency' %}" class="{% if family_page == 'emergency' %}is-active{% endif %}"{% if family_page == 'emergency' %} aria-current="page"{% endif %}><i class="bi bi-life-preserver" aria-hidden="true"></i><span class="fam-tab-long">{% trans "If something happens to me" %}</span><span class="fam-tab-short">{% trans "Emergency sheet" %}</span></a>
+    <a href="{% url 'family-home' %}" class="{% if family_page == 'home' %}is-active{% endif %}"{% if family_page == 'home' %} aria-current="page"{% endif %}><i class="bi bi-people" aria-hidden="true"></i><span>{% trans "Members" %}</span></a>
 </nav>
+<script>window.addEventListener('load', function () { var tab = document.querySelector('.fam-tabs a.is-active'); if (!tab) { return; } var bar = tab.parentNode; bar.scrollLeft += tab.getBoundingClientRect().right - bar.getBoundingClientRect().right + 16; });</script>

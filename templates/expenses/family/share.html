@@ -23,17 +23,27 @@
 </div>
 
 <div class="fam-stack">
-    <section class="card fam-card" aria-labelledby="fam-items-h">
-        <h2 id="fam-items-h">{% trans "Your accounts" %}</h2>
+    <section aria-labelledby="fam-items-h">
+        <h2 id="fam-items-h" class="fam-h2 mb-2">{% trans "Your accounts" %}</h2>
         {% if not groups %}
             <p class="fam-note">{% trans "You have no accounts yet. Add one on the Accounts page, then come back to share it." %}</p>
         {% endif %}
-        <div class="fam-rows">
-        {% for key, label, rows in groups %}
-            <div class="fam-grp">{{ label }}</div>
+        {% for key, label, rows, group in groups %}
+        <div class="card fam-card fam-gcard">
+            <div class="fam-ghead">
+                <div>
+                    <h3 class="fam-gname">{{ label }}</h3>
+                    <div class="fam-gcount">{% blocktrans trimmed with on=group.on|translate_digits total=group.total|translate_digits %}{{ on }} of {{ total }} shared{% endblocktrans %}</div>
+                </div>
+                <form method="post" action="{% url 'family-share-group' key %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-action-cancel btn-sm" aria-label="{% if group.state == 'true' %}{% blocktrans with name=label %}Stop sharing all in {{ name }}{% endblocktrans %}{% else %}{% blocktrans with name=label %}Share all in {{ name }}{% endblocktrans %}{% endif %}">{% if group.state == 'true' %}{% trans "Stop sharing all" %}{% else %}{% trans "Share all" %}{% endif %}</button>
+                </form>
+            </div>
+            <div class="fam-rows">
             {% for row in rows %}
             {% with item=row.item share=row.share account=row.account %}
-            <div class="fam-row fam-item">
+            <div class="fam-row fam-item fam-share-row{% if not share %} is-private{% endif %}">
                 <form method="post" action="{% url 'family-share-toggle' account.uuid %}">
                     {% csrf_token %}
                     <button type="submit" class="fam-switch" role="switch" aria-pressed="{% if share %}true{% else %}false{% endif %}" aria-label="{% blocktrans with name=account.name %}Share {{ name }}{% endblocktrans %}"></button>
@@ -49,18 +59,17 @@
                         {% if share.level == 'LIST' %}<span class="badge badge-soft-secondary">{% trans "Listed only" %}</span>
                         {% elif item.kind == 'insurance' %}<span class="badge badge-soft-success">{% trans "Details shown" %}</span>
                         {% else %}<span class="badge badge-soft-success">{% trans "Amount counts" %}</span>{% endif %}
-                    {% else %}
-                        <span class="fam-private"><i class="bi bi-lock" aria-hidden="true"></i>{% trans "Private" %}</span>
                     {% endif %}
                     {% if item.kind == 'insurance' %}{% if item.cover %}<span class="fam-amt">{{ item.cover|money_exact:item.currency }}</span>{% endif %}
                     {% elif item.amount is not None %}<span class="fam-amt{% if item.amount < 0 %} is-neg{% endif %}">{{ item.amount|money_exact:item.currency }}</span>{% endif %}
-                    <a href="{% url 'family-share-edit' account.uuid %}" class="btn btn-action-cancel btn-sm">{% if share %}{% trans "Edit sharing" %}{% else %}{% trans "Share…" %}{% endif %}</a>
+                    {% if share %}<a href="{% url 'family-share-edit' account.uuid %}" class="btn btn-action-cancel btn-sm">{% trans "Edit sharing" %}</a>{% endif %}
                 </div>
             </div>
             {% endwith %}
             {% endfor %}
-        {% endfor %}
+            </div>
         </div>
+        {% endfor %}
     </section>
 
     <section class="card fam-card" aria-labelledby="fam-log-h">

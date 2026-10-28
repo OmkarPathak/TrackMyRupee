@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_GET, require_POST
 
 from ..family import (
@@ -52,6 +53,7 @@ __all__ = [
     'family_share_view',
     'family_share_edit_view',
     'family_share_toggle_view',
+    'family_share_group_view',
     'family_share_stop_view',
     'family_share_notify_view',
     'family_preview_view',
@@ -276,9 +278,14 @@ def family_share_view(request):
             'account': account, 'item': item, 'share': shared.get(account.pk)})
     count_shared, count_total = shares.counts(request.user)
     membership = HouseholdMember.objects.get(user=request.user)
+    groups = []
+    for key, label, rows in _group_rows(by_section):
+        on = sum(1 for r in rows if r['share'])
+        groups.append((key, label, rows, {'on': on, 'total': len(rows),
+                                          'state': 'true' if on == len(rows) else 'mixed' if on else 'false'}))
     return render(request, 'expenses/family/share.html', {
         'household': household,
-        'groups': _group_rows(by_section),
+        'groups': groups,
         'count_shared': count_shared,
         'count_total': count_total,
         'events': shares.recent_events(request.user),
@@ -338,6 +345,34 @@ def family_share_toggle_view(request, pk):
             messages.error(request, error.message)
         else:
             messages.success(request, _("%(name)s is now shared with your family.") % {'name': account.name})
+    return redirect('family-share')
+
+
+@family_view
+@require_POST
+def family_share_group_view(request, key):
+    """Share (or stop sharing) every account in one group of the What I share page at once."""
+    household = _household_or_redirect(request)
+    if household is None:
+        return redirect('family-home')
+    label = next((label for k, label, _kinds in catalog.SECTIONS if k == key), None)
+    if label is None:
+        raise Http404
+    accounts = [a for a in shares.shareable_accounts(request.user)
+                if catalog.section_of(catalog.kind_of(a.account_type)) == key]
+    try:
+        changed, now_shared = shares.set_section(request.user, accounts, str(label))
+    except households.FamilyError as error:
+        messages.error(request, error.message)
+    else:
+        if now_shared:
+            messages.success(request, ngettext("Shared %(count)d item in %(group)s with your family.",
+                                               "Shared %(count)d items in %(group)s with your family.", changed)
+                             % {'count': changed, 'group': label})
+        else:
+            messages.success(request, ngettext("Stopped sharing %(count)d item in %(group)s.",
+                                               "Stopped sharing %(count)d items in %(group)s.", changed)
+                             % {'count': changed, 'group': label})
     return redirect('family-share')
 
 
