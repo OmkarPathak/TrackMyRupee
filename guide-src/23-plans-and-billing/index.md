@@ -19,6 +19,7 @@ keywords: TrackMyRupee plans, Plus, Pro, pricing, subscription, cancel, free tri
 | Net worth history | 2 months | 6 months | Full |
 | Alert emails | No | Yes | Yes |
 | Year in Review | No | Yes | Yes |
+| [Family sharing](../24-family-sharing/index.md) | No | No | Yes, for every member |
 
 Exporting your data is free on every plan. Prices are on the [pricing page](https://trackmyrupee.com/pricing/). The Free plan never expires.
 

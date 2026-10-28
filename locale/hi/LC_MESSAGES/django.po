@@ -22758,3 +22758,147 @@ msgstr "आपकी आपातकालीन शीट सहेज ली �
 #, python-format
 msgid "nominee %(name)s"
 msgstr "नामित: %(name)s"
+
+#: expenses/family
+msgid "Family sharing"
+msgstr "पारिवारिक साझाकरण"
+
+#: expenses/family
+msgid "One household picture, with each person choosing what to share."
+msgstr "पूरे घर की एक तस्वीर, जिसमें हर व्यक्ति खुद चुनता है कि क्या साझा करना है।"
+
+#: expenses/family
+msgid "One family net worth"
+msgstr "परिवार की एक नेट वर्थ"
+
+#: expenses/family
+msgid "The family sees one combined net worth: what you own, what you owe, and how it splits across cash, investments, property and more. The numbers come from the same valuation as each person's own net worth, so they never disagree."
+msgstr "परिवार को एक संयुक्त नेट वर्थ दिखती है: आपके पास क्या है, आप पर क्या बकाया है, और यह नकद, निवेश, संपत्ति आदि में कैसे बँटा है। आँकड़े हर व्यक्ति की अपनी नेट वर्थ वाले ही मूल्यांकन से आते हैं, इसलिए वे कभी अलग नहीं होते।"
+
+#: expenses/family
+msgid "See every credit card, insurance policy, loan and deposit the family has, and whose it is. A card shows its limit and next bill date, a policy its cover, premium and due date, a loan its EMI."
+msgstr "परिवार के हर क्रेडिट कार्ड, बीमा पॉलिसी, ऋण और जमा को देखें, और यह भी कि वह किसका है। कार्ड में उसकी सीमा और अगली बिल तारीख दिखती है, पॉलिसी में कवर, प्रीमियम और देय तारीख, और ऋण में उसकी EMI।"
+
+#: expenses/family
+msgid "Nothing is shared until you share it"
+msgstr "आप साझा करें, तभी कुछ साझा होता है"
+
+#: expenses/family
+msgid "Joining a family shares nothing. You pick each account and choose Show amounts or List only. Transactions, categories, notes and the holdings inside an account are never shared."
+msgstr "परिवार से जुड़ने पर कुछ भी साझा नहीं होता। आप हर खाता चुनते हैं और राशि दिखाएँ या केवल सूची में रखें में से एक चुनते हैं। लेन-देन, श्रेणियाँ, नोट और खाते के भीतर की होल्डिंग्स कभी साझा नहीं होतीं।"
+
+#: expenses/family
+msgid "See exactly what they see"
+msgstr "ठीक वही देखें जो वे देखते हैं"
+
+#: expenses/family
+msgid "A preview shows your family's view of your shared accounts. Give an account a nickname if its real name is private. Stop sharing at any time and it disappears for them at once."
+msgstr "पूर्वावलोकन में आपके साझा खातों का परिवार वाला दृश्य दिखता है। खाते का असली नाम निजी हो तो उसे उपनाम दें। कभी भी साझा करना बंद करें, और वह उनके लिए तुरंत गायब हो जाता है।"
+
+#: expenses/family
+msgid "Emergency access"
+msgstr "आपातकालीन पहुँच"
+
+#: expenses/family
+msgid "Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy."
+msgstr "एक छोटी शीट लिखें कि क्या-क्या है और कहाँ देखना है, खाता नंबर या पासवर्ड कभी नहीं। चुनें कि कौन माँग सकता है। वे अनुरोध करते हैं, आप स्वीकार या अस्वीकार कर सकते हैं, और 7 दिनों में जवाब न दें तो उन्हें केवल पढ़ने वाली प्रति मिल जाती है।"
+
+#: expenses/family
+msgid "Gentle notes, never comparisons"
+msgstr "सौम्य नोट्स, तुलना कभी नहीं"
+
+#: expenses/family
+msgid "A few calm, optional observations, such as a premium falling due or a card bill coming up, built only from what is shared. They never compare people or judge an amount, and each person can switch them off."
+msgstr "कुछ शांत, वैकल्पिक टिप्पणियाँ, जैसे कोई प्रीमियम देय होना या कार्ड बिल आना, जो केवल साझा की गई जानकारी से बनती हैं। वे कभी लोगों की तुलना नहीं करतीं और किसी राशि पर राय नहीं देतीं, और हर व्यक्ति उन्हें बंद कर सकता है।"
+
+#: expenses/family
+msgid "Your own account, your own data"
+msgstr "आपका अपना खाता, आपका अपना डेटा"
+
+#: expenses/family
+msgid "Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away."
+msgstr "हर व्यक्ति का अपना TrackMyRupee खाता रहता है। परिवार दृश्य के लिए सभी का Pro पर होना ज़रूरी है, अधिकतम 5 लोग। प्लान समाप्त हो तो परिवार दृश्य रुक जाता है और कुछ भी नहीं हटता। छोड़ने पर सारा साझाकरण तुरंत बंद हो जाता है।"
+
+#: expenses/family
+msgid "One family. One true net worth."
+msgstr "एक परिवार। एक सच्ची नेट वर्थ।"
+
+#: expenses/family
+msgid "Each of you keeps your own account and chooses what to share. The family sees a combined, read-only picture of only what was shared: what you own, what you owe, and who holds which card, policy or loan."
+msgstr "आप सभी का अपना खाता रहता है और आप तय करते हैं कि क्या साझा करना है। परिवार को केवल साझा की गई चीज़ों की संयुक्त, केवल-पढ़ने वाली तस्वीर दिखती है: आपके पास क्या है, क्या बकाया है, और कौन-सा कार्ड, पॉलिसी या ऋण किसके पास है।"
+
+#: expenses/family
+msgid "Nothing is shared by default"
+msgstr "डिफ़ॉल्ट रूप से कुछ भी साझा नहीं होता"
+
+#: expenses/family
+msgid "Joining shares nothing. You pick each account, and whether the family sees the amount or only that it exists."
+msgstr "जुड़ने से कुछ साझा नहीं होता। आप हर खाता चुनते हैं, और यह भी कि परिवार राशि देखे या केवल यह कि वह मौजूद है।"
+
+#: expenses/family
+msgid "Accounts, never transactions"
+msgstr "खाते, लेन-देन कभी नहीं"
+
+#: expenses/family
+msgid "No one sees a transaction, category, note or account number. Only the account and the few fields you allow."
+msgstr "कोई भी लेन-देन, श्रेणी, नोट या खाता नंबर नहीं देखता। केवल खाता और वे कुछ फ़ील्ड जिनकी आप अनुमति देते हैं।"
+
+#: expenses/family
+msgid "Preview your family's view of your accounts before anyone else does."
+msgstr "किसी और के देखने से पहले अपने खातों का परिवार वाला दृश्य खुद देखें।"
+
+#: expenses/family
+msgid "An emergency sheet that says where to look, opened on request, with a delay and a veto for you."
+msgstr "एक आपातकालीन शीट जो बताती है कि कहाँ देखना है, अनुरोध पर खुलती है, देरी के साथ और आपके लिए इनकार के अधिकार के साथ।"
+
+#: expenses/family
+msgid "Included with Pro"
+msgstr "Pro में शामिल"
+
+#: expenses/family
+msgid "Everyone in the family needs Pro. Up to five people."
+msgstr "परिवार में सभी को Pro चाहिए। अधिकतम पाँच लोग।"
+
+#: expenses/family
+msgid "How family sharing works"
+msgstr "पारिवारिक साझाकरण कैसे काम करता है"
+
+#: expenses/family
+msgid "Read the guide"
+msgstr "गाइड पढ़ें"
+
+#: expenses/family
+msgid "Examples of family sharing"
+msgstr "पारिवारिक साझाकरण के उदाहरण"
+
+#: expenses/family
+msgid "Your family net worth"
+msgstr "आपके परिवार की नेट वर्थ"
+
+#: expenses/family
+msgid "Together you own ₹48.2L and owe ₹6.1L, a net worth of ₹42.1L. Three of you have shared amounts."
+msgstr "मिलाकर आपके पास ₹48.2L है और ₹6.1L बकाया है, यानी ₹42.1L की नेट वर्थ। आप में से तीन ने राशियाँ साझा की हैं।"
+
+#: expenses/family
+msgid "Owns"
+msgstr "स्वामित्व"
+
+#: expenses/family
+msgid "Owes"
+msgstr "बकाया"
+
+#: expenses/family
+msgid "A premium falls due"
+msgstr "एक प्रीमियम देय होने वाला है"
+
+#: expenses/family
+msgid "Meera's health policy premium of ₹24,000 falls due on 14 Dec. Nothing to do but keep it in mind."
+msgstr "मीरा की स्वास्थ्य पॉलिसी का ₹24,000 का प्रीमियम 14 दिसंबर को देय है। बस ध्यान में रखें, और कुछ करने की ज़रूरत नहीं।"
+
+#: expenses/family
+msgid "Two credit cards and four insurance policies across the family, held by Arjun, Priya and Meera."
+msgstr "परिवार में दो क्रेडिट कार्ड और चार बीमा पॉलिसियाँ हैं, जो अर्जुन, प्रिया और मीरा के पास हैं।"
+
+#: expenses/family
+msgid "Examples. Names and numbers are made up."
+msgstr "उदाहरण। नाम और आँकड़े काल्पनिक हैं।"

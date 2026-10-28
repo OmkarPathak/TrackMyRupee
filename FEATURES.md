@@ -4,7 +4,7 @@ TrackMyRupee is a privacy-first personal finance tracker built for India. There 
 
 ![Dashboard](misc/dashboard2.png)
 
-**Contents:** [Log money in seconds](#tracking) · [Your whole balance sheet](#accounts) · [Investments, fund by fund](#investments) · [Plan ahead](#planning) · [Guided setup with TMR Flows](#flows) · [Insights that notice for you](#noticing) · [Know where you stand](#insights) · [Reminders that reach you](#alerts) · [Your data stays yours](#trust) · [Works the way you do](#everywhere)
+**Contents:** [Log money in seconds](#tracking) · [Your whole balance sheet](#accounts) · [Investments, fund by fund](#investments) · [Plan ahead](#planning) · [Guided setup with TMR Flows](#flows) · [Family sharing](#family) · [Insights that notice for you](#noticing) · [Know where you stand](#insights) · [Reminders that reach you](#alerts) · [Your data stays yours](#trust) · [Works the way you do](#everywhere)
 
 <a id="tracking"></a>
 ## Log money in seconds
@@ -62,6 +62,19 @@ _Say what happened. The app sets up everything that goes with it._
 - **A flow for the moments that matter.** Loans and credit cards, salary, rent and insurance, SIPs, FDs, PPF, EPF and NPS, savings goals, a car and gold. Your progress panel shows which of the core setups you have done.
 - **Safe to get wrong.** You review before anything is saved, a flow saves everything or nothing, and a double-click cannot create things twice. You can switch on historical entries to fill in the months already gone.
 
+<a id="family"></a>
+## Family sharing
+
+_One household picture, with each person choosing what to share._
+
+- **One family net worth.** The family sees one combined net worth: what you own, what you owe, and how it splits across cash, investments, property and more. The numbers come from the same valuation as each person's own net worth, so they never disagree.
+- **Who holds what.** See every credit card, insurance policy, loan and deposit the family has, and whose it is. A card shows its limit and next bill date, a policy its cover, premium and due date, a loan its EMI.
+- **Nothing is shared until you share it.** Joining a family shares nothing. You pick each account and choose Show amounts or List only. Transactions, categories, notes and the holdings inside an account are never shared.
+- **See exactly what they see.** A preview shows your family's view of your shared accounts. Give an account a nickname if its real name is private. Stop sharing at any time and it disappears for them at once.
+- **Emergency access.** Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy.
+- **Gentle notes, never comparisons.** A few calm, optional observations, such as a premium falling due or a card bill coming up, built only from what is shared. They never compare people or judge an amount, and each person can switch them off.
+- **Your own account, your own data.** Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away.
+
 <a id="noticing"></a>
 ## Insights that notice for you
 
@@ -116,7 +129,7 @@ _Your language, your device, your currency._
 
 ## Plans
 
-The Free plan never expires. Plus and Pro raise the limits on accounts, budgets, subscriptions, goals and loans, and unlock net worth history, alert emails and Year in Review. Insights are on every plan; the weekly insights email and the monthly report section are Pro. Exporting your data is free on every plan. A 7-day Pro trial is available once, with no card needed. See the [plans guide](guide-src/23-plans-and-billing/index.md) for the exact limits and the [pricing page](https://trackmyrupee.com/pricing/) for prices.
+The Free plan never expires. Plus and Pro raise the limits on accounts, budgets, subscriptions, goals and loans, and unlock net worth history, alert emails and Year in Review. Insights are on every plan; the weekly insights email and the monthly report section are Pro. Family sharing needs every member on Pro. Exporting your data is free on every plan. A 7-day Pro trial is available once, with no card needed. See the [plans guide](guide-src/23-plans-and-billing/index.md) for the exact limits and the [pricing page](https://trackmyrupee.com/pricing/) for prices.
 
 ## Not included, on purpose
 

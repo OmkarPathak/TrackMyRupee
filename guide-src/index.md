@@ -96,6 +96,7 @@ This guide walks you through every feature, step by step.
 | [Calendar](10-calendar/index.md) | Day-by-day audit trail |
 | [Analytics](11-analytics-and-health/index.md) | Spending, cashflow, net worth, savings rate |
 | [Insights](18-insights/index.md) | Calm observations about your own money, and how to control them |
+| [Family Sharing](24-family-sharing/index.md) | One family net worth and who holds what, with each person choosing what to share |
 | [Savings Goals](12-goals/index.md) | Progress bars, milestones |
 | [Search and Filters](14-filters-and-search/index.md) | Time periods, filter chips, sorting, quick page search |
 | [Mobile App](20-mobile-app/index.md) | iOS build with Capacitor |
