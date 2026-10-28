@@ -1,3 +1,4 @@
+import hashlib
 import logging
 from datetime import timedelta
 from decimal import Decimal
@@ -52,12 +53,31 @@ class LedgerPostingService:
     def _normalize_code(value):
         return "".join(ch if ch.isalnum() else "_" for ch in value.strip().upper())
 
+    # LedgerAccount.code and .name are length-limited columns (PostgreSQL enforces it), while a category,
+    # income source, goal or loan name can be longer.
+    CODE_MAX_LENGTH = 100
+    NAME_MAX_LENGTH = 150
+
+    @classmethod
+    def _fit_code(cls, prefix, normalized):
+        """prefix + normalized, shortened with a hash suffix only when it would not fit the column, so
+        every code that already fits stays exactly as it was and two long values stay distinct."""
+        code = f"{prefix}{normalized}"
+        if len(code) <= cls.CODE_MAX_LENGTH:
+            return code
+        digest = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:8]
+        return f"{code[:cls.CODE_MAX_LENGTH - len(digest) - 1]}_{digest}"
+
+    @classmethod
+    def _fit_name(cls, name):
+        return name[:cls.NAME_MAX_LENGTH]
+
     @classmethod
     def _get_or_create_account_ledger(cls, user, account):
         code = f"USR:{user.id}:ASSET:ACCOUNT:{account.id}"
         defaults = {
             "user": user,
-            "name": f"Asset - {account.name}",
+            "name": cls._fit_name(f"Asset - {account.name}"),
             "account_type": "ASSET",
             "currency": account.currency,
             "is_active": True,
@@ -68,10 +88,10 @@ class LedgerPostingService:
     @classmethod
     def _get_or_create_expense_ledger(cls, user, category, currency):
         normalized_category = cls._normalize_code(category or "UNCATEGORIZED")
-        code = f"USR:{user.id}:EXPENSE:CATEGORY:{normalized_category}"
+        code = cls._fit_code(f"USR:{user.id}:EXPENSE:CATEGORY:", normalized_category)
         defaults = {
             "user": user,
-            "name": f"Expense - {category or 'Uncategorized'}",
+            "name": cls._fit_name(f"Expense - {category or 'Uncategorized'}"),
             "account_type": "EXPENSE",
             "currency": currency,
             "is_active": True,
@@ -82,10 +102,10 @@ class LedgerPostingService:
     @classmethod
     def _get_or_create_income_ledger(cls, user, source, currency):
         normalized_source = cls._normalize_code(source or "OTHER")
-        code = f"USR:{user.id}:INCOME:SOURCE:{normalized_source}"
+        code = cls._fit_code(f"USR:{user.id}:INCOME:SOURCE:", normalized_source)
         defaults = {
             "user": user,
-            "name": f"Income - {source or 'Other'}",
+            "name": cls._fit_name(f"Income - {source or 'Other'}"),
             "account_type": "INCOME",
             "currency": currency,
             "is_active": True,
@@ -98,7 +118,7 @@ class LedgerPostingService:
         code = f"USR:{user.id}:LIABILITY:LOAN:{loan.id}"
         defaults = {
             "user": user,
-            "name": f"Loan Liability - {loan.name}",
+            "name": cls._fit_name(f"Loan Liability - {loan.name}"),
             "account_type": "LIABILITY",
             "currency": loan.currency,
             "is_active": True,
@@ -111,7 +131,7 @@ class LedgerPostingService:
         code = f"USR:{user.id}:ASSET:GOAL_RESERVE:{goal.id}"
         defaults = {
             "user": user,
-            "name": f"Goal Reserve - {goal.name}",
+            "name": cls._fit_name(f"Goal Reserve - {goal.name}"),
             "account_type": "ASSET",
             # Goal contributions may come from accounts with mixed currencies.
             "currency": None,
@@ -1138,10 +1158,10 @@ class LedgerPostingService:
     @classmethod
     def _get_or_create_capital_event_ledger(cls, user, subtype, currency):
         normalized = cls._normalize_code(subtype or "OTHER")
-        code = f"USR:{user.id}:EXPENSE:CAPITAL_EVENT:{normalized}"
+        code = cls._fit_code(f"USR:{user.id}:EXPENSE:CAPITAL_EVENT:", normalized)
         defaults = {
             "user": user,
-            "name": f"Capital Event - {subtype or 'Other'}",
+            "name": cls._fit_name(f"Capital Event - {subtype or 'Other'}"),
             "account_type": "EXPENSE",
             "currency": currency,
             "is_active": True,

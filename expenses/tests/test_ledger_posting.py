@@ -173,3 +173,29 @@ class LedgerPostingServiceTest(TestCase):
         self.assertEqual(entry.source_type, "LOAN_REPAYMENT")
         self.assertEqual(entry.lines.count(), 2)
         self._assert_entry_balanced(entry)
+
+
+class LedgerFieldLengthTests(TestCase):
+    """Codes and names must fit their columns: PostgreSQL rejects what SQLite silently accepts."""
+
+    def test_codes_that_already_fit_are_left_alone(self):
+        from expenses.ledger_service import LedgerPostingService as L
+
+        self.assertEqual(L._fit_code("USR:1:EXPENSE:CATEGORY:", "FOOD"), "USR:1:EXPENSE:CATEGORY:FOOD")
+        exactly_100 = "X" * (100 - len("USR:1:EXPENSE:CATEGORY:"))
+        self.assertEqual(L._fit_code("USR:1:EXPENSE:CATEGORY:", exactly_100), "USR:1:EXPENSE:CATEGORY:" + exactly_100)
+
+    def test_long_codes_are_cut_to_the_column_and_stay_distinct(self):
+        from expenses.ledger_service import LedgerPostingService as L
+
+        a = L._fit_code("USR:1:EXPENSE:CATEGORY:", "C" * 300)
+        b = L._fit_code("USR:1:EXPENSE:CATEGORY:", "C" * 299 + "D")
+        self.assertEqual((len(a), len(b)), (100, 100))
+        self.assertNotEqual(a, b)
+        self.assertEqual(a, L._fit_code("USR:1:EXPENSE:CATEGORY:", "C" * 300))
+
+    def test_names_are_cut_to_the_column(self):
+        from expenses.ledger_service import LedgerPostingService as L
+
+        self.assertEqual(len(L._fit_name("Expense - " + "C" * 400)), 150)
+        self.assertEqual(L._fit_name("Expense - Food"), "Expense - Food")
