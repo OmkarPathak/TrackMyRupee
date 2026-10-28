@@ -70,6 +70,12 @@
                                 {% endblocktrans %}
                             </li>
                             <li class="mb-2">
+                                <strong>{% trans "Family Sharing (optional)" %}:</strong>
+                                {% blocktrans trimmed %}
+                                Your family membership, the accounts you choose to share and at what level (amounts or list only), an optional nickname for each, and an emergency sheet if you write one (what exists and where to look, never account numbers or passwords) &rarr; Showing a combined family view to the other members of your family &rarr; Consent, given when you join &rarr; Until you stop sharing, leave the family or delete your account.
+                                {% endblocktrans %}
+                            </li>
+                            <li class="mb-2">
                                 <strong>{% trans "Payment Information" %}:</strong>
                                 {% blocktrans %}
                                 Payment details (handled by Razorpay, not stored by us) and our own record of your plan and payments &rarr; Subscription processing &rarr; Contractual necessity &rarr; Our record is kept until account deletion; Razorpay keeps its own records.
@@ -169,6 +175,12 @@
                                 {% endblocktrans %}
                             </li>
 
+                            <li class="mb-2">
+                                <strong>{% trans "Other Members of Your Family" %}:</strong>
+                                {% blocktrans trimmed %}
+                                If you join a family, the other members can see the accounts you choose to share, at the level you choose, and your emergency sheet if you allow them to ask for it. They never see transactions, categories, notes, receipts, the holdings inside an account or account numbers, and they cannot tell that an account you did not share exists. Nothing is shared until you choose it, and you can stop at any time.
+                                {% endblocktrans %}
+                            </li>
                             <li class="mb-2">
                                 <strong>{% trans "Legal Compliance" %}:</strong>
                                 {% blocktrans %}
@@ -364,6 +376,12 @@
                                 Our own copy of your payment history is deleted with your account. Payment records held by Razorpay are kept under Razorpay's own retention obligations and are not deleted by us.
                                 {% endblocktrans %}
                                 {# Payment history is removed with the account (delete_user_account cascades); Razorpay keeps its own records. The text states exactly that and makes no claim about a legal retention period. #}
+                            </li>
+                            <li class="mb-2">
+                                <strong>{% trans "Family sharing" %}:</strong>
+                                {% blocktrans trimmed %}
+                                Stopping sharing or leaving a family ends the other members' view straight away and removes your shares and emergency-sheet links. Deleting your account does the same. If you owned the family, ownership passes to the longest-standing member, and if you were the last member the family ends. An invitation link is single-use and expires after 7 days; we store only a hash of it.
+                                {% endblocktrans %}
                             </li>
                             <li class="mb-2">
                                 <strong>{% trans "Third-party providers" %}:</strong>

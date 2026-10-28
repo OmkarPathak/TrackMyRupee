@@ -16,6 +16,8 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 from django.views.generic import DeleteView, TemplateView, UpdateView
 
+from ..family.households import household_for
+from ..family.households import leave as leave_household
 from ..forms import LanguageUpdateForm, ProfileUpdateForm
 from ..models import (
     Account,
@@ -148,6 +150,11 @@ def delete_user_account(user_id):
             # of every email we sent this user in the live database. Remove them explicitly.
             _delete_email_logs(user, email)
             _delete_ledger(user)
+            # Leave the family first: Household.owner cascades, so deleting an owner would otherwise take the
+            # whole family (and everyone else's shares) with it. leave() hands ownership to the longest-standing
+            # member, or ends the family if nobody else is in it.
+            if household_for(user) is not None:
+                leave_household(user)
             user.delete()
         log_and_notify_deletion(username=username, email=email)
         # The deletion confirmation above creates a new EmailLog row; remove it too.

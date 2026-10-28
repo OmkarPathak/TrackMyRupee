@@ -146,3 +146,38 @@ class ShareWholeGroupTests(FamilyTestCase):
         from django.urls import reverse
         self.assertEqual(self.post('nope').status_code, 404)
         self.assertEqual(self.client.get(reverse('family-share-group', args=['bank'])).status_code, 405)
+
+
+class AccountDeletionTests(FamilyTestCase):
+    def delete(self, user):
+        from expenses.views.settings import delete_user_account
+        return delete_user_account(user.pk)
+
+    def test_deleting_the_owner_hands_the_family_to_the_longest_standing_member(self):
+        household = make_family(self.owner, self.partner, self.parent)
+        shares.set_share(self.partner, add_account(self.partner, 'Priya savings'), 'AMOUNTS')
+        self.assertTrue(self.delete(self.owner))
+        household.refresh_from_db()
+        self.assertEqual(household.owner_id, self.partner.pk)
+        self.assertEqual(sorted(household.members.values_list('user_id', flat=True)),
+                         sorted([self.partner.pk, self.parent.pk]))
+        self.assertEqual(FamilyShare.objects.filter(owner=self.partner).count(), 1)
+
+    def test_deleting_a_member_leaves_the_rest_and_removes_only_their_shares(self):
+        household = make_family(self.owner, self.partner)
+        shares.set_share(self.owner, add_account(self.owner, 'Arjun savings'), 'AMOUNTS')
+        shares.set_share(self.partner, add_account(self.partner, 'Priya savings'), 'AMOUNTS')
+        self.assertTrue(self.delete(self.partner))
+        household.refresh_from_db()
+        self.assertEqual(household.owner_id, self.owner.pk)
+        self.assertEqual(household.members.count(), 1)
+        self.assertEqual(list(FamilyShare.objects.values_list('owner_id', flat=True)), [self.owner.pk])
+
+    def test_deleting_the_last_member_ends_the_family(self):
+        from expenses.models import Household
+        household = make_family(self.owner)
+        self.assertTrue(self.delete(self.owner))
+        self.assertFalse(Household.objects.filter(pk=household.pk).exists())
+
+    def test_deleting_someone_who_is_in_no_family_still_works(self):
+        self.assertTrue(self.delete(self.owner))
