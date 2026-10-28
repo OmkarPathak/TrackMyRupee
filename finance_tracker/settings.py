@@ -528,6 +528,8 @@ FAMILY_USER_IDS = _env_int_set('FAMILY_USER_IDS')
 FAMILY_MAX_MEMBERS = max(2, _env_int('FAMILY_MAX_MEMBERS', 5))
 FAMILY_INVITE_DAYS = max(1, _env_int('FAMILY_INVITE_DAYS', 7))
 FAMILY_PRO_WARNING_DAYS = max(1, _env_int('FAMILY_PRO_WARNING_DAYS', 14))
+FAMILY_EMERGENCY_DELAY_DAYS = max(1, _env_int('FAMILY_EMERGENCY_DELAY_DAYS', 7))
+FAMILY_EMERGENCY_RETRY_DAYS = max(0, _env_int('FAMILY_EMERGENCY_RETRY_DAYS', 7))
 FAMILY_SUMMARY_CACHE_SECONDS = max(0, _env_int('FAMILY_SUMMARY_CACHE_SECONDS', 60))
 
 # (Cache backend is configured above — single definition, no override needed.)

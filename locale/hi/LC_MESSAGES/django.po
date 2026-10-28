@@ -22411,3 +22411,350 @@ msgid "One insurance premium falls due in the next 30 days: %(items)s."
 msgid_plural "%(count)d insurance premiums fall due in the next 30 days: %(items)s."
 msgstr[0] "अगले 30 दिनों में एक बीमा प्रीमियम देय है: %(items)s।"
 msgstr[1] "अगले 30 दिनों में %(count)d बीमा प्रीमियम देय हैं: %(items)s।"
+
+#: expenses/family
+#, python-format
+msgid "%(d)s days %(h)s hours"
+msgstr "%(d)s दिन %(h)s घंटे"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s approved your request"
+msgstr "%(name)s ने आपका अनुरोध मंज़ूर किया"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s asked for your emergency sheet"
+msgstr "%(name)s ने आपकी आपातकालीन शीट माँगी"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s can answer"
+msgstr "%(name)s जवाब दे सकते हैं"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s can ask"
+msgstr "%(name)s माँग सकते हैं"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s can now open your emergency sheet"
+msgstr "%(name)s अब आपकी आपातकालीन शीट खोल सकते हैं"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s has chosen to let you ask for their emergency sheet."
+msgstr "%(name)s ने आपको अपनी आपातकालीन शीट माँगने की अनुमति दी है।"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s has not shared their emergency sheet"
+msgstr "%(name)s ने अपनी आपातकालीन शीट साझा नहीं की"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s has not shared their sheet"
+msgstr "%(name)s ने अपनी शीट साझा नहीं की"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s will be told. If they do not answer within %(days)s days you get a read-only copy."
+msgstr "%(name)s को बताया जाएगा। अगर वे %(days)s दिनों में जवाब नहीं देते तो आपको केवल-पढ़ने वाली प्रति मिलेगी।"
+
+#: expenses/family
+#, python-format
+msgid "%(when)s. We have told them."
+msgstr "%(when)s। हमने उन्हें बता दिया है।"
+
+#: expenses/family
+msgid "Access withdrawn."
+msgstr "पहुँच वापस ली गई।"
+
+#: expenses/family
+msgid "Always visible to them"
+msgstr "उन्हें हमेशा दिखे"
+
+#: expenses/family
+msgid "Approve now"
+msgstr "अभी मंज़ूर करें"
+
+#: expenses/family
+msgid "Approved."
+msgstr "मंज़ूर किया गया।"
+
+#: expenses/family
+msgid "Ask for the emergency sheet"
+msgstr "आपातकालीन शीट माँगें"
+
+#: expenses/family
+msgid "Ask for the sheet"
+msgstr "शीट माँगें"
+
+#: expenses/family
+#, python-format
+msgid "Asked on %(when)s."
+msgstr "%(when)s को माँगी गई।"
+
+#: expenses/family
+msgid "Back to edit"
+msgstr "संपादन पर वापस"
+
+#: expenses/family
+msgid "Built from what you already track. Switch off anything you want to keep off it."
+msgstr "आप जो पहले से ट्रैक करते हैं उसी से बनी है। जो इसमें नहीं रखना उसे बंद कर दें।"
+
+#: expenses/family
+msgid "Cancel request"
+msgstr "अनुरोध रद्द करें"
+
+#: expenses/family
+msgid "Choose how they get access."
+msgstr "चुनें कि उन्हें पहुँच कैसे मिले।"
+
+#: expenses/family
+msgid "Deny"
+msgstr "अस्वीकार करें"
+
+#: expenses/family
+msgid "Emergency sheet"
+msgstr "आपातकालीन शीट"
+
+#: expenses/family
+msgid "How they get access"
+msgstr "उन्हें पहुँच कैसे मिलती है"
+
+#: expenses/family
+msgid "If something happens to me"
+msgstr "अगर मुझे कुछ हो जाए"
+
+#: expenses/family
+msgid "If you do nothing, they get a read-only copy in"
+msgstr "अगर आप कुछ नहीं करते, तो उन्हें केवल-पढ़ने वाली प्रति मिलेगी"
+
+#: expenses/family
+#, python-format
+msgid "If you do nothing, they get a read-only copy in %(days)d days. You can deny or approve now."
+msgstr "अगर आप कुछ नहीं करते, तो उन्हें %(days)d दिनों में केवल-पढ़ने वाली प्रति मिलेगी। आप अभी अस्वीकार या मंज़ूर कर सकते हैं।"
+
+#: expenses/family
+#, python-format
+msgid "Include %(name)s"
+msgstr "%(name)s शामिल करें"
+
+#: expenses/family
+#, python-format
+msgid "Keep each note under %(max)d characters."
+msgstr "हर नोट %(max)d अक्षरों से कम रखें।"
+
+#: expenses/family
+msgid "Needs your answer"
+msgstr "आपके जवाब की ज़रूरत है"
+
+#: expenses/family
+msgid "Never put account numbers, passwords or PINs here."
+msgstr "यहाँ खाता संख्या, पासवर्ड या पिन कभी न लिखें।"
+
+#: expenses/family
+msgid "No accounts are on the sheet."
+msgstr "शीट पर कोई खाता नहीं है।"
+
+#: expenses/family
+msgid "Nobody else is in your family yet. Invite someone on the Members page."
+msgstr "आपके परिवार में अभी कोई और नहीं है। सदस्य पन्ने पर किसी को आमंत्रित करें।"
+
+#: expenses/family
+msgid "Nobody has let you ask for their emergency sheet."
+msgstr "किसी ने आपको अपनी आपातकालीन शीट माँगने की अनुमति नहीं दी है।"
+
+#: expenses/family
+msgid "Nominee"
+msgstr "नामित"
+
+#: expenses/family
+msgid "Not shared for now"
+msgstr "फ़िलहाल साझा नहीं"
+
+#: expenses/family
+msgid "Notes for the people you trust"
+msgstr "आपके भरोसेमंद लोगों के लिए नोट"
+
+#: expenses/family
+msgid "On request, with a delay"
+msgstr "माँगने पर, देरी के साथ"
+
+#: expenses/family
+msgid "Only the owner of the sheet can answer."
+msgstr "केवल शीट का मालिक जवाब दे सकता है।"
+
+#: expenses/family
+msgid "Open"
+msgstr "खोलें"
+
+#: expenses/family
+msgid "People to call"
+msgstr "जिन्हें फ़ोन करना है"
+
+#: expenses/family
+msgid "People who can open your sheet"
+msgstr "जो आपकी शीट खोल सकते हैं"
+
+#: expenses/family
+msgid "Pick what goes on your emergency sheet and who can ask for it. Nothing here is visible to anyone until you decide."
+msgstr "चुनें कि आपकी आपातकालीन शीट पर क्या हो और इसे कौन माँग सकता है। जब तक आप तय नहीं करते, यहाँ का कुछ भी किसी को नहीं दिखता।"
+
+#: expenses/family
+msgid "Print or save as PDF"
+msgstr "प्रिंट करें या PDF में सहेजें"
+
+#: expenses/family
+#, python-format
+msgid "Read-only copy on %(date)s"
+msgstr "%(date)s को केवल-पढ़ने वाली प्रति"
+
+#: expenses/family
+msgid "Request cancelled."
+msgstr "अनुरोध रद्द किया गया।"
+
+#: expenses/family
+msgid "Request sent"
+msgstr "अनुरोध भेजा गया"
+
+#: expenses/family
+msgid "Request sent. They have been told."
+msgstr "अनुरोध भेजा गया। उन्हें बता दिया गया है।"
+
+#: expenses/family
+msgid "Save emergency sheet"
+msgstr "आपातकालीन शीट सहेजें"
+
+#: expenses/family
+#, python-format
+msgid "Saved on %(date)s. Read-only. It says what exists and where to look, never account numbers or passwords."
+msgstr "%(date)s को सहेजी गई। केवल-पढ़ने के लिए। इसमें बताया गया है कि क्या है और कहाँ देखना है, खाता संख्या या पासवर्ड कभी नहीं।"
+
+#: expenses/family
+msgid "Sheets shared with you"
+msgstr "आपके साथ साझा की गई शीट"
+
+#: expenses/family
+#, python-format
+msgid "Sum assured %(amount)s"
+msgstr "बीमित राशि %(amount)s"
+
+#: expenses/family
+msgid "That looks like an account or card number. Please leave numbers out: say where to look, not what the number is."
+msgstr "यह खाता या कार्ड संख्या जैसा लगता है। कृपया संख्याएँ न लिखें: बताएँ कि कहाँ देखना है, संख्या क्या है यह नहीं।"
+
+#: expenses/family
+msgid "That request cannot be cancelled."
+msgstr "वह अनुरोध रद्द नहीं किया जा सकता।"
+
+#: expenses/family
+msgid "That request is already closed."
+msgstr "वह अनुरोध पहले ही बंद हो चुका है।"
+
+#: expenses/family
+msgid "The sheet says what exists and where to look. It never contains account numbers or passwords."
+msgstr "शीट बताती है कि क्या है और कहाँ देखना है। इसमें खाता संख्या या पासवर्ड कभी नहीं होते।"
+
+#: expenses/family
+msgid "Their sheet stays closed for now."
+msgstr "उनकी शीट फ़िलहाल बंद रहती है।"
+
+#: expenses/family
+msgid "Their sheet stays closed for now. You can ask again later."
+msgstr "उनकी शीट फ़िलहाल बंद रहती है। आप बाद में फिर माँग सकते हैं।"
+
+#: expenses/family
+#, python-format
+msgid "They ask. You are told by email and a notification, and can deny. If you do not answer within %(days)s days they get a read-only copy."
+msgstr "वे माँगते हैं। आपको ईमेल और सूचना से बताया जाता है, और आप अस्वीकार कर सकते हैं। अगर आप %(days)s दिनों में जवाब नहीं देते तो उन्हें केवल-पढ़ने वाली प्रति मिलती है।"
+
+#: expenses/family
+msgid "They can approve or deny at any time."
+msgstr "वे किसी भी समय मंज़ूर या अस्वीकार कर सकते हैं।"
+
+#: expenses/family
+msgid "They can open the sheet at any time. Best for a spouse you trust fully."
+msgstr "वे शीट कभी भी खोल सकते हैं। ऐसे जीवनसाथी के लिए सबसे अच्छा जिन पर आप पूरा भरोसा करते हैं।"
+
+#: expenses/family
+msgid "They would see the sheet exactly as you saved it, read-only. Nothing else about your accounts."
+msgstr "उन्हें शीट ठीक वैसी ही दिखेगी जैसी आपने सहेजी है, केवल-पढ़ने के लिए। आपके खातों के बारे में और कुछ नहीं।"
+
+#: expenses/family
+msgid "This is exactly what the people you allow will see, read-only."
+msgstr "आप जिन्हें अनुमति देते हैं उन्हें ठीक यही दिखेगा, केवल-पढ़ने के लिए।"
+
+#: expenses/family
+msgid "This sheet says what exists and where to look. It is not a will or a legal nomination."
+msgstr "यह शीट बताती है कि क्या है और कहाँ देखना है। यह वसीयत या कानूनी नामांकन नहीं है।"
+
+#: expenses/family
+#, python-format
+msgid "Waiting for %(name)s"
+msgstr "%(name)s का इंतज़ार"
+
+#: expenses/family
+#, python-format
+msgid "What %(name)s wants you to know"
+msgstr "%(name)s आपको क्या बताना चाहते हैं"
+
+#: expenses/family
+msgid "What is on the sheet"
+msgstr "शीट पर क्या है"
+
+#: expenses/family
+msgid "Where my documents are"
+msgstr "मेरे दस्तावेज़ कहाँ हैं"
+
+#: expenses/family
+msgid "Who can ask for it"
+msgstr "इसे कौन माँग सकता है"
+
+#: expenses/family
+msgid "Withdraw access"
+msgstr "पहुँच वापस लें"
+
+#: expenses/family
+msgid "You asked"
+msgstr "आपने माँगा"
+
+#: expenses/family
+msgid "You can ask for it"
+msgstr "आप इसे माँग सकते हैं"
+
+#: expenses/family
+msgid "You can now open their emergency sheet. It is read-only."
+msgstr "अब आप उनकी आपातकालीन शीट खोल सकते हैं। यह केवल-पढ़ने के लिए है।"
+
+#: expenses/family
+msgid "You can open it"
+msgstr "आप इसे खोल सकते हैं"
+
+#: expenses/family
+msgid "You cannot ask for this sheet right now."
+msgstr "आप अभी यह शीट नहीं माँग सकते।"
+
+#: expenses/family
+msgid "You did not answer within the delay, so they now have a read-only copy. You can withdraw access at any time."
+msgstr "आपने देरी की अवधि में जवाब नहीं दिया, इसलिए अब उनके पास केवल-पढ़ने वाली प्रति है। आप कभी भी पहुँच वापस ले सकते हैं।"
+
+#: expenses/family
+#, python-format
+msgid "You get it automatically unless they deny first. %(d)s days %(h)s hours to go."
+msgstr "वे पहले अस्वीकार न करें तो यह आपको अपने आप मिल जाती है। %(d)s दिन %(h)s घंटे बाकी।"
+
+#: expenses/family
+msgid "You have no accounts yet. Add one on the Accounts page, then come back."
+msgstr "आपका अभी कोई खाता नहीं है। खाते वाले पन्ने पर एक जोड़ें, फिर वापस आएँ।"
+
+#: expenses/family
+msgid "Your emergency sheet is saved."
+msgstr "आपकी आपातकालीन शीट सहेज ली गई।"
+
+#: expenses/family
+#, python-format
+msgid "nominee %(name)s"
+msgstr "नामित: %(name)s"

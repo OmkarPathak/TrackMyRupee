@@ -1,5 +1,6 @@
 from functools import wraps
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -11,7 +12,15 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
-from ..family import catalog, family_enabled_for, households, notes, shares, summary
+from ..family import (
+    catalog,
+    emergency,
+    family_enabled_for,
+    households,
+    notes,
+    shares,
+    summary,
+)
 from ..family import plan as plan_rules
 from ..family.emails import send_invitation_email
 from ..family.presenters import (
@@ -22,7 +31,14 @@ from ..family.presenters import (
     member_rows,
     plan_banner,
 )
-from ..models import Account, FamilyShare, HouseholdInvitation, HouseholdMember
+from ..models import (
+    Account,
+    EmergencyRequest,
+    EmergencySheet,
+    FamilyShare,
+    HouseholdInvitation,
+    HouseholdMember,
+)
 
 __all__ = [
     'family_home_view',
@@ -43,6 +59,12 @@ __all__ = [
     'family_inventory_view',
     'family_note_dismiss_view',
     'family_notes_toggle_view',
+    'family_emergency_view',
+    'family_emergency_save_view',
+    'family_emergency_sheet_view',
+    'family_emergency_ask_view',
+    'family_emergency_cancel_view',
+    'family_emergency_decide_view',
 ]
 
 SESSION_NEW_INVITE = 'family_new_invite'
@@ -82,7 +104,6 @@ def family_home_view(request):
     if household is None:
         return render(request, 'expenses/family/home.html', context)
 
-    from django.conf import settings
     rows, state = member_rows(household, request.user)
     is_owner = household.owner_id == request.user.id
     open_invites = list(household.invitations.filter(
@@ -466,3 +487,144 @@ def family_notes_toggle_view(request):
     if household is not None:
         notes.set_enabled(request.user, household, request.POST.get('on') == '1')
     return redirect('family-inventory')
+
+
+# ---- Emergency access ---------------------------------------------------------------------------------------------
+
+def _days_hours(request):
+    days, hours = emergency.time_left(request)
+    return {'days': days, 'hours': hours}
+
+
+@family_view
+def family_emergency_view(request):
+    household = _household_or_redirect(request)
+    if household is None:
+        return redirect('family-home')
+    sheet = emergency.sheet_of(request.user)
+    items = summary.own_items(request.user)
+    on_sheet = {i.account_id: i.nominee for i in sheet.items.all()} if sheet else {}
+    by_section = {}
+    for account in shares.shareable_accounts(request.user):
+        item = items[account.pk]
+        by_section.setdefault(item.section, []).append({
+            'account': account, 'item': item, 'on': account.pk in on_sheet, 'nominee': on_sheet.get(account.pk, ''),
+            'liability': item.kind in (catalog.CARD, catalog.LOAN)})
+    rows, _state = member_rows(household, request.user)
+    allowed = set(sheet.allowed.values_list('user_id', flat=True)) if sheet else set()
+    others = [dict(r, allowed=r['user'].pk in allowed) for r in rows if not r['is_you']]
+    pending = [{'request': r, 'left': _days_hours(r), 'name': display_name(r.requester)}
+               for r in emergency.open_requests(sheet)] if sheet else []
+    access = [{'request': r, 'name': display_name(r.requester)} for r in emergency.people_with_access(sheet)] \
+        if sheet and sheet.mode == EmergencySheet.REQUEST else []
+    # sheets other members have shared with you
+    available = []
+    for row in others:
+        their = emergency.sheet_of(row['user'])
+        state, req = emergency.state_for(request.user, their) if their else (emergency.NONE, None)
+        if state != emergency.NONE:
+            available.append({'row': row, 'state': state, 'request': req,
+                              'left': _days_hours(req) if state == emergency.PENDING else None})
+    return render(request, 'expenses/family/emergency.html', {
+        'household': household, 'sheet': sheet, 'groups': _group_rows(by_section), 'others': others,
+        'pending': pending, 'access': access, 'available': available,
+        'mode': sheet.mode if sheet else EmergencySheet.REQUEST,
+        'delay_days': settings.FAMILY_EMERGENCY_DELAY_DAYS,
+        'family_page': 'emergency',
+    })
+
+
+@family_view
+@require_POST
+def family_emergency_save_view(request):
+    household = _household_or_redirect(request)
+    if household is None:
+        return redirect('family-home')
+    post = request.POST
+    included = {}
+    for account in request.user.accounts.filter(is_active=True):
+        if post.get(f'include_{account.uuid}') == 'on':
+            included[account.pk] = post.get(f'nominee_{account.uuid}', '')
+    allowed = [m.user_id for m in household.members.exclude(user=request.user) if post.get(f'ask_{m.pk}') == 'on']
+    try:
+        emergency.save_sheet(request.user, post.get('mode', ''), included, allowed,
+                             post.get('documents', ''), post.get('contacts', ''))
+    except households.FamilyError as error:
+        messages.error(request, error.message)
+    else:
+        messages.success(request, _("Your emergency sheet is saved."))
+    return redirect('family-emergency')
+
+
+@family_view
+def family_emergency_sheet_view(request, pk):
+    """A sheet: the owner previews their own; someone else sees it only if the rules in emergency.state_for allow."""
+    household = _household_or_redirect(request)
+    if household is None:
+        return redirect('family-home')
+    membership = get_object_or_404(HouseholdMember, pk=pk, household=household)
+    owner = membership.user
+    sheet = emergency.sheet_of(owner)
+    context = {'household': household, 'owner_name': display_name(owner), 'membership': membership,
+               'family_page': 'emergency', 'print': request.GET.get('print') == '1'}
+    if owner.pk == request.user.pk:
+        if sheet is None:
+            return redirect('family-emergency')
+        context.update(state=emergency.GRANTED, content=emergency.sheet_content(sheet), preview=True)
+        return render(request, 'expenses/family/emergency_sheet.html', context)
+    state, req = emergency.state_for(request.user, sheet)
+    if state == emergency.NONE:
+        raise Http404
+    context.update(state=state, request_obj=req, delay_days=settings.FAMILY_EMERGENCY_DELAY_DAYS,
+                   mode=sheet.mode)
+    if state == emergency.PENDING:
+        context['left'] = _days_hours(req)
+    if state == emergency.GRANTED:
+        context['content'] = emergency.sheet_content(sheet)
+    return render(request, 'expenses/family/emergency_sheet.html', context)
+
+
+@family_view
+@require_POST
+def family_emergency_ask_view(request, pk):
+    household = _household_or_redirect(request)
+    if household is None:
+        return redirect('family-home')
+    membership = get_object_or_404(HouseholdMember, pk=pk, household=household)
+    sheet = emergency.sheet_of(membership.user)
+    if sheet is None or emergency.state_for(request.user, sheet)[0] == emergency.NONE:
+        raise Http404
+    try:
+        emergency.ask(request.user, sheet)
+    except households.FamilyError as error:
+        messages.error(request, error.message)
+    else:
+        messages.success(request, _("Request sent. They have been told."))
+    return redirect('family-emergency-sheet', pk=pk)
+
+
+@family_view
+@require_POST
+def family_emergency_cancel_view(request, pk):
+    req = get_object_or_404(EmergencyRequest, uuid=pk, requester=request.user)
+    try:
+        emergency.cancel(request.user, req)
+    except households.FamilyError as error:
+        messages.error(request, error.message)
+    else:
+        messages.success(request, _("Request cancelled."))
+    owner_membership = get_object_or_404(HouseholdMember, user=req.sheet.owner)
+    return redirect('family-emergency-sheet', pk=owner_membership.pk)
+
+
+@family_view
+@require_POST
+def family_emergency_decide_view(request, pk, decision):
+    req = get_object_or_404(EmergencyRequest, uuid=pk, sheet__owner=request.user)
+    try:
+        emergency.decide(request.user, req, approve=decision == 'approve')
+    except households.FamilyError as error:
+        messages.error(request, error.message)
+    else:
+        messages.success(request, _("Approved.") if decision == 'approve' else _("Access withdrawn."))
+    return redirect('family-emergency')

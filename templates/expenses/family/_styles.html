@@ -170,4 +170,25 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-pill button { flex: 1 1 0; padding: .45rem .5rem; border-radius: 999px; border: 1px solid var(--fam-line); background: transparent; color: var(--fam-muted); font-weight: 600; font-size: .88rem; }
     .fam-pill button.is-on { background: var(--fam-soft); border-color: var(--fam-green); color: var(--bs-body-color); }
     .fam-gentle { background: var(--fam-soft); }
+
+    /* A switch that lives inside a form: a checkbox drawn like .fam-switch */
+    .fam-tog { position: relative; display: inline-block; width: 44px; height: 26px; flex-shrink: 0; margin: 0; }
+    .fam-tog input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 1; }
+    .fam-tog span { position: absolute; inset: 0; border-radius: 999px; background: var(--bs-secondary-bg); box-shadow: inset 0 0 0 1px var(--fam-line); transition: background .15s; }
+    .fam-tog span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--bs-body-bg); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s; }
+    .fam-tog input:checked + span { background: var(--bs-success); box-shadow: none; }
+    .fam-tog input:checked + span::after { transform: translateX(18px); background: var(--bs-white); }
+    .fam-tog input:focus-visible + span { outline: 2px solid var(--fam-green); outline-offset: 2px; }
+    .fam-nominee { flex: 1 1 11rem; min-width: 0; }
+    .fam-nominee label { font-size: .75rem; color: var(--fam-muted); display: block; }
+    .fam-countdown { background: rgba(212,131,26,.12); color: var(--fam-amber); border-radius: 12px; padding: .7rem .9rem; }
+    [data-bs-theme="dark"] .fam-countdown { background: rgba(244,180,78,.14); }
+    .fam-countdown b { display: block; font-size: 1.4rem; line-height: 1.2; }
+    .fam-steps { display: flex; flex-direction: column; gap: .9rem; margin: .8rem 0; }
+    .fam-step { display: flex; gap: .75rem; align-items: flex-start; }
+    .fam-step .dot { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%; background: var(--bs-secondary-bg); display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; color: var(--fam-muted); }
+    .fam-step .dot.is-done { background: var(--bs-success); color: var(--bs-white); }
+    .fam-warn { background: rgba(212,131,26,.12); border: 1px solid rgba(212,131,26,.28); color: var(--fam-amber); border-radius: 12px; padding: .7rem .9rem; font-size: .88rem; }
+    [data-bs-theme="dark"] .fam-warn { background: rgba(244,180,78,.14); border-color: rgba(244,180,78,.30); }
+    @media print { .fam-tabs, .fam-noprint, .sidebar, .navbar, .fam-banner { display: none !important; } .fam-card { border: 0; box-shadow: none; } }
 </style>

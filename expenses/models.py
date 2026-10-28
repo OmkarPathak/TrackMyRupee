@@ -632,6 +632,78 @@ class GentleNoteDismissal(models.Model):
         return f"{self.user_id} dismissed {self.key}"
 
 
+class EmergencySheet(models.Model):
+    """What someone wants their family to find if something happens to them: which accounts and policies exist,
+    who the nominee is, where documents are. Never account numbers or passwords. Independent of any plan: it
+    must still open when a subscription has lapsed."""
+
+    REQUEST, ALWAYS = 'REQUEST', 'ALWAYS'
+    MODE_CHOICES = [
+        (REQUEST, _('On request, with a delay')),
+        (ALWAYS, _('Always visible to them')),
+    ]
+
+    owner = models.OneToOneField(User, on_delete=models.CASCADE, related_name='emergency_sheet')
+    mode = models.CharField(max_length=8, choices=MODE_CHOICES, default=REQUEST)
+    documents_note = models.TextField(blank=True, max_length=1000)
+    contacts_note = models.TextField(blank=True, max_length=1000)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Emergency sheet of {self.owner_id} ({self.mode})"
+
+
+class EmergencySheetItem(models.Model):
+    """An account on the sheet (no row, no mention) and who is the nominee for it."""
+
+    sheet = models.ForeignKey(EmergencySheet, on_delete=models.CASCADE, related_name='items')
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='emergency_items')
+    nominee = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['sheet', 'account'], name='unique_emergency_sheet_account')]
+
+    def __str__(self):
+        return f"{self.account_id} on sheet {self.sheet_id}"
+
+
+class EmergencyAllowed(models.Model):
+    """A person who may ask for (or, in the always-visible mode, open) a sheet."""
+
+    sheet = models.ForeignKey(EmergencySheet, on_delete=models.CASCADE, related_name='allowed')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='emergency_allowed')
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['sheet', 'user'], name='unique_emergency_allowed')]
+
+    def __str__(self):
+        return f"{self.user_id} may ask for sheet {self.sheet_id}"
+
+
+class EmergencyRequest(models.Model):
+    """A request for a sheet. If the owner does not answer by ``release_at`` the requester gets it."""
+
+    PENDING, APPROVED, DENIED, CANCELLED = 'PENDING', 'APPROVED', 'DENIED', 'CANCELLED'
+    STATUS_CHOICES = [(PENDING, 'Pending'), (APPROVED, 'Approved'), (DENIED, 'Denied'), (CANCELLED, 'Cancelled')]
+
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    sheet = models.ForeignKey(EmergencySheet, on_delete=models.CASCADE, related_name='requests')
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='emergency_requests')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    created_at = models.DateTimeField(default=timezone.now)
+    release_at = models.DateTimeField()
+    decided_at = models.DateTimeField(null=True, blank=True)
+    release_noted = models.BooleanField(default=False)     # the owner was told that the delay ran out
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+        indexes = [models.Index(fields=['sheet', 'requester', 'status'], name='emreq_sheet_req_status_idx')]
+
+    def __str__(self):
+        return f"{self.requester_id} asked for sheet {self.sheet_id} ({self.status})"
+
+
 class FamilyShareEvent(models.Model):
     """What an owner shared, changed or stopped sharing, for the owner's own "Sharing activity" list."""
 

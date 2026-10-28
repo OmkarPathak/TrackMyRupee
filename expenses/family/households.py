@@ -5,12 +5,14 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from expenses.models import (
     ConsentEvent,
+    EmergencyAllowed,
+    EmergencyRequest,
     FamilyShare,
     FinancialAuditLog,
     GentleNoteDismissal,
@@ -52,6 +54,12 @@ def bump(household):
 
 def _audit(user, action, obj_name, obj_id, diff):
     FinancialAuditLog.objects.create(user=user, model_name=obj_name, object_id=obj_id, action=action, diff=diff)
+
+
+def _end_emergency_links(user):
+    """Nobody keeps (or gives) emergency access across a family they are no longer in."""
+    EmergencyAllowed.objects.filter(Q(user=user) | Q(sheet__owner=user)).delete()
+    EmergencyRequest.objects.filter(Q(requester=user) | Q(sheet__owner=user)).delete()
 
 
 def seats_used(household):
@@ -172,6 +180,7 @@ def leave(user):
     with transaction.atomic():
         FamilyShare.objects.filter(owner=user, household=household).delete()
         GentleNoteDismissal.objects.filter(user=user, household=household).delete()
+        _end_emergency_links(user)
         membership.delete()
         ConsentEvent.objects.create(user=user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
                                     consent_version=CONSENT_VERSION)
@@ -198,6 +207,7 @@ def remove_member(owner, membership):
         membership_id = membership.id
         FamilyShare.objects.filter(owner=removed_user, household=household).delete()
         GentleNoteDismissal.objects.filter(user=removed_user, household=household).delete()
+        _end_emergency_links(removed_user)
         membership.delete()
         ConsentEvent.objects.create(user=removed_user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
                                     consent_version=CONSENT_VERSION)

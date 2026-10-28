@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters %}
+
+{% block title %}{% trans "Emergency sheet" %} | TrackMyRupee{% endblock %}
+
+{% block content %}
+<div class="fam fade-in">
+{% include 'expenses/family/_styles.html' %}
+<div class="fam-tabs-wrap fam-noprint">{% include 'expenses/family/_tabs.html' %}</div>
+
+<div class="fam-head">
+    <div class="fam-title">
+        <h1>{% trans "Emergency sheet" %}</h1>
+        <p class="fam-sub">{% if preview %}{% trans "This is exactly what the people you allow will see, read-only." %}{% else %}{% blocktrans with name=owner_name %}{{ name }} has chosen to let you ask for their emergency sheet.{% endblocktrans %}{% endif %}</p>
+    </div>
+    <div class="fam-actions fam-noprint">
+        {% if state == 'granted' %}<button type="button" class="btn btn-action-cancel" onclick="window.print()">{% trans "Print or save as PDF" %}</button>{% endif %}
+        {% if preview %}<a href="{% url 'family-emergency' %}" class="btn btn-action-cancel">{% trans "Back to edit" %}</a>{% endif %}
+    </div>
+</div>
+
+<div class="fam-stack">
+{% if state == 'ask' %}
+    <section class="card fam-card fam-center">
+        <h2 class="fam-h2">{% trans "Ask for the emergency sheet" %}</h2>
+        <p>{% blocktrans trimmed with name=owner_name days=delay_days|translate_digits %}{{ name }} will be told. If they do not answer within {{ days }} days you get a read-only copy.{% endblocktrans %}</p>
+        <form method="post" action="{% url 'family-emergency-ask' membership.pk %}" class="fam-actions">{% csrf_token %}<button type="submit" class="btn btn-action-primary">{% trans "Ask for the sheet" %}</button></form>
+        <p class="fam-note">{% trans "The sheet says what exists and where to look. It never contains account numbers or passwords." %}</p>
+    </section>
+{% elif state == 'pending' %}
+    <section class="card fam-card" aria-labelledby="fam-wait-h">
+        <span class="badge badge-soft-info align-self-start">{% trans "Request sent" %}</span>
+        <h2 id="fam-wait-h" class="mt-2">{% blocktrans with name=owner_name %}Waiting for {{ name }}{% endblocktrans %}</h2>
+        <div class="fam-steps">
+            <div class="fam-step"><span class="dot is-done" aria-hidden="true">1</span><div><div class="fam-row-name">{% trans "You asked" %}</div><div class="fam-row-sub">{% blocktrans trimmed with when=request_obj.created_at|date:"j M, H:i" %}{{ when }}. We have told them.{% endblocktrans %}</div></div></div>
+            <div class="fam-step"><span class="dot" aria-hidden="true">2</span><div><div class="fam-row-name">{% blocktrans with name=owner_name %}{{ name }} can answer{% endblocktrans %}</div><div class="fam-row-sub">{% trans "They can approve or deny at any time." %}</div></div></div>
+            <div class="fam-step"><span class="dot" aria-hidden="true">3</span><div><div class="fam-row-name">{% blocktrans trimmed with date=request_obj.release_at|date:"j M" %}Read-only copy on {{ date }}{% endblocktrans %}</div><div class="fam-row-sub">{% blocktrans trimmed with d=left.days|translate_digits h=left.hours|translate_digits %}You get it automatically unless they deny first. {{ d }} days {{ h }} hours to go.{% endblocktrans %}</div></div></div>
+        </div>
+        <form method="post" action="{% url 'family-emergency-cancel' request_obj.uuid %}">{% csrf_token %}<button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Cancel request" %}</button></form>
+        <p class="fam-note">{% trans "The sheet says what exists and where to look. It never contains account numbers or passwords." %}</p>
+    </section>
+{% elif state == 'denied' %}
+    <section class="card fam-card fam-center">
+        <h2 class="fam-h2">{% blocktrans with name=owner_name %}{{ name }} has not shared their sheet{% endblocktrans %}</h2>
+        <p>{% trans "Their sheet stays closed for now. You can ask again later." %}</p>
+        <div class="fam-actions"><a href="{% url 'family-emergency' %}" class="btn btn-action-cancel">{% trans "Back" %}</a></div>
+    </section>
+{% else %}
+    <section class="card fam-card" aria-labelledby="fam-sh-h">
+        <h2 id="fam-sh-h">{% blocktrans with name=content.owner_name %}What {{ name }} wants you to know{% endblocktrans %}</h2>
+        <p class="fam-note">{% blocktrans trimmed with date=content.updated_at|date:"j M Y" %}Saved on {{ date }}. Read-only. It says what exists and where to look, never account numbers or passwords.{% endblocktrans %}</p>
+        {% if not content.groups %}<p class="fam-note">{% trans "No accounts are on the sheet." %}</p>{% endif %}
+        <div class="fam-rows">
+        {% for key, label, rows in content.groups %}
+            <div class="fam-grp">{{ label }}</div>
+            {% for row in rows %}{% with item=row.item %}
+            <div class="fam-row">
+                <div class="fam-row-main">
+                    <div class="fam-row-name">{{ item.name }}</div>
+                    <div class="fam-row-sub">{% include 'expenses/family/_item_sub.html' %}{% if row.nominee %} · {% blocktrans trimmed with name=row.nominee %}nominee {{ name }}{% endblocktrans %}{% endif %}</div>
+                </div>
+                <div class="fam-row-end">
+                    {% if item.kind == 'insurance' %}{% if item.cover %}<span class="fam-amt">{% blocktrans trimmed with amount=item.cover|money_exact:item.currency %}Sum assured {{ amount }}{% endblocktrans %}</span>{% endif %}
+                    {% elif item.amount is not None %}<span class="fam-amt{% if item.amount < 0 %} is-neg{% endif %}">{{ item.amount|money_exact:item.currency }}</span>{% endif %}
+                </div>
+            </div>
+            {% endwith %}{% endfor %}
+        {% endfor %}
+        </div>
+    </section>
+    {% if content.documents or content.contacts %}
+    <section class="card fam-card" aria-labelledby="fam-nt2-h">
+        <h2 id="fam-nt2-h">{% trans "Notes" %}</h2>
+        {% if content.documents %}<h3 class="fs-6 fw-bold">{% trans "Where my documents are" %}</h3><p style="white-space:pre-line">{{ content.documents }}</p>{% endif %}
+        {% if content.contacts %}<h3 class="fs-6 fw-bold">{% trans "People to call" %}</h3><p style="white-space:pre-line">{{ content.contacts }}</p>{% endif %}
+    </section>
+    {% endif %}
+{% endif %}
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}{% if print and state == 'granted' %}<script>window.addEventListener('load', function () { window.print(); });</script>{% endif %}{% endblock %}
