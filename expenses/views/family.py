@@ -11,10 +11,16 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from ..family import family_enabled_for, households
+from ..family import catalog, family_enabled_for, households, shares, summary
 from ..family.emails import send_invitation_email
-from ..family.presenters import display_name, member_rows, plan_banner
-from ..models import HouseholdInvitation, HouseholdMember
+from ..family.presenters import (
+    avatar_tone,
+    display_name,
+    initials,
+    member_rows,
+    plan_banner,
+)
+from ..models import Account, FamilyShare, HouseholdInvitation, HouseholdMember
 
 __all__ = [
     'family_home_view',
@@ -25,6 +31,12 @@ __all__ = [
     'family_join_view',
     'family_leave_view',
     'family_member_remove_view',
+    'family_share_view',
+    'family_share_edit_view',
+    'family_share_toggle_view',
+    'family_share_stop_view',
+    'family_share_notify_view',
+    'family_preview_view',
 ]
 
 SESSION_NEW_INVITE = 'family_new_invite'
@@ -202,3 +214,155 @@ def family_member_remove_view(request, pk):
     else:
         messages.success(request, _("Removed from the family."))
     return redirect('family-home')
+
+
+# ---- What I share ---------------------------------------------------------------------------------------------
+
+def _household_or_redirect(request):
+    household = households.household_for(request.user)
+    if household is None:
+        messages.info(request, _("Create or join a family first, then choose what to share."))
+        return None
+    return household
+
+
+def _own_account_or_404(request, pk):
+    return get_object_or_404(Account, uuid=pk, user=request.user, is_active=True)
+
+
+def _group_rows(rows_by_section):
+    """[(key, heading, rows)] for the sections that have rows, in the page's order."""
+    return [(key, label, rows_by_section[key]) for key, label, _kinds in catalog.SECTIONS if rows_by_section.get(key)]
+
+
+@family_view
+def family_share_view(request):
+    household = _household_or_redirect(request)
+    if household is None:
+        return redirect('family-home')
+    items = summary.own_items(request.user)
+    shared = {s.account_id: s for s in FamilyShare.objects.filter(owner=request.user)}
+    by_section = {}
+    for account in shares.shareable_accounts(request.user):
+        item = items[account.pk]
+        by_section.setdefault(item.section, []).append({
+            'account': account, 'item': item, 'share': shared.get(account.pk)})
+    count_shared, count_total = shares.counts(request.user)
+    membership = HouseholdMember.objects.get(user=request.user)
+    return render(request, 'expenses/family/share.html', {
+        'household': household,
+        'groups': _group_rows(by_section),
+        'count_shared': count_shared,
+        'count_total': count_total,
+        'events': shares.recent_events(request.user),
+        'notify': membership.notify_new_shares,
+        'others': household.members.exclude(user=request.user).count(),
+        'family_page': 'share',
+    })
+
+
+@family_view
+def family_share_edit_view(request, pk):
+    household = _household_or_redirect(request)
+    if household is None:
+        return redirect('family-home')
+    account = _own_account_or_404(request, pk)
+    share = FamilyShare.objects.filter(owner=request.user, account=account).first()
+    if request.method == 'POST':
+        try:
+            _share, created = shares.set_share(
+                request.user, account, request.POST.get('level', ''), request.POST.get('alias', ''),
+                covers=request.POST.get('covers') if account.linked_physical_asset_id else None)
+        except households.FamilyError as error:
+            messages.error(request, error.message)
+        else:
+            messages.success(request, _("Now shared with your family.") if created else _("Sharing saved."))
+            return redirect('family-share')
+    item = summary.own_items(request.user)[account.pk]
+    members = [display_name(m.user) for m in household.members.exclude(user=request.user).select_related('user')]
+    return render(request, 'expenses/family/share_edit.html', {
+        'household': household,
+        'account': account,
+        'item': item,
+        'share': share,
+        'level': share.level if share else FamilyShare.AMOUNTS,
+        'alias': share.alias if share else '',
+        'policy': account.linked_physical_asset,
+        'member_names': [display_name(request.user)] + members,
+        'others': members,
+        'family_page': 'share',
+    })
+
+
+@family_view
+@require_POST
+def family_share_toggle_view(request, pk):
+    household = _household_or_redirect(request)
+    if household is None:
+        return redirect('family-home')
+    account = _own_account_or_404(request, pk)
+    if FamilyShare.objects.filter(owner=request.user, account=account).exists():
+        shares.stop_share(request.user, account)
+        messages.success(request, _("Stopped sharing %(name)s.") % {'name': account.name})
+    else:
+        try:
+            shares.set_share(request.user, account, FamilyShare.AMOUNTS)
+        except households.FamilyError as error:
+            messages.error(request, error.message)
+        else:
+            messages.success(request, _("%(name)s is now shared with your family.") % {'name': account.name})
+    return redirect('family-share')
+
+
+@family_view
+@require_POST
+def family_share_stop_view(request, pk):
+    account = _own_account_or_404(request, pk)
+    if shares.stop_share(request.user, account):
+        messages.success(request, _("Stopped sharing %(name)s.") % {'name': account.name})
+    return redirect('family-share')
+
+
+@family_view
+@require_POST
+def family_share_notify_view(request):
+    membership = get_object_or_404(HouseholdMember, user=request.user)
+    membership.notify_new_shares = not membership.notify_new_shares
+    membership.save(update_fields=['notify_new_shares'])
+    return redirect('family-share')
+
+
+@family_view
+def family_preview_view(request, pk=None):
+    """What a chosen member sees of the signed-in user's shared items, built by the same code they see it from."""
+    household = _household_or_redirect(request)
+    if household is None:
+        return redirect('family-home')
+    rows, _state = member_rows(household, request.user)
+    others = [r for r in rows if not r['is_you']]
+    subject = None
+    if pk is not None:
+        subject = next((r for r in others if r['membership'].pk == pk), None)
+        if subject is None:
+            raise Http404
+    elif others:
+        subject = others[0]
+    items = summary.shared_items(request.user, household)
+    by_section = {}
+    for item in items:
+        by_section.setdefault(item.section, []).append(item)
+    private = [a for a in request.user.accounts.filter(is_active=True).order_by('name', 'id')
+               if not hasattr(a, 'family_share')]
+    listed_only = [i for i in items if not i.show_amounts]
+    return render(request, 'expenses/family/preview.html', {
+        'household': household,
+        'subject': subject,
+        'others': others,
+        'groups': _group_rows(by_section),
+        'item_count': len(items),
+        'owner_tone': avatar_tone(next(i for i, r in enumerate(rows) if r['is_you'])),
+        'owner_initials': initials(request.user),
+        'private_names': [a.name for a in private],
+        'listed_only': [i.name for i in listed_only],
+        'family_page': 'share',
+    })

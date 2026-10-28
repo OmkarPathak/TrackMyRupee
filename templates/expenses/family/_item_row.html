@@ -1,0 +1,17 @@
+{% load i18n digit_filters %}{% comment %}One shared item as a family member sees it. Needs: item, tone and initials of its owner.{% endcomment %}
+<div class="fam-row fam-item is-plain">
+    <span class="fam-avatar is-sm bg-{{ tone }}-subtle text-{{ tone }}-emphasis" aria-hidden="true">{{ initials }}</span>
+    <div class="fam-row-main">
+        <div class="fam-row-name">{{ item.name }}</div>
+        <div class="fam-row-sub">{% include 'expenses/family/_item_sub.html' %} · {{ item.owner_name }}</div>
+    </div>
+    <div class="fam-row-end">
+        {% if not item.show_amounts %}
+            <span class="badge badge-soft-secondary">{% trans "Amounts not shared" %}</span>
+        {% elif item.kind == 'insurance' %}
+            {% if item.cover %}<span class="fam-amt">{% blocktrans trimmed with amount=item.cover|money_exact:item.currency %}Cover {{ amount }}{% endblocktrans %}</span>{% endif %}
+        {% elif item.amount is not None %}
+            <span class="fam-amt{% if item.amount < 0 %} is-neg{% endif %}">{{ item.amount|money_exact:item.currency }}</span>
+        {% endif %}
+    </div>
+</div>

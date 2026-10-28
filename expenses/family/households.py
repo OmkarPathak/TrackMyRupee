@@ -11,6 +11,7 @@ from django.utils.translation import gettext as _
 
 from expenses.models import (
     ConsentEvent,
+    FamilyShare,
     FinancialAuditLog,
     Household,
     HouseholdInvitation,
@@ -168,6 +169,7 @@ def leave(user):
     household = membership.household
     membership_id = membership.id
     with transaction.atomic():
+        FamilyShare.objects.filter(owner=user, household=household).delete()
         membership.delete()
         ConsentEvent.objects.create(user=user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
                                     consent_version=CONSENT_VERSION)
@@ -192,6 +194,7 @@ def remove_member(owner, membership):
     with transaction.atomic():
         removed_user = membership.user
         membership_id = membership.id
+        FamilyShare.objects.filter(owner=removed_user, household=household).delete()
         membership.delete()
         ConsentEvent.objects.create(user=removed_user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
                                     consent_version=CONSENT_VERSION)

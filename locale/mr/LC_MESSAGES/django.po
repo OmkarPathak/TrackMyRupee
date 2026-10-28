@@ -21658,3 +21658,526 @@ msgid "Family view is on. %(count)d member is on Pro, so the Me / Family toggle 
 msgid_plural "Family view is on. All %(count)d members are on Pro, so the Me / Family toggle is available to everyone."
 msgstr[0] "कुटुंब दृश्य सुरू आहे. %(count)d सदस्य प्रो वर आहे, म्हणून मी / कुटुंब पर्याय उपलब्ध आहे."
 msgstr[1] "कुटुंब दृश्य सुरू आहे. सर्व %(count)d सदस्य प्रो वर आहेत, म्हणून मी / कुटुंब पर्याय सर्वांसाठी उपलब्ध आहे."
+
+#: expenses/family
+msgid "What I share"
+msgstr "मी काय शेअर करतो"
+
+#: expenses/family
+msgid "Family pages"
+msgstr "कुटुंबाची पाने"
+
+#: expenses/family
+msgid "Choose what to share"
+msgstr "काय शेअर करायचे ते निवडा"
+
+#: expenses/family
+msgid "Choose what your family can see."
+msgstr "तुमचे कुटुंब काय पाहू शकते ते निवडा."
+
+#: expenses/family
+msgid "Create or join a family first, then choose what to share."
+msgstr "आधी कुटुंब तयार करा किंवा त्यात सामील व्हा, मग काय शेअर करायचे ते निवडा."
+
+#: expenses/family
+msgid "That account cannot be shared."
+msgstr "हे खाते शेअर करता येत नाही."
+
+#: expenses/family
+msgid "Now shared with your family."
+msgstr "आता तुमच्या कुटुंबासोबत शेअर केले आहे."
+
+#: expenses/family
+msgid "Sharing saved."
+msgstr "शेअरिंग सेव्ह केले."
+
+#: expenses/family
+#, python-format
+msgid "%(name)s is now shared with your family."
+msgstr "%(name)s आता तुमच्या कुटुंबासोबत शेअर केले आहे."
+
+#: expenses/family
+#, python-format
+msgid "Stopped sharing %(name)s."
+msgstr "%(name)s शेअर करणे थांबवले."
+
+#: expenses/family
+#, python-format
+msgid "%(name)s shared something new"
+msgstr "%(name)s यांनी काहीतरी नवीन शेअर केले"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s is now shared with the family."
+msgstr "%(name)s आता कुटुंबासोबत शेअर केले आहे."
+
+#: expenses/family
+msgid "Switch on the accounts, cards, policies and loans your family should see. Everything else stays private."
+msgstr "तुमच्या कुटुंबाला दिसावेत ती खाती, कार्ड, पॉलिसी आणि कर्जे चालू करा. बाकी सर्व खाजगी राहते."
+
+#: expenses/family
+msgid "Preview as a family member"
+msgstr "कुटुंबातील सदस्य म्हणून पूर्वावलोकन"
+
+#: expenses/family
+#, python-format
+msgid "Sharing %(shared)s of your %(total)s items."
+msgstr "तुमच्या %(total)s पैकी %(shared)s गोष्टी शेअर होत आहेत."
+
+#: expenses/family
+msgid "Family sees names, types and amounts. They never see transactions, categories, notes or account numbers, and they cannot tell a private item exists."
+msgstr "कुटुंबाला नावे, प्रकार आणि रक्कम दिसते. त्यांना व्यवहार, वर्ग, नोंदी किंवा खाते क्रमांक कधीही दिसत नाहीत, आणि खाजगी गोष्ट अस्तित्वात आहे हेही त्यांना कळत नाही."
+
+#: expenses/family
+msgid "Your accounts"
+msgstr "तुमची खाती"
+
+#: expenses/family
+msgid "You have no accounts yet. Add one on the Accounts page, then come back to share it."
+msgstr "तुमचे अजून कोणतेही खाते नाही. खाती पानावर एक जोडा, मग ते शेअर करायला परत या."
+
+#: expenses/family
+#, python-format
+msgid "Share %(name)s"
+msgstr "%(name)s शेअर करा"
+
+#: expenses/family
+#, python-format
+msgid "shown as %(alias)s"
+msgstr "%(alias)s नावाने दिसते"
+
+#: expenses/family
+msgid "Family sees that it exists, with no amounts"
+msgstr "कुटुंबाला फक्त हे आहे एवढेच दिसते, रक्कम नाही"
+
+#: expenses/family
+msgid "Listed only"
+msgstr "फक्त यादीत"
+
+#: expenses/family
+msgid "Details shown"
+msgstr "तपशील दिसतात"
+
+#: expenses/family
+msgid "Amount counts"
+msgstr "रक्कम मोजली जाते"
+
+#: expenses/family
+msgid "Private"
+msgstr "खाजगी"
+
+#: expenses/family
+msgid "Edit sharing"
+msgstr "शेअरिंग बदला"
+
+#: expenses/family
+msgid "Sharing activity"
+msgstr "शेअरिंगची हालचाल"
+
+#: expenses/family
+msgid "Only you see this list."
+msgstr "ही यादी फक्त तुम्हाला दिसते."
+
+#: expenses/family
+#, python-format
+msgid "You shared <b>%(name)s</b> as listed only"
+msgstr "तुम्ही <b>%(name)s</b> फक्त यादीत शेअर केले"
+
+#: expenses/family
+#, python-format
+msgid "You shared <b>%(name)s</b> with its amount"
+msgstr "तुम्ही <b>%(name)s</b> रकमेसह शेअर केले"
+
+#: expenses/family
+#, python-format
+msgid "You changed <b>%(name)s</b> to listed only"
+msgstr "तुम्ही <b>%(name)s</b> फक्त यादीत केले"
+
+#: expenses/family
+#, python-format
+msgid "You changed <b>%(name)s</b> to show its amount"
+msgstr "तुम्ही <b>%(name)s</b> ची रक्कम दाखवणे निवडले"
+
+#: expenses/family
+#, python-format
+msgid "You stopped sharing <b>%(name)s</b>"
+msgstr "तुम्ही <b>%(name)s</b> शेअर करणे थांबवले"
+
+#: expenses/family
+msgid "Nothing yet. When you share, change or stop sharing something, it shows up here."
+msgstr "अजून काही नाही. तुम्ही काही शेअर केले, बदलले किंवा थांबवले की ते इथे दिसेल."
+
+#: expenses/family
+msgid "Tell family when I share something new"
+msgstr "काही नवीन शेअर केल्यावर कुटुंबाला कळवा"
+
+#: expenses/family
+msgid "Off by default. A short note in their notifications, with the name you chose and nothing else."
+msgstr "डिफॉल्टनुसार बंद. त्यांच्या सूचनांमध्ये एक छोटी नोंद, तुम्ही निवडलेल्या नावासह आणि दुसरे काहीही नाही."
+
+#: expenses/family
+#, python-format
+msgid "With %(names)s. Everyone in the family sees the same."
+msgstr "%(names)s यांच्यासोबत. कुटुंबातील सर्वांना सारखेच दिसते."
+
+#: expenses/family
+msgid "With your family. Nobody else has joined yet, so for now only you see it."
+msgstr "तुमच्या कुटुंबासोबत. अजून कोणी सामील झाले नाही, म्हणून सध्या फक्त तुम्हीच हे पाहता."
+
+#: expenses/family
+msgid "What can they see?"
+msgstr "त्यांना काय दिसू शकते?"
+
+#: expenses/family
+msgid "Show amounts"
+msgstr "रक्कम दाखवा"
+
+#: expenses/family
+msgid "List only"
+msgstr "फक्त यादी"
+
+#: expenses/family
+msgid "They see the cover, premium, next due date and who it covers."
+msgstr "त्यांना कव्हर, प्रीमियम, पुढील देय तारीख आणि पॉलिसी कोणाला कव्हर करते हे दिसते."
+
+#: expenses/family
+msgid "What you owe counts towards the family net worth."
+msgstr "तुमची थकबाकी कुटुंबाच्या एकूण संपत्तीत मोजली जाते."
+
+#: expenses/family
+msgid "The amount counts towards the family net worth."
+msgstr "रक्कम कुटुंबाच्या एकूण संपत्तीत मोजली जाते."
+
+#: expenses/family
+msgid "They see that you hold this, with no amounts. It is not counted in the family net worth."
+msgstr "हे तुमच्याकडे आहे एवढेच त्यांना दिसते, रक्कम नाही. हे कुटुंबाच्या एकूण संपत्तीत मोजले जात नाही."
+
+#: expenses/family
+msgid "Shown to family as"
+msgstr "कुटुंबाला या नावाने दिसेल"
+
+#: expenses/family
+msgid "Rename it if the account name is personal. Your own name for it does not change."
+msgstr "खात्याचे नाव खाजगी असेल तर ते बदला. तुमच्या स्वतःच्या पानांवर नाव तेच राहते."
+
+#: expenses/family
+msgid "Who does this policy cover?"
+msgstr "ही पॉलिसी कोणाला कव्हर करते?"
+
+#: expenses/family
+msgid "For example: Arjun, Priya"
+msgstr "उदाहरण: अर्जुन, प्रिया"
+
+#: expenses/family
+msgid "Add a name"
+msgstr "नाव जोडा"
+
+#: expenses/family
+msgid "Only shown to family if you show amounts. Type names, separated by commas."
+msgstr "तुम्ही रक्कम दाखवली तरच कुटुंबाला दिसते. नावे स्वल्पविरामाने वेगळी करून लिहा."
+
+#: expenses/family
+msgid "Family will see"
+msgstr "कुटुंबाला हे दिसेल"
+
+#: expenses/family
+msgid "Available"
+msgstr "उपलब्ध"
+
+#: expenses/family
+msgid "Next bill"
+msgstr "पुढील बिल"
+
+#: expenses/family
+msgid "Cover"
+msgstr "कव्हर"
+
+#: expenses/family
+msgid "Premium"
+msgstr "प्रीमियम"
+
+#: expenses/family
+msgid "Next due"
+msgstr "पुढील देय तारीख"
+
+#: expenses/family
+msgid "Just the name, the type and who holds it. No amounts."
+msgstr "फक्त नाव, प्रकार आणि कोणाकडे आहे. कोणतीही रक्कम नाही."
+
+#: expenses/family
+msgid "Never shared:"
+msgstr "कधीही शेअर होत नाही:"
+
+#: expenses/family
+msgid "transactions, categories, notes, the account or policy number, or anything else inside this account. Family history starts today and uses month-end amounts only."
+msgstr "व्यवहार, वर्ग, नोंदी, खाते किंवा पॉलिसी क्रमांक, किंवा या खात्यातील इतर काहीही. कुटुंबाचा इतिहास आजपासून सुरू होतो आणि फक्त महिन्याच्या शेवटची रक्कम वापरतो."
+
+#: expenses/family
+msgid "Stop sharing"
+msgstr "शेअर करणे थांबवा"
+
+#: expenses/family
+msgid "Save sharing"
+msgstr "शेअरिंग सेव्ह करा"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s's shared items"
+msgstr "%(name)s यांच्या शेअर केलेल्या गोष्टी"
+
+#: expenses/family
+msgid "Names, types and amounts only."
+msgstr "फक्त नावे, प्रकार आणि रक्कम."
+
+#: expenses/family
+#, python-format
+msgid "<b>Previewing as %(name)s.</b> This is exactly what they see of what you share."
+msgstr "<b>%(name)s म्हणून पूर्वावलोकन.</b> तुम्ही शेअर केलेल्यापैकी त्यांना नेमके हेच दिसते."
+
+#: expenses/family
+msgid "Previewing as a family member. This is exactly what they will see of what you share."
+msgstr "कुटुंबातील सदस्य म्हणून पूर्वावलोकन. तुम्ही शेअर केलेल्यापैकी त्यांना नेमके हेच दिसेल."
+
+#: expenses/family
+#, python-format
+msgid "Switch to %(name)s"
+msgstr "%(name)s कडे जा"
+
+#: expenses/family
+msgid "Exit preview"
+msgstr "पूर्वावलोकन बंद करा"
+
+#: expenses/family
+#, python-format
+msgid "What %(name)s sees"
+msgstr "%(name)s यांना काय दिसते"
+
+#: expenses/family
+msgid "What family sees"
+msgstr "कुटुंबाला काय दिसते"
+
+#: expenses/family
+msgid "You have not shared anything yet, so family sees nothing of yours."
+msgstr "तुम्ही अजून काही शेअर केले नाही, म्हणून कुटुंबाला तुमचे काहीही दिसत नाही."
+
+#: expenses/family
+msgid "Only you see this note"
+msgstr "ही नोंद फक्त तुम्हाला दिसते"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s cannot see any of this, and nothing hints that it exists:"
+msgstr "%(name)s यांना यातले काहीही दिसत नाही, आणि हे अस्तित्वात आहे याचा काहीही इशारा मिळत नाही:"
+
+#: expenses/family
+msgid "Family cannot see any of this, and nothing hints that it exists:"
+msgstr "कुटुंबाला यातले काहीही दिसत नाही, आणि हे अस्तित्वात आहे याचा काहीही इशारा मिळत नाही:"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s (private): not listed, not counted"
+msgstr "%(name)s (खाजगी): यादीत नाही, मोजले जात नाही"
+
+#: expenses/family
+#, python-format
+msgid "The amounts on %(name)s"
+msgstr "%(name)s ची रक्कम"
+
+#: expenses/family
+msgid "Every transaction, category and note, in every account"
+msgstr "प्रत्येक खात्यातील प्रत्येक व्यवहार, वर्ग आणि नोंद"
+
+#: expenses/family
+msgid "Account, card and policy numbers"
+msgstr "खाते, कार्ड आणि पॉलिसी क्रमांक"
+
+#: expenses/family
+msgid "Amounts not shared"
+msgstr "रक्कम शेअर केलेली नाही"
+
+#: expenses/family
+#, python-format
+msgid "Cover %(amount)s"
+msgstr "कव्हर %(amount)s"
+
+#: expenses/family
+#, python-format
+msgid "Limit %(limit)s"
+msgstr "मर्यादा %(limit)s"
+
+#: expenses/family
+#, python-format
+msgid "next bill %(date)s"
+msgstr "पुढील बिल %(date)s"
+
+#: expenses/family
+#, python-format
+msgid "covers %(names)s"
+msgstr "कव्हर: %(names)s"
+
+#: expenses/family
+#, python-format
+msgid "premium %(amount)s %(per)s"
+msgstr "प्रीमियम %(amount)s %(per)s"
+
+#: expenses/family
+#, python-format
+msgid "next due %(date)s"
+msgstr "पुढील देय तारीख %(date)s"
+
+#: expenses/family
+#, python-format
+msgid "EMI %(amount)s a month"
+msgstr "ईएमआय %(amount)s दरमहा"
+
+#: expenses/family
+msgid "a year"
+msgstr "दरवर्षी"
+
+#: expenses/family
+msgid "a month"
+msgstr "दरमहा"
+
+#: expenses/family
+msgid "a quarter"
+msgstr "दर तिमाही"
+
+#: expenses/family
+msgid "every 6 months"
+msgstr "दर 6 महिन्यांनी"
+
+#: expenses/family
+msgid "Bank and cash"
+msgstr "बँक आणि रोख"
+
+#: expenses/family
+msgid "Credit cards"
+msgstr "क्रेडिट कार्ड"
+
+#: expenses/family
+msgid "Loans and property"
+msgstr "कर्जे आणि मालमत्ता"
+
+#: expenses/family
+msgid "Cash wallet"
+msgstr "रोख वॉलेट"
+
+#: expenses/family
+msgid "Savings account"
+msgstr "बचत खाते"
+
+#: expenses/family
+msgid "Salary account"
+msgstr "पगार खाते"
+
+#: expenses/family
+msgid "Current account"
+msgstr "चालू खाते"
+
+#: expenses/family
+msgid "Digital wallet"
+msgstr "डिजिटल वॉलेट"
+
+#: expenses/family
+msgid "Fixed deposit"
+msgstr "मुदत ठेव"
+
+#: expenses/family
+msgid "Recurring deposit"
+msgstr "आवर्ती ठेव"
+
+#: expenses/family
+msgid "Public Provident Fund"
+msgstr "सार्वजनिक भविष्य निर्वाह निधी (पीपीएफ)"
+
+#: expenses/family
+msgid "Employees' Provident Fund"
+msgstr "कर्मचारी भविष्य निर्वाह निधी (ईपीएफ)"
+
+#: expenses/family
+msgid "Voluntary Provident Fund"
+msgstr "ऐच्छिक भविष्य निर्वाह निधी (व्हीपीएफ)"
+
+#: expenses/family
+msgid "National Pension System"
+msgstr "राष्ट्रीय निवृत्तिवेतन प्रणाली (एनपीएस)"
+
+#: expenses/family
+msgid "Sukanya Samriddhi"
+msgstr "सुकन्या समृद्धी"
+
+#: expenses/family
+msgid "Post Office savings"
+msgstr "पोस्ट ऑफिस बचत"
+
+#: expenses/family
+msgid "Atal Pension Yojana"
+msgstr "अटल पेन्शन योजना"
+
+#: expenses/family
+msgid "Demat account"
+msgstr "डिमॅट खाते"
+
+#: expenses/family
+msgid "ETFs"
+msgstr "ईटीएफ"
+
+#: expenses/family
+msgid "Sovereign Gold Bonds"
+msgstr "सॉवरेन गोल्ड बाँड"
+
+#: expenses/family
+msgid "ULIP"
+msgstr "युलिप"
+
+#: expenses/family
+msgid "Credit card"
+msgstr "क्रेडिट कार्ड"
+
+#: expenses/family
+msgid "Buy now pay later"
+msgstr "आता खरेदी करा, नंतर पैसे द्या"
+
+#: expenses/family
+msgid "Overdraft"
+msgstr "ओव्हरड्राफ्ट"
+
+#: expenses/family
+msgid "Home loan"
+msgstr "गृहकर्ज"
+
+#: expenses/family
+msgid "Education loan"
+msgstr "शैक्षणिक कर्ज"
+
+#: expenses/family
+msgid "Personal loan"
+msgstr "वैयक्तिक कर्ज"
+
+#: expenses/family
+msgid "Business loan"
+msgstr "व्यवसाय कर्ज"
+
+#: expenses/family
+msgid "Loan against property"
+msgstr "मालमत्तेवरील कर्ज"
+
+#: expenses/family
+msgid "Gold loan"
+msgstr "सोनेतारण कर्ज"
+
+#: expenses/family
+msgid "Property"
+msgstr "मालमत्ता"
+
+#: expenses/family
+msgid "Life insurance"
+msgstr "जीवन विमा"
+
+#: expenses/family
+msgid "Health insurance"
+msgstr "आरोग्य विमा"
+
+#: expenses/family
+msgid "Bank account"
+msgstr "बँक खाते"

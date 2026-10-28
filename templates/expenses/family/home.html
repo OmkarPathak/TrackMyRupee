@@ -34,12 +34,13 @@
         {% endif %}
     </section>
 {% else %}
+    {% include 'expenses/family/_tabs.html' %}
     <div class="fam-head">
         <div class="fam-title">
             <h1>{% trans "Family" %}</h1>
             <p class="fam-sub">{% trans "See your family's combined net worth and who holds which cards, policies and accounts. You choose which of your accounts to share." %}</p>
         </div>
-        <div class="fam-actions"></div>
+        <div class="fam-actions"><a href="{% url 'family-share' %}" class="btn btn-action-primary">{% trans "Choose what to share" %}</a></div>
     </div>
 
     {% include 'expenses/family/_banner.html' %}

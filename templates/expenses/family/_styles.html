@@ -70,4 +70,54 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-checks li { display: flex; gap: .55rem; align-items: flex-start; list-style: none; color: var(--bs-body-color); }
     .fam-checks i { color: var(--fam-green); margin-top: .15rem; }
     .fam-checks { padding: 0; }
+
+    /* Sub-navigation between the family pages */
+    .fam-tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .fam-tabs a { padding: .4rem .9rem; border-radius: 999px; font-size: .88rem; font-weight: 600; text-decoration: none; color: var(--fam-muted); border: 1px solid var(--fam-line); }
+    .fam-tabs a:hover { color: var(--bs-body-color); }
+    .fam-tabs a.is-active { background: var(--bs-tertiary-bg); color: var(--bs-body-color); border-color: var(--fam-green); }
+
+    /* Group headings and the on/off switch of "What I share" */
+    .fam-grp { font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--fam-muted); font-weight: 700; padding: 1rem 0 .1rem; }
+    .fam-grp:first-child { padding-top: 0; }
+    .fam-switch { width: 44px; height: 26px; border-radius: 999px; border: 0; padding: 0; position: relative; flex-shrink: 0; background: var(--bs-secondary-bg); box-shadow: inset 0 0 0 1px var(--fam-line); transition: background .15s; cursor: pointer; }
+    .fam-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--bs-body-bg); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s; }
+    .fam-switch[aria-pressed="true"] { background: var(--bs-success); box-shadow: none; }
+    .fam-switch[aria-pressed="true"]::after { transform: translateX(18px); background: var(--bs-white); }
+    .fam-switch:focus-visible { outline: 2px solid var(--fam-green); outline-offset: 2px; }
+    .fam-amt { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--bs-body-color); }
+    .fam-amt.is-neg { color: var(--fam-red); }
+    .fam-private { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; color: var(--fam-muted); }
+    @media (max-width: 575.98px) {
+        .fam-item .fam-row-end { margin-left: calc(44px + .85rem); justify-content: flex-start; }
+        .fam-item.is-plain .fam-row-end { margin-left: calc(28px + .85rem); }
+    }
+
+    /* The sharing dialog, as a page: a card in the middle that works at phone width */
+    .fam-dialog { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.1rem; }
+    .fam-choice { display: flex; gap: .75rem; align-items: flex-start; border: 1px solid var(--fam-line); border-radius: 12px; padding: .75rem .9rem; cursor: pointer; }
+    .fam-choice:has(input:checked) { border-color: var(--fam-green); background: var(--fam-soft); }
+    .fam-choice input { margin-top: .3rem; flex-shrink: 0; }
+    .fam-choice b { display: block; }
+    .fam-see { border: 1px solid var(--fam-line); border-radius: 12px; padding: .85rem 1rem; display: flex; flex-direction: column; gap: .5rem; }
+    .fam-see-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--fam-muted); }
+    .fam-see-top { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; align-items: center; }
+    .fam-see-facts { display: flex; gap: .5rem 1.5rem; flex-wrap: wrap; }
+    .fam-see-facts .fam-row-sub { margin: 0; }
+    .fam-dialog-foot { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; }
+    .fam-dialog-foot .fam-actions { margin-left: auto; }
+    @media (max-width: 575.98px) { .fam-dialog-foot, .fam-dialog-foot .fam-actions { flex-direction: column-reverse; align-items: stretch; width: 100%; } .fam-dialog-foot .btn { width: 100%; } }
+    .fam-chips { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }
+    .fam-chips button { border: 1px solid var(--fam-line); background: transparent; color: var(--bs-body-color); border-radius: 999px; padding: .15rem .7rem; font-size: .8rem; }
+
+    /* The preview bar and the "only you see this" note */
+    .fam-pvbar { background: var(--bs-emphasis-color); color: var(--bs-body-bg); border-radius: 14px; padding: .8rem 1rem; display: flex; gap: .8rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 1rem; }
+    .fam-pvbar a, .fam-pvbar .btn { color: inherit; border: 1px solid currentColor; background: transparent; font-size: .85rem; padding: .25rem .8rem; border-radius: 999px; text-decoration: none; opacity: .9; }
+    .fam-pvbar .fam-actions { gap: .4rem; }
+    .fam-hidden { background: rgba(212,131,26,.12); border: 1px solid rgba(212,131,26,.28); color: var(--fam-amber); }
+    [data-bs-theme="dark"] .fam-hidden { background: rgba(244,180,78,.14); border-color: rgba(244,180,78,.30); }
+    .fam-hidden h2 { color: var(--fam-amber); }
+    .fam-hidden ul { margin: .5rem 0 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .25rem; }
+    .fam-split { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+    @media (min-width: 992px) { .fam-split { grid-template-columns: minmax(0, 1fr) 20rem; } }
 </style>

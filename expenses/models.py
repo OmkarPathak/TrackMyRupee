@@ -575,12 +575,62 @@ class HouseholdMember(models.Model):
     household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='members')
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='household_membership')
     joined_at = models.DateTimeField(default=timezone.now)
+    # Off by default: when this member shares something new, tell the other members in the app
+    notify_new_shares = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['joined_at', 'id']
 
     def __str__(self):
         return f"{self.user_id} in {self.household_id}"
+
+
+class FamilyShare(models.Model):
+    """One account its owner has chosen to show to their household. No row means private.
+
+    Family members only ever see a fixed set of fields of a shared account (expenses/family/summary.py), and the
+    ``alias`` is what they see as its name, so a personal account name never has to be revealed.
+    """
+
+    AMOUNTS, LIST_ONLY = 'AMOUNTS', 'LIST'
+    LEVEL_CHOICES = [
+        (AMOUNTS, _('Show amounts')),
+        (LIST_ONLY, _('List only')),
+    ]
+
+    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='shares')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_shares')
+    account = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='family_share')
+    level = models.CharField(max_length=8, choices=LEVEL_CHOICES, default=AMOUNTS)
+    alias = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at', 'id']
+        indexes = [models.Index(fields=['household', 'owner'], name='famshare_household_owner_idx')]
+
+    def __str__(self):
+        return f"{self.owner_id} shares account {self.account_id} ({self.level})"
+
+
+class FamilyShareEvent(models.Model):
+    """What an owner shared, changed or stopped sharing, for the owner's own "Sharing activity" list."""
+
+    SHARED, CHANGED, STOPPED = 'SHARED', 'CHANGED', 'STOPPED'
+    KIND_CHOICES = [(SHARED, 'Shared'), (CHANGED, 'Changed'), (STOPPED, 'Stopped')]
+
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='family_share_events')
+    kind = models.CharField(max_length=8, choices=KIND_CHOICES)
+    item_name = models.CharField(max_length=100)
+    level = models.CharField(max_length=8, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
+
+    def __str__(self):
+        return f"{self.owner_id} {self.kind} {self.item_name}"
 
 
 class HouseholdInvitation(models.Model):
@@ -3297,6 +3347,8 @@ class PhysicalAsset(models.Model):
         help_text=_('Savings policies count the premiums paid as their value; pure protection policies are worth nothing.'),
     )
     sum_assured = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True, verbose_name=_('Sum Assured'))
+    # Who the policy covers, as names ("Arjun, Priya"). Shown to family only when the owner shares the policy.
+    covers = models.CharField(max_length=255, blank=True, verbose_name=_('Covers'))
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

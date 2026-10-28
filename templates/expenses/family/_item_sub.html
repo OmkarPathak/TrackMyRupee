@@ -1,0 +1,8 @@
+{% load i18n digit_filters %}{% comment %}The detail line of one SharedItem: the type, then only what that kind of item has and its owner chose to show.{% endcomment %}
+{{ item.type_label }}
+{% if item.kind == 'card' and item.limit %} · {% blocktrans trimmed with limit=item.limit|money_exact:item.currency %}Limit {{ limit }}{% endblocktrans %}{% endif %}
+{% if item.next_bill %} · {% blocktrans trimmed with date=item.next_bill|date:"j M" %}next bill {{ date }}{% endblocktrans %}{% endif %}
+{% if item.covers %} · {% blocktrans trimmed with names=item.covers %}covers {{ names }}{% endblocktrans %}{% endif %}
+{% if item.premium %} · {% blocktrans trimmed with amount=item.premium|money_exact:item.currency per=item.premium_per %}premium {{ amount }} {{ per }}{% endblocktrans %}{% endif %}
+{% if item.next_due %} · {% blocktrans trimmed with date=item.next_due|date:"j M" %}next due {{ date }}{% endblocktrans %}{% endif %}
+{% if item.emi %} · {% blocktrans trimmed with amount=item.emi|money_exact:item.currency %}EMI {{ amount }} a month{% endblocktrans %}{% endif %}

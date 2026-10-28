@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters %}
+
+{% block title %}{% trans "Preview as a family member" %} | TrackMyRupee{% endblock %}
+
+{% block content %}
+<div class="fam fade-in">
+{% include 'expenses/family/_styles.html' %}
+
+<div class="fam-pvbar" role="status">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        {% if subject %}<span class="fam-avatar is-sm bg-{{ subject.tone }}-subtle text-{{ subject.tone }}-emphasis" aria-hidden="true">{{ subject.initials }}</span>
+        <span>{% blocktrans trimmed with name=subject.name %}<b>Previewing as {{ name }}.</b> This is exactly what they see of what you share.{% endblocktrans %}</span>
+        {% else %}<span>{% trans "Previewing as a family member. This is exactly what they will see of what you share." %}</span>{% endif %}
+    </div>
+    <div class="fam-actions">
+        {% for other in others %}{% if other != subject %}<a href="{% url 'family-preview-member' other.membership.pk %}">{% blocktrans with name=other.name %}Switch to {{ name }}{% endblocktrans %}</a>{% endif %}{% endfor %}
+        <a href="{% url 'family-share' %}">{% trans "Exit preview" %}</a>
+    </div>
+</div>
+
+<div class="fam-head">
+    <div class="fam-title">
+        <h1>{% blocktrans with name=request.user.first_name|default:request.user.username %}{{ name }}'s shared items{% endblocktrans %}</h1>
+        <p class="fam-sub">{% trans "Names, types and amounts only." %}</p>
+    </div>
+</div>
+
+<div class="fam-split">
+    <section class="card fam-card" aria-labelledby="fam-pv-h">
+        <h2 id="fam-pv-h">{% if subject %}{% blocktrans with name=subject.name %}What {{ name }} sees{% endblocktrans %}{% else %}{% trans "What family sees" %}{% endif %}</h2>
+        {% if not groups %}
+            <p class="fam-note">{% trans "You have not shared anything yet, so family sees nothing of yours." %}</p>
+        {% endif %}
+        <div class="fam-rows">
+        {% for key, label, rows in groups %}
+            <div class="fam-grp">{{ label }}</div>
+            {% for item in rows %}{% include 'expenses/family/_item_row.html' with tone=owner_tone initials=owner_initials %}{% endfor %}
+        {% endfor %}
+        </div>
+    </section>
+
+    <aside class="card fam-card fam-hidden" aria-labelledby="fam-hid-h">
+        <h2 id="fam-hid-h">{% trans "Only you see this note" %}</h2>
+        <p class="mb-0">{% if subject %}{% blocktrans with name=subject.name %}{{ name }} cannot see any of this, and nothing hints that it exists:{% endblocktrans %}{% else %}{% trans "Family cannot see any of this, and nothing hints that it exists:" %}{% endif %}</p>
+        <ul>
+            {% for name in private_names %}<li>{% blocktrans %}{{ name }} (private): not listed, not counted{% endblocktrans %}</li>{% endfor %}
+            {% for name in listed_only %}<li>{% blocktrans %}The amounts on {{ name }}{% endblocktrans %}</li>{% endfor %}
+            <li>{% trans "Every transaction, category and note, in every account" %}</li>
+            <li>{% trans "Account, card and policy numbers" %}</li>
+        </ul>
+    </aside>
+</div>
+</div>
+{% endblock %}
