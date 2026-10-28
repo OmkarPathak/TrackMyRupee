@@ -2,6 +2,7 @@
 cache version, the activity list and the optional "something new was shared" notice stay in step."""
 from django.db import transaction
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from ..models import Account, FamilyShare, FamilyShareEvent, Notification
@@ -63,8 +64,10 @@ def set_share(user, account, level, alias='', covers=None):
         _log(user, FamilyShareEvent.SHARED, shown_name, level)
         _notify_members(household, user, shown_name)
     elif (share.level, share.alias) != (level, alias):
+        if level == FamilyShare.AMOUNTS and share.level != FamilyShare.AMOUNTS:
+            share.amounts_since = timezone.now()     # amounts were hidden until now, so history starts now
         share.level, share.alias = level, alias
-        share.save(update_fields=['level', 'alias', 'updated_at'])
+        share.save(update_fields=['level', 'alias', 'amounts_since', 'updated_at'])
         _log(user, FamilyShareEvent.CHANGED, shown_name, level)
     households.bump(household)
     return share, created

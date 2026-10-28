@@ -117,8 +117,8 @@ class HistoryTests(ViewFixture):
         today = timezone.localdate()
         first = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
         end = today.replace(day=1) - timedelta(days=1)
-        FamilyShare.objects.update(created_at=timezone.make_aware(
-            timezone.datetime(first.year, first.month, 2)))
+        when = timezone.make_aware(timezone.datetime(first.year, first.month, 2))
+        FamilyShare.objects.update(created_at=when, amounts_since=when)
         self.snapshot(self.owner, end - timedelta(days=3), {self.world.bank_account.pk: 40000})   # not month end
         self.snapshot(self.owner, end, {self.world.bank_account.pk: 42000,
                                         self.world.card_account.pk: -3000,
@@ -133,16 +133,17 @@ class HistoryTests(ViewFixture):
     def test_an_item_shared_later_is_left_out_of_earlier_months(self):
         today = timezone.localdate()
         end = today.replace(day=1) - timedelta(days=1)
-        FamilyShare.objects.update(created_at=timezone.make_aware(
-            timezone.datetime(end.year, end.month, 1)) - timedelta(days=40))
-        FamilyShare.objects.filter(account=self.kotak).update(created_at=timezone.now())
+        long_ago = timezone.make_aware(timezone.datetime(end.year, end.month, 1)) - timedelta(days=40)
+        FamilyShare.objects.update(created_at=long_ago, amounts_since=long_ago)
+        FamilyShare.objects.filter(account=self.kotak).update(created_at=timezone.now(), amounts_since=timezone.now())
         self.snapshot(self.owner, end, {self.world.bank_account.pk: 1000})
         self.snapshot(self.partner, end, {self.kotak.pk: 5000})
         data = summary.family_summary(self.household, self.owner)
         self.assertEqual(data.history[-1][1], D('1000.00'))
 
     def test_without_a_snapshot_there_is_no_history_point(self):
-        FamilyShare.objects.update(created_at=timezone.now() - timedelta(days=90))
+        FamilyShare.objects.update(created_at=timezone.now() - timedelta(days=90),
+                                   amounts_since=timezone.now() - timedelta(days=90))
         self.assertEqual(summary.family_summary(self.household, self.owner).history, ())
 
     def test_the_chart_needs_two_points_and_ends_with_now(self):

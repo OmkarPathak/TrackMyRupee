@@ -29,10 +29,17 @@ def family_toggle(context, page, current='me'):
     from django.urls import reverse
     request = context.get('request')
     user = getattr(request, 'user', None)
-    household = households.household_for(user) if family_enabled_for(user) else None
-    if household is None:
+    # the toggle can appear more than once on a page: look the household up once per request
+    cached = getattr(request, '_family_toggle_state', None)
+    if cached is None:
+        household = households.household_for(user) if family_enabled_for(user) else None
+        paused = household is not None and plan_rules.household_plan_state(household).state == plan_rules.PAUSED
+        cached = (household is not None, paused)
+        if request is not None:
+            request._family_toggle_state = cached
+    if not cached[0]:
         return {'show': False}
-    paused = plan_rules.household_plan_state(household).state == plan_rules.PAUSED
+    paused = cached[1]
     me_url = reverse('analytics-networth') if page == 'networth' else reverse('account-list')
     family_url = reverse('family-networth') if page == 'networth' else reverse('family-inventory')
     return {'show': True, 'current': current, 'me_url': me_url, 'family_url': family_url, 'paused': paused,

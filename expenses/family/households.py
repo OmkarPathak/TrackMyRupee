@@ -80,20 +80,27 @@ def create_household(user, name=''):
     return household
 
 
+def _lock_household(household_id):
+    """Row lock on the household so seat counts and ownership changes are serialised (call inside atomic)."""
+    return Household.objects.select_for_update().get(pk=household_id)
+
+
 def invite(household, invited_by, email=''):
     """A new open invitation. Returns (invitation, raw token); the raw token exists only now."""
-    members, open_invites = seats_used(household)
-    if members + open_invites >= settings.FAMILY_MAX_MEMBERS:
-        raise FamilyError('full', _("Your family is full. Remove a member or cancel an invitation first."))
     token = secrets.token_urlsafe(32)
-    invitation = HouseholdInvitation.objects.create(
-        household=household,
-        email=(email or '').strip().lower(),
-        token_hash=hash_token(token),
-        invited_by=invited_by,
-        expires_at=timezone.now() + timedelta(days=settings.FAMILY_INVITE_DAYS),
-    )
-    _audit(invited_by, 'CREATE', 'HouseholdInvitation', invitation.id, {'email': bool(invitation.email)})
+    with transaction.atomic():
+        locked = _lock_household(household.pk)
+        members, open_invites = seats_used(locked)
+        if members + open_invites >= settings.FAMILY_MAX_MEMBERS:
+            raise FamilyError('full', _("Your family is full. Remove a member or cancel an invitation first."))
+        invitation = HouseholdInvitation.objects.create(
+            household=household,
+            email=(email or '').strip().lower(),
+            token_hash=hash_token(token),
+            invited_by=invited_by,
+            expires_at=timezone.now() + timedelta(days=settings.FAMILY_INVITE_DAYS),
+        )
+        _audit(invited_by, 'CREATE', 'HouseholdInvitation', invitation.id, {'email': bool(invitation.email)})
     return invitation, token
 
 
@@ -143,11 +150,17 @@ def accept_invitation(invitation, user, request=None):
         raise FamilyError('already_member', _("You are already in a family. Leave it first to join another."))
     if not user.profile.is_pro:
         raise FamilyError('needs_pro', _("To join a family you need a Pro plan, and so does everyone in it."))
-    household = invitation.household
-    if household.members.count() >= settings.FAMILY_MAX_MEMBERS:
-        raise FamilyError('full', _("This family is full."))
     try:
         with transaction.atomic():
+            # Re-check under locks: the invitation may have been used, or the family filled, since it was read.
+            household = _lock_household(invitation.household_id)
+            fresh = HouseholdInvitation.objects.select_for_update().get(pk=invitation.pk)
+            problem = invitation_problem(fresh)
+            if problem:
+                raise FamilyError(problem, _("This invitation can no longer be used."))
+            if household.members.count() >= settings.FAMILY_MAX_MEMBERS:
+                raise FamilyError('full', _("This family is full."))
+            invitation = fresh
             member = HouseholdMember.objects.create(household=household, user=user)
             invitation.accepted_at = timezone.now()
             invitation.accepted_by = user
@@ -175,9 +188,12 @@ def leave(user):
     membership = HouseholdMember.objects.select_related('household').filter(user=user).first()
     if membership is None:
         raise FamilyError('not_member', _("You are not in a family."))
-    household = membership.household
     membership_id = membership.id
     with transaction.atomic():
+        household = _lock_household(membership.household_id)
+        membership = HouseholdMember.objects.filter(pk=membership_id).first()
+        if membership is None:
+            raise FamilyError('not_member', _("You are not in a family."))
         FamilyShare.objects.filter(owner=user, household=household).delete()
         GentleNoteDismissal.objects.filter(user=user, household=household).delete()
         _end_emergency_links(user)
@@ -203,6 +219,7 @@ def remove_member(owner, membership):
     if membership.user_id == owner.id:
         raise FamilyError('is_owner', _("You cannot remove yourself. Leave the family instead."))
     with transaction.atomic():
+        _lock_household(household.pk)
         removed_user = membership.user
         membership_id = membership.id
         FamilyShare.objects.filter(owner=removed_user, household=household).delete()

@@ -606,6 +606,8 @@ class FamilyShare(models.Model):
     level = models.CharField(max_length=8, choices=LEVEL_CHOICES, default=AMOUNTS)
     alias = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
+    # When the family first got to see amounts for this account; the shared history never reaches back before it
+    amounts_since = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

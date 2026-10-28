@@ -50,6 +50,10 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         self.today = timezone.localdate()
         self.stdout.write(f"Starting notification run for {self.today}...")
+
+        # Family emergency sheets whose delay ran out with no answer (the owner is told once)
+        from expenses.family import emergency
+        emergency.notify_due_releases()
         
         # --- Pre-fetch all necessary data to avoid N+1 queries ---
         

@@ -71,15 +71,19 @@ def next_premium_due(start, frequency, today=None):
     return due
 
 
-def _next_emi(loan):
-    if loan is None:
-        return None
-    installment = (LoanScheduleInstallment.objects.filter(loan=loan, is_paid=False)
-                   .order_by('due_date').values_list('scheduled_principal', 'scheduled_interest').first())
-    return (installment[0] + installment[1]) if installment else None
+def _next_emis(loan_ids):
+    """The next unpaid instalment (principal + interest) of each loan, in one query."""
+    out = {}
+    if not loan_ids:
+        return out
+    for loan_id, principal, interest in (LoanScheduleInstallment.objects.filter(loan_id__in=loan_ids, is_paid=False)
+                                         .order_by('due_date', 'id')
+                                         .values_list('loan_id', 'scheduled_principal', 'scheduled_interest')):
+        out.setdefault(loan_id, principal + interest)      # the earliest due date comes first
+    return out
 
 
-def _build(owner_name, currency, account, name, show_amounts, value, share_id=0):
+def _build(owner_name, currency, account, name, show_amounts, value, share_id=0, emis=None):
     """One item from an account. ``value`` is the account's own valuation, used only when amounts are shown."""
     kind = catalog.kind_of(account.account_type)
     base = dict(
@@ -108,24 +112,33 @@ def _build(owner_name, currency, account, name, show_amounts, value, share_id=0)
                                 if policy.premium_amount and policy.premium_frequency in _PAYMENTS_A_YEAR else None),
                 next_due=next_premium_due(policy.policy_start_date, policy.premium_frequency))
     elif kind == catalog.LOAN:
-        extra.update(amount=value, emi=_next_emi(account.linked_loan))
+        extra.update(amount=value, emi=(emis or {}).get(account.linked_loan_id))
     else:
         extra.update(amount=value)
     return SharedItem(**base, **extra)
 
 
-def shared_items(owner, household):
-    """The items ``owner`` shares with ``household``, in the order they were shared."""
-    shares = list(FamilyShare.objects.filter(owner=owner, household=household, account__is_active=True)
-                  .select_related('account', 'account__linked_physical_asset', 'account__linked_loan'))
+def _shares_with_accounts(**filters):
+    return (FamilyShare.objects.filter(account__is_active=True, **filters)
+            .select_related('account', 'account__linked_physical_asset', 'account__linked_loan'))
+
+
+def shared_items(owner, household, shares=None, emis=None):
+    """The items ``owner`` shares with ``household``, in the order they were shared. A caller that already holds
+    the shares (and the loans' next instalments) passes them in, so a whole family is read in a few queries."""
+    if shares is None:
+        shares = list(_shares_with_accounts(owner=owner, household=household))
     if not shares:
         return []
+    if emis is None:
+        emis = _next_emis([s.account.linked_loan_id for s in shares
+                           if s.level == FamilyShare.AMOUNTS and s.account.linked_loan_id])
     visible_ids = [s.account_id for s in shares if s.level == FamilyShare.AMOUNTS]
     values = LedgerReadService.get_net_worth(owner, only_account_ids=visible_ids)[1] if visible_ids else {}
     owner_name, currency = display_name(owner), owner.profile.currency
     return [
         _build(owner_name, currency, s.account, s.alias or s.account.name, s.level == FamilyShare.AMOUNTS,
-               values.get(s.account_id, Decimal('0.00')), share_id=s.pk)
+               values.get(s.account_id, Decimal('0.00')), share_id=s.pk, emis=emis)
         for s in shares]
 
 
@@ -136,7 +149,9 @@ def own_items(owner):
                     .order_by('name', 'id'))
     values = LedgerReadService.get_net_worth(owner, only_account_ids=[a.pk for a in accounts])[1] if accounts else {}
     owner_name, currency = display_name(owner), owner.profile.currency
-    return {a.pk: _build(owner_name, currency, a, a.name, True, values.get(a.pk, Decimal('0.00'))) for a in accounts}
+    emis = _next_emis([a.linked_loan_id for a in accounts if a.linked_loan_id])
+    return {a.pk: _build(owner_name, currency, a, a.name, True, values.get(a.pk, Decimal('0.00')), emis=emis)
+            for a in accounts}
 
 
 # ---- The whole family -------------------------------------------------------------------------------------------
@@ -212,7 +227,7 @@ def _month_ends(first, last):
 
 
 def _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today):
-    """Month-end net worth of what is shared, counting each item only from the day it was shared.
+    """Month-end net worth of what is shared, counting each item only from the day its amounts were first shown.
 
     Only the stored month-end snapshots are used, never the daily ones, because a balance dropping on a given
     day can reveal a purchase. The snapshot totals are never used either: they include private accounts."""
@@ -220,7 +235,7 @@ def _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today):
                for s in rows if s.level == FamilyShare.AMOUNTS]
     if not counted:
         return ()
-    first = min(s.created_at.date() for s in counted)
+    first = min(s.amounts_since.date() for s in counted)
     ends = _month_ends(first, today)
     if not ends:
         return ()
@@ -234,7 +249,7 @@ def _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today):
     for end in ends:
         total, seen = ZERO, False
         for share in counted:
-            if share.created_at.date() > end:
+            if share.amounts_since.date() > end:
                 continue
             snap = snapshots.get((share.owner_id, end.year, end.month))
             raw = snap['breakdown'].get(str(share.account_id)) if snap else None
@@ -251,8 +266,9 @@ def _build_family(household, viewer):
     today = timezone.localdate()
     viewer_currency = viewer.profile.currency
     memberships = list(household.members.select_related('user', 'user__profile'))
-    shares_all = list(FamilyShare.objects.filter(household=household, account__is_active=True)
-                      .select_related('account'))
+    shares_all = list(_shares_with_accounts(household=household))
+    emis = _next_emis([s.account.linked_loan_id for s in shares_all
+                       if s.level == FamilyShare.AMOUNTS and s.account.linked_loan_id])
     shares_by_owner = {}
     for share in shares_all:
         shares_by_owner.setdefault(share.owner_id, []).append(share)
@@ -264,7 +280,7 @@ def _build_family(household, viewer):
     for position, membership in enumerate(memberships):
         owner = membership.user
         currency_of_owner[owner.pk] = owner.profile.currency
-        items = shared_items(owner, household)
+        items = shared_items(owner, household, shares_by_owner.get(owner.pk, []), emis)
         tone, inits = avatar_tone(position), initials(owner)
         same_currency = owner.profile.currency == viewer_currency
         owns = owes = ZERO
@@ -308,7 +324,7 @@ def _build_family(household, viewer):
             counts.append((key, heading, per_member, total))
 
     history = _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today)
-    counted_shares = [s.created_at.date() for rows in shares_by_owner.values() for s in rows
+    counted_shares = [s.amounts_since.date() for rows in shares_by_owner.values() for s in rows
                       if s.level == FamilyShare.AMOUNTS and currency_of_owner.get(s.owner_id) == viewer_currency]
     return FamilySummary(
         currency=viewer_currency, owns=owns, owes=owes, members=tuple(members), items=tuple(all_items),

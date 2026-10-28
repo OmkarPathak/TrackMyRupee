@@ -133,6 +133,10 @@ class RequestFlowTests(EmergencyFixture):
         EmergencyRequest.objects.filter(pk=request.pk).update(release_at=timezone.now() - timedelta(minutes=1))
         self.assertEqual(self.state(self.partner)[0], emergency.GRANTED)
         self.assertEqual(self.state(self.partner)[0], emergency.GRANTED)
+        self.assertEqual(Notification.objects.filter(user=self.owner, title__contains='can now open').count(), 0,
+                         "reading a sheet must not write")
+        self.assertEqual(emergency.notify_due_releases(), 1)
+        self.assertEqual(emergency.notify_due_releases(), 0)
         notes = Notification.objects.filter(user=self.owner, title__contains='can now open')
         self.assertEqual(notes.count(), 1)
 

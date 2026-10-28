@@ -23,6 +23,7 @@ from .family_base import FamilyTestCase, end_pro, make_family, make_user
 from .family_canary import CanaryWorld
 
 
+@override_settings(FAMILY_ENABLED=False)      # the developer's .env may switch it on; these tests start from "off"
 class FlagAndAccessTests(TestCase):
     def setUp(self):
         self.user = make_user('flag_user')

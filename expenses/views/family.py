@@ -378,8 +378,7 @@ def family_preview_view(request, pk=None):
     by_section = {}
     for item in items:
         by_section.setdefault(item.section, []).append(item)
-    private = [a for a in request.user.accounts.filter(is_active=True).order_by('name', 'id')
-               if not hasattr(a, 'family_share')]
+    private = request.user.accounts.filter(is_active=True, family_share__isnull=True).order_by('name', 'id')
     listed_only = [i for i in items if not i.show_amounts]
     return render(request, 'expenses/family/preview.html', {
         'household': household,
@@ -501,6 +500,7 @@ def family_emergency_view(request):
     household = _household_or_redirect(request)
     if household is None:
         return redirect('family-home')
+    emergency.notify_due_releases(request.user)
     sheet = emergency.sheet_of(request.user)
     items = summary.own_items(request.user)
     on_sheet = {i.account_id: i.nominee for i in sheet.items.all()} if sheet else {}

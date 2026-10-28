@@ -124,21 +124,28 @@ def state_for(viewer, sheet, now=None):
         retry = timedelta(days=settings.FAMILY_EMERGENCY_RETRY_DAYS)
         return (DENIED, request) if request.decided_at and request.decided_at + retry > now else (ASK, request)
     if request.release_at <= now:
-        _note_release(request)
         return GRANTED, request
     return PENDING, request
 
 
-def _note_release(request):
-    """The delay ran out with no answer: tell the owner, once."""
-    if request.release_noted:
-        return
-    updated = EmergencyRequest.objects.filter(pk=request.pk, release_noted=False).update(release_noted=True)
-    if updated:
-        owner = request.sheet.owner
-        with translation.override(getattr(owner.profile, 'language', None) or settings.LANGUAGE_CODE):
-            _notify(owner, _("%(name)s can now open your emergency sheet") % {'name': display_name(request.requester)},
+def notify_due_releases(owner=None, now=None):
+    """Tell owners, once, that a delay ran out with no answer. Reading a sheet never writes; this runs from the
+    notification job and when an owner opens their own emergency page. Returns how many owners were told."""
+    now = now or timezone.now()
+    due = EmergencyRequest.objects.filter(status=EmergencyRequest.PENDING, release_noted=False, release_at__lte=now)
+    if owner is not None:
+        due = due.filter(sheet__owner=owner)
+    told = 0
+    for request in due.select_related('sheet__owner__profile', 'requester__profile'):
+        # the conditional update is the claim: only one caller wins it, so the owner is told exactly once
+        if not EmergencyRequest.objects.filter(pk=request.pk, release_noted=False).update(release_noted=True):
+            continue
+        owner_user = request.sheet.owner
+        with translation.override(getattr(owner_user.profile, 'language', None) or settings.LANGUAGE_CODE):
+            _notify(owner_user, _("%(name)s can now open your emergency sheet") % {'name': display_name(request.requester)},
                     _("You did not answer within the delay, so they now have a read-only copy. You can withdraw access at any time."))
+        told += 1
+    return told
 
 
 def _notify(user, title, message):
@@ -163,6 +170,7 @@ def time_left(request, now=None):
 
 @transaction.atomic
 def ask(viewer, sheet):
+    EmergencySheet.objects.select_for_update().get(pk=sheet.pk)     # one request at a time per sheet
     state, _request = state_for(viewer, sheet)
     if state != ASK or sheet.mode != EmergencySheet.REQUEST:
         raise FamilyError('not_allowed', _("You cannot ask for this sheet right now."))
