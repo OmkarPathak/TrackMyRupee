@@ -6,6 +6,11 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam *, .fam *::before, .fam *::after { box-sizing: border-box; }
     .fam-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
     .fam-title h1 { font-size: clamp(1.5rem, 4.5vw, 2rem); font-weight: 800; letter-spacing: -.03em; margin: 0; color: var(--bs-body-color); }
+    /* One type scale for every Family page: page title 2rem, section 1.1rem, group 1rem, body .9rem, note .85rem, caption .8rem */
+    .fam h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; margin: 0; color: var(--bs-body-color); }
+    .fam h2.fam-note { font-size: .85rem; font-weight: 600; letter-spacing: 0; color: var(--fam-muted); }
+    .fam h3 { font-size: 1rem; font-weight: 800; letter-spacing: -.005em; margin: 0; color: var(--bs-body-color); }
+    .fam .form-label, .fam-choice, .fam-gentle .fam-row-main { font-size: .9rem; }
     .fam-sub { color: var(--fam-muted); font-size: .92rem; margin: .25rem 0 0; max-width: 46rem; }
     .fam-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
     .fam-stack { display: flex; flex-direction: column; gap: 1rem; }

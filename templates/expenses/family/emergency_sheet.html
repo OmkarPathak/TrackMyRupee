@@ -71,8 +71,8 @@
     {% if content.documents or content.contacts %}
     <section class="card fam-card" aria-labelledby="fam-nt2-h">
         <h2 id="fam-nt2-h">{% trans "Notes" %}</h2>
-        {% if content.documents %}<h3 class="fs-6 fw-bold">{% trans "Where my documents are" %}</h3><p style="white-space:pre-line">{{ content.documents }}</p>{% endif %}
-        {% if content.contacts %}<h3 class="fs-6 fw-bold">{% trans "People to call" %}</h3><p style="white-space:pre-line">{{ content.contacts }}</p>{% endif %}
+        {% if content.documents %}<h3>{% trans "Where my documents are" %}</h3><p style="white-space:pre-line">{{ content.documents }}</p>{% endif %}
+        {% if content.contacts %}<h3>{% trans "People to call" %}</h3><p style="white-space:pre-line">{{ content.contacts }}</p>{% endif %}
     </section>
     {% endif %}
 {% endif %}

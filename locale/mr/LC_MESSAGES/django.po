@@ -23046,3 +23046,31 @@ msgstr "व्यवहार, श्रेणी, नोंदी आणि ख
 #: expenses/family
 msgid "Which accounts?"
 msgstr "कोणती खाती?"
+
+#: expenses/family
+msgid "Family Sharing (optional)"
+msgstr "कौटुंबिक शेअरिंग (ऐच्छिक)"
+
+#: expenses/family
+msgid "Other Members of Your Family"
+msgstr "तुमच्या कुटुंबातील इतर सदस्य"
+
+#: expenses/family
+msgid "Family Sharing"
+msgstr "कौटुंबिक शेअरिंग"
+
+#: expenses/family
+msgid "Your family membership, the accounts you choose to share and at what level (amounts or list only), an optional nickname for each, and an emergency sheet if you write one (what exists and where to look, never account numbers or passwords) &rarr; Showing a combined family view to the other members of your family &rarr; Consent, given when you join &rarr; Until you stop sharing, leave the family or delete your account."
+msgstr "तुमचे कुटुंब सदस्यत्व, तुम्ही शेअर करण्यासाठी निवडलेली खाती आणि कोणत्या स्तरावर (रकमेसह किंवा फक्त यादी), प्रत्येकाचे ऐच्छिक टोपणनाव, आणि तुम्ही लिहिल्यास आणीबाणी शीट (काय आहे आणि कुठे पाहायचे, खाते क्रमांक किंवा पासवर्ड कधीही नाही) &rarr; तुमच्या कुटुंबातील इतर सदस्यांना एकत्रित कौटुंबिक दृश्य दाखवणे &rarr; संमती, जी तुम्ही सामील होताना देता &rarr; तुम्ही शेअरिंग थांबवेपर्यंत, कुटुंब सोडेपर्यंत किंवा खाते हटवेपर्यंत."
+
+#: expenses/family
+msgid "If you join a family, the other members can see the accounts you choose to share, at the level you choose, and your emergency sheet if you allow them to ask for it. They never see transactions, categories, notes, receipts, the holdings inside an account or account numbers, and they cannot tell that an account you did not share exists. Nothing is shared until you choose it, and you can stop at any time."
+msgstr "तुम्ही एखाद्या कुटुंबात सामील झालात, तर इतर सदस्य तुम्ही शेअर करण्यासाठी निवडलेली खाती, तुम्ही ठरवलेल्या स्तरावर पाहू शकतात, आणि तुम्ही परवानगी दिल्यास तुमची आणीबाणी शीट मागू शकतात. ते कधीही व्यवहार, श्रेणी, नोंदी, पावत्या, खात्यातील होल्डिंग्ज किंवा खाते क्रमांक पाहत नाहीत, आणि तुम्ही शेअर न केलेले खाते अस्तित्वात आहे हे त्यांना कळू शकत नाही. तुम्ही निवडेपर्यंत काहीही शेअर होत नाही, आणि तुम्ही केव्हाही थांबवू शकता."
+
+#: expenses/family
+msgid "Stopping sharing or leaving a family ends the other members' view straight away and removes your shares and emergency-sheet links. Deleting your account does the same. If you owned the family, ownership passes to the longest-standing member, and if you were the last member the family ends. An invitation link is single-use and expires after 7 days; we store only a hash of it."
+msgstr "शेअरिंग थांबवल्यावर किंवा कुटुंब सोडल्यावर इतर सदस्यांचे दृश्य लगेच संपते आणि तुमचे शेअर्स व आणीबाणी-शीट लिंक काढले जातात. तुमचे खाते हटवल्यावरही हेच होते. तुम्ही कुटुंबाचे मालक असाल तर मालकी सर्वात जुन्या सदस्याकडे जाते, आणि तुम्ही शेवटचे सदस्य असाल तर कुटुंब संपते. आमंत्रण लिंक एकदाच चालते आणि 7 दिवसांत संपते; आम्ही फक्त तिचा हॅश साठवतो."
+
+#: expenses/family
+msgid "Sharing is off until you turn it on, account by account. Other family members receive only a fixed set of fields for the accounts you choose, never your transactions, notes, categories, receipts, the holdings inside an account or any account numbers. Invitation links work once, expire after 7 days and are stored only as a hash. An emergency sheet says what exists and where to look, never account numbers or passwords, and is opened only on request, after a delay you can veto. Leaving the family ends all sharing straight away. We test this with automated checks that plant private data and confirm no family page, reply, email or notification shows it."
+msgstr "शेअरिंग तुम्ही खाते-दर-खाते चालू करेपर्यंत बंद असते. इतर कुटुंब सदस्यांना तुम्ही निवडलेल्या खात्यांचे फक्त ठराविक फील्ड्स मिळतात, तुमचे व्यवहार, नोंदी, श्रेणी, पावत्या, खात्यातील होल्डिंग्ज किंवा कोणतेही खाते क्रमांक कधीही नाही. आमंत्रण लिंक एकदाच चालतात, 7 दिवसांनी संपतात आणि फक्त हॅश म्हणून साठवल्या जातात. आणीबाणी शीट काय आहे आणि कुठे पाहायचे ते सांगते, खाते क्रमांक किंवा पासवर्ड कधीही नाही, आणि फक्त विनंतीवर उघडते, तुम्ही नाकारू शकता अशा विलंबानंतर. कुटुंब सोडल्यावर सर्व शेअरिंग लगेच थांबते. आम्ही हे स्वयंचलित तपासण्यांनी तपासतो, ज्या खाजगी डेटा ठेवून पाहतात की कोणतेही कौटुंबिक पान, उत्तर, ईमेल किंवा सूचना तो दाखवत नाही."
