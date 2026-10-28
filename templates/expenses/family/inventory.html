@@ -31,6 +31,25 @@
 </div>
 
 <div class="fam-stack">
+    {% if gentle_on and gentle_notes %}
+    <section class="card fam-card fam-gentle" aria-labelledby="fam-gn-h">
+        <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+            <div><h2 id="fam-gn-h">{% trans "Gentle notes" %}</h2><p class="fam-note">{% trans "Small, optional observations from what is shared. Nothing to fix, just good to know." %}</p></div>
+            <form method="post" action="{% url 'family-notes-toggle' %}">{% csrf_token %}<input type="hidden" name="on" value="0"><button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Turn off gentle notes" %}</button></form>
+        </div>
+        <div class="fam-rows">
+            {% for note in gentle_notes %}
+            <div class="fam-row">
+                <div class="fam-row-main">{{ note.text }}</div>
+                <form method="post" action="{% url 'family-note-dismiss' %}" class="fam-row-end">{% csrf_token %}<input type="hidden" name="key" value="{{ note.key }}"><button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Dismiss" %}</button></form>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% elif not gentle_on %}
+    <form method="post" action="{% url 'family-notes-toggle' %}" class="fam-note">{% csrf_token %}<input type="hidden" name="on" value="1">{% trans "Gentle notes are off for you." %} <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">{% trans "Turn on" %}</button></form>
+    {% endif %}
+
     <section class="card fam-card" aria-labelledby="fam-mx-h">
         <h2 id="fam-mx-h">{% trans "Who holds what" %}</h2>
         {% if data.counts %}

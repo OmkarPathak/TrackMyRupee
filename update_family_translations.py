@@ -415,6 +415,19 @@ ENTRIES = {
     ('', 'Cash and bank'): (None, 'नकद और बैंक', 'रोख आणि बँक'),
     ('', 'Insurance savings plans'): (None, 'बीमा बचत योजनाएँ', 'विमा बचत योजना'),
     ('', 'Nothing is shared yet. Each member chooses what to share on the What I share page.'): (None, 'अभी कुछ साझा नहीं है। हर सदस्य "मैं क्या साझा करता हूँ" पन्ने पर चुनता है कि क्या साझा करना है।', 'अजून काही शेअर केलेले नाही. प्रत्येक सदस्य "मी काय शेअर करतो" पानावर काय शेअर करायचे ते निवडतो.'),
+
+    # ---- Phase 4: gentle notes ----
+    ('', 'Gentle notes'): (None, 'सौम्य सुझाव', 'सौम्य सूचना'),
+    ('', 'Small, optional observations from what is shared. Nothing to fix, just good to know.'): (None, 'साझा की गई जानकारी से छोटे, वैकल्पिक सुझाव। कुछ ठीक करने को नहीं, बस जानना अच्छा है।', 'शेअर केलेल्या माहितीवरून लहान, ऐच्छिक सूचना. काही दुरुस्त करायचे नाही, फक्त माहीत असणे चांगले.'),
+    ('', 'Turn off gentle notes'): (None, 'सौम्य सुझाव बंद करें', 'सौम्य सूचना बंद करा'),
+    ('', 'Dismiss'): (None, 'हटाएँ', 'काढून टाका'),
+    ('', 'Gentle notes are off for you.'): (None, 'आपके लिए सौम्य सुझाव बंद हैं।', 'तुमच्यासाठी सौम्य सूचना बंद आहेत.'),
+    ('', 'Turn on'): (None, 'चालू करें', 'चालू करा'),
+    ('', '%(head)s and %(last)s'): (None, '%(head)s और %(last)s', '%(head)s आणि %(last)s'),
+    ('', '%(name)s on %(date)s'): (None, '%(date)s को %(name)s', '%(date)s रोजी %(name)s'),
+    ('', 'Health cover is shared for %(covered)s. Nothing is shared yet for %(missing)s. If they have a policy, they can add it. If not, there is nothing to do.'): (None, '%(covered)s के लिए स्वास्थ्य कवर साझा है। %(missing)s के लिए अभी कुछ साझा नहीं है। अगर उनकी कोई पॉलिसी है तो वे जोड़ सकते हैं। नहीं है तो कुछ करने की ज़रूरत नहीं।', '%(covered)s यांच्यासाठी आरोग्य कव्हर शेअर केले आहे. %(missing)s यांच्यासाठी अजून काही शेअर केलेले नाही. त्यांची पॉलिसी असेल तर ते जोडू शकतात. नसेल तर काहीही करायचे नाही.'),
+    ('', 'One card bill falls in the next 30 days: %(items)s. Nothing to do but keep it in mind.'): ('%(count)d card bills fall in the next 30 days: %(items)s. Nothing to do but keep them in mind.', ('अगले 30 दिनों में एक कार्ड बिल आएगा: %(items)s। बस ध्यान में रखें।', 'अगले 30 दिनों में %(count)d कार्ड बिल आएँगे: %(items)s। बस ध्यान में रखें।'), ('पुढील 30 दिवसांत एक कार्ड बिल येईल: %(items)s. फक्त लक्षात ठेवा.', 'पुढील 30 दिवसांत %(count)d कार्ड बिले येतील: %(items)s. फक्त लक्षात ठेवा.')),
+    ('', 'One insurance premium falls due in the next 30 days: %(items)s.'): ('%(count)d insurance premiums fall due in the next 30 days: %(items)s.', ('अगले 30 दिनों में एक बीमा प्रीमियम देय है: %(items)s।', 'अगले 30 दिनों में %(count)d बीमा प्रीमियम देय हैं: %(items)s।'), ('पुढील 30 दिवसांत एक विमा प्रीमियम देय आहे: %(items)s.', 'पुढील 30 दिवसांत %(count)d विमा प्रीमियम देय आहेत: %(items)s.')),
 }
 
 

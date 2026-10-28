@@ -39,6 +39,7 @@ class SharedItem:
     kind: str
     section: str
     type_label: str
+    type_code: str
     name: str
     show_amounts: bool
     currency: str
@@ -83,7 +84,7 @@ def _build(owner_name, currency, account, name, show_amounts, value, share_id=0)
     kind = catalog.kind_of(account.account_type)
     base = dict(
         share_id=share_id, owner_id=account.user_id, owner_name=owner_name, kind=kind,
-        section=catalog.section_of(kind), type_label=catalog.type_label(account),
+        section=catalog.section_of(kind), type_label=catalog.type_label(account), type_code=account.account_type,
         name=name, show_amounts=show_amounts, currency=currency)
     if not show_amounts:
         return SharedItem(**base)

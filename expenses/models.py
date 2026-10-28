@@ -577,6 +577,8 @@ class HouseholdMember(models.Model):
     joined_at = models.DateTimeField(default=timezone.now)
     # Off by default: when this member shares something new, tell the other members in the app
     notify_new_shares = models.BooleanField(default=False)
+    # Gentle notes on the family inventory: on by default, and each person can switch them off for themselves
+    gentle_notes = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['joined_at', 'id']
@@ -612,6 +614,22 @@ class FamilyShare(models.Model):
 
     def __str__(self):
         return f"{self.owner_id} shares account {self.account_id} ({self.level})"
+
+
+class GentleNoteDismissal(models.Model):
+    """A gentle note one person has dismissed. The key says what the note was about, so the same note stays away
+    and a note about something new can still appear."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gentle_note_dismissals')
+    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='note_dismissals')
+    key = models.CharField(max_length=120)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'key'], name='unique_gentle_note_dismissal')]
+
+    def __str__(self):
+        return f"{self.user_id} dismissed {self.key}"
 
 
 class FamilyShareEvent(models.Model):

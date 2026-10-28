@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
-from ..family import catalog, family_enabled_for, households, shares, summary
+from ..family import catalog, family_enabled_for, households, notes, shares, summary
 from ..family import plan as plan_rules
 from ..family.emails import send_invitation_email
 from ..family.presenters import (
@@ -41,6 +41,8 @@ __all__ = [
     'family_preview_view',
     'family_networth_view',
     'family_inventory_view',
+    'family_note_dismiss_view',
+    'family_notes_toggle_view',
 ]
 
 SESSION_NEW_INVITE = 'family_new_invite'
@@ -433,8 +435,10 @@ def family_inventory_view(request):
             cover_by_type[item.type_label] = cover_by_type.get(item.type_label, summary.ZERO) + item.cover
         if item.premium_yearly:
             yearly += item.premium_yearly
+    gentle, gentle_on = notes.notes_for(request.user, household, data) if data else ([], True)
     return render(request, 'expenses/family/inventory.html', {
         'household': household, 'banner': banner, 'data': data,
+        'gentle_notes': gentle, 'gentle_on': gentle_on,
         'cards': cards, 'card_totals': card_totals,
         'policies': policies, 'cover_by_type': list(cover_by_type.items()), 'premium_yearly': yearly,
         'banks': sections.get(catalog.BANK, []) + sections.get(catalog.INVESTMENT, []),
@@ -444,3 +448,21 @@ def family_inventory_view(request):
         'currency': data.currency if data else '',
         'family_page': 'inventory',
     })
+
+
+@family_view
+@require_POST
+def family_note_dismiss_view(request):
+    household, _banner, data = _family_context(request)
+    if household is not None and data is not None:
+        notes.dismiss(request.user, household, data, request.POST.get('key', ''))
+    return redirect('family-inventory')
+
+
+@family_view
+@require_POST
+def family_notes_toggle_view(request):
+    household = households.household_for(request.user)
+    if household is not None:
+        notes.set_enabled(request.user, household, request.POST.get('on') == '1')
+    return redirect('family-inventory')

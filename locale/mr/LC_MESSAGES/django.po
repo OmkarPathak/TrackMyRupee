@@ -22425,3 +22425,52 @@ msgstr "विमा बचत योजना"
 #: expenses/family
 msgid "Nothing is shared yet. Each member chooses what to share on the What I share page."
 msgstr "अजून काही शेअर केलेले नाही. प्रत्येक सदस्य \"मी काय शेअर करतो\" पानावर काय शेअर करायचे ते निवडतो."
+
+#: expenses/family
+msgid "Gentle notes"
+msgstr "सौम्य सूचना"
+
+#: expenses/family
+msgid "Small, optional observations from what is shared. Nothing to fix, just good to know."
+msgstr "शेअर केलेल्या माहितीवरून लहान, ऐच्छिक सूचना. काही दुरुस्त करायचे नाही, फक्त माहीत असणे चांगले."
+
+#: expenses/family
+msgid "Turn off gentle notes"
+msgstr "सौम्य सूचना बंद करा"
+
+#: expenses/family
+msgid "Gentle notes are off for you."
+msgstr "तुमच्यासाठी सौम्य सूचना बंद आहेत."
+
+#: expenses/family
+msgid "Turn on"
+msgstr "चालू करा"
+
+#: expenses/family
+#, python-format
+msgid "%(head)s and %(last)s"
+msgstr "%(head)s आणि %(last)s"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s on %(date)s"
+msgstr "%(date)s रोजी %(name)s"
+
+#: expenses/family
+#, python-format
+msgid "Health cover is shared for %(covered)s. Nothing is shared yet for %(missing)s. If they have a policy, they can add it. If not, there is nothing to do."
+msgstr "%(covered)s यांच्यासाठी आरोग्य कव्हर शेअर केले आहे. %(missing)s यांच्यासाठी अजून काही शेअर केलेले नाही. त्यांची पॉलिसी असेल तर ते जोडू शकतात. नसेल तर काहीही करायचे नाही."
+
+#: expenses/family
+#, python-format
+msgid "One card bill falls in the next 30 days: %(items)s. Nothing to do but keep it in mind."
+msgid_plural "%(count)d card bills fall in the next 30 days: %(items)s. Nothing to do but keep them in mind."
+msgstr[0] "पुढील 30 दिवसांत एक कार्ड बिल येईल: %(items)s. फक्त लक्षात ठेवा."
+msgstr[1] "पुढील 30 दिवसांत %(count)d कार्ड बिले येतील: %(items)s. फक्त लक्षात ठेवा."
+
+#: expenses/family
+#, python-format
+msgid "One insurance premium falls due in the next 30 days: %(items)s."
+msgid_plural "%(count)d insurance premiums fall due in the next 30 days: %(items)s."
+msgstr[0] "पुढील 30 दिवसांत एक विमा प्रीमियम देय आहे: %(items)s."
+msgstr[1] "पुढील 30 दिवसांत %(count)d विमा प्रीमियम देय आहेत: %(items)s."

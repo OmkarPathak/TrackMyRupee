@@ -13,6 +13,7 @@ from expenses.models import (
     ConsentEvent,
     FamilyShare,
     FinancialAuditLog,
+    GentleNoteDismissal,
     Household,
     HouseholdInvitation,
     HouseholdMember,
@@ -170,6 +171,7 @@ def leave(user):
     membership_id = membership.id
     with transaction.atomic():
         FamilyShare.objects.filter(owner=user, household=household).delete()
+        GentleNoteDismissal.objects.filter(user=user, household=household).delete()
         membership.delete()
         ConsentEvent.objects.create(user=user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
                                     consent_version=CONSENT_VERSION)
@@ -195,6 +197,7 @@ def remove_member(owner, membership):
         removed_user = membership.user
         membership_id = membership.id
         FamilyShare.objects.filter(owner=removed_user, household=household).delete()
+        GentleNoteDismissal.objects.filter(user=removed_user, household=household).delete()
         membership.delete()
         ConsentEvent.objects.create(user=removed_user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
                                     consent_version=CONSENT_VERSION)
