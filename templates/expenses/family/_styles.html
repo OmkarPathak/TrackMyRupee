@@ -120,4 +120,53 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-hidden ul { margin: .5rem 0 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .25rem; }
     .fam-split { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
     @media (min-width: 992px) { .fam-split { grid-template-columns: minmax(0, 1fr) 20rem; } }
+
+    /* The family net worth page */
+    .fam-stat { font-size: clamp(2rem, 7vw, 3rem); font-weight: 800; letter-spacing: -.04em; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--bs-body-color); }
+    .fam-stat.is-neg { color: var(--fam-red); }
+    .fam-tiles { display: grid; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 1rem 0; }
+    .fam-tile { background: var(--fam-soft); border-radius: 14px; padding: .75rem 1rem; }
+    .fam-tile .fam-amt { font-size: 1.2rem; display: block; }
+    .fam-chips-r { display: flex; gap: .4rem; }
+    .fam-chip { padding: .25rem .8rem; border-radius: 999px; border: 1px solid var(--fam-line); font-size: .82rem; font-weight: 600; text-decoration: none; color: var(--fam-muted); }
+    .fam-chip.is-on { border-color: var(--fam-green); color: var(--bs-body-color); background: var(--fam-soft); }
+    .fam-chart { display: block; width: 100%; height: auto; }
+    .fam-chart .area { fill: var(--fam-green); opacity: .14; }
+    .fam-chart .line { fill: none; stroke: var(--fam-green); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+    .fam-chart .dot { fill: var(--fam-green); }
+    .fam-chart .axis { stroke: var(--fam-line); }
+    .fam-chart .mark { stroke: var(--fam-muted); stroke-dasharray: 4 4; }
+    .fam-chart text { fill: var(--fam-muted); font-size: 12px; font-family: inherit; }
+    .fam-grid2 { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 992px) { .fam-grid2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .fam-bar { display: flex; height: 12px; border-radius: 99px; overflow: hidden; gap: 2px; margin: .8rem 0; }
+    .fam-bar span { display: block; height: 100%; }
+    .fam-c0 { background: var(--bs-purple, #6f42c1); } .fam-c1 { background: var(--bs-orange, #fd7e14); } .fam-c2 { background: var(--bs-primary); }
+    .fam-c3 { background: var(--bs-success); } .fam-c4 { background: var(--bs-info); }
+    .fam-legend { display: flex; justify-content: space-between; gap: .75rem; padding: .3rem 0; font-size: .9rem; }
+    .fam-dotk { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: .5rem; }
+
+    /* Tables that become cards on a phone */
+    .fam-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .fam-table th, .fam-table td { padding: .65rem .7rem; border-top: 1px solid var(--fam-line); text-align: left; vertical-align: middle; }
+    .fam-table thead th { border-top: 0; font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--fam-muted); font-weight: 700; }
+    .fam-table .r { text-align: right; } .fam-table .c { text-align: center; }
+    .fam-table tfoot td { font-weight: 700; background: var(--fam-soft); }
+    .fam-table .none { color: var(--fam-muted); font-weight: 400; }
+    .fam-who { display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; }
+    .fam-scroll { overflow-x: auto; }
+    .fam-cc { border: 1px solid var(--fam-line); border-radius: 14px; padding: .85rem 1rem; display: flex; flex-direction: column; gap: .35rem; }
+    .fam-cc + .fam-cc { margin-top: .6rem; }
+    .fam-cc .kv { display: flex; justify-content: space-between; gap: .75rem; font-size: .88rem; color: var(--fam-muted); }
+    .fam-cc .kv b, .fam-cc .kv .v { color: var(--bs-body-color); text-align: right; }
+    .fam-soon { display: flex; flex-direction: column; }
+    .fam-soon > div { display: flex; gap: .75rem; align-items: center; padding: .6rem 0; border-top: 1px solid var(--fam-line); flex-wrap: wrap; }
+    .fam-soon > div:first-child { border-top: 0; }
+    .fam-soon .when { width: 4.5rem; font-size: .85rem; color: var(--fam-muted); flex-shrink: 0; }
+    .fam-soon .what { flex: 1 1 10rem; min-width: 0; font-weight: 600; font-size: .92rem; }
+    @media (max-width: 767.98px) { .fam-sec { display: none; } .fam-sec.is-shown { display: block; } .fam-onlydesk { display: none !important; } }
+    @media (min-width: 768px) { .fam-onlymobile { display: none !important; } }
+    .fam-pill { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .fam-pill button { flex: 1 1 0; padding: .45rem .5rem; border-radius: 999px; border: 1px solid var(--fam-line); background: transparent; color: var(--fam-muted); font-weight: 600; font-size: .88rem; }
+    .fam-pill button.is-on { background: var(--fam-soft); border-color: var(--fam-green); color: var(--bs-body-color); }
 </style>

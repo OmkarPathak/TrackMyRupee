@@ -1,5 +1,7 @@
 {% load i18n %}{% comment %}The pages of the Family area. family_page names the current one.{% endcomment %}
 <nav class="fam-tabs" aria-label="{% trans 'Family pages' %}">
-    <a href="{% url 'family-home' %}" class="{% if family_page == 'home' %}is-active{% endif %}"{% if family_page == 'home' %} aria-current="page"{% endif %}>{% trans "Members" %}</a>
+    <a href="{% url 'family-networth' %}" class="{% if family_page == 'networth' %}is-active{% endif %}"{% if family_page == 'networth' %} aria-current="page"{% endif %}>{% trans "Net worth" %}</a>
+    <a href="{% url 'family-inventory' %}" class="{% if family_page == 'inventory' %}is-active{% endif %}"{% if family_page == 'inventory' %} aria-current="page"{% endif %}>{% trans "Who holds what" %}</a>
     <a href="{% url 'family-share' %}" class="{% if family_page == 'share' %}is-active{% endif %}"{% if family_page == 'share' %} aria-current="page"{% endif %}>{% trans "What I share" %}</a>
+    <a href="{% url 'family-home' %}" class="{% if family_page == 'home' %}is-active{% endif %}"{% if family_page == 'home' %} aria-current="page"{% endif %}>{% trans "Members" %}</a>
 </nav>

@@ -9,12 +9,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from ..family import catalog, family_enabled_for, households, shares, summary
+from ..family import plan as plan_rules
 from ..family.emails import send_invitation_email
 from ..family.presenters import (
     avatar_tone,
+    chart,
     display_name,
     initials,
     member_rows,
@@ -37,6 +39,8 @@ __all__ = [
     'family_share_stop_view',
     'family_share_notify_view',
     'family_preview_view',
+    'family_networth_view',
+    'family_inventory_view',
 ]
 
 SESSION_NEW_INVITE = 'family_new_invite'
@@ -365,4 +369,78 @@ def family_preview_view(request, pk=None):
         'private_names': [a.name for a in private],
         'listed_only': [i.name for i in listed_only],
         'family_page': 'share',
+    })
+
+
+# ---- The family's combined view ---------------------------------------------------------------------------------
+
+def _family_context(request):
+    """(household, banner, summary) for a family page. ``summary`` is None while family view is paused (some member
+    is no longer on Pro): nothing is read, so nothing is shown. None for the household if there is no family."""
+    household = households.household_for(request.user)
+    if household is None:
+        return None, None, None
+    rows, state = member_rows(household, request.user)
+    banner = plan_banner(state, rows, request.user)
+    if state.state == plan_rules.PAUSED:
+        return household, banner, None
+    return household, banner, summary.family_summary(household, request.user)
+
+
+@family_view
+@require_GET
+def family_networth_view(request):
+    household, banner, data = _family_context(request)
+    if household is None:
+        messages.info(request, _("Create or join a family first to see its combined net worth."))
+        return redirect('family-home')
+    months = 3 if request.GET.get('range') == '3m' else None
+    graph = None
+    if data is not None:
+        graph = chart(data.history, data.net_worth, timezone.localdate(), months)
+    return render(request, 'expenses/family/networth.html', {
+        'household': household, 'banner': banner, 'data': data, 'graph': graph,
+        'range': '3m' if months else 'all', 'family_page': 'networth',
+    })
+
+
+@family_view
+@require_GET
+def family_inventory_view(request):
+    household, banner, data = _family_context(request)
+    if household is None:
+        messages.info(request, _("Create or join a family first to see what it holds."))
+        return redirect('family-home')
+    sections = {}
+    if data is not None:
+        style = {m.user_id: m for m in data.members}
+        for item in data.items:
+            sections.setdefault(item.kind, []).append({'item': item, 'member': style[item.owner_id]})
+    cards = sections.get(catalog.CARD, [])
+    card_totals = None
+    shown = [r['item'] for r in cards if r['item'].show_amounts and r['item'].limit is not None]
+    if shown:
+        used = sum((-i.amount for i in shown), summary.ZERO)
+        limit = sum((i.limit for i in shown), summary.ZERO)
+        card_totals = {'used': used, 'limit': limit, 'available': limit - used,
+                       'percent': int(round(used / limit * 100)) if limit else 0,
+                       'currency': shown[0].currency}
+    policies = sections.get(catalog.INSURANCE, [])
+    cover_by_type, yearly = {}, summary.ZERO
+    for row in policies:
+        item = row['item']
+        if item.cover:
+            cover_by_type[item.type_label] = cover_by_type.get(item.type_label, summary.ZERO) + item.cover
+        if item.premium_yearly:
+            yearly += item.premium_yearly
+    return render(request, 'expenses/family/inventory.html', {
+        'household': household, 'banner': banner, 'data': data,
+        'cards': cards, 'card_totals': card_totals,
+        'policies': policies, 'cover_by_type': list(cover_by_type.items()), 'premium_yearly': yearly,
+        'banks': sections.get(catalog.BANK, []) + sections.get(catalog.INVESTMENT, []),
+        'loans_property': sections.get(catalog.LOAN, []) + sections.get(catalog.PROPERTY, []),
+        'account_count': len(sections.get(catalog.BANK, [])) + len(sections.get(catalog.INVESTMENT, []))
+                         + len(sections.get(catalog.LOAN, [])) + len(sections.get(catalog.PROPERTY, [])),
+        'currency': data.currency if data else '',
+        'family_page': 'inventory',
     })

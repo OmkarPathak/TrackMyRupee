@@ -1,4 +1,4 @@
-{% load i18n digit_filters filter_tags expense_extras %}
+{% load i18n digit_filters filter_tags expense_extras family_tags %}
 
 <div id="account-list-shell" class="acx" data-view-type="{{ view_type }}" data-view-tab="{{ active_tab }}" data-status="{{ current_status }}" data-sort="{{ sort_by }}">
 <style>
@@ -252,6 +252,7 @@
         </span>
     </div>
     <div class="acx-head-actions">
+        {% if FAMILY_ON %}{% family_toggle 'accounts' %}{% endif %}
         <a href="{% url 'transfer-list' %}" class="header-action-btn d-inline-flex align-items-center gap-1 text-nowrap">
             <i class="bi bi-clock-history" aria-hidden="true"></i>
             <span class="d-none d-sm-inline">{% trans "History" %}</span>

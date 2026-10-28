@@ -62,3 +62,38 @@ def type_label(account):
     """The account's type in words (translated), e.g. "Savings account"."""
     label = TYPE_LABELS.get(account.account_type)
     return str(label) if label is not None else _("Account")
+
+
+# How the family's assets are grouped in "What the family owns"
+CASH, FIXED_INCOME, INVESTMENTS, PROPERTY_ASSETS, INSURANCE_PLANS = 'cash', 'fixed_income', 'investments', 'property', 'insurance'
+ASSET_CLASSES = [
+    (PROPERTY_ASSETS, _lazy("Property and vehicles")),
+    (FIXED_INCOME, _lazy("Fixed income")),
+    (INVESTMENTS, _lazy("Investments")),
+    (CASH, _lazy("Cash and bank")),
+    (INSURANCE_PLANS, _lazy("Insurance savings plans")),
+]
+
+_CLASS_BY_STRATEGY = {
+    STRATEGY.BALANCE: CASH,
+    STRATEGY.DEPOSIT: FIXED_INCOME,
+    STRATEGY.HOLDINGS: INVESTMENTS,
+    STRATEGY.PHYSICAL_VALUATION: PROPERTY_ASSETS,
+    STRATEGY.INSURANCE_SURRENDER: INSURANCE_PLANS,
+}
+
+
+def asset_class_of(account_type):
+    """Which "What the family owns" group an asset belongs to ('' for what is owed)."""
+    return _CLASS_BY_STRATEGY.get(strategy_for(account_type), '')
+
+
+# The rows of the "Who holds what" table, in order: (key, heading, the kinds counted in it)
+HOLDINGS_ROWS = [
+    ('bank', _lazy("Bank accounts and deposits"), (BANK,)),
+    ('card', _lazy("Credit cards"), (CARD,)),
+    ('insurance', _lazy("Insurance policies"), (INSURANCE,)),
+    ('loan', _lazy("Loans"), (LOAN,)),
+    ('property', _lazy("Property"), (PROPERTY,)),
+    ('investment', _lazy("Investments"), (INVESTMENT,)),
+]

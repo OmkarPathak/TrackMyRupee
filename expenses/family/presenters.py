@@ -88,3 +88,35 @@ def plan_banner(state, rows, viewer, now=None):
         "Family view is on. All %(count)d members are on Pro, so the Me / Family toggle is available to everyone.",
         count) % {'count': count}
     return {'kind': 'ok', 'text': text}
+
+
+CHART_W, CHART_H = 640, 190
+_PAD_L, _PAD_R, _PAD_T, _PAD_B = 70, 24, 20, 30
+
+
+def chart(history, now_value, today, months=None):
+    """Geometry for the family net worth chart: month-end points, then today. ``months`` keeps only the last few
+    month-ends. Returns None when there is not yet a line to draw (fewer than two points)."""
+    points = list(history)
+    if months:
+        points = points[-months:]
+    points.append((today, now_value))
+    if len(points) < 2:
+        return None
+    values = [v for _d, v in points]
+    low, high = min(values), max(values)
+    span = (high - low) or 1
+    inner_w = CHART_W - _PAD_L - _PAD_R
+    inner_h = CHART_H - _PAD_T - _PAD_B
+    base_y = CHART_H - _PAD_B
+    dots = []
+    for i, (when, value) in enumerate(points):
+        x = _PAD_L + inner_w * i / (len(points) - 1)
+        y = _PAD_T + inner_h * (1 - float((value - low) / span)) * 0.9 + inner_h * 0.05
+        last = i == len(points) - 1
+        dots.append({'x': round(x, 1), 'y': round(y, 1), 'value': value, 'date': when, 'now': last})
+    line = ' '.join(f"{'M' if i == 0 else 'L'}{d['x']} {d['y']}" for i, d in enumerate(dots))
+    area = f"{line} L{dots[-1]['x']} {base_y} L{dots[0]['x']} {base_y} Z"
+    return {'dots': dots, 'line': line, 'area': area, 'width': CHART_W, 'height': CHART_H, 'base_y': base_y,
+            'axis_x1': 10, 'axis_x2': CHART_W - 10, 'label_y': CHART_H - 8, 'start_x': 24,
+            'first': points[0][1], 'last': points[-1][1]}

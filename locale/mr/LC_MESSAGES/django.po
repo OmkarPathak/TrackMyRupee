@@ -22181,3 +22181,247 @@ msgstr "आरोग्य विमा"
 #: expenses/family
 msgid "Bank account"
 msgstr "बँक खाते"
+
+#: expenses/family
+msgid "Me"
+msgstr "मी"
+
+#: expenses/family
+msgid "Family view is paused until everyone is on Pro"
+msgstr "सर्वजण प्रो वर येईपर्यंत कुटुंब दृश्य थांबले आहे"
+
+#: expenses/family
+msgid "Create or join a family first to see its combined net worth."
+msgstr "आधी कुटुंब तयार करा किंवा त्यात सामील व्हा, मग त्याची एकत्रित एकूण संपत्ती पहा."
+
+#: expenses/family
+msgid "Create or join a family first to see what it holds."
+msgstr "आधी कुटुंब तयार करा किंवा त्यात सामील व्हा, मग त्यांच्याकडे काय आहे ते पहा."
+
+#: expenses/family
+msgid "Family view: the combined net worth of what your family has shared."
+msgstr "कुटुंब दृश्य: तुमच्या कुटुंबाने शेअर केलेल्या गोष्टींची एकत्रित एकूण संपत्ती."
+
+#: expenses/family
+msgid "Family view: who in the family holds which cards, policies and accounts."
+msgstr "कुटुंब दृश्य: कुटुंबात कोणाकडे कोणती कार्डे, पॉलिसी आणि खाती आहेत."
+
+#: expenses/family
+msgid "Family view is paused"
+msgstr "कुटुंब दृश्य थांबले आहे"
+
+#: expenses/family
+msgid "It resumes as soon as everyone in the family is on Pro. Your own data and everyone's sharing choices are untouched."
+msgstr "कुटुंबातील सर्वजण प्रो वर येताच हे पुन्हा सुरू होते. तुमचा स्वतःचा डेटा आणि सर्वांच्या शेअरिंगच्या निवडी जशाच्या तशा आहेत."
+
+#: expenses/family
+msgid "See members and plans"
+msgstr "सदस्य आणि प्लॅन पहा"
+
+#: expenses/family
+msgid "Based on what is shared."
+msgstr "जे शेअर केले आहे त्यावर आधारित."
+
+#: expenses/family
+msgid "The same for every member."
+msgstr "प्रत्येक सदस्यासाठी सारखेच."
+
+#: expenses/family
+#, python-format
+msgid "%(counter)s item is listed without amounts, so it is not counted."
+msgid_plural "%(counter)s items are listed without amounts, so they are not counted."
+msgstr[0] "%(counter)s गोष्ट रकमेशिवाय यादीत आहे, म्हणून मोजली नाही."
+msgstr[1] "%(counter)s गोष्टी रकमेशिवाय यादीत आहेत, म्हणून मोजल्या नाहीत."
+
+#: expenses/family
+#, python-format
+msgid "%(counter)s item is in another currency, so it is not counted."
+msgid_plural "%(counter)s items are in another currency, so they are not counted."
+msgstr[0] "%(counter)s गोष्ट दुसऱ्या चलनात आहे, म्हणून मोजली नाही."
+msgstr[1] "%(counter)s गोष्टी दुसऱ्या चलनात आहेत, म्हणून मोजल्या नाहीत."
+
+#: expenses/family
+msgid "Savings rate and the health check are not shown here."
+msgstr "बचत दर आणि हेल्थ चेक इथे दाखवले जात नाहीत."
+
+#: expenses/family
+msgid "Family net worth"
+msgstr "कुटुंबाची एकूण संपत्ती"
+
+#: expenses/family
+#, python-format
+msgid "%(counter)s shared item from %(members)s members"
+msgid_plural "%(counter)s shared items from %(members)s members"
+msgstr[0] "%(members)s सदस्यांकडून %(counter)s शेअर केलेली गोष्ट"
+msgstr[1] "%(members)s सदस्यांकडून %(counter)s शेअर केलेल्या गोष्टी"
+
+#: expenses/family
+msgid "3M"
+msgstr "3 महिने"
+
+#: expenses/family
+msgid "Since sharing"
+msgstr "शेअर केल्यापासून"
+
+#: expenses/family
+msgid "What you own"
+msgstr "तुमच्याकडे काय आहे"
+
+#: expenses/family
+msgid "What you owe"
+msgstr "तुमच्यावर काय थकबाकी आहे"
+
+#: expenses/family
+#, python-format
+msgid "Family net worth by month-end since sharing started, from %(first)s to %(last)s now"
+msgstr "शेअरिंग सुरू झाल्यापासून महिन्याच्या शेवटची कुटुंबाची एकूण संपत्ती, %(first)s पासून आता %(last)s"
+
+#: expenses/family
+msgid "Month-end points, starting the day each item was shared. Nothing from before is revealed, and daily movements are never shown."
+msgstr "महिन्याच्या शेवटचे बिंदू, प्रत्येक गोष्ट शेअर केलेल्या दिवसापासून. त्याआधीचे काहीही उघड होत नाही, आणि रोजचे चढ-उतार कधीही दाखवले जात नाहीत."
+
+#: expenses/family
+#, python-format
+msgid "Sharing started %(date)s."
+msgstr "शेअरिंग %(date)s रोजी सुरू झाले."
+
+#: expenses/family
+msgid "The history line appears after the first month-end, using only the points from when each item was shared. Until then there is just today's number."
+msgstr "इतिहासाची रेषा पहिल्या महिन्याच्या शेवटानंतर दिसते, आणि प्रत्येक गोष्ट शेअर केल्यापासूनचे बिंदूच वापरते. तोपर्यंत फक्त आजचा आकडा असतो."
+
+#: expenses/family
+msgid "What the family owns"
+msgstr "कुटुंबाकडे काय आहे"
+
+#: expenses/family
+msgid "Nothing with an amount is shared yet."
+msgstr "रक्कम असलेले काहीही अजून शेअर केलेले नाही."
+
+#: expenses/family
+msgid "By member"
+msgstr "सदस्यानुसार"
+
+#: expenses/family
+msgid "Amounts in another currency, not counted"
+msgstr "दुसऱ्या चलनातील रक्कम, मोजलेली नाही"
+
+#: expenses/family
+msgid "Nothing with an amount shared"
+msgstr "रक्कम असलेले काही शेअर केलेले नाही"
+
+#: expenses/family
+#, python-format
+msgid "Owns %(owns)s · owes nothing"
+msgstr "कडे %(owns)s · काही थकबाकी नाही"
+
+#: expenses/family
+#, python-format
+msgid "Owns %(owns)s · owes %(owes)s"
+msgstr "कडे %(owns)s · थकबाकी %(owes)s"
+
+#: expenses/family
+msgid "Net of what each person has chosen to share, not of everything they own."
+msgstr "प्रत्येकाने जे शेअर करणे निवडले त्याचे निव्वळ मूल्य, त्यांच्या सर्व संपत्तीचे नाही."
+
+#: expenses/family
+msgid "Who holds what"
+msgstr "कोणाकडे काय आहे"
+
+#: expenses/family
+msgid "Nothing is shared yet."
+msgstr "अजून काही शेअर केलेले नाही."
+
+#: expenses/family
+msgid "See the family inventory"
+msgstr "कुटुंबाची यादी पहा"
+
+#: expenses/family
+msgid "If someone has not shared an item, it does not appear here. Numbers add up only what is listed."
+msgstr "कोणीही एखादी गोष्ट शेअर केली नसेल तर ती इथे दिसत नाही. आकडे फक्त यादीत असलेल्या गोष्टींचीच बेरीज करतात."
+
+#: expenses/family
+msgid "Item"
+msgstr "गोष्ट"
+
+#: expenses/family
+msgid "None"
+msgstr "काहीही नाही"
+
+#: expenses/family
+msgid "\"None\" means none shared."
+msgstr "\"काहीही नाही\" म्हणजे काही शेअर केलेले नाही."
+
+#: expenses/family
+msgid "Coming up in the next 30 days"
+msgstr "पुढील 30 दिवसांत येणारे"
+
+#: expenses/family
+msgid "Card bills and premiums for what is shared."
+msgstr "शेअर केलेल्या गोष्टींची कार्ड बिले आणि प्रीमियम."
+
+#: expenses/family
+#, python-format
+msgid "%(name)s bill"
+msgstr "%(name)s बिल"
+
+#: expenses/family
+msgid "Cards"
+msgstr "कार्ड"
+
+#: expenses/family
+msgid "Insurance policies"
+msgstr "विमा पॉलिसी"
+
+#: expenses/family
+msgid "Bank accounts and deposits"
+msgstr "बँक खाती आणि ठेवी"
+
+#: expenses/family
+msgid "Held by"
+msgstr "कोणाकडे"
+
+#: expenses/family
+msgid "Not shared"
+msgstr "शेअर केलेले नाही"
+
+#: expenses/family
+msgid "Cards with amounts shared"
+msgstr "रक्कम शेअर केलेली कार्डे"
+
+#: expenses/family
+#, python-format
+msgid "%(pct)s% used"
+msgstr "%(pct)s% वापरले"
+
+#: expenses/family
+msgid "Covers"
+msgstr "कव्हर करते"
+
+#: expenses/family
+msgid "Premium a year"
+msgstr "वार्षिक प्रीमियम"
+
+#: expenses/family
+msgid "Details not shared"
+msgstr "तपशील शेअर केलेले नाहीत"
+
+#: expenses/family
+#, python-format
+msgid "due %(date)s"
+msgstr "देय %(date)s"
+
+#: expenses/family
+msgid "Policy numbers are never shared. Held by is whose policy it is. Covers is who it protects."
+msgstr "पॉलिसी क्रमांक कधीही शेअर होत नाहीत. \"कोणाकडे\" म्हणजे पॉलिसी कोणाची आहे. \"कव्हर करते\" म्हणजे ती कोणाचे संरक्षण करते."
+
+#: expenses/family
+msgid "Property and vehicles"
+msgstr "मालमत्ता आणि वाहने"
+
+#: expenses/family
+msgid "Insurance savings plans"
+msgstr "विमा बचत योजना"
+
+#: expenses/family
+msgid "Nothing is shared yet. Each member chooses what to share on the What I share page."
+msgstr "अजून काही शेअर केलेले नाही. प्रत्येक सदस्य \"मी काय शेअर करतो\" पानावर काय शेअर करायचे ते निवडतो."

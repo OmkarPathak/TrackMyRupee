@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters family_tags %}
+
+{% block title %}{% trans "Family net worth" %} | TrackMyRupee{% endblock %}
+
+{% block content %}
+<div class="fam fade-in">
+{% include 'expenses/family/_styles.html' %}
+{% include 'expenses/family/_tabs.html' %}
+
+<div class="fam-head">
+    <div class="fam-title">
+        <h1>{% trans "Net worth" %}</h1>
+        <p class="fam-sub">{% trans "Family view: the combined net worth of what your family has shared." %}</p>
+    </div>
+    <div class="fam-actions">{% family_toggle 'networth' 'family' %}</div>
+</div>
+
+{% include 'expenses/family/_banner.html' %}
+
+{% if not data %}
+    <section class="card fam-card fam-center">
+        <h2 class="fam-h2">{% trans "Family view is paused" %}</h2>
+        <p>{% trans "It resumes as soon as everyone in the family is on Pro. Your own data and everyone's sharing choices are untouched." %}</p>
+        <div class="fam-actions"><a href="{% url 'family-home' %}" class="btn btn-action-primary">{% trans "See members and plans" %}</a></div>
+    </section>
+{% else %}
+<div class="fam-banner is-paused" role="note" style="background:var(--fam-soft);border-color:var(--fam-line);color:var(--bs-body-color)">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    <div><b>{% trans "Based on what is shared." %}</b> {% trans "The same for every member." %}
+        {% if data.listed_only %}{% blocktrans trimmed count n=data.listed_only %}{{ n }} item is listed without amounts, so it is not counted.{% plural %}{{ n }} items are listed without amounts, so they are not counted.{% endblocktrans %}{% endif %}
+        {% if data.other_currency %}{% blocktrans trimmed count n=data.other_currency %}{{ n }} item is in another currency, so it is not counted.{% plural %}{{ n }} items are in another currency, so they are not counted.{% endblocktrans %}{% endif %}
+        {% trans "Savings rate and the health check are not shown here." %}</div>
+</div>
+
+<div class="fam-stack">
+    <section class="card fam-card" aria-labelledby="fam-nw-h">
+        <div class="d-flex justify-content-between align-items-end gap-3 flex-wrap">
+            <div>
+                <h2 id="fam-nw-h" class="fam-note" style="font-weight:600;margin:0">{% trans "Family net worth" %}</h2>
+                <div class="fam-stat{% if data.net_worth < 0 %} is-neg{% endif %}">{{ data.net_worth|money_exact:data.currency }}</div>
+                <p class="fam-note">{% blocktrans trimmed with members=data.members|length|translate_digits count n=data.counted_items %}{{ n }} shared item from {{ members }} members{% plural %}{{ n }} shared items from {{ members }} members{% endblocktrans %}</p>
+            </div>
+            {% if graph %}
+            <div class="fam-chips-r">
+                <a class="fam-chip{% if range == '3m' %} is-on{% endif %}" href="?range=3m"{% if range == '3m' %} aria-current="true"{% endif %}>{% trans "3M" %}</a>
+                <a class="fam-chip{% if range == 'all' %} is-on{% endif %}" href="?range=all"{% if range == 'all' %} aria-current="true"{% endif %}>{% trans "Since sharing" %}</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="fam-tiles">
+            <div class="fam-tile"><div class="fam-row-sub">{% trans "What you own" %}</div><span class="fam-amt">{{ data.owns|money_exact:data.currency }}</span></div>
+            <div class="fam-tile"><div class="fam-row-sub">{% trans "What you owe" %}</div><span class="fam-amt is-neg">{{ data.owes|money_exact:data.currency }}</span></div>
+        </div>
+        {% if graph %}
+        <svg class="fam-chart" viewBox="0 0 {{ graph.width }} {{ graph.height }}" role="img"
+             aria-label="{% blocktrans trimmed with first=graph.first|money_exact:data.currency last=graph.last|money_exact:data.currency %}Family net worth by month-end since sharing started, from {{ first }} to {{ last }} now{% endblocktrans %}">
+            <path class="area" d="{{ graph.area }}"/>
+            <path class="line" d="{{ graph.line }}"/>
+            {% for d in graph.dots %}<circle class="dot" cx="{{ d.x }}" cy="{{ d.y }}" r="4.5"/>{% endfor %}
+            <line class="axis" x1="{{ graph.axis_x1 }}" y1="{{ graph.base_y }}" x2="{{ graph.axis_x2 }}" y2="{{ graph.base_y }}"/>
+            {% for d in graph.dots %}<text x="{{ d.x }}" y="{{ graph.label_y }}" text-anchor="middle">{% if d.now %}{% trans "Now" %}{% else %}{{ d.date|date:"M" }}{% endif %}</text>{% endfor %}
+        </svg>
+        <p class="fam-note">{% trans "Month-end points, starting the day each item was shared. Nothing from before is revealed, and daily movements are never shown." %}
+            {% if data.since %}{% blocktrans trimmed with date=data.since|date:"j M Y" %}Sharing started {{ date }}.{% endblocktrans %}{% endif %}</p>
+        {% else %}
+        <p class="fam-note">{% trans "The history line appears after the first month-end, using only the points from when each item was shared. Until then there is just today's number." %}</p>
+        {% endif %}
+    </section>
+
+    <div class="fam-grid2">
+        <section class="card fam-card" aria-labelledby="fam-al-h">
+            <h2 id="fam-al-h">{% trans "What the family owns" %}</h2>
+            {% if data.allocation %}
+            <div class="fam-bar" role="img" aria-label="{% for key, label, amount, pct in data.allocation %}{{ pct|translate_digits }}% {{ label }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                {% for key, label, amount, pct in data.allocation %}<span class="fam-c{{ forloop.counter0 }}" style="width: {{ pct }}%"></span>{% endfor %}
+            </div>
+            {% for key, label, amount, pct in data.allocation %}
+            <div class="fam-legend"><span><span class="fam-dotk fam-c{{ forloop.counter0 }}"></span>{{ label }} <span class="fam-row-sub">{{ pct|translate_digits }}%</span></span><span class="fam-amt">{{ amount|money_exact:data.currency }}</span></div>
+            {% endfor %}
+            {% else %}
+            <p class="fam-note">{% trans "Nothing with an amount is shared yet." %}</p>
+            {% endif %}
+        </section>
+
+        <section class="card fam-card" aria-labelledby="fam-who-h">
+            <h2 id="fam-who-h">{% trans "By member" %}</h2>
+            <div class="fam-rows">
+                {% for m in data.members %}
+                <div class="fam-row">
+                    <span class="fam-avatar is-sm bg-{{ m.tone }}-subtle text-{{ m.tone }}-emphasis" aria-hidden="true">{{ m.initials }}</span>
+                    <div class="fam-row-main">
+                        <div class="fam-row-name">{{ m.name }}</div>
+                        <div class="fam-row-sub">
+                            {% if not m.counted %}{% trans "Amounts in another currency, not counted" %}
+                            {% elif m.owns == 0 and m.owes == 0 %}{% trans "Nothing with an amount shared" %}
+                            {% elif m.owes == 0 %}{% blocktrans trimmed with owns=m.owns|money_exact:data.currency %}Owns {{ owns }} · owes nothing{% endblocktrans %}
+                            {% else %}{% blocktrans trimmed with owns=m.owns|money_exact:data.currency owes=m.owes|money_exact:data.currency %}Owns {{ owns }} · owes {{ owes }}{% endblocktrans %}{% endif %}
+                        </div>
+                    </div>
+                    <div class="fam-row-end">{% if m.counted %}<span class="fam-amt{% if m.net < 0 %} is-neg{% endif %}">{{ m.net|money_exact:data.currency }}</span>{% endif %}</div>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="fam-note">{% trans "Net of what each person has chosen to share, not of everything they own." %}</p>
+        </section>
+    </div>
+
+    <section class="card fam-card" aria-labelledby="fam-inv-h">
+        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+            <div>
+                <h2 id="fam-inv-h">{% trans "Who holds what" %}</h2>
+                <p class="fam-note">
+                    {% for key, heading, per_member, total in data.counts %}{{ total|translate_digits }} {{ heading|lower }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans "Nothing is shared yet." %}{% endfor %}
+                </p>
+            </div>
+            <a href="{% url 'family-inventory' %}" class="btn btn-action-primary">{% trans "See the family inventory" %}</a>
+        </div>
+    </section>
+</div>
+{% endif %}
+</div>
+{% endblock %}

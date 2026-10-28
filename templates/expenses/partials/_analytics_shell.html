@@ -1,4 +1,4 @@
-{% load i18n digit_filters filter_tags %}
+{% load i18n digit_filters filter_tags family_tags %}
 <div id="analytics-shell" class="anx fade-in pb-4" data-tab="{{ tab }}" data-currency="{{ currency_symbol|default:'₹' }}" data-hint="{% trans 'Click to view transactions' %}" aria-busy="false">
 {% if is_locked %}
     <div class="text-center py-5 mx-auto" style="max-width: 36rem;">
@@ -13,10 +13,13 @@
             <h1 class="h3 fw-bold mb-0" data-analytics-title>{% trans "Analytics" %}</h1>
             <p class="text-muted small mb-0 d-none d-sm-block">{% trans "Where your money comes from, where it goes, and what it adds up to." %}</p>
         </div>
-        <a href="{% url 'year_in_review' year=wrapped_year %}" class="header-action-btn btn-primary d-inline-flex align-items-center gap-1 text-nowrap">
-            <i class="bi bi-stars" aria-hidden="true"></i>
-            <span><span class="d-none d-sm-inline">{% trans "View" %} </span>{{ wrapped_year|translate_digits }} {% trans "Wrapped" %}</span>
-        </a>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            {% if FAMILY_ON and tab == 'networth' %}{% family_toggle 'networth' %}{% endif %}
+            <a href="{% url 'year_in_review' year=wrapped_year %}" class="header-action-btn btn-primary d-inline-flex align-items-center gap-1 text-nowrap">
+                <i class="bi bi-stars" aria-hidden="true"></i>
+                <span><span class="d-none d-sm-inline">{% trans "View" %} </span>{{ wrapped_year|translate_digits }} {% trans "Wrapped" %}</span>
+            </a>
+        </div>
     </header>
 
     <!-- Tabs: each is its own page, swapped in over htmx -->
