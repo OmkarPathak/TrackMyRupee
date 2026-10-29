@@ -424,6 +424,15 @@ class AccessLimitTests(EmergencyFixture):
         EmergencyRequest.objects.update(expires_at=timezone.now() + timedelta(days=3))
         self.assertEqual(emergency.notify_expiring_access(), 0)
 
+    def test_access_that_has_already_ended_cannot_be_extended(self):
+        self.limited(30)
+        request = emergency.ask(self.partner, self.sheet())
+        emergency.decide(self.owner, request, approve=True)
+        EmergencyRequest.objects.update(expires_at=timezone.now() - timedelta(minutes=1))
+        with self.assertRaises(households.FamilyError):
+            emergency.extend(self.owner, EmergencyRequest.objects.get())
+        self.assertEqual(self.state(self.partner)[0], emergency.EXPIRED)
+
     def test_only_the_owner_can_extend_and_only_when_there_is_an_end_date(self):
         self.save()                                           # until withdrawn
         request = emergency.ask(self.partner, self.sheet())

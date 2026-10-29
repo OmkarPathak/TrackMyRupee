@@ -268,7 +268,7 @@ def extend(owner, request):
     now = timezone.now()
     granted = request.status == EmergencyRequest.APPROVED or (
         request.status == EmergencyRequest.PENDING and request.release_at <= now)
-    if not granted or not sheet.access_days:
+    if not granted or not sheet.access_days or _expired(request, now):
         raise FamilyError('closed', _("That access has no end date to extend."))
     request.expires_at, request.expiry_noted = _expiry_for(sheet, now), False
     request.save(update_fields=['expires_at', 'expiry_noted'])

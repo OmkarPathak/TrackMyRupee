@@ -75,7 +75,10 @@ def set_share(user, account, level, alias='', covers=None):
         policy.covers = ' '.join(covers.split())[:COVERS_MAX]
         policy.save(update_fields=['covers', 'updated_at'])
 
-    start_value = _values_now(user, [account])[account.pk] if level == FamilyShare.AMOUNTS else None
+    existing = FamilyShare.objects.filter(account=account).first()
+    # What it is worth now is only needed when amounts first become visible, so plain edits skip the calculation
+    needs_start = level == FamilyShare.AMOUNTS and (existing is None or existing.level != FamilyShare.AMOUNTS)
+    start_value = _values_now(user, [account])[account.pk] if needs_start else None
     share, created = FamilyShare.objects.get_or_create(
         account=account, defaults={'household': household, 'owner': user, 'level': level, 'alias': alias,
                                    'amounts_start_value': start_value})

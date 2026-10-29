@@ -145,6 +145,24 @@ class HistoryStartPointTests(FamilyTestCase):
         FamilyShare.objects.update(amounts_start_value=None)
         self.assertEqual(self.data().history, ())
 
+    def test_a_share_made_just_after_midnight_in_india_starts_on_that_local_day(self):
+        import datetime
+        from zoneinfo import ZoneInfo
+        shares.set_share(self.owner, add_account(self.owner, 'Savings', balance='50000.00'), 'AMOUNTS')
+        # 00:30 IST is 19:00 UTC the day before: the start must still be the local day
+        local = datetime.datetime.combine(timezone.localdate(), datetime.time(0, 30), tzinfo=ZoneInfo('Asia/Kolkata'))
+        FamilyShare.objects.update(amounts_since=local)
+        self.assertEqual(self.data().history[0][0], timezone.localdate())
+
+    def test_editing_a_nickname_does_not_recalculate_the_start_value(self):
+        from unittest import mock
+        account = add_account(self.owner, 'Savings', balance='50000.00')
+        shares.set_share(self.owner, account, 'AMOUNTS')
+        with mock.patch.object(shares, '_values_now') as values:
+            shares.set_share(self.owner, account, 'AMOUNTS', alias='Joint')
+        values.assert_not_called()
+        self.assertEqual(FamilyShare.objects.get().amounts_start_value, D('50000.00'))
+
     def test_the_start_point_never_includes_a_list_only_account(self):
         shares.set_share(self.owner, add_account(self.owner, 'Hidden', balance='99999.00'), 'LIST')
         shares.set_share(self.owner, add_account(self.owner, 'Shown', balance='1000.00'), 'AMOUNTS')
@@ -182,6 +200,7 @@ class EncryptionClaimsAgreeTests(FamilyTestCase):
         for language in ('hi', 'mr'):
             html = self.pages(language)
             self.assertNotIn('Supabase encrypts stored data at rest', html, language)
+            self.assertIn({'hi': 'दूसरी परत', 'mr': 'दुसरा थर'}[language], html, language)
 
 
 class DataLocationClaimsTests(FamilyTestCase):
@@ -212,3 +231,4 @@ class DataLocationClaimsTests(FamilyTestCase):
             html = self.html(language)
             self.assertNotIn('Our application servers run in Bangalore', html, language)
             self.assertNotIn('Where your data lives', html, language)
+            self.assertIn({'hi': 'बेंगलुरु', 'mr': 'बेंगळुरू'}[language], html, language)

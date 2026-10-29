@@ -226,6 +226,11 @@ def _month_ends(first, last):
     return out
 
 
+def _local_date(moment):
+    """The day in the app's time zone (a stored time is UTC, so its own .date() can be the day before)."""
+    return timezone.localtime(moment).date()
+
+
 def _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today):
     """Month-end net worth of what is shared, counting each item only from the day its amounts were first shown.
 
@@ -235,9 +240,9 @@ def _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today):
                for s in rows if s.level == FamilyShare.AMOUNTS]
     if not counted:
         return ()
-    first = min(s.amounts_since.date() for s in counted)
+    first = min(_local_date(s.amounts_since) for s in counted)
     # The first point is the day sharing started, from the value recorded then, for what started that day
-    starters = [s for s in counted if s.amounts_since.date() == first and s.amounts_start_value is not None]
+    starters = [s for s in counted if _local_date(s.amounts_since) == first and s.amounts_start_value is not None]
     start = (first, sum((s.amounts_start_value for s in starters), ZERO)) if starters else None
     ends = _month_ends(first, today)
     owners = {s.owner_id for s in counted}
@@ -251,7 +256,7 @@ def _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today):
     for end in ends:
         total, seen = ZERO, False
         for share in counted:
-            if share.amounts_since.date() > end:
+            if _local_date(share.amounts_since) > end:
                 continue
             snap = snapshots.get((share.owner_id, end.year, end.month))
             raw = snap['breakdown'].get(str(share.account_id)) if snap else None
@@ -328,7 +333,7 @@ def _build_family(household, viewer):
             counts.append((key, heading, per_member, total))
 
     history = _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today)
-    counted_shares = [s.amounts_since.date() for rows in shares_by_owner.values() for s in rows
+    counted_shares = [_local_date(s.amounts_since) for rows in shares_by_owner.values() for s in rows
                       if s.level == FamilyShare.AMOUNTS and currency_of_owner.get(s.owner_id) == viewer_currency]
     return FamilySummary(
         currency=viewer_currency, owns=owns, owes=owes, members=tuple(members), items=tuple(all_items),
