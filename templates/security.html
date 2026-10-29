@@ -37,7 +37,10 @@
                                 </div>
                                 <div class="col-lg-8 border-start-lg ps-lg-5">
                                     <p class="text-muted mb-0" style="line-height: 1.7;">
-                                        {% trans "Our database is a managed PostgreSQL service hosted on Supabase in Mumbai, India, which encrypts stored data at the storage level. Transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions." %}
+                                        {% trans "Our database is a managed PostgreSQL service hosted on Supabase in Mumbai, India. Supabase encrypts stored data at rest (storage-level encryption). TrackMyRupee does not add a second layer of encryption inside the app, so the app itself, and authorised administrators of the database, can read the data. Please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions." %}
+                                    </p>
+                                    <p class="text-muted mb-0 mt-3" style="line-height: 1.7;">
+                                        {% trans "Our application servers run in Bangalore and our database in Mumbai, both in India, so what you store in TrackMyRupee is kept and processed in India. Emails, analytics and error reports go through providers outside India; the Privacy Policy lists exactly what each one receives." %}
                                     </p>
                                 </div>
                             </div>
@@ -110,7 +113,7 @@
                                 </div>
                                 <div class="col-lg-8 border-start-lg ps-lg-5">
                                     <p class="text-muted mb-0" style="line-height: 1.7;">
-                                        {% trans "Sharing is off until you turn it on, account by account. Other family members receive only a fixed set of fields for the accounts you choose, never your transactions, notes, categories, receipts, the holdings inside an account or any account numbers. Invitation links work once, expire after 7 days and are stored only as a hash. An emergency sheet says what exists and where to look, never account numbers or passwords, and is opened only on request, after a delay you can veto. Leaving the family ends all sharing straight away. We test this with automated checks that plant private data and confirm no family page, reply, email or notification shows it." %}
+                                        {% trans "Sharing is off until you turn it on, account by account. Other family members receive only a fixed set of fields for the accounts you choose, never your transactions, notes, categories, receipts, the holdings inside an account or any account numbers. Invitation links work once, expire after 7 days and are stored only as a hash. An emergency sheet says what exists and where to look, never account numbers or passwords, By default it opens only on request, after a delay you can veto; if you choose, the people you name can open it at any time. Leaving the family ends all sharing straight away. We test this with automated checks that plant private data and confirm no family page, reply, email or notification shows it." %}
                                     </p>
                                 </div>
                             </div>

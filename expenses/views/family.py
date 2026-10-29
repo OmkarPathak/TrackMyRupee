@@ -67,6 +67,7 @@ __all__ = [
     'family_emergency_ask_view',
     'family_emergency_cancel_view',
     'family_emergency_decide_view',
+    'family_emergency_extend_view',
 ]
 
 SESSION_NEW_INVITE = 'family_new_invite'
@@ -454,7 +455,7 @@ def family_networth_view(request):
     months = 3 if request.GET.get('range') == '3m' else None
     graph = None
     if data is not None:
-        graph = chart(data.history, data.net_worth, timezone.localdate(), months)
+        graph = chart(data.history, data.net_worth, timezone.localdate(), months, start=data.since)
     return render(request, 'expenses/family/networth.html', {
         'household': household, 'banner': banner, 'data': data, 'graph': graph,
         'range': '3m' if months else 'all', 'family_page': 'networth',
@@ -536,6 +537,7 @@ def family_emergency_view(request):
     if household is None:
         return redirect('family-home')
     emergency.notify_due_releases(request.user)
+    emergency.notify_expiring_access(request.user)
     sheet = emergency.sheet_of(request.user)
     items = summary.own_items(request.user)
     on_sheet = {i.account_id: i.nominee for i in sheet.items.all()} if sheet else {}
@@ -564,6 +566,9 @@ def family_emergency_view(request):
         'household': household, 'sheet': sheet, 'groups': _group_rows(by_section), 'others': others,
         'pending': pending, 'access': access, 'available': available,
         'mode': sheet.mode if sheet else EmergencySheet.REQUEST,
+        'access_days': sheet.access_days if sheet else None,
+        'access_choices': emergency.ACCESS_CHOICES,
+        'use_nicknames': sheet.use_nicknames if sheet else False,
         'delay_days': settings.FAMILY_EMERGENCY_DELAY_DAYS,
         'family_page': 'emergency',
     })
@@ -583,7 +588,8 @@ def family_emergency_save_view(request):
     allowed = [m.user_id for m in household.members.exclude(user=request.user) if post.get(f'ask_{m.pk}') == 'on']
     try:
         emergency.save_sheet(request.user, post.get('mode', ''), included, allowed,
-                             post.get('documents', ''), post.get('contacts', ''))
+                             post.get('documents', ''), post.get('contacts', ''),
+                             access_days=post.get('access_days', ''), use_nicknames=post.get('use_nicknames') == 'on')
     except households.FamilyError as error:
         messages.error(request, error.message)
     else:
@@ -662,4 +668,17 @@ def family_emergency_decide_view(request, pk, decision):
         messages.error(request, error.message)
     else:
         messages.success(request, _("Approved.") if decision == 'approve' else _("Access withdrawn."))
+    return redirect('family-emergency')
+
+
+@family_view
+@require_POST
+def family_emergency_extend_view(request, pk):
+    req = get_object_or_404(EmergencyRequest, uuid=pk, sheet__owner=request.user)
+    try:
+        emergency.extend(request.user, req)
+    except households.FamilyError as error:
+        messages.error(request, error.message)
+    else:
+        messages.success(request, _("Access extended."))
     return redirect('family-emergency')

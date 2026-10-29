@@ -195,7 +195,7 @@
                             </li>
                         </ul>
                         <h5 class="h6 fw-bold mt-4" id="service-providers">{% trans "Service Providers" %}</h5>
-                        {# Provider regions confirmed by the owner on 2026-10-13: Supabase Mumbai (ap-south-1), DigitalOcean Mumbai, Brevo US, PostHog US, Sentry US (data storage region shown in the Sentry organization settings). Re-check if the setup changes. #}
+                        {# Provider regions confirmed by the owner on 2026-10-13: Supabase Mumbai (ap-south-1), DigitalOcean Bangalore (corrected by the owner on 2026-10-29; DigitalOcean's India region is Bangalore), Brevo US, PostHog US, Sentry US (data storage region shown in the Sentry organization settings). Re-check if the setup changes. #}
                         <div class="table-responsive">
                             <table class="table table-sm align-middle text-muted">
                                 <thead>
@@ -214,7 +214,7 @@
                                     <tr>
                                         <td>DigitalOcean</td>
                                         <td>{% trans "Runs the application servers" %}</td>
-                                        <td>{% trans "Data passing through the application while it is processed, including requests, IP addresses and the content you submit. Region: Mumbai, India." %}</td>
+                                        <td>{% trans "Data passing through the application while it is processed, including requests, IP addresses and the content you submit. Region: Bangalore, India." %}</td>
                                     </tr>
                                     <tr>
                                         <td>Razorpay</td>
@@ -259,6 +259,7 @@
                                 </tbody>
                             </table>
                         </div>
+                        <p class="text-muted small">{% trans "Where your data lives: the application runs in Bangalore and the database in Mumbai, both in India, so what you store in TrackMyRupee is kept and processed in India. Some supporting services run outside India, such as Brevo for email delivery, PostHog for analytics and Sentry for error monitoring (all in the United States), and each receives only what is listed in the table above." %}</p>
                     </div>
 
                     {# Supabase states hosted projects are encrypted at rest by default (Supabase assistant answer for Free-plan projects, confirmed by the owner on 2026-10-13). This is storage-level only; the app does no application-level encryption. #}
@@ -293,8 +294,8 @@
                         </ul>
                         <p class="text-muted">
                             <strong>{% trans "Note" %}:</strong>
-                            {% blocktrans %}
-                            Our database is hosted on Supabase in Mumbai, India, which encrypts stored data at the storage level. Your transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions.
+                            {% blocktrans trimmed %}
+                            Our database is hosted on Supabase in Mumbai, India. Supabase encrypts stored data at rest (storage-level encryption), and data is encrypted in transit over HTTPS. TrackMyRupee does not add a second layer of encryption inside the app, so the app itself, and authorised administrators of the database, can read your transaction data. Please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions.
                             {% endblocktrans %}
                         </p>
                     </div>

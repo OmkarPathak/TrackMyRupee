@@ -10,7 +10,7 @@ from django.utils import timezone
 from expenses.family import households, shares, summary
 from expenses.models import FamilyShare, Loan, LoanScheduleInstallment, NetWorthSnapshot
 
-from .family_base import FamilyTestCase, add_account, make_family, make_user
+from .family_base import FamilyTestCase, add_account, make_family
 
 D = Decimal
 LEDGER = dict(LEDGER_READ_ENABLED=True, LEDGER_WRITE_ENABLED=True, NET_WORTH_EXTENDED_MODELS_ENABLED=True,
@@ -64,7 +64,9 @@ class HistoryStartTests(FamilyTestCase):
                                         breakdown={str(account.pk): '48000.00'})
         shares.set_share(self.owner, account, 'AMOUNTS')         # amounts become visible today
         household.refresh_from_db()
-        self.assertEqual(summary.family_summary(household, self.partner).history, ())
+        history = summary.family_summary(household, self.partner).history
+        # only the day amounts became visible: the 48,000 month-end from while it was list only is not reachable
+        self.assertEqual(history, ((timezone.localdate(), D('50000.00')),))
 
 
 @override_settings(**LEDGER)

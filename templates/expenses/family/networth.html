@@ -58,7 +58,7 @@
             <path class="line" d="{{ graph.line }}"/>
             {% for d in graph.dots %}<circle class="dot" cx="{{ d.x }}" cy="{{ d.y }}" r="4.5"/>{% endfor %}
             <line class="axis" x1="{{ graph.axis_x1 }}" y1="{{ graph.base_y }}" x2="{{ graph.axis_x2 }}" y2="{{ graph.base_y }}"/>
-            {% for d in graph.dots %}<text x="{{ d.x }}" y="{{ graph.label_y }}" text-anchor="middle">{% if d.now %}{% trans "Now" %}{% else %}{{ d.date|date:"M" }}{% endif %}</text>{% endfor %}
+            {% for d in graph.dots %}<text x="{{ d.x }}" y="{{ graph.label_y }}" text-anchor="middle">{% if d.now %}{% trans "Now" %}{% elif d.start %}{% trans "Start" %}{% else %}{{ d.date|date:"M" }}{% endif %}</text>{% endfor %}
         </svg>
         <p class="fam-note">{% trans "Month-end points, starting the day each item was shared. Nothing from before is revealed, and daily movements are never shown." %}
             {% if data.since %}{% blocktrans trimmed with date=data.since|date:"j M Y" %}Sharing started {{ date }}.{% endblocktrans %}{% endif %}</p>

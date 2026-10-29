@@ -1,6 +1,6 @@
 # Family sharing: design note
 
-Status: building (Phases 0 to 3). Emergency access and gentle notes follow in later phases.
+Status: built (sharing, family net worth and inventory, gentle notes, emergency access). Behind a flag.
 
 ## What it is for
 
@@ -45,7 +45,7 @@ family sees that the item exists, with no amounts, and it is not counted).
 ## History
 
 Family history comes from the daily net worth snapshots, which store a per-account breakdown. It uses only the
-accounts shared, from the day each was shared, and only **month-end points**. Daily movements are never shown,
+accounts shared, from the day each account's **amounts first became visible** (`amounts_since`), and only **month-end points**. An account that was list only, and is later switched to show amounts, never reveals the months before that. The first point is the value recorded on that day (`amounts_start_value`), which the family could already see, so the line exists from day one instead of after the first month-end. Daily movements are never shown,
 because a balance dropping on a given day reveals a purchase. The snapshot totals are never reused, because they
 include private accounts.
 
@@ -90,7 +90,7 @@ Family view needs **every member on Pro** (`UserProfile.is_pro`, which respects 
 
 ## Rollout
 
-Behind `FAMILY_ENABLED` (off by default) and `FAMILY_ENABLED_USER_IDS` for a cohort, the same way the ledger rollout
+Behind `FAMILY_ENABLED` (off by default) and `FAMILY_USER_IDS` for a cohort, the same way the ledger rollout
 works. With the flag off, the Family menu item and every family URL are absent.
 
 ## Decisions made
@@ -100,7 +100,35 @@ works. With the flag off, the Family menu item and every family URL are absent.
 - Maximum 5 members; one household per user.
 - Viewers are not a separate role: every member needs Pro and every member shares for the whole household.
 
-## Later phases
+## Gentle notes
 
-- **Gentle notes:** calm, optional observations over the shared data only, never comparing people.
-- **Emergency access:** the owner chooses what goes on a sheet and who can ask; access is on request with a delay.
+A few calm, optional observations on Who holds what, built only from the family summary (what is already shared):
+a health-cover gap (who has none shared yet, with "if not, there is nothing to do"), card bills due in 30 days,
+premiums due in 30 days. They never compare people or judge an amount. Each person can dismiss a note (stored per
+person by a key that names what it was about) or switch notes off for themselves.
+
+## Emergency access
+
+An emergency sheet lists what exists and where to look: the accounts the owner puts on it, a nominee for each asset,
+where documents are, people to call. Text that looks like an account or card number is refused. The owner chooses who
+may ask (only people in the same family) and a mode:
+
+- **On request (default):** a request tells the owner (in the app and by email). They can approve or deny at any time.
+  If they do not answer within `FAMILY_EMERGENCY_DELAY_DAYS` (7) the requester gets a read-only copy, and the owner is
+  told. A denied person may ask again after `FAMILY_EMERGENCY_RETRY_DAYS` (7). The owner can withdraw access later.
+- **Always visible** to the people named.
+
+Access given on request can have an end date the owner chooses (30 days, 90 days, a year, or until withdrawn).
+When it ends the person must ask again. The owner is told a week before (job and emergency page) and can extend it.
+The owner can also show their sharing nicknames on the sheet instead of real account names.
+
+Access never depends on a plan (a lapsed subscription must not lock a family out), ends when anyone leaves or is
+removed, and answers 404 to anyone not allowed so the sheet's existence is not hinted at. Reading a sheet never
+writes: the "delay ran out" notice is sent by the notification job or when the owner opens their emergency page.
+
+## Safeguards added after review
+
+- Seat counts, invitations and ownership changes run under a row lock on the household.
+- `Household.owner` is `PROTECT`: deleting an owner directly is refused. The account deletion flow hands the family to
+  the longest-standing member (or ends it) before deleting the user.
+- Deleting or switching off an account bumps the household cache version at once (`expenses/family/signals.py`).

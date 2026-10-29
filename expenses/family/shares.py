@@ -1,12 +1,15 @@
 """An owner's choices about what to share: share, change, stop. Everything goes through here so the household's
 cache version, the activity list and the optional "something new was shared" notice stay in step."""
+from decimal import Decimal
+
 from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from ..ledger_read_service import LedgerReadService
 from ..models import Account, FamilyShare, FamilyShareEvent, Notification
-from . import households
+from . import catalog, households
 from .presenters import display_name
 
 NAME_MAX = 100
@@ -16,6 +19,21 @@ COVERS_MAX = 255
 def shareable_accounts(user):
     return list(user.accounts.filter(is_active=True).select_related('linked_physical_asset', 'family_share')
                 .order_by('name', 'id'))
+
+
+def _values_now(user, accounts):
+    """{account id: what it is worth today, negative if owed}: recorded when amounts first become visible, as the
+    first point of the family's history."""
+    accounts = list(accounts)
+    if not accounts:
+        return {}
+    values = LedgerReadService.get_net_worth(user, only_account_ids=[a.pk for a in accounts])[1]
+    out = {}
+    for account in accounts:
+        value = values.get(account.pk, Decimal('0.00'))
+        liability = catalog.kind_of(account.account_type) in (catalog.CARD, catalog.LOAN)
+        out[account.pk] = -abs(value) if liability else value
+    return out
 
 
 def _clean_level(level):
@@ -57,8 +75,10 @@ def set_share(user, account, level, alias='', covers=None):
         policy.covers = ' '.join(covers.split())[:COVERS_MAX]
         policy.save(update_fields=['covers', 'updated_at'])
 
+    start_value = _values_now(user, [account])[account.pk] if level == FamilyShare.AMOUNTS else None
     share, created = FamilyShare.objects.get_or_create(
-        account=account, defaults={'household': household, 'owner': user, 'level': level, 'alias': alias})
+        account=account, defaults={'household': household, 'owner': user, 'level': level, 'alias': alias,
+                                   'amounts_start_value': start_value})
     shown_name = alias or account.name
     if created:
         _log(user, FamilyShareEvent.SHARED, shown_name, level)
@@ -66,8 +86,9 @@ def set_share(user, account, level, alias='', covers=None):
     elif (share.level, share.alias) != (level, alias):
         if level == FamilyShare.AMOUNTS and share.level != FamilyShare.AMOUNTS:
             share.amounts_since = timezone.now()     # amounts were hidden until now, so history starts now
+            share.amounts_start_value = start_value
         share.level, share.alias = level, alias
-        share.save(update_fields=['level', 'alias', 'amounts_since', 'updated_at'])
+        share.save(update_fields=['level', 'alias', 'amounts_since', 'amounts_start_value', 'updated_at'])
         _log(user, FamilyShareEvent.CHANGED, shown_name, level)
     households.bump(household)
     return share, created
@@ -90,8 +111,10 @@ def set_section(user, accounts, label):
         households.bump(household)
         return len(accounts), False
     added = [a for a in accounts if a.pk not in existing]
+    start_values = _values_now(user, added)
     for account in added:
-        FamilyShare.objects.create(household=household, owner=user, account=account, level=FamilyShare.AMOUNTS)
+        FamilyShare.objects.create(household=household, owner=user, account=account, level=FamilyShare.AMOUNTS,
+                                   amounts_start_value=start_values[account.pk])
         _log(user, FamilyShareEvent.SHARED, account.name, FamilyShare.AMOUNTS)
     if added:
         households.bump(household)

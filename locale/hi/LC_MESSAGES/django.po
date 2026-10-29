@@ -17735,13 +17735,9 @@ msgstr ""
 msgid "Runs the application servers"
 msgstr "एप्लिकेशन सर्वर चलाता है"
 
-#: templates/privacy_policy.html:205
-msgid ""
-"Data passing through the application while it is processed, including "
-"requests, IP addresses and the content you submit. Region: Mumbai, India."
-msgstr ""
-"प्रोसेस होने के दौरान एप्लिकेशन से गुज़रने वाला डेटा, जिसमें रिक्वेस्ट, IP "
-"एड्रेस और आपका सबमिट किया कंटेंट शामिल है। क्षेत्र: मुंबई, भारत।"
+#: templates/privacy_policy.html:217
+msgid "Data passing through the application while it is processed, including requests, IP addresses and the content you submit. Region: Bangalore, India."
+msgstr "प्रोसेस होने के दौरान एप्लिकेशन से गुज़रने वाला डेटा, जिसमें रिक्वेस्ट, IP एड्रेस और आपका सबमिट किया कंटेंट शामिल है। क्षेत्र: बेंगलुरु, भारत।"
 
 #: templates/privacy_policy.html:209
 msgid "Payment processing"
@@ -17910,15 +17906,9 @@ msgstr ""
 "                                व्यक्तिगत डेटा तक आंतरिक पहुंच को सीमित करने के लिए पहुंच नियंत्रण (Access controls)।\n"
 "                                "
 
-#: templates/privacy_policy.html:284
-msgid ""
-"\n"
-"                            Our database is hosted on Supabase in Mumbai, India, which encrypts stored data at the storage level. Your transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions.\n"
-"                            "
-msgstr ""
-"\n"
-"                            हमारा डेटाबेस मुंबई, भारत में Supabase पर होस्ट है, जो संग्रहित डेटा को स्टोरेज स्तर पर एन्क्रिप्ट करता है। आपका लेन-देन डेटा एप्लिकेशन स्तर पर अलग से एन्क्रिप्ट नहीं होता, इसलिए कृपया विवरण में बैंक खाते या कार्ड नंबर जैसी बेहद संवेदनशील जानकारी न डालें।\n"
-"                            "
+#: templates/privacy_policy.html:297
+msgid "Our database is hosted on Supabase in Mumbai, India. Supabase encrypts stored data at rest (storage-level encryption), and data is encrypted in transit over HTTPS. TrackMyRupee does not add a second layer of encryption inside the app, so the app itself, and authorised administrators of the database, can read your transaction data. Please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions."
+msgstr "हमारा डेटाबेस मुंबई, भारत में Supabase पर होस्ट है। Supabase संग्रहीत डेटा को एट-रेस्ट एन्क्रिप्ट करता है (स्टोरेज-स्तर का एन्क्रिप्शन), और डेटा HTTPS पर ट्रांज़िट में एन्क्रिप्टेड रहता है। TrackMyRupee ऐप के भीतर एन्क्रिप्शन की दूसरी परत नहीं जोड़ता, इसलिए ऐप स्वयं और डेटाबेस के अधिकृत प्रशासक आपका लेन-देन डेटा पढ़ सकते हैं। कृपया विवरण में बैंक खाते या कार्ड नंबर जैसी बेहद संवेदनशील जानकारी न डालें।"
 
 #: templates/privacy_policy.html:294
 msgid ""
@@ -18313,17 +18303,8 @@ msgid "Data at Rest"
 msgstr "स्टोर किया गया डेटा"
 
 #: templates/security.html:40
-msgid ""
-"Our database is a managed PostgreSQL service hosted on Supabase in Mumbai, "
-"India, which encrypts stored data at the storage level. Transaction data is "
-"not additionally encrypted at the application level, so please avoid "
-"entering highly sensitive information, such as bank account or card numbers,"
-" in descriptions."
-msgstr ""
-"हमारा डेटाबेस मुंबई, भारत में Supabase पर होस्ट की गई एक मैनेज्ड PostgreSQL "
-"सेवा है, जो संग्रहीत डेटा को स्टोरेज स्तर पर एन्क्रिप्ट करती है। लेन-देन का "
-"डेटा एप्लिकेशन स्तर पर अलग से एन्क्रिप्ट नहीं किया जाता, इसलिए कृपया विवरण "
-"में बैंक खाता या कार्ड नंबर जैसी बेहद संवेदनशील जानकारी न भरें।"
+msgid "Our database is a managed PostgreSQL service hosted on Supabase in Mumbai, India. Supabase encrypts stored data at rest (storage-level encryption). TrackMyRupee does not add a second layer of encryption inside the app, so the app itself, and authorised administrators of the database, can read the data. Please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions."
+msgstr "हमारा डेटाबेस मुंबई, भारत में Supabase पर होस्ट की गई एक प्रबंधित PostgreSQL सेवा है। Supabase संग्रहीत डेटा को एट-रेस्ट एन्क्रिप्ट करता है (स्टोरेज-स्तर का एन्क्रिप्शन)। TrackMyRupee ऐप के भीतर एन्क्रिप्शन की दूसरी परत नहीं जोड़ता, इसलिए ऐप स्वयं और डेटाबेस के अधिकृत प्रशासक डेटा पढ़ सकते हैं। कृपया विवरण में बैंक खाते या कार्ड नंबर जैसी बेहद संवेदनशील जानकारी न डालें।"
 
 #: templates/security.html:59
 msgid "Data in Transit"
@@ -23011,3 +22992,89 @@ msgstr "साझा करना बंद करने या परिवा�
 #: expenses/family
 msgid "Sharing is off until you turn it on, account by account. Other family members receive only a fixed set of fields for the accounts you choose, never your transactions, notes, categories, receipts, the holdings inside an account or any account numbers. Invitation links work once, expire after 7 days and are stored only as a hash. An emergency sheet says what exists and where to look, never account numbers or passwords, and is opened only on request, after a delay you can veto. Leaving the family ends all sharing straight away. We test this with automated checks that plant private data and confirm no family page, reply, email or notification shows it."
 msgstr "साझाकरण तब तक बंद रहता है जब तक आप उसे खाता-दर-खाता चालू न करें। अन्य परिवार सदस्यों को आपके चुने हुए खातों के केवल निश्चित फ़ील्ड मिलते हैं, आपके लेन-देन, नोट, श्रेणियाँ, रसीदें, खाते के भीतर की होल्डिंग्स या कोई खाता नंबर कभी नहीं। आमंत्रण लिंक एक बार काम करते हैं, 7 दिनों बाद समाप्त होते हैं और केवल हैश के रूप में संग्रहीत होते हैं। आपातकालीन शीट बताती है कि क्या है और कहाँ देखना है, खाता नंबर या पासवर्ड कभी नहीं, और केवल अनुरोध पर खुलती है, एक देरी के बाद जिसे आप रोक सकते हैं। परिवार छोड़ने पर सारा साझाकरण तुरंत बंद हो जाता है। हम इसे स्वचालित जाँचों से परखते हैं जो निजी डेटा रखकर देखती हैं कि कोई पारिवारिक पृष्ठ, उत्तर, ईमेल या सूचना उसे नहीं दिखाती।"
+
+#: expenses/family
+msgid "An emergency sheet that says where to look. By default it opens on request, with a delay and a veto for you."
+msgstr "एक आपातकालीन शीट जो बताती है कि कहाँ देखना है। डिफ़ॉल्ट रूप से यह अनुरोध पर खुलती है, देरी के साथ और आपके लिए इनकार के अधिकार के साथ।"
+
+#: expenses/family
+msgid "Sharing is off until you turn it on, account by account. Other family members receive only a fixed set of fields for the accounts you choose, never your transactions, notes, categories, receipts, the holdings inside an account or any account numbers. Invitation links work once, expire after 7 days and are stored only as a hash. An emergency sheet says what exists and where to look, never account numbers or passwords. By default it opens only on request, after a delay you can veto; if you choose, the people you name can open it at any time. Leaving the family ends all sharing straight away. We test this with automated checks that plant private data and confirm no family page, reply, email or notification shows it."
+msgstr "साझाकरण तब तक बंद रहता है जब तक आप उसे खाता-दर-खाता चालू न करें। अन्य परिवार सदस्यों को आपके चुने हुए खातों के केवल निश्चित फ़ील्ड मिलते हैं, आपके लेन-देन, नोट, श्रेणियाँ, रसीदें, खाते के भीतर की होल्डिंग्स या कोई खाता नंबर कभी नहीं। आमंत्रण लिंक एक बार काम करते हैं, 7 दिनों बाद समाप्त होते हैं और केवल हैश के रूप में संग्रहीत होते हैं। आपातकालीन शीट बताती है कि क्या है और कहाँ देखना है, खाता नंबर या पासवर्ड कभी नहीं। डिफ़ॉल्ट रूप से वह केवल अनुरोध पर खुलती है, एक देरी के बाद जिसे आप रोक सकते हैं; आप चाहें तो आपके बताए लोग उसे कभी भी खोल सकते हैं। परिवार छोड़ने पर सारा साझाकरण तुरंत बंद हो जाता है। हम इसे स्वचालित जाँचों से परखते हैं जो निजी डेटा रखकर देखती हैं कि कोई पारिवारिक पृष्ठ, उत्तर, ईमेल या सूचना उसे नहीं दिखाती।"
+
+#: expenses/family
+msgid "Start"
+msgstr "शुरुआत"
+
+#: expenses/family
+msgid "Access extended."
+msgstr "पहुँच बढ़ा दी गई।"
+
+#: expenses/family
+msgid "Access given on request lasts"
+msgstr "अनुरोध पर दी गई पहुँच इतनी देर रहती है"
+
+#: expenses/family
+#, python-format
+msgid "Access until %(date)s"
+msgstr "%(date)s तक पहुँच"
+
+#: expenses/family
+msgid "Access until you withdraw it"
+msgstr "आपके वापस लेने तक पहुँच"
+
+#: expenses/family
+msgid "Choose how long access lasts."
+msgstr "चुनें कि पहुँच कितने समय तक रहे।"
+
+#: expenses/family
+msgid "Extend"
+msgstr "बढ़ाएँ"
+
+#: expenses/family
+msgid "Show my nicknames instead of real account names"
+msgstr "असली खाता नामों की जगह मेरे उपनाम दिखाएँ"
+
+#: expenses/family
+msgid "That access has no end date to extend."
+msgstr "उस पहुँच की कोई अंतिम तिथि नहीं है जिसे बढ़ाया जाए।"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s's access to your emergency sheet ends soon"
+msgstr "%(name)s की आपकी आपातकालीन शीट तक पहुँच जल्द समाप्त होगी"
+
+#: expenses/family
+#, python-format
+msgid "Their access ends on %(date)s. Open your emergency page to extend it or let it end."
+msgstr "उनकी पहुँच %(date)s को समाप्त होती है। इसे बढ़ाने के लिए अपना आपातकालीन पन्ना खोलें, या इसे समाप्त होने दें।"
+
+#: expenses/family
+msgid "Until I withdraw it"
+msgstr "जब तक मैं वापस न लूँ"
+
+#: expenses/family
+msgid "Uses the names you chose on What I share. Accounts without a nickname show their real name."
+msgstr "\"मैं क्या साझा करता हूँ\" पर आपके चुने नामों का उपयोग करता है। बिना उपनाम वाले खाते असली नाम दिखाते हैं।"
+
+#: expenses/family
+msgid "You are told a week before it ends and can extend it. Does not apply to always visible."
+msgstr "समाप्त होने से एक सप्ताह पहले आपको बताया जाता है और आप इसे बढ़ा सकते हैं। \"हमेशा दिखे\" पर लागू नहीं।"
+
+#: expenses/family
+msgid "Your access has ended"
+msgstr "आपकी पहुँच समाप्त हो गई है"
+
+#: expenses/family
+#, python-format
+msgid "%(counter)s day, then they must ask again"
+msgid_plural "%(counter)s days, then they must ask again"
+msgstr[0] "%(counter)s दिन, फिर उन्हें दोबारा माँगना होगा"
+msgstr[1] "%(counter)s दिन, फिर उन्हें दोबारा माँगना होगा"
+
+#: templates/privacy_policy.html:230
+msgid "Where your data lives: the application runs in Bangalore and the database in Mumbai, both in India, so what you store in TrackMyRupee is kept and processed in India. Some supporting services run outside India, such as Brevo for email delivery, PostHog for analytics and Sentry for error monitoring (all in the United States), and each receives only what is listed in the table above."
+msgstr "आपका डेटा कहाँ रहता है: एप्लिकेशन बेंगलुरु में और डेटाबेस मुंबई में चलता है, दोनों भारत में, इसलिए TrackMyRupee में आप जो संग्रहीत करते हैं वह भारत में रखा और प्रोसेस किया जाता है। कुछ सहायक सेवाएँ भारत के बाहर चलती हैं, जैसे ईमेल भेजने के लिए Brevo, एनालिटिक्स के लिए PostHog और त्रुटि निगरानी के लिए Sentry (सभी संयुक्त राज्य में), और हर एक को केवल वही मिलता है जो ऊपर की तालिका में सूचीबद्ध है।"
+
+#: templates/security.html:41
+msgid "Our application servers run in Bangalore and our database in Mumbai, both in India, so what you store in TrackMyRupee is kept and processed in India. Emails, analytics and error reports go through providers outside India; the Privacy Policy lists exactly what each one receives."
+msgstr "हमारे एप्लिकेशन सर्वर बेंगलुरु में और हमारा डेटाबेस मुंबई में है, दोनों भारत में, इसलिए TrackMyRupee में आप जो संग्रहीत करते हैं वह भारत में रखा और प्रोसेस किया जाता है। ईमेल, एनालिटिक्स और त्रुटि रिपोर्ट भारत के बाहर के प्रदाताओं से गुज़रती हैं; गोपनीयता नीति में सटीक सूचीबद्ध है कि हर एक को क्या मिलता है।"

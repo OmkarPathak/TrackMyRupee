@@ -119,6 +119,8 @@ You can dismiss a note, or switch **Gentle notes** off for yourself. It affects 
 * **How they get it.** Choose one:
     * **On request (default).** A person asks, and you are told. You can **approve** or **deny**. If you do not answer within **7 days**, they get a **read-only** copy, and you are told again that it was released. A denied person must wait 7 days before asking again, and you can withdraw access at any time.
     * **Always.** Allowed members can open the sheet whenever they like.
+* **How long access lasts.** For access given on request you can choose 30 days, 90 days, a year, or until you withdraw it. A week before it ends you are told, and you can **Extend** it from the emergency page. When it ends the person must ask again.
+* **Nicknames.** Optionally show the nicknames you use on **What I share** instead of real account names.
 * It is read-only, can be printed, and does not depend on a plan: it still opens if a subscription has lapsed.
 
 Leaving or being removed from the family ends emergency access in both directions.

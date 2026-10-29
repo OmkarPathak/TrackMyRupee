@@ -42,11 +42,15 @@ class SalaryCycleCategoryTrendTests(DashBase):
 class DashboardUsesLocalDateTests(DashBase):
     def test_upcoming_payment_days_left_use_the_local_date(self):
         from expenses.models import RecurringTransaction
+
+        # Saving a recurring item recomputes its next due date from the start date, so use a weekly item started five
+        # days ago: its next due date is two days from now in every month (a monthly one depends on month lengths)
+        started = today() - datetime.timedelta(days=5)
+        due = today() + datetime.timedelta(days=2)
         RecurringTransaction.objects.create(
             user=self.user, transaction_type='EXPENSE', amount=D('499'), currency='₹', description='Netflix',
-            category='Food', frequency='MONTHLY', start_date=today() - datetime.timedelta(days=28),
-            last_processed_date=today() - datetime.timedelta(days=28), next_due_date=today() + datetime.timedelta(days=2),
-            account=self.cash, is_active=True)
+            category='Food', frequency='WEEKLY', start_date=started, last_processed_date=started,
+            next_due_date=due, account=self.cash, is_active=True)
         ctx = self.home()
         messages = [str(a['message']) for a in ctx['actionable_alerts'] if a['title'] == 'Upcoming Payment']
         self.assertEqual(len(messages), 1)

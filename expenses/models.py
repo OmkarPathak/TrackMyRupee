@@ -560,7 +560,9 @@ class Household(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     name = models.CharField(max_length=100, default='Our family', verbose_name=_('Family name'))
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_households')
+    # PROTECT, not CASCADE: deleting an owner must never silently end everyone else's family. The account
+    # deletion flow hands the family on first (households.leave); anything else is refused.
+    owner = models.ForeignKey(User, on_delete=models.PROTECT, related_name='owned_households')
     # Bumped whenever a share, a member or a plan changes, so cached family totals are never read stale
     cache_version = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -608,6 +610,9 @@ class FamilyShare(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     # When the family first got to see amounts for this account; the shared history never reaches back before it
     amounts_since = models.DateTimeField(default=timezone.now)
+    # What the account was worth (negative if owed) on that day: the first point of the shared history, so the line
+    # exists from day one instead of after the first month-end. Null for shares made before this was recorded.
+    amounts_start_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -649,6 +654,10 @@ class EmergencySheet(models.Model):
     mode = models.CharField(max_length=8, choices=MODE_CHOICES, default=REQUEST)
     documents_note = models.TextField(blank=True, max_length=1000)
     contacts_note = models.TextField(blank=True, max_length=1000)
+    # How long access given by a request lasts (None: until the owner withdraws it); not used in the always mode
+    access_days = models.PositiveSmallIntegerField(null=True, blank=True)
+    # Show the nicknames the owner uses for family sharing instead of the real account names
+    use_nicknames = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -697,6 +706,8 @@ class EmergencyRequest(models.Model):
     release_at = models.DateTimeField()
     decided_at = models.DateTimeField(null=True, blank=True)
     release_noted = models.BooleanField(default=False)     # the owner was told that the delay ran out
+    expires_at = models.DateTimeField(null=True, blank=True)   # when the access this request gives ends (None: never)
+    expiry_noted = models.BooleanField(default=False)      # the owner was told that access is about to end
 
     class Meta:
         ordering = ['-created_at', '-id']
