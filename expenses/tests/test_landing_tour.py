@@ -11,7 +11,7 @@ from django.utils import translation
 
 from update_landing_tour_translations import find_strings, missing
 
-TOUR_KEYS = ['dash', 'add', 'bud', 'nw', 'cal', 'loan', 'goal']
+TOUR_KEYS = ['add', 'rec', 'acc', 'nw', 'flow', 'fam', 'priv']
 
 
 class LandingTourTests(TestCase):

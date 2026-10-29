@@ -20,6 +20,7 @@
             }
         })();
     </script>
+    <script>window.tmrLandingVariant="tour";</script>
     {% include 'components/analytics.html' %}
     <title>TrackMyRupee | Personal Finance System for India. No SMS. No Bank Login.</title>
 
@@ -176,8 +177,8 @@
 
     <!-- Bootstrap 5 CSS — kept blocking (required for above-the-fold layout) -->
     <link href="{% static 'vendor/bootstrap/bootstrap.purged.min.css' %}" rel="stylesheet">
-    <!-- The product tour (below the fold), so it does not block the first paint -->
-    <link rel="preload" href="{% static 'css/landing_tour.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <!-- The product tour is below the fold: its stylesheet and script are fetched only once the page has loaded and the
+         tour is close to the screen (see the loader at the end of the page), so they never compete with the first paint -->
     <noscript><link rel="stylesheet" href="{% static 'css/landing_tour.css' %}"></noscript>
     <!-- Bootstrap Icons — non-blocking; all icons appear below-the-fold -->
     <link rel="preload" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
@@ -1400,7 +1401,7 @@
             <p class="section-sub mx-auto" style="margin-bottom: var(--space-4);">{% trans "This is what you get after you log in, on your computer or your phone. Pick a screen, or let it play." %}</p>
         </div>
 
-        <div id="tp-box" class="tp-box">
+        <div id="tp-box" class="tp-box" data-demo="{% url 'demo_login' %}" data-try="{% trans 'Open this screen in the live demo' %}">
             <div class="tp-dev" id="tp-dev">
                 <div class="tp-tg" role="group" aria-label="{% trans 'Device' %}">
                     <button type="button" data-m="desk" aria-pressed="true">{% trans "Computer" %}</button>
@@ -1410,7 +1411,7 @@
             </div>
             <div class="tp-pills" role="tablist" aria-label="{% trans 'Product tour' %}" id="tp-pills"></div>
 
-            <div class="tp-stage" id="tp-stage">
+            <div class="tp-stage" id="tp-stage" style="min-height: 420px;">
                 <div class="tp-callout l1">{% trans "Installs like an app" %}<small>{% trans "Add to your home screen. No app store." %}</small></div>
                 <div class="tp-callout l2">{% trans "Works offline" %}<small>{% trans "Opens fast, even on a weak signal." %}</small></div>
                 <div class="tp-callout r1">{% trans "Type, don't tap through menus" %}<small>{% trans "“swiggy 320” is enough." %}</small></div>
@@ -1418,9 +1419,9 @@
                 <div class="tp-frame" id="tp-frame">
                     <div class="tp-bar" aria-hidden="true"><i></i><i></i><i></i><span>trackmyrupee.com/dashboard</span></div>
                     <div class="tp-vp" id="tp-vp" aria-hidden="true"><div class="tp-sim" id="tp-sim"></div></div>
+                    <div class="tp-cap" id="tp-cap" aria-live="polite"></div>
                 </div>
             </div>
-            <div class="tp-cap" id="tp-cap" aria-live="polite"></div>
             <noscript><p class="text-center" style="color: var(--tmr-ink-600);">{% trans "The product tour needs JavaScript." %} <a href="{% url 'demo_login' %}">{% trans "Explore Live Demo" %} &rarr;</a></p></noscript>
         </div>
 
@@ -1441,20 +1442,20 @@
 
         {# The words of the tour come from here, so they are translated like the rest of the page. #}
         <div id="tp-captions" hidden>
-            {% trans "Dashboard" as l_dash %}{% trans "Your month at a glance" as t_dash %}{% trans "Net worth, income, spending and savings rate on one screen, with calm insights alongside." as d_dash %}
-            <div data-k="dash" data-l="{{ l_dash }}" data-t="{{ t_dash }}" data-d="{{ d_dash }}"></div>
             {% trans "Quick add" as l_add %}{% trans "Type it. It's logged." as t_add %}{% trans "Write what you spent the way you would say it. Amount, category and account are filled in, and it lands in your ledger." as d_add %}
             <div data-k="add" data-l="{{ l_add }}" data-t="{{ t_add }}" data-d="{{ d_add }}"></div>
-            {% trans "Budgets" as l_bud %}{% trans "Know what is safe to spend today" as t_bud %}{% trans "A daily number based on your budget, your pace and the days left in the month. Overspent categories surface first." as d_bud %}
-            <div data-k="bud" data-l="{{ l_bud }}" data-t="{{ t_bud }}" data-d="{{ d_bud }}"></div>
+            {% trans "Recurring" as l_rec %}{% trans "Set it once. It runs itself." as t_rec %}{% trans "Salary, rent, SIPs and premiums are posted on their due dates, with a reminder before each one. Nothing to remember." as d_rec %}
+            <div data-k="rec" data-l="{{ l_rec }}" data-t="{{ t_rec }}" data-d="{{ d_rec }}"></div>
+            {% trans "Accounts" as l_acc %}{% trans "Every Indian account in one place" as t_acc %}{% trans "Savings, FDs, PPF, EPF, NPS, demat, gold, property and cards, grouped and added up into one net worth." as d_acc %}
+            <div data-k="acc" data-l="{{ l_acc }}" data-t="{{ t_acc }}" data-d="{{ d_acc }}"></div>
             {% trans "Net worth" as l_nw %}{% trans "Watch your net worth grow" as t_nw %}{% trans "One real-time number across savings, SIPs, loans and cards, shown as a trajectory you can tap into." as d_nw %}
             <div data-k="nw" data-l="{{ l_nw }}" data-t="{{ t_nw }}" data-d="{{ d_nw }}"></div>
-            {% trans "Calendar" as l_cal %}{% trans "Every day, at a glance" as t_cal %}{% trans "Income, spending and investments by day, with salary days starred and busy days shaded darker." as d_cal %}
-            <div data-k="cal" data-l="{{ l_cal }}" data-t="{{ t_cal }}" data-d="{{ d_cal }}"></div>
-            {% trans "Loans" as l_loan %}{% trans "Loans with the full picture" as t_loan %}{% trans "See how much is principal, how much is interest and how much is left, for every loan you carry." as d_loan %}
-            <div data-k="loan" data-l="{{ l_loan }}" data-t="{{ t_loan }}" data-d="{{ d_loan }}"></div>
-            {% trans "Goals" as l_goal %}{% trans "Goals with a finish date" as t_goal %}{% trans "Set a target, move money towards it and see the date you will actually reach it at your real saving pace." as d_goal %}
-            <div data-k="goal" data-l="{{ l_goal }}" data-t="{{ t_goal }}" data-d="{{ d_goal }}"></div>
+            {% trans "TMR Flows" as l_flow %}{% trans "Tell it what happened in your life" as t_flow %}{% trans '"I started a new job." "I took a loan." One short form sets up the account, the recurring entry and the reminders linked behind it.' as d_flow %}
+            <div data-k="flow" data-l="{{ l_flow }}" data-t="{{ t_flow }}" data-d="{{ d_flow|force_escape }}"></div>
+            {% trans "Family" as l_fam %}{% trans "One family. One true net worth." as t_fam %}{% trans "Each of you keeps your own account and shares only what you choose. The family sees the combined picture of what was shared, never a transaction." as d_fam %}
+            <div data-k="fam" data-l="{{ l_fam }}" data-t="{{ t_fam }}" data-d="{{ d_fam }}"></div>
+            {% trans "Privacy" as l_priv %}{% trans "Private by default. Shared by choice." as t_priv %}{% trans "No SMS reading, no bank login. In a family, nothing is shared until you switch it on, and you can preview exactly what they will see." as d_priv %}
+            <div data-k="priv" data-l="{{ l_priv }}" data-t="{{ t_priv }}" data-d="{{ d_priv }}"></div>
         </div>
     </div>
 </section>
@@ -2081,7 +2082,34 @@
     labelYearly.addEventListener('click', () => { if (!isYearly) { isYearly = true; updateLpPricing(); } });
 </script>
 
-    <script src="{% static 'js/landing_tour.js' %}" defer></script>
+    <script>
+    (function () {
+        var box = document.getElementById('tp-box');
+        if (!box) { return; }
+        var started = false, loaded = document.readyState === 'complete';
+        function start() {
+            if (started) { return; }
+            started = true;
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = "{% static 'css/landing_tour.css' %}";
+            link.onload = function () {
+                var script = document.createElement('script');
+                script.src = "{% static 'js/landing_tour.js' %}";
+                document.body.appendChild(script);
+            };
+            document.head.appendChild(link);
+        }
+        function arm() {
+            if (!('IntersectionObserver' in window)) { start(); return; }
+            var io = new IntersectionObserver(function (entries) {
+                if (entries[0].isIntersecting) { io.disconnect(); start(); }
+            }, { rootMargin: '400px 0px' });
+            io.observe(box);
+        }
+        if (loaded) { arm(); } else { window.addEventListener('load', arm, { once: true }); }
+    })();
+    </script>
 
     <!-- Bootstrap JS — deferred; landing page interactive elements don't depend on it synchronously -->
     <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}" defer></script>

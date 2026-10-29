@@ -23289,3 +23289,43 @@ msgstr "पूर्ण होण्याच्या तारखेसह उ
 #: templates/landing.html
 msgid "Set a target, move money towards it and see the date you will actually reach it at your real saving pace."
 msgstr "एक उद्दिष्ट ठरवा, त्याकडे पैसे वळवा आणि तुमच्या खऱ्या बचतीच्या वेगाने ते कोणत्या तारखेला पूर्ण होईल ते पहा."
+
+#: templates/landing.html
+msgid "Set it once. It runs itself."
+msgstr "एकदा सेट करा. ते स्वतः चालते."
+
+#: templates/landing.html
+msgid "Salary, rent, SIPs and premiums are posted on their due dates, with a reminder before each one. Nothing to remember."
+msgstr "पगार, भाडे, SIP आणि प्रीमियम देय तारखेला नोंदवले जातात, प्रत्येकापूर्वी स्मरणासह. काहीही लक्षात ठेवायची गरज नाही."
+
+#: templates/landing.html
+msgid "Every Indian account in one place"
+msgstr "प्रत्येक भारतीय खाते, एका ठिकाणी"
+
+#: templates/landing.html
+msgid "Savings, FDs, PPF, EPF, NPS, demat, gold, property and cards, grouped and added up into one net worth."
+msgstr "बचत, FD, PPF, EPF, NPS, डीमॅट, सोने, मालमत्ता आणि कार्ड, गटांमध्ये विभागलेली आणि एका एकूण संपत्तीत जोडलेली."
+
+#: templates/landing.html
+msgid "Tell it what happened in your life"
+msgstr "सांगा तुमच्या आयुष्यात काय घडले"
+
+#: templates/landing.html
+msgid "\"I started a new job.\" \"I took a loan.\" One short form sets up the account, the recurring entry and the reminders linked behind it."
+msgstr "\"मी नवी नोकरी सुरू केली.\" \"मी कर्ज घेतले.\" एक छोटा फॉर्म त्यामागील खाते, आवर्ती नोंद आणि स्मरणे सेट करतो."
+
+#: templates/landing.html
+msgid "Each of you keeps your own account and shares only what you choose. The family sees the combined picture of what was shared, never a transaction."
+msgstr "तुमच्यापैकी प्रत्येकाचे स्वतःचे खाते असते आणि तुम्ही निवडलेलेच शेअर करता. कुटुंबाला शेअर केलेल्या गोष्टींचे एकत्रित चित्र दिसते, कधीही व्यवहार नाही."
+
+#: templates/landing.html
+msgid "Private by default. Shared by choice."
+msgstr "डिफॉल्टनुसार खाजगी. निवडीनुसार शेअर."
+
+#: templates/landing.html
+msgid "No SMS reading, no bank login. In a family, nothing is shared until you switch it on, and you can preview exactly what they will see."
+msgstr "SMS वाचन नाही, बँक लॉगिन नाही. कुटुंबात, तुम्ही चालू करेपर्यंत काहीही शेअर होत नाही आणि त्यांना नेमके काय दिसेल ते तुम्ही आधी पाहू शकता."
+
+#: templates/landing.html
+msgid "Open this screen in the live demo"
+msgstr "ही स्क्रीन लाइव्ह डेमोमध्ये उघडा"
