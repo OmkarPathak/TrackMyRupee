@@ -10,7 +10,7 @@ from django.utils import timezone
 from expenses.family import households, shares, summary
 from expenses.models import FamilyShare, Loan, LoanScheduleInstallment, NetWorthSnapshot
 
-from .family_base import FamilyTestCase, add_account, make_family, make_user
+from .family_base import FamilyTestCase, add_account, make_family
 
 D = Decimal
 LEDGER = dict(LEDGER_READ_ENABLED=True, LEDGER_WRITE_ENABLED=True, NET_WORTH_EXTENDED_MODELS_ENABLED=True,

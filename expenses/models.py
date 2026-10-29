@@ -560,7 +560,9 @@ class Household(models.Model):
 
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     name = models.CharField(max_length=100, default='Our family', verbose_name=_('Family name'))
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_households')
+    # PROTECT, not CASCADE: deleting an owner must never silently end everyone else's family. The account
+    # deletion flow hands the family on first (households.leave); anything else is refused.
+    owner = models.ForeignKey(User, on_delete=models.PROTECT, related_name='owned_households')
     # Bumped whenever a share, a member or a plan changes, so cached family totals are never read stale
     cache_version = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)

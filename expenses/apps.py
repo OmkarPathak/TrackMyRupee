@@ -7,3 +7,4 @@ class ExpensesConfig(AppConfig):
 
     def ready(self):
         from . import signals  # noqa: F401
+        from .family import signals as family_signals  # noqa: F401
