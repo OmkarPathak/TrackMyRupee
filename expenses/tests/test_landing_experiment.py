@@ -99,3 +99,36 @@ class LandingExperimentTests(TestCase):
         r = self.get()
         self.assertEqual(r.context['demo_networth_rows'], [])
         self.assertContains(r, 'id="networth-demo-data"')
+
+
+class SharedMetaTagsTests(TestCase):
+    """Analytics already runs on the landing page's title, description and social tags, so the two variants (and any later
+    edit to the tour page) must never drift from each other in them."""
+
+    @staticmethod
+    def head_signals(html):
+        import re
+        head = html.split('</head>')[0]
+        title = re.findall(r'<title>(.*?)</title>', head, flags=re.S)
+        metas = sorted(' '.join(m.split()) for m in re.findall(r'<meta\s[^>]*>', head))
+        links = sorted(' '.join(m.split()) for m in re.findall(r'<link\s[^>]*rel="(?:canonical|alternate)"[^>]*>', head))
+        ld = [' '.join(m.split()) for m in re.findall(r'<script type="application/ld\+json">(.*?)</script>', head, flags=re.S)]
+        return {'title': [' '.join(t.split()) for t in title], 'meta': metas, 'links': links, 'ld': ld}
+
+    def page(self, variant, lang=None):
+        from django.core.cache import cache
+        cache.clear()
+        extra = {'HTTP_ACCEPT_LANGUAGE': lang} if lang else {}
+        return self.client.get(reverse('landing'), {'lp': variant}, **extra).content.decode()
+
+    def test_title_description_social_tags_canonical_and_structured_data_are_identical_in_both_variants(self):
+        tour, classic = self.head_signals(self.page('tour')), self.head_signals(self.page('classic'))
+        self.assertTrue(tour['title'] and tour['meta'] and tour['ld'])
+        for key in ('title', 'meta', 'links', 'ld'):
+            self.assertEqual(tour[key], classic[key], key)
+
+    def test_the_same_holds_in_hindi_and_marathi(self):
+        for lang in ('hi', 'mr'):
+            tour, classic = self.head_signals(self.page('tour', lang)), self.head_signals(self.page('classic', lang))
+            for key in ('title', 'meta', 'links', 'ld'):
+                self.assertEqual(tour[key], classic[key], f'{lang} {key}')

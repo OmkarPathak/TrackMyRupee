@@ -255,6 +255,7 @@
   /* the stylesheet is loaded without blocking the page: start once it has applied */
   function whenStyled(go,tries){if(getComputedStyle(sim).position==='absolute'||tries>100){go();return}setTimeout(function(){whenStyled(go,(tries||0)+1)},50)}
   whenStyled(function(){
+    box.classList.add('tp-on');
     var small=box.clientWidth<860;
     mode=small?'phone':'desk';
     setMode(mode,false);
