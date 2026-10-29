@@ -182,3 +182,33 @@ class EncryptionClaimsAgreeTests(FamilyTestCase):
         for language in ('hi', 'mr'):
             html = self.pages(language)
             self.assertNotIn('Supabase encrypts stored data at rest', html, language)
+
+
+class DataLocationClaimsTests(FamilyTestCase):
+    """Where the data lives is stated once, the same on both pages, in every language, and without overclaiming."""
+
+    def html(self, language):
+        profile = self.owner.profile
+        profile.language = language
+        profile.save()
+        self.client.force_login(self.owner)
+        return ' '.join(' '.join(self.client.get(f'/{page}/').content.decode() for page in ('security', 'privacy-policy')).split())
+
+    def test_servers_in_bangalore_database_in_mumbai_and_the_outside_services_are_named(self):
+        from django.utils import translation
+        self.addCleanup(translation.activate, 'en')
+        html = self.html('en')
+        self.assertEqual(html.count('the application runs in Bangalore and the database in Mumbai')
+                         + html.count('Our application servers run in Bangalore and our database in Mumbai'), 2)
+        self.assertEqual(html.count('Region: Bangalore, India.'), 1)      # the application servers row
+        self.assertEqual(html.count('Region: Mumbai, India.'), 1)         # the database row only
+        self.assertIn('outside India', html)
+        self.assertNotIn('all your data stays in India', html)
+
+    def test_it_is_translated(self):
+        from django.utils import translation
+        self.addCleanup(translation.activate, 'en')
+        for language in ('hi', 'mr'):
+            html = self.html(language)
+            self.assertNotIn('Our application servers run in Bangalore', html, language)
+            self.assertNotIn('Where your data lives', html, language)

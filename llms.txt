@@ -13,6 +13,7 @@ TrackMyRupee is a comprehensive financial management tool designed for the India
 - **Family sharing**: Up to five people each keep their own account and share only chosen accounts (never transactions). The family sees a combined net worth and who holds which card, policy or loan, with a preview of exactly what is visible, an optional emergency sheet and gentle notes. Needs Pro for every member.
 - **Smart Notifications**: Automated reminders for recurring bills, subscriptions, and budget limits.
 - **Security First**: Storage-level encryption at rest (managed PostgreSQL on Supabase, Mumbai) and HTTPS in transit, with automated backups. No extra encryption layer inside the app.
+- **Data location**: Application servers in Bangalore and database in Mumbai, both in India, so stored data is kept and processed in India. Email delivery, analytics and error monitoring use providers outside India (see the privacy policy).
 - **Progressive Web App (PWA)**: Installable on mobile devices for a native app experience.
 - **Multi-lingual Support**: Fully internationalized with support for English, Hindi, and Marathi.
 

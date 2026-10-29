@@ -17735,13 +17735,9 @@ msgstr ""
 msgid "Runs the application servers"
 msgstr "एप्लिकेशन सर्वर चलाता है"
 
-#: templates/privacy_policy.html:205
-msgid ""
-"Data passing through the application while it is processed, including "
-"requests, IP addresses and the content you submit. Region: Mumbai, India."
-msgstr ""
-"प्रोसेस होने के दौरान एप्लिकेशन से गुज़रने वाला डेटा, जिसमें रिक्वेस्ट, IP "
-"एड्रेस और आपका सबमिट किया कंटेंट शामिल है। क्षेत्र: मुंबई, भारत।"
+#: templates/privacy_policy.html:217
+msgid "Data passing through the application while it is processed, including requests, IP addresses and the content you submit. Region: Bangalore, India."
+msgstr "प्रोसेस होने के दौरान एप्लिकेशन से गुज़रने वाला डेटा, जिसमें रिक्वेस्ट, IP एड्रेस और आपका सबमिट किया कंटेंट शामिल है। क्षेत्र: बेंगलुरु, भारत।"
 
 #: templates/privacy_policy.html:209
 msgid "Payment processing"
@@ -23074,3 +23070,11 @@ msgid "%(counter)s day, then they must ask again"
 msgid_plural "%(counter)s days, then they must ask again"
 msgstr[0] "%(counter)s दिन, फिर उन्हें दोबारा माँगना होगा"
 msgstr[1] "%(counter)s दिन, फिर उन्हें दोबारा माँगना होगा"
+
+#: templates/privacy_policy.html:230
+msgid "Where your data lives: the application runs in Bangalore and the database in Mumbai, both in India, so what you store in TrackMyRupee is kept and processed in India. Some supporting services run outside India, such as Brevo for email delivery, PostHog for analytics and Sentry for error monitoring (all in the United States), and each receives only what is listed in the table above."
+msgstr "आपका डेटा कहाँ रहता है: एप्लिकेशन बेंगलुरु में और डेटाबेस मुंबई में चलता है, दोनों भारत में, इसलिए TrackMyRupee में आप जो संग्रहीत करते हैं वह भारत में रखा और प्रोसेस किया जाता है। कुछ सहायक सेवाएँ भारत के बाहर चलती हैं, जैसे ईमेल भेजने के लिए Brevo, एनालिटिक्स के लिए PostHog और त्रुटि निगरानी के लिए Sentry (सभी संयुक्त राज्य में), और हर एक को केवल वही मिलता है जो ऊपर की तालिका में सूचीबद्ध है।"
+
+#: templates/security.html:41
+msgid "Our application servers run in Bangalore and our database in Mumbai, both in India, so what you store in TrackMyRupee is kept and processed in India. Emails, analytics and error reports go through providers outside India; the Privacy Policy lists exactly what each one receives."
+msgstr "हमारे एप्लिकेशन सर्वर बेंगलुरु में और हमारा डेटाबेस मुंबई में है, दोनों भारत में, इसलिए TrackMyRupee में आप जो संग्रहीत करते हैं वह भारत में रखा और प्रोसेस किया जाता है। ईमेल, एनालिटिक्स और त्रुटि रिपोर्ट भारत के बाहर के प्रदाताओं से गुज़रती हैं; गोपनीयता नीति में सटीक सूचीबद्ध है कि हर एक को क्या मिलता है।"
