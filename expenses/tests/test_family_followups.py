@@ -149,3 +149,36 @@ class HistoryStartPointTests(FamilyTestCase):
         shares.set_share(self.owner, add_account(self.owner, 'Hidden', balance='99999.00'), 'LIST')
         shares.set_share(self.owner, add_account(self.owner, 'Shown', balance='1000.00'), 'AMOUNTS')
         self.assertEqual(self.data().history[0][1], D('1000.00'))
+
+
+class EncryptionClaimsAgreeTests(FamilyTestCase):
+    """The security page and the privacy policy must say the same thing about encryption, in every language."""
+
+    def pages(self, language):
+        from django.urls import reverse
+        profile = self.owner.profile
+        profile.language = language
+        profile.save()
+        self.client.force_login(self.owner)
+        html = ''
+        for name in ('security', 'privacy_policy'):
+            try:
+                html += ' ' + self.client.get(reverse(name)).content.decode()
+            except Exception:                                   # url name differs: fall back to the paths
+                html += ' ' + self.client.get(f'/{name.replace("_", "-")}/').content.decode()
+        return ' '.join(html.split())
+
+    def test_both_pages_say_storage_is_encrypted_at_rest_and_the_app_adds_no_extra_layer(self):
+        from django.utils import translation
+        self.addCleanup(translation.activate, 'en')
+        html = self.pages('en')
+        self.assertEqual(html.count('Supabase encrypts stored data at rest (storage-level encryption)'), 2)
+        self.assertEqual(html.count('does not add a second layer of encryption inside the app'), 2)
+        self.assertNotIn('which encrypts stored data at the storage level', html)
+
+    def test_the_new_wording_is_translated(self):
+        from django.utils import translation
+        self.addCleanup(translation.activate, 'en')
+        for language in ('hi', 'mr'):
+            html = self.pages(language)
+            self.assertNotIn('Supabase encrypts stored data at rest', html, language)

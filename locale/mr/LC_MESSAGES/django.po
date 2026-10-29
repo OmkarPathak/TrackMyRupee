@@ -17967,15 +17967,9 @@ msgstr ""
 "                                वैयक्तिक डेटाचा अंतर्गत प्रवेश मर्यादित करण्यासाठी प्रवेश नियंत्रणे (Access controls).\n"
 "                                "
 
-#: templates/privacy_policy.html:284
-msgid ""
-"\n"
-"                            Our database is hosted on Supabase in Mumbai, India, which encrypts stored data at the storage level. Your transaction data is not additionally encrypted at the application level, so please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions.\n"
-"                            "
-msgstr ""
-"\n"
-"                            आमचा डेटाबेस मुंबई, भारत येथे Supabase वर होस्ट केलेला आहे, जो साठवलेला डेटा स्टोरेज स्तरावर एन्क्रिप्ट करतो. तुमचा व्यवहार डेटा अॅप्लिकेशन स्तरावर वेगळा एन्क्रिप्ट केला जात नाही, म्हणून कृपया वर्णनात बँक खाते किंवा कार्ड नंबरसारखी अतिसंवेदनशील माहिती टाकू नका.\n"
-"                            "
+#: templates/privacy_policy.html:297
+msgid "Our database is hosted on Supabase in Mumbai, India. Supabase encrypts stored data at rest (storage-level encryption), and data is encrypted in transit over HTTPS. TrackMyRupee does not add a second layer of encryption inside the app, so the app itself, and authorised administrators of the database, can read your transaction data. Please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions."
+msgstr "आमचा डेटाबेस मुंबई, भारत येथे Supabase वर होस्ट आहे. Supabase साठवलेला डेटा एट-रेस्ट एन्क्रिप्ट करते (स्टोरेज-स्तरावरील एन्क्रिप्शन), आणि डेटा HTTPS वरून प्रवासात एन्क्रिप्टेड राहतो. TrackMyRupee अॅपमध्ये एन्क्रिप्शनचा दुसरा थर जोडत नाही, त्यामुळे अॅप स्वतः आणि डेटाबेसचे अधिकृत प्रशासक तुमचा व्यवहार डेटा वाचू शकतात. कृपया वर्णनात बँक खाते किंवा कार्ड क्रमांकासारखी अत्यंत संवेदनशील माहिती टाकू नका."
 
 #: templates/privacy_policy.html:294
 msgid ""
@@ -18370,17 +18364,8 @@ msgid "Data at Rest"
 msgstr "साठवलेला डेटा"
 
 #: templates/security.html:40
-msgid ""
-"Our database is a managed PostgreSQL service hosted on Supabase in Mumbai, "
-"India, which encrypts stored data at the storage level. Transaction data is "
-"not additionally encrypted at the application level, so please avoid "
-"entering highly sensitive information, such as bank account or card numbers,"
-" in descriptions."
-msgstr ""
-"आमचा डेटाबेस मुंबई, भारत येथे Supabase वर होस्ट केलेली मॅनेज्ड PostgreSQL "
-"सेवा आहे, जी साठवलेला डेटा स्टोरेज पातळीवर एन्क्रिप्ट करते. व्यवहारांचा डेटा"
-" अॅप्लिकेशन पातळीवर वेगळा एन्क्रिप्ट केला जात नाही, त्यामुळे कृपया वर्णनात "
-"बँक खाते किंवा कार्ड नंबर यांसारखी अत्यंत संवेदनशील माहिती टाकू नका."
+msgid "Our database is a managed PostgreSQL service hosted on Supabase in Mumbai, India. Supabase encrypts stored data at rest (storage-level encryption). TrackMyRupee does not add a second layer of encryption inside the app, so the app itself, and authorised administrators of the database, can read the data. Please avoid entering highly sensitive information, such as bank account or card numbers, in descriptions."
+msgstr "आमचा डेटाबेस मुंबई, भारत येथे Supabase वर होस्ट केलेली व्यवस्थापित PostgreSQL सेवा आहे. Supabase साठवलेला डेटा एट-रेस्ट एन्क्रिप्ट करते (स्टोरेज-स्तरावरील एन्क्रिप्शन). TrackMyRupee अॅपमध्ये एन्क्रिप्शनचा दुसरा थर जोडत नाही, त्यामुळे अॅप स्वतः आणि डेटाबेसचे अधिकृत प्रशासक डेटा वाचू शकतात. कृपया वर्णनात बँक खाते किंवा कार्ड क्रमांकासारखी अत्यंत संवेदनशील माहिती टाकू नका."
 
 #: templates/security.html:59
 msgid "Data in Transit"
