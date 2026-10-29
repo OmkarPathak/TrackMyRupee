@@ -43,7 +43,7 @@ class LandingTourTests(TestCase):
         for gone in ('id="insights"', 'demo-input', 'networth-demo-data', 'class="pain-card', 'lang-strip',
                      'Salary credited.'):
             self.assertNotIn(gone, self.html)
-        for kept in ('id="family"', 'id="pricing"', 'class="founder-section"', 'class="cta-section"', 'class="hero"'):
+        for kept in ('id="family"', 'id="pricing"', 'class="founder-section"', 'class="cta-actions', 'class="hero"'):
             self.assertIn(kept, self.html)
 
     def test_the_stylesheet_and_script_are_linked_and_exist(self):

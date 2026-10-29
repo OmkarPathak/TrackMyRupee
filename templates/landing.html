@@ -169,14 +169,14 @@
             unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
     </style>
 
-    <!-- Bootstrap 5 CSS — kept blocking (required for above-the-fold layout) -->
+    <!-- Bootstrap 5 CSS: kept blocking (required for above-the-fold layout) -->
     <link href="{% static 'vendor/bootstrap/bootstrap.purged.min.css' %}" rel="stylesheet">
     <style>#tp-box:not(.tp-on){visibility:hidden}</style>
     <noscript><style>#tp-box:not(.tp-on){visibility:visible}</style></noscript>
     <!-- The product tour is below the fold: its stylesheet and script are fetched only once the page has loaded and the
          tour is close to the screen (see the loader at the end of the page), so they never compete with the first paint -->
     <noscript><link rel="stylesheet" href="{% static 'css/landing_tour.css' %}"></noscript>
-    <!-- Bootstrap Icons — non-blocking; all icons appear below-the-fold -->
+    <!-- Bootstrap Icons: non-blocking; all icons appear below-the-fold -->
     <link rel="preload" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}"></noscript>
 
@@ -352,6 +352,23 @@
             text-align: center;
         }
         /* No longer using custom grid for inner, using Bootstrap row/col */
+        .hero h1 { text-wrap: balance; }
+        .hero .hero-cities .badge { font-size: 12px; padding: 6px 12px !important; font-weight: 500 !important; }
+        .hero .hero-lede { max-width: 760px; font-size: 18px; line-height: 1.7; color: var(--tmr-ink-600); margin-bottom: 16px; }
+        .hero .hero-tagline { max-width: 640px; font-size: 17px; font-weight: 600; line-height: 1.5; color: var(--tmr-ink-900); margin-bottom: 22px; }
+        .hero .hero-note { max-width: 560px; font-size: 14px; font-weight: 500; line-height: 1.6; color: var(--tmr-ink-600); margin: 4px auto 14px; }
+        .hero .hero-proof { gap: 8px; font-size: 13px; font-weight: 600; color: var(--tmr-ink-800); margin-bottom: 36px; }
+        .hero .hero-proof li { padding: 5px 13px; background: var(--tmr-teal-50); border-radius: 99px; color: var(--tmr-teal-800); }
+        /* phones: the buttons must be on the first screen, so the hero is tighter and the chips (repeated in the text) wait */
+        @media (max-width: 575px) {
+            .hero { padding-top: 28px !important; padding-bottom: 28px !important; }
+            .hero h1 { font-size: clamp(2.2rem, 10.4vw, 2.7rem) !important; line-height: 1.08 !important; margin-bottom: 14px !important; }
+            .hero .hero-lede { font-size: 15.5px; line-height: 1.55; margin-bottom: 12px; }
+            .hero .hero-tagline { font-size: 15px; margin-bottom: 18px; }
+            .hero .hero-proof { display: none !important; }
+            .hero .hero-note { font-size: 13px; }
+        }
+        .hero .hero-accent { color: var(--tmr-teal-600); }
         .hero-eyebrow {
             display: inline-flex; align-items: center; gap: 8px;
             background: var(--accent-light); color: var(--tmr-primary-text, #085041);
@@ -360,10 +377,10 @@
         }
         .hero-eyebrow::before { content: ''; width: 6px; height: 6px; background: var(--color-success-text, #0F7657); border-radius: 50%; display: block; }
         .hero h1 {
-            font-size: clamp(40px, 6vw, 52px);
+            font-size: clamp(44px, 6.2vw, 64px);
             font-weight: 800;
             letter-spacing: -0.035em;
-            line-height: 1.0;
+            line-height: 1.02;
             color: var(--tmr-ink-900);
             margin-bottom: var(--space-4);
         }
@@ -534,7 +551,7 @@
 
         /* CONSOLIDATED TRUST SECTION */
         .trust-consolidated-card {
-            background: #ffffff;
+            background: var(--tmr-surface-1);
             border-radius: 28px;
             padding: 48px 40px;
             border: 1px solid var(--tmr-surface-2);
@@ -544,31 +561,23 @@
             margin-right: auto;
         }
 
-        .trust-pillar-card {
-            background: #F4F3EF;
-            border-radius: 16px;
-            padding: 24px 20px;
-            text-align: center;
-            height: 100%;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .trust-pillar-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .trust-pillar-icon-wrapper {
-            width: 44px;
-            height: 44px;
-            margin: 0 auto 16px;
-            border-radius: 50%;
-            background: #D6F2E7;
-            display: flex;
+        .trust-badge-pill {
+            background: #EFECE6;
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--tmr-ink-800);
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            color: var(--tmr-teal-600);
-            font-size: 18px;
+            gap: 8px;
+            text-decoration: none;
+            transition: background 0.2s ease;
         }
-
+        .trust-badge-pill:hover {
+            background: #e6e2d9;
+            color: var(--tmr-ink-900);
+        }
         .trust-comp-row {
             display: flex;
             gap: 12px;
@@ -613,86 +622,6 @@
             font-size: 12.5px;
             color: var(--tmr-ink-800);
             line-height: 1.45;
-        }
-
-        .trust-ba-box {
-            border-radius: 16px;
-            padding: 24px;
-            height: 100%;
-        }
-
-        .trust-ba-box.before {
-            background: var(--tmr-coral-50);
-        }
-
-        .trust-ba-box.after {
-            background: var(--tmr-teal-50);
-        }
-
-        .trust-ba-title {
-            font-weight: 700;
-            font-size: 15px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .trust-ba-box.before .trust-ba-title {
-            color: var(--tmr-coral-600);
-        }
-
-        .trust-ba-box.after .trust-ba-title {
-            color: var(--tmr-teal-600);
-        }
-
-        .trust-ba-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .trust-ba-list li {
-            font-size: 13.5px;
-            color: var(--tmr-ink-800);
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            line-height: 1.45;
-        }
-
-        .trust-ba-list li .icon {
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .trust-ba-box.before .trust-ba-list li .icon {
-            color: var(--tmr-coral-600);
-        }
-
-        .trust-ba-box.after .trust-ba-list li .icon {
-            color: var(--tmr-teal-600);
-        }
-
-        .trust-badge-pill {
-            background: #EFECE6;
-            border-radius: 50px;
-            padding: 8px 16px;
-            font-size: 12.5px;
-            font-weight: 500;
-            color: var(--tmr-ink-800);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            transition: background 0.2s ease;
-        }
-        .trust-badge-pill:hover {
-            background: #e6e2d9;
-            color: var(--tmr-ink-900);
         }
 
         @media (max-width: 767.98px) {
@@ -1111,8 +1040,6 @@
         .founder-name strong { color: var(--tmr-ink-100); }
 
         /* CTA */
-        .cta-section { text-align: center; }
-        .cta-section .section-title { margin: 0 auto var(--space-4); max-width: 600px; }
         .cta-actions { display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap; }
 
         /* FOOTER */
@@ -1223,93 +1150,21 @@
         .is-mobile-app body {
             padding-bottom: env(safe-area-inset-bottom, 0px) !important;
         }
-
-        /* Hero Image Positioning */
-        .hero-visual-wrapper {
-            max-width: 1100px;
-            margin: 60px auto 0;
-            padding: 0 40px;
-            position: relative;
-        }
-        .hero-mockups {
-            position: relative;
-            z-index: 1;
-            perspective: 1000px;
-        }
-        .desktop-mockup {
-            border-radius: 20px 20px 0 0;
-            overflow: hidden;
-            box-shadow: 0 40px 120px rgba(0,0,0,0.08);
-            border: 1px solid var(--tmr-surface-3);
-            border-bottom: none;
-            background: #ffffff;
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .mobile-mockup {
-            position: absolute;
-            right: -20px;
-            bottom: -40px;
-            width: 260px;
-            z-index: 2;
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            filter: drop-shadow(0 30px 60px rgba(0,0,0,0.12));
-            animation: float-mobile 6s ease-in-out infinite;
-        }
-        .mobile-mockup img {
-            width: 100%;
-            height: auto;
-            border-radius: 36px;
-        }
         @keyframes float-mobile {
             0%, 100% { transform: translateY(0) rotate(0deg); }
             50% { transform: translateY(-15px) rotate(1deg); }
-        }
-        .hero-mockups:hover .desktop-mockup {
-            transform: translateY(-5px);
-        }
-        .hero-mockups:hover .mobile-mockup {
-            transform: translateY(-20px) scale(1.02);
-            animation-play-state: paused;
         }
         .bg-teal-soft { background-color: rgba(29, 158, 117, 0.1); color: var(--color-success-text, #0F7657); }
 
         @media (max-width: 991px) {
             .hero { padding-top: 80px; padding-bottom: 40px; }
-            .hero-visual-wrapper { margin-top: 40px; padding: 0 20px; }
-            .desktop-mockup { border-radius: 12px 12px 0 0; }
-            .mobile-mockup {
-                width: 180px;
-                right: 10px;
-                bottom: -20px;
-            }
         }
         @media (max-width: 576px) {
-            .desktop-mockup { display: none; }
-            .hero-mockups { display: flex; justify-content: center; }
-            .mobile-mockup {
-                position: relative;
-                right: 0;
-                bottom: 0;
-                width: 240px;
-                filter: drop-shadow(0 20px 40px rgba(0,0,0,0.1));
-            }
         }
         .tmr-demo-row.show {
             opacity: 1;
             transform: translateY(0);
         }
-
-        /* Insights section: examples drawn like the in-app strips */
-        .ins-example { background: #ffffff; border: 1px solid var(--tmr-surface-3); border-radius: 16px; padding: 16px 18px;
-                       display: flex; gap: 14px; align-items: flex-start; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
-        .ins-example + .ins-example { margin-top: 12px; }
-        .ins-ico { flex: none; width: 32px; height: 32px; border-radius: 10px; background: var(--tmr-teal-50); color: var(--tmr-teal-600);
-                   display: inline-flex; align-items: center; justify-content: center; font-size: 15px; }
-        .ins-title { font-size: 15px; font-weight: 700; color: var(--tmr-ink-900); margin-bottom: 2px; }
-        .ins-text { font-size: 14px; color: var(--tmr-ink-600); line-height: 1.5; margin: 0; }
-        .ins-meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-        .ins-chip { font-size: 12px; font-weight: 600; color: var(--tmr-ink-600); background: var(--tmr-surface-1); border: 1px solid var(--tmr-surface-2);
-                    border-radius: 999px; padding: 2px 10px; }
         .ins-point { display: flex; gap: 12px; align-items: flex-start; }
         .ins-point + .ins-point { margin-top: 16px; }
         .ins-point i { color: var(--tmr-teal-600); font-size: 18px; margin-top: 2px; }
@@ -1330,23 +1185,33 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10 text-center">
-                <h1 class="mb-4">
-                    {% trans "The Financial Operating System for India." %}<br class="d-none d-md-block">
-                    {% trans "TrackMyRupee unifies your entire wealth." %}
-                </h1>
-                <p class="mx-auto mb-5" style="font-size: 19px; line-height: 1.6; color: var(--tmr-ink-600); max-width: 680px;">
-                    {% trans "Track your net worth, double-entry ledger, investments, loans, and monthly cashflow in one privacy-first powerhouse. No bank passwords required. No SMS reading." %}
-                </p>
+                <h1 class="mb-4">{% trans "Your entire financial life." %}<br> <span class="hero-accent">{% trans "One powerful place." %}</span></h1>
+                <p class="hero-lede mx-auto">{% trans "From your first savings account to a portfolio spanning mutual funds, stocks, FDs, PPF, NPS, gold, real estate and more. Track everything you own, see your complete net worth, and understand how your money is growing." %}</p>
+                <p class="hero-tagline mx-auto">{% trans "Simple enough for anyone. Powerful enough for everyone." %}</p>
+                <ul class="hero-proof list-unstyled d-flex flex-wrap justify-content-center mx-auto">
+                    <li>{% trans "30+ account types" %}</li>
+                    <li>{% trans "Complete net worth" %}</li>
+                    <li>{% trans "Built for power users" %}</li>
+                </ul>
                 <div class="d-flex flex-column align-items-center">
                     <div class="d-flex justify-content-center flex-wrap gap-3 mb-3">
-                        <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Launch Your Financial System" %}</a>
-                        <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Explore Live Demo" %} &rarr;</a>
+                        <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Start Free" %}</a>
+                        <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Try live demo" %}</a>
                     </div>
+                    <p class="hero-note mx-auto">{% trans "Everything is entered by you, never pulled from your bank or phone. No ads, ever. No bank or SMS permission, ever." %}</p>
                     <div style="font-size: 13px; color: var(--tmr-ink-600); font-weight: 500;">
                         <i class="bi bi-check"></i>
                         {% trans "It's free, takes 2 minutes" %}
                         <i class="bi bi-check"></i>
                         <span>{% blocktrans count count=total_users_count|default:172 %}Used by {{ count }} professional{% plural %}Used by {{ count }} professionals{% endblocktrans %}</span>
+                    </div>
+                    <div class="hero-cities d-flex flex-wrap justify-content-center gap-2 mt-3">
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Bangalore</span>
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Mumbai</span>
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Pune</span>
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Hyderabad</span>
+                        <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">Delhi</span>
+                        <span class="badge bg-light text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">{% trans "and 10 more cities" %}</span>
                     </div>
                 </div>
             </div>
@@ -1356,7 +1221,7 @@
 
 <!-- THE WHOLE PRODUCT: animated tour of the logged-in app (replaces the old feature sections). #features and #networth
      stay as anchors because the navbar and footer link to them. -->
-<section class="landing-section tp-sec" id="features" aria-labelledby="tp-title">
+<section class="landing-section tp-sec" id="features" aria-labelledby="tp-title" style="background: #ffffff;">
     <span id="networth" aria-hidden="true"></span>
     <div class="container py-4 py-md-5">
         <div class="text-center">
@@ -1446,7 +1311,7 @@
 </section>
 
 <!-- CONSOLIDATED TRUST SECTION -->
-<section class="landing-section py-5" style="background: var(--tmr-surface-1);">
+<section class="landing-section py-5" style="background: #ffffff;">
     <div class="container">
         <div class="trust-consolidated-card">
             <!-- Header -->
@@ -1458,54 +1323,8 @@
                     {% trans "Most finance apps sell<br class='d-none d-md-inline'> your behaviour. We don't." %}
                 </h2>
                 <p class="text-center mx-auto mb-0" style="max-width: 580px; color: var(--tmr-ink-600); font-size: 15px; line-height: 1.6;">
-                    {% trans "TrackMyRupee runs on subscriptions. Your data has no role in our business model, and never will." %}
+                    {% trans "TrackMyRupee runs on subscriptions: no ads, no selling your data, no profiles built on your behaviour. Your data has no role in our business model, and never will." %}
                 </p>
-            </div>
-
-            <!-- 3 Pillars Grid -->
-            <div class="row g-3 g-md-4 mb-5">
-                <!-- Pillar 1 -->
-                <div class="col-md-4">
-                    <div class="trust-pillar-card">
-                        <div class="trust-pillar-icon-wrapper">
-                            <i class="bi bi-check-circle-fill"></i>
-                        </div>
-                        <div class="fw-bold mb-2" style="font-size: 16px; color: var(--tmr-ink-900);">
-                            {% trans "No ads, ever" %}
-                        </div>
-                        <div style="font-size: 13px; color: var(--tmr-ink-600); line-height: 1.5;">
-                            {% trans "We don't run ads, sell your data, or build advertising profiles." %}
-                        </div>
-                    </div>
-                </div>
-                <!-- Pillar 2 -->
-                <div class="col-md-4">
-                    <div class="trust-pillar-card">
-                        <div class="trust-pillar-icon-wrapper">
-                            <i class="bi bi-lock-fill"></i>
-                        </div>
-                        <div class="fw-bold mb-2" style="font-size: 16px; color: var(--tmr-ink-900);">
-                            {% trans "Less exposure by design" %}
-                        </div>
-                        <div style="font-size: 13px; color: var(--tmr-ink-600); line-height: 1.5;">
-                            {% trans "We never connect to your bank or read your SMS, so those credentials can never be exposed through us." %}
-                        </div>
-                    </div>
-                </div>
-                <!-- Pillar 3 -->
-                <div class="col-md-4">
-                    <div class="trust-pillar-card">
-                        <div class="trust-pillar-icon-wrapper">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                        <div class="fw-bold mb-2" style="font-size: 16px; color: var(--tmr-ink-900);">
-                            {% trans "You're the customer" %}
-                        </div>
-                        <div style="font-size: 13px; color: var(--tmr-ink-600); line-height: 1.5;">
-                            {% trans "Subscription-funded. Our only job is to make the product better for you." %}
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Subsection 1: THE HONEST COMPARISON -->
@@ -1805,7 +1624,7 @@
 </section>
 
 <!-- TESTIMONIALS -->
-<section class="landing-section">
+<section class="landing-section" style="background: #ffffff;">
     <div class="container py-5">
         <div class="text-center">
             <div class="section-tag mx-auto">{% trans "Trusted by users" %}</div>
@@ -1861,7 +1680,7 @@
     </div>
 </section>
 
-<!-- FOUNDER -->
+<!-- FOUNDER AND CLOSING CALL TO ACTION -->
 <section class="founder-section" style="background: var(--tmr-ink-900); padding: var(--space-10) 0;">
     <div class="container text-center">
         <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-200, #5DCAA5); margin-bottom: var(--space-4);">{% trans "Built with purpose, not VC pressure" %}</div>
@@ -1873,18 +1692,13 @@
             <div class="founder-name" style="font-size: 18px; font-weight: 700; color: white;">Omkar Pathak</div>
             <div style="color: white;">{% trans "Founder · Pune, India" %}</div>
         </div>
-    </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section" style="background: var(--tmr-teal-50); padding: var(--space-10) 0;">
-    <div class="container text-center">
-        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-600); margin-bottom: var(--space-4);">{% trans "Ready to begin?" %}</div>
-        <h2 class="section-title mx-auto">{% trans "Your salary deserves a better story. Start writing it today." %}</h2>
-        <p class="mx-auto mb-5" style="font-size: 17px; color: var(--tmr-ink-600); max-width: 640px;">{% trans "Free to start. No bank access needed." %}</p>
-        <div class="cta-actions d-flex flex-wrap justify-content-center gap-3">
-            <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Start Free" %}</a>
-            <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Try live demo" %}</a>
+        <div class="mx-auto mt-5 pt-5" style="max-width: 680px; border-top: 1px solid rgba(255,255,255,0.14);">
+            <h2 class="section-title mx-auto" style="color: white;">{% trans "Your salary deserves a better story. Start writing it today." %}</h2>
+            <p class="mx-auto mb-4" style="font-size: 17px; color: rgba(255,255,255,0.78); max-width: 520px;">{% trans "Free to start. No bank access needed." %}</p>
+            <div class="cta-actions d-flex flex-wrap justify-content-center gap-3">
+                <a href="{% url 'account_signup' %}" class="btn-primary-landing" style="padding: 16px 32px; font-size: 16px;">{% trans "Start Free" %}</a>
+                <a href="{% url 'demo_login' %}" class="btn-secondary-landing" style="padding: 16px 32px; font-size: 16px; background: transparent; color: white; border-color: rgba(255,255,255,0.4);">{% trans "Try live demo" %}</a>
+            </div>
         </div>
     </div>
 </section>
@@ -1941,7 +1755,7 @@
             const label = el.dataset.label;
             const price = isYearly ? el.dataset.yearly : el.dataset.monthly;
             const suffix = isYearly ? '/yr' : '/mo';
-            el.textContent = label + ' — ₹' + price + suffix;
+            el.textContent = label + ': ₹' + price + suffix;
         });
     }
 
@@ -1970,6 +1784,11 @@
             document.head.appendChild(link);
         }
         function arm() {
+            // The tour is fetched when it comes near the screen. A first scroll or touch also starts it, so it can never
+            // stay empty if the browser is slow to report that it is visible.
+            ['scroll', 'touchstart', 'pointerdown', 'keydown'].forEach(function (name) {
+                window.addEventListener(name, start, { once: true, passive: true });
+            });
             if (!('IntersectionObserver' in window)) { start(); return; }
             var io = new IntersectionObserver(function (entries) {
                 if (entries[0].isIntersecting) { io.disconnect(); start(); }
@@ -1980,7 +1799,7 @@
     })();
     </script>
 
-    <!-- Bootstrap JS — deferred; landing page interactive elements don't depend on it synchronously -->
+    <!-- Bootstrap JS: deferred; landing page interactive elements don't depend on it synchronously -->
     <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}" defer></script>
 
     <!-- Django Messages Toast Container -->

@@ -23266,3 +23266,139 @@ msgstr "न SMS पढ़ना, न बैंक लॉगिन। परि�
 #: templates/landing.html
 msgid "Open this screen in the live demo"
 msgstr "इस स्क्रीन को लाइव डेमो में खोलें"
+
+#: templates/landing.html
+msgid "The Financial Operating System for India"
+msgstr "भारत का फ़ाइनेंशियल ऑपरेटिंग सिस्टम"
+
+#: templates/landing.html
+msgid "Know where every rupee went."
+msgstr "जानिए हर रुपया कहाँ गया।"
+
+#: templates/landing.html
+msgid "No SMS reading. No bank login."
+msgstr "न SMS पढ़ना। न बैंक लॉगिन।"
+
+#: templates/landing.html
+msgid "Net worth, a double-entry ledger, investments, loans and cash flow in one privacy-first place."
+msgstr "कुल संपत्ति, डबल-एंट्री बही-खाता, निवेश, लोन और कैश फ़्लो, एक ही प्राइवेसी-फ़र्स्ट जगह पर।"
+
+#: templates/landing.html
+msgid "TrackMyRupee runs on subscriptions: no ads, no selling your data, no profiles built on your behaviour. Your data has no role in our business model, and never will."
+msgstr "TrackMyRupee सब्सक्रिप्शन से चलता है: कोई विज्ञापन नहीं, आपका डेटा बेचना नहीं, आपके व्यवहार पर कोई प्रोफ़ाइल नहीं। आपके डेटा की हमारे बिज़नेस मॉडल में कोई भूमिका नहीं है, और कभी नहीं होगी।"
+
+#: templates/landing.html
+msgid "Free to start. No bank access needed."
+msgstr "शुरू करना मुफ़्त है। बैंक एक्सेस की ज़रूरत नहीं।"
+
+#: templates/landing.html
+msgid "Where did your salary go?"
+msgstr "आपकी सैलरी कहाँ गई?"
+
+#: templates/landing.html
+msgid "Just type what you spent, like “swiggy 320”. TrackMyRupee handles the rest, and it never asks for your bank login or reads your SMS."
+msgstr "बस लिख दीजिए कि क्या खर्च किया, जैसे “swiggy 320”। बाकी TrackMyRupee संभाल लेता है, और यह कभी आपका बैंक लॉगिन नहीं माँगता और न आपके SMS पढ़ता है।"
+
+#: templates/landing.html
+msgid "Your salary is gone by the 20th. Let's find out where."
+msgstr "आपकी सैलरी 20 तारीख तक खत्म हो जाती है। चलिए पता करते हैं कहाँ गई।"
+
+#: templates/landing.html
+msgid "Type what you spend, like “swiggy 320”, and watch the picture fill in: where it went, what you're worth, what's due next month. No bank login. No SMS access."
+msgstr "लिख दीजिए कि क्या खर्च किया, जैसे “swiggy 320”, और पूरी तस्वीर बनती जाती है: पैसा कहाँ गया, आपकी कुल संपत्ति कितनी है, अगले महीने क्या देना है। बैंक लॉगिन नहीं। SMS एक्सेस नहीं।"
+
+#: templates/landing.html
+msgid "You earn well."
+msgstr "आप अच्छा कमाते हैं।"
+
+#: templates/landing.html
+msgid "So why is month-end always a surprise?"
+msgstr "फिर महीने के आख़िर में हैरानी क्यों होती है?"
+
+#: templates/landing.html
+msgid "Type what you spend. See where it went, what you're worth and what's due next month. No bank login. No SMS access."
+msgstr "लिख दीजिए कि क्या खर्च किया। देखिए पैसा कहाँ गया, आपकी कुल संपत्ति कितनी है और अगले महीने क्या देना है। बैंक लॉगिन नहीं। SMS एक्सेस नहीं।"
+
+#: templates/landing.html
+msgid "Try it"
+msgstr "आज़माइए"
+
+#: templates/landing.html
+msgid "Type a spend, like swiggy 320"
+msgstr "कोई खर्च लिखिए, जैसे swiggy 320"
+
+#: templates/landing.html
+msgid "Add an amount, like 320"
+msgstr "रकम जोड़िए, जैसे 320"
+
+#: templates/landing.html
+msgid "Stop guessing where your <span class=\"hero-accent\">salary goes.</span>"
+msgstr "अंदाज़ा लगाना छोड़िए कि <span class=\"hero-accent\">आपकी सैलरी कहाँ जाती है।</span>"
+
+#: templates/landing.html
+msgid "Every other money app wants your bank login or your SMS inbox. TrackMyRupee wants neither. Type what you spend and watch your whole financial picture take shape."
+msgstr "बाक़ी हर मनी ऐप आपका बैंक लॉगिन या SMS इनबॉक्स माँगता है। TrackMyRupee दोनों में से कुछ नहीं माँगता। बस लिख दीजिए कि क्या खर्च किया, और अपनी पूरी वित्तीय तस्वीर बनते देखिए।"
+
+#: templates/landing.html
+msgid "The money app that speaks <span class=\"hero-accent\">PPF, SIPs and home loans.</span>"
+msgstr "वह मनी ऐप जो <span class=\"hero-accent\">PPF, SIP और होम लोन की भाषा समझता है।</span>"
+
+#: templates/landing.html
+msgid "30+ kinds of Indian accounts in one place, from salary accounts and FDs to NPS, gold, demat and your family's net worth. Easy on day one, deep enough for the spreadsheet crowd. No bank login. No SMS access."
+msgstr "30 से ज़्यादा तरह के भारतीय खाते एक ही जगह: सैलरी अकाउंट और FD से लेकर NPS, सोना, डीमैट और परिवार की कुल संपत्ति तक। पहले दिन आसान, और स्प्रेडशीट वालों के लिए काफ़ी गहरा। बैंक लॉगिन नहीं। SMS एक्सेस नहीं।"
+
+#: templates/landing.html
+msgid "India's most complete <span class=\"hero-accent\">money app.</span>"
+msgstr "भारत का सबसे संपूर्ण <span class=\"hero-accent\">मनी ऐप।</span>"
+
+#: templates/landing.html
+msgid "From salary accounts and FDs to PPF, NPS, SIPs, gold, demat, home loans and your family's net worth. Easy on day one, deep enough for the spreadsheet crowd. No bank login. No SMS access."
+msgstr "सैलरी अकाउंट और FD से लेकर PPF, NPS, SIP, सोना, डीमैट, होम लोन और परिवार की कुल संपत्ति तक। पहले दिन आसान, और स्प्रेडशीट वालों के लिए काफ़ी गहरा। बैंक लॉगिन नहीं। SMS एक्सेस नहीं।"
+
+#: templates/landing.html
+msgid "30+ account types"
+msgstr "30+ तरह के खाते"
+
+#: templates/landing.html
+msgid "Hindi, Marathi, English"
+msgstr "हिंदी, मराठी, अंग्रेज़ी"
+
+#: templates/landing.html
+msgid "Open source"
+msgstr "ओपन सोर्स"
+
+#: templates/landing.html
+msgid "From salary accounts and FDs to PPF, NPS, SIPs, gold, demat, home loans and your family's net worth. Easy on day one, deep enough for the spreadsheet crowd."
+msgstr "सैलरी अकाउंट और FD से लेकर PPF, NPS, SIP, सोना, डीमैट, होम लोन और परिवार की कुल संपत्ति तक। पहले दिन आसान, और स्प्रेडशीट वालों के लिए काफ़ी गहरा।"
+
+#: templates/landing.html
+msgid "Everything is entered by you, never pulled from your bank or phone. No ads, ever. No bank or SMS permission, ever."
+msgstr "सब कुछ आप खुद दर्ज करते हैं, आपके बैंक या फ़ोन से कुछ नहीं खींचा जाता। कभी विज्ञापन नहीं। बैंक या SMS की अनुमति कभी नहीं।"
+
+#: templates/landing.html
+msgid "Your entire financial life."
+msgstr "आपकी पूरी वित्तीय ज़िंदगी।"
+
+#: templates/landing.html
+msgid "One powerful place."
+msgstr "एक दमदार जगह।"
+
+#: templates/landing.html
+msgid "From your first savings account to a portfolio spanning mutual funds, stocks, FDs, PPF, NPS, gold, real estate and more — track everything you own, see your complete net worth, and understand how your money is growing."
+msgstr "आपके पहले बचत खाते से लेकर म्यूचुअल फंड, शेयर, FD, PPF, NPS, सोना, रियल एस्टेट और बहुत कुछ वाले पोर्टफोलियो तक, जो कुछ आपके पास है सब ट्रैक कीजिए, अपनी पूरी कुल संपत्ति देखिए और समझिए कि आपका पैसा कैसे बढ़ रहा है।"
+
+#: templates/landing.html
+msgid "Simple enough for anyone. Powerful enough for everyone."
+msgstr "किसी के लिए भी आसान। हर किसी के लिए दमदार।"
+
+#: templates/landing.html
+msgid "Complete net worth"
+msgstr "संपूर्ण कुल संपत्ति"
+
+#: templates/landing.html
+msgid "Built for power users"
+msgstr "पावर यूज़र्स के लिए बना"
+
+#: templates/landing.html
+msgid "From your first savings account to a portfolio spanning mutual funds, stocks, FDs, PPF, NPS, gold, real estate and more. Track everything you own, see your complete net worth, and understand how your money is growing."
+msgstr "आपके पहले बचत खाते से लेकर म्यूचुअल फंड, शेयर, FD, PPF, NPS, सोना, रियल एस्टेट और बहुत कुछ वाले पोर्टफोलियो तक, जो कुछ आपके पास है सब ट्रैक कीजिए, अपनी पूरी कुल संपत्ति देखिए और समझिए कि आपका पैसा कैसे बढ़ रहा है।"
