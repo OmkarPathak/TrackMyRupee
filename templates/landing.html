@@ -176,6 +176,9 @@
 
     <!-- Bootstrap 5 CSS — kept blocking (required for above-the-fold layout) -->
     <link href="{% static 'vendor/bootstrap/bootstrap.purged.min.css' %}" rel="stylesheet">
+    <!-- The product tour (below the fold), so it does not block the first paint -->
+    <link rel="preload" href="{% static 'css/landing_tour.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{% static 'css/landing_tour.css' %}"></noscript>
     <!-- Bootstrap Icons — non-blocking; all icons appear below-the-fold -->
     <link rel="preload" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}"></noscript>
@@ -473,27 +476,6 @@
         .pain-section .section-title { color: var(--tmr-ink-50); }
         .pain-section .section-sub { color: rgba(250,249,246,0.65); }
         .pain-section .section-tag { color: var(--tmr-teal-200, #5DCAA5); }
-        .pain-card {
-            background: var(--tmr-surface-0); 
-            border: 0.1px solid var(--tmr-surface-3);
-            border-radius: var(--radius-lg); 
-            padding: var(--space-6);
-            transition: all .2s ease;
-        }
-        .pain-card:hover { border-color: var(--tmr-teal-400); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.05); }
-        .pain-q { font-size: 16px; font-weight: 800; color: var(--tmr-ink-900); margin-bottom: 12px; letter-spacing: -0.01em; }
-        .pain-a { font-size: 14px; color: var(--tmr-ink-600); line-height: 1.65; }
-
-        /* FEATURES */
-        /* FEATURES */
-        .feature-card {
-            background: var(--tmr-surface-0); 
-            border: 0.1px solid var(--tmr-surface-3);
-            border-radius: var(--radius-lg); 
-            padding: var(--space-5);
-            transition: all .2s ease;
-        }
-        .feature-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.05); transform: translateY(-2px); border-color: var(--tmr-teal-400); }
         .feature-icon {
             width: 40px; height: 40px; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
@@ -502,19 +484,6 @@
         .feature-icon.green { background: var(--accent-light); }
         .feature-icon.orange { background: var(--accent2-light); }
         .feature-icon.red { background: var(--danger-light); }
-        .feature-title { 
-            font-size: 18px; 
-            font-weight: 800; 
-            color: var(--tmr-ink-900); 
-            letter-spacing: -0.02em;
-            margin-bottom: var(--space-2); 
-        }
-        .feature-desc { 
-            font-size: 14px; 
-            font-weight: 400;
-            color: var(--tmr-ink-600); 
-            line-height: 1.65; 
-        }
         .feature-new {
             display: inline-block; font-size: 10px; font-weight: 500;
             background: var(--color-success-text, #0F7657); color: #ffffff;
@@ -780,32 +749,6 @@
             background: #F4F3EF;
             border-radius: 12px;
             padding: 12px 14px;
-        }
-
-        .account-category-card {
-            background: #ffffff;
-            border: 1px solid var(--tmr-surface-2);
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            transition: border-color 0.2s ease, transform 0.2s ease;
-        }
-        .account-category-card:hover {
-            border-color: var(--tmr-teal-400);
-            transform: translateY(-2px);
-        }
-
-        .account-category-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
         }
 
         @media (max-width: 575.98px) {
@@ -1150,20 +1093,6 @@
             background: rgba(0, 0, 0, 0.03) !important;
         }
 
-        /* LANGUAGES */
-        .lang-strip {
-            background: var(--paper2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-            padding: 20px 5%; display: flex; align-items: center; gap: 20px; justify-content: center;
-            flex-wrap: wrap;
-        }
-        .lang-strip-label { font-size: 13px; color: var(--ink2); }
-        .lang-pill {
-            background: white; border: 1px solid var(--border);
-            border-radius: 99px; padding: 6px 16px;
-            font-size: 13px; font-weight: 500; color: var(--ink);
-            display: flex; align-items: center; gap: 6px;
-        }
-
         /* FOUNDER */
         .founder-section { background: var(--ink); padding: 70px 5%; }
         .founder-inner { max-width: 800px; margin: 0 auto; text-align: center; }
@@ -1345,78 +1274,6 @@
             transform: translateY(-20px) scale(1.02);
             animation-play-state: paused;
         }
-
-        /* MAGIC DEMO SECTION */
-        .demo-card {
-            background: #ffffff;
-            border: 1px solid var(--tmr-surface-3);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            transition: transform 0.3s ease;
-        }
-        .demo-input {
-            font-size: 1rem;
-            border-radius: 12px;
-            background: var(--tmr-surface-1);
-            border: 1px solid transparent;
-            padding: 12px 16px;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
-            color: var(--tmr-ink-900);
-            font-weight: 500;
-        }
-        .demo-input:focus {
-            background: white;
-            border-color: var(--tmr-teal-400);
-            box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.1);
-            outline: none;
-        }
-        .result-panel {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 16px;
-            border: 1px solid var(--tmr-surface-3);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            text-align: center;
-            height: 100%;
-            justify-content: center;
-        }
-        .result-amount {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--tmr-teal-400);
-            letter-spacing: -0.04em;
-            line-height: 1;
-        }
-        .result-cat-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            background: var(--tmr-teal-50);
-            color: var(--tmr-teal-600);
-            padding: 8px 16px;
-            border-radius: 99px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin: 0 auto;
-        }
-        .result-desc-label {
-            font-size: 0.7rem;
-            color: var(--tmr-ink-400);
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 2px;
-        }
-        .result-desc-text {
-            font-size: 0.9rem;
-            color: var(--tmr-ink-900);
-            font-weight: 500;
-        }
         .bg-teal-soft { background-color: rgba(29, 158, 117, 0.1); color: var(--color-success-text, #0F7657); }
 
         @media (max-width: 991px) {
@@ -1440,120 +1297,10 @@
                 filter: drop-shadow(0 20px 40px rgba(0,0,0,0.1));
             }
         }
-
-        /* Live Net Worth Demo Widget Styles */
-        .tmr-demo-card {
-            background: #ffffff;
-            border: 1px solid var(--tmr-ink-200, #D4D4D2);
-            border-radius: 20px;
-            padding: 22px 22px 18px;
-            box-shadow: 0 1px 2px rgba(26,26,25,0.05), 0 16px 40px rgba(26,26,25,0.07);
-            overflow: hidden;
-        }
-        .tmr-nw-label {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--tmr-ink-400, #9E9D9A);
-            margin-bottom: 4px;
-        }
-        .tmr-nw-value {
-            font-size: clamp(24px, 4vw, 32px);
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            font-variant-numeric: tabular-nums;
-            color: var(--tmr-ink-900, #1A1A19);
-        }
-        .tmr-nw-sub {
-            font-size: 12px;
-            color: var(--tmr-teal-600, #0F6E56);
-            font-weight: 700;
-            margin-top: 4px;
-            min-height: 20px;
-            line-height: 20px;
-        }
-        .tmr-live-badge {
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--tmr-teal-600, #0F6E56);
-            letter-spacing: 0.06em;
-        }
-        .tmr-pulse-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--tmr-teal-400, #1D9E75);
-            display: inline-block;
-            animation: tmrPulse 1.6s ease-in-out infinite;
-        }
-        @keyframes tmrPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.8); }
-        }
-        .tmr-demo-rows {
-        }
-        .tmr-demo-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--tmr-surface-0, #faf9f6);
-            border-radius: 12px;
-            padding: 10px 12px;
-            opacity: 0;
-            transform: translateY(8px);
-            transition: opacity 0.45s ease, transform 0.45s ease;
-        }
         .tmr-demo-row.show {
             opacity: 1;
             transform: translateY(0);
         }
-        .tmr-row-icon {
-            flex-shrink: 0;
-            width: 34px;
-            height: 34px;
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-        }
-        .tmr-row-body {
-            flex: 1;
-            min-width: 0;
-        }
-        .tmr-row-name {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: var(--tmr-ink-900, #1A1A19);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .tmr-row-cat {
-            font-size: 11px;
-            color: var(--tmr-ink-400, #9E9D9A);
-        }
-        .tmr-row-amt {
-            font-size: 14px;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-            flex-shrink: 0;
-        }
-        .cat-cash .tmr-row-icon { background: #E1F5EE; color: #085041; }
-        .cat-cash .tmr-row-amt { color: #0F6E56; }
-        .cat-fixed .tmr-row-icon { background: #FDF3E3; color: #633806; }
-        .cat-fixed .tmr-row-amt { color: #8F4E00; }
-        .cat-invest .tmr-row-icon { background: #E6F1FB; color: #0C447C; }
-        .cat-invest .tmr-row-amt { color: #185FA5; }
-        .cat-physical .tmr-row-icon { background: #E1F5EE; color: #085041; }
-        .cat-physical .tmr-row-amt { color: #0F6E56; }
-        .cat-credit .tmr-row-icon { background: #FEF0EE; color: #712B13; }
-        .cat-credit .tmr-row-amt { color: #A63C28; }
-        .cat-loan .tmr-row-icon { background: #FEF0EE; color: #712B13; }
-        .cat-loan .tmr-row-amt { color: #A63C28; }
-        .cat-insurance .tmr-row-icon { background: #E1F5EE; color: #085041; }
-        .cat-insurance .tmr-row-amt { color: #0F6E56; }
 
         /* Insights section: examples drawn like the in-app strips */
         .ins-example { background: #ffffff; border: 1px solid var(--tmr-surface-3); border-radius: 16px; padding: 16px 18px;
@@ -1566,7 +1313,6 @@
         .ins-meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .ins-chip { font-size: 12px; font-weight: 600; color: var(--tmr-ink-600); background: var(--tmr-surface-1); border: 1px solid var(--tmr-surface-2);
                     border-radius: 999px; padding: 2px 10px; }
-        .ins-step { font-size: 13px; font-weight: 700; color: var(--tmr-teal-600); margin-left: auto; }
         .ins-point { display: flex; gap: 12px; align-items: flex-start; }
         .ins-point + .ins-point { margin-top: 16px; }
         .ins-point i { color: var(--tmr-teal-600); font-size: 18px; margin-top: 2px; }
@@ -1643,325 +1389,72 @@
     </div>
 </section>
 
-<!-- NET WORTH SPOTLIGHT -->
-<section class="landing-section" id="networth" style="background: var(--tmr-surface-1);">
-    <div class="container py-5">
-        <div class="row align-items-center g-5">
-            <!-- Left Dashboard Card: Live Net Worth Demo Widget -->
-            <div class="col-lg-5 order-2 order-lg-1">
-                {{ demo_networth_rows|json_script:"networth-demo-data" }}
-                <div class="tmr-demo-card mx-auto mx-lg-0">
-                    <div class="tmr-demo-top d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <div class="tmr-nw-label">{% trans "NET WORTH" %}</div>
-                            <div class="tmr-nw-value" id="tmrNwValue">₹0</div>
-                            <div class="tmr-nw-sub" id="tmrNwSub"></div>
-                        </div>
-                        <div class="tmr-live-badge d-flex align-items-center gap-1 fw-bold">
-                            <span class="tmr-pulse-dot me-1"></span>
-                            <span>{% trans "LIVE" %}</span>
-                        </div>
-                    </div>
+<!-- THE WHOLE PRODUCT: animated tour of the logged-in app (replaces the old feature sections). #features and #networth
+     stay as anchors because the navbar and footer link to them. -->
+<section class="landing-section tp-sec" id="features" aria-labelledby="tp-title">
+    <span id="networth" aria-hidden="true"></span>
+    <div class="container py-4 py-md-5">
+        <div class="text-center">
+            <div class="section-tag">{% trans "The whole product" %}</div>
+            <h2 class="section-title mx-auto" id="tp-title" style="max-width: 760px;">{% trans "See it work, before you sign up." %}</h2>
+            <p class="section-sub mx-auto" style="margin-bottom: var(--space-4);">{% trans "This is what you get after you log in, on your computer or your phone. Pick a screen, or let it play." %}</p>
+        </div>
 
-                    <div class="tmr-demo-rows d-flex flex-column gap-2" id="tmrDemoRows">
-                        {% for item in demo_networth_rows %}
-                        <div class="tmr-demo-row {{ item.category }}">
-                            <div class="tmr-row-icon"><i class="bi {{ item.icon|default:'bi-cash' }}"></i></div>
-                            <div class="tmr-row-body">
-                                <div class="tmr-row-name">{{ item.name }}</div>
-                                <div class="tmr-row-cat">{{ item.category_label }}</div>
-                            </div>
-                            <div class="tmr-row-amt">{% if item.is_liability %}-{% else %}+{% endif %}₹{{ item.formatted_amount }}</div>
-                        </div>
-                        {% endfor %}
-                    </div>
+        <div id="tp-box" class="tp-box">
+            <div class="tp-dev" id="tp-dev">
+                <div class="tp-tg" role="group" aria-label="{% trans 'Device' %}">
+                    <button type="button" data-m="desk" aria-pressed="true">{% trans "Computer" %}</button>
+                    <button type="button" data-m="phone" aria-pressed="false">{% trans "Phone" %}</button>
+                </div>
+                <button type="button" class="tp-pause" id="tp-pause" aria-pressed="false" data-pause="{% trans 'Pause' %}" data-play="{% trans 'Play' %}">{% trans "Pause" %}</button>
+            </div>
+            <div class="tp-pills" role="tablist" aria-label="{% trans 'Product tour' %}" id="tp-pills"></div>
 
+            <div class="tp-stage" id="tp-stage">
+                <div class="tp-callout l1">{% trans "Installs like an app" %}<small>{% trans "Add to your home screen. No app store." %}</small></div>
+                <div class="tp-callout l2">{% trans "Works offline" %}<small>{% trans "Opens fast, even on a weak signal." %}</small></div>
+                <div class="tp-callout r1">{% trans "Type, don't tap through menus" %}<small>{% trans "“swiggy 320” is enough." %}</small></div>
+                <div class="tp-callout r2">{% trans "No SMS reading" %}<small>{% trans "And no bank login. You stay in control." %}</small></div>
+                <div class="tp-frame" id="tp-frame">
+                    <div class="tp-bar" aria-hidden="true"><i></i><i></i><i></i><span>trackmyrupee.com/dashboard</span></div>
+                    <div class="tp-vp" id="tp-vp" aria-hidden="true"><div class="tp-sim" id="tp-sim"></div></div>
                 </div>
             </div>
+            <div class="tp-cap" id="tp-cap" aria-live="polite"></div>
+            <noscript><p class="text-center" style="color: var(--tmr-ink-600);">{% trans "The product tour needs JavaScript." %} <a href="{% url 'demo_login' %}">{% trans "Explore Live Demo" %} &rarr;</a></p></noscript>
+        </div>
 
-            <!-- Right Column: Explainer & 4 Account Category Micro-Cards -->
-            <div class="col-lg-7 order-1 order-lg-2">
-                <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-600); margin-bottom: 12px;">
-                    {% trans "YOUR FINANCIAL PICTURE" %}
-                </div>
-                <h2 class="section-title mb-3">
-                    {% trans "Everything your salary story needs." %}<br>
-                    {% trans "Know your real net worth." %}
-                </h2>
-                <p style="font-size: 15px; color: var(--tmr-ink-600); line-height: 1.6; margin-bottom: 24px;">
-                    {% trans "Track your PF, PPF, NPS, mutual funds, FDs, RDs, and credit cards - everything that makes up your real Indian net worth without logging into 6 different apps." %}
-                </p>
-
-                <!-- 2x2 Account Category Micro-Cards -->
-                <div class="row g-3 d-none d-md-flex">
-                    <!-- Card 1 -->
-                    <div class="col-sm-6">
-                        <div class="account-category-card">
-                            <div class="account-category-icon" style="background: var(--tmr-teal-50); color: var(--tmr-teal-600);">
-                                <i class="bi bi-bank"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold text-dark" style="font-size: 14px;">{% trans "Savings & Current" %}</div>
-                                <div style="font-size: 12px; color: var(--tmr-ink-600);">{% trans "HDFC, ICICI, SBI accounts" %}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card 2 -->
-                    <div class="col-sm-6">
-                        <div class="account-category-card">
-                            <div class="account-category-icon" style="background: var(--tmr-blue-50); color: var(--tmr-blue-600);">
-                                <i class="bi bi-graph-up-arrow"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold text-dark" style="font-size: 14px;">{% trans "Mutual Funds & Stocks" %}</div>
-                                <div style="font-size: 12px; color: var(--tmr-ink-600);">{% trans "Zerodha, Groww, SIPs" %}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card 3 -->
-                    <div class="col-sm-6">
-                        <div class="account-category-card">
-                            <div class="account-category-icon" style="background: var(--tmr-amber-50); color: var(--tmr-amber-600);">
-                                <i class="bi bi-safe"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold text-dark" style="font-size: 14px;">{% trans "FDs, EPF & PPF" %}</div>
-                                <div style="font-size: 12px; color: var(--tmr-ink-600);">{% trans "Provident Fund, NPS, FDs" %}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Card 4 -->
-                    <div class="col-sm-6">
-                        <div class="account-category-card">
-                            <div class="account-category-icon" style="background: var(--tmr-coral-50); color: var(--tmr-coral-600);">
-                                <i class="bi bi-credit-card-2-front"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold text-dark" style="font-size: 14px;">{% trans "Credit Cards & Loans" %}</div>
-                                <div style="font-size: 12px; color: var(--tmr-ink-600);">{% trans "Autotracked liabilities" %}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div class="tp-more text-center">
+            <div class="tp-more-label">{% trans "And more, built in" %}</div>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">{% trans "English, Hindi and Marathi" %}</span>
+                <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">{% trans "Any currency next to ₹" %}</span>
+                <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">{% trans "Recurring items and SIPs" %}</span>
+                <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">{% trans "Smart insights" %}</span>
+                <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">{% trans "Double-entry ledger" %}</span>
+                <span class="badge bg-white text-secondary-emphasis border px-3 py-2 rounded-pill fw-medium">{% trans "CSV export anytime" %}</span>
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'features' %}" class="btn-primary-landing">{% trans "Explore All Features" %} <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
-    </div>
-</section>
 
-<!-- MAGIC DEMO -->
-<section class="landing-section order-1" style="background: #ffffff; border-bottom: 1px solid var(--tmr-surface-2);">
-    <div class="container py-4 mt-5">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-5">
-                <div class="section-tag">{% trans "ZERO-FRICTION INPUT" %}</div>
-                <h2 class="section-title">{% trans "Just type. We'll handle the rest." %}</h2>
-                <p class="section-sub">{% blocktrans %}Forget navigating through complex menus. Spend <strong>less than 3 seconds</strong> typing naturally, and TrackMyRupee automatically extracts the amount, routes it to your double-entry ledger, and updates your net worth.{% endblocktrans %}</p>
-                
-                <div class="d-flex flex-wrap gap-2 mt-4">
-                    <span class="badge border suggestion-chip bg-light text-dark py-2 px-3" onclick="runDemo('tea at tapri 20')">tea at tapri 20</span>
-                    <span class="badge border suggestion-chip bg-light text-dark py-2 px-3" onclick="runDemo('500 swiggy dinner')">500 swiggy dinner</span>
-                    <span class="badge border suggestion-chip bg-light text-dark py-2 px-3" onclick="runDemo('₹450 uber to office')">₹450 uber to office</span>
-                </div>
-            </div>
-            <div class="col-lg-7">
-                <div class="demo-card">
-                    <div class="row g-4">
-                        <div class="col-md-7">
-                            <label class="form-label small fw-700 text-uppercase mb-2" style="font-size: 0.65rem; color: var(--tmr-ink-600);">{% trans "What did you spend?" %}</label>
-                            <textarea id="demo-input" class="form-control demo-input w-100" rows="2" 
-                                placeholder="{% trans 'e.g. 500 for lunch with friends' %}" style="resize: none;">500 for lunch with friends</textarea>
-                            <div class="mt-2 d-flex align-items-center gap-2" style="font-size: 0.65rem; color: var(--tmr-ink-600);">
-                                <i class="bi bi-info-circle"></i>
-                                <span>{% trans "Parsed instantly in your browser" %}</span>
-                            </div>
-                        </div>
-                        <div class="col-md-5">
-                            <div class="result-panel">
-                                <div>
-                                    <div class="result-amount" id="demo-res-amount">₹500</div>
-                                </div>
-                                <div class="result-cat-pill" id="demo-res-category-pill">
-                                    <i class="bi bi-tag-fill"></i>
-                                    <span id="demo-res-category">{% trans "Food" %}</span>
-                                </div>
-                                <div class="mt-2">
-                                    <div class="result-desc-label">{% trans "Description" %}</div>
-                                    <div class="result-desc-text text-truncate px-2" id="demo-res-desc">For lunch with friends</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Trust Bar -->
-                <div class="mt-4 d-flex align-items-center justify-content-center gap-2 gap-md-4 flex-wrap" style="font-size: 0.8rem; color: var(--tmr-ink-600);">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-shield-check text-success"></i>
-                        <span>{% trans "No SMS reading" %}</span>
-                    </div>
-                    <span class="d-none d-md-block opacity-50">|</span>
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-lock text-success"></i>
-                        <span>{% trans "No bank login required" %}</span>
-                    </div>
-                    <span class="d-none d-md-block opacity-50">|</span>
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-person-check text-success"></i>
-                        <span>{% trans "Your data, always yours" %}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-
-<!-- PAIN SECTION -->
-<section class="landing-section">
-    <div class="container py-5">
-        <div class="section-tag">{% trans "The Problem" %}</div>
-        <h2 class="section-title">{% trans "Salary credited." %} <br>{% trans "Three weeks later... where did it go?" %}</h2>
-        <p class="section-sub">{% trans "Sound familiar?" %}</p>
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-4">
-                <div class="pain-card h-100">
-                    <div class="pain-q">"{% trans "I do SIPs and still feel broke every month." %}"</div>
-                    <div class="pain-a">{% trans "Your savings account, investments, and credit card balance in a single net worth number — so you can finally see it growing." %}</div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="pain-card h-100">
-                    <div class="pain-q">"{% trans "I tried Walnut and Money Manager. Both felt invasive." %}"</div>
-                    <div class="pain-a">{% trans "TrackMyRupee never touches your SMS or bank. You log what you want to track. Nothing more." %}</div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="pain-card h-100">
-                    <div class="pain-q">"{% trans "I want to save more but don't know where to cut." %}"</div>
-                    <div class="pain-a">{% trans "Insights point out which categories are quietly rising month over month, and by exactly how much." %}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-<!-- COMPLETE FINANCIAL SYSTEM -->
-<section class="landing-section" style="background: var(--tmr-surface-0);">
-    <div class="container py-5">
-        <div class="text-center mb-5">
-            <div class="section-tag mx-auto">{% trans "THE POWERHOUSE SYSTEM" %}</div>
-            <h2 class="section-title mx-auto" style="max-width: 800px;">{% trans "One platform. Everything your personal finance operating system needs." %}</h2>
-        </div>
-        
-        <div class="row g-4 mx-auto" style="max-width: 900px;">
-            <div class="col-md-6">
-                <div class="d-flex align-items-start gap-3">
-                    <div style="font-size: 24px; line-height: 1;">🏦</div>
-                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Loan & EMI Amortization" %}</span> — {% trans "floating rates + early payoff planner" %}
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="d-flex align-items-start gap-3">
-                    <div style="font-size: 24px; line-height: 1;">📊</div>
-                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Double-Entry Accounting Engine" %}</span> — {% trans "zero-leakage precision" %}
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="d-flex align-items-start gap-3">
-                    <div style="font-size: 24px; line-height: 1;">🎯</div>
-                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Capital Events & Milestones" %}</span> <span style="color: var(--tmr-ink-600);">{% trans "(isolate large purchases without skewing monthly budgets)" %}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="d-flex align-items-start gap-3">
-                    <div style="font-size: 24px; line-height: 1;">🏠</div>
-                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Multi-Asset Portfolio Tracker" %}</span> <span style="color: var(--tmr-ink-600);">{% trans "(track EPF, PPF, NPS, mutual funds, FDs, gold & real estate)" %}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="d-flex align-items-start gap-3">
-                    <div style="font-size: 24px; line-height: 1;">📈</div>
-                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "12-Month Net Worth Analytics" %}</span> — {% trans "real-time trajectory and savings targets" %}
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="d-flex align-items-start gap-3">
-                    <div style="font-size: 24px; line-height: 1;">🔒</div>
-                    <div style="font-size: 15px; color: var(--tmr-ink-800); line-height: 1.5;">
-                        <span class="fw-bold text-dark">{% trans "Your data, your control" %}</span>: {% trans "self-hostable, instant CSV export, DPDP Act-aligned data handling" %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-
-
-<!-- INSIGHTS: the differentiator -->
-<section class="landing-section" id="insights" style="background: #ffffff; border-top: 1px solid var(--tmr-surface-2); border-bottom: 1px solid var(--tmr-surface-2);">
-    <div class="container py-5">
-        <div class="row g-5 align-items-center">
-            <div class="col-lg-6 text-center text-lg-start">
-                <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-400); margin-bottom: var(--space-3);">{% trans "Insights" %}</div>
-                <h2 class="section-title">{% trans "It notices. You decide." %}</h2>
-                <p style="color: var(--tmr-ink-600); font-size: 16px; line-height: 1.6; max-width: 520px;" class="mx-auto mx-lg-0">{% trans "Most apps show you a list and leave the reading to you. TrackMyRupee reads your own entries and says what is worth a look, in one calm sentence, with the numbers behind it." %}</p>
-                <div class="mt-4 text-start" style="max-width: 520px;">
-                    <div class="ins-point"><i class="bi bi-bell"></i><div><strong>{% trans "Before it becomes a problem" %}</strong><span>{% trans "A budget running out early, a deposit about to mature, a card billing date, a bill that changed price, a salary that is late." %}</span></div></div>
-                    <div class="ins-point"><i class="bi bi-search"></i><div><strong>{% trans "Every number opens the entries behind it" %}</strong><span>{% trans "Tap a figure and see the exact transactions. Nothing is a black box." %}</span></div></div>
-                    <div class="ins-point"><i class="bi bi-heart"></i><div><strong>{% trans "Calm, never alarming" %}</strong><span>{% trans "It leads with what is going well, never compares you with other people, and never predicts the markets." %}</span></div></div>
-                    <div class="ins-point"><i class="bi bi-calendar-check"></i><div><strong>{% trans "Follows your real month" %}</strong><span>{% trans "Built on your salary cycle, your budgets and your currency, so it always agrees with the rest of the app." %}</span></div></div>
-                    <div class="ins-point"><i class="bi bi-sliders"></i><div><strong>{% trans "You set the volume" %}</strong><span>{% trans "Choose the topics and how often it speaks, or keep it to the pages. Included on every plan." %}</span></div></div>
-                </div>
-                <div class="mt-4 d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
-                    <a href="{% url 'demo_login' %}" class="btn-primary-landing">{% trans "See it in the live demo" %} <i class="bi bi-arrow-right"></i></a>
-                    <a href="{% url 'features' %}#noticing" class="btn-secondary-landing">{% trans "How insights work" %}</a>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div aria-label="{% trans 'Examples of insights' %}">
-                    <div class="ins-example">
-                        <span class="ins-ico"><i class="bi bi-piggy-bank"></i></span>
-                        <div>
-                            <div class="ins-title">{% trans "Transport may reach its limit early" %}</div>
-                            <p class="ins-text">{% trans "At this pace, Transport could reach its ₹5k limit around the 28th; ₹4k is used so far. If that sounds right, you could ease the pace or leave it." %}</p>
-                            <div class="ins-meta"><span class="ins-chip">{% trans "Used so far" %} ₹4,000</span><span class="ins-chip">{% trans "Limit" %} ₹5,000</span><span class="ins-step">{% trans "Review the limit" %} &rarr;</span></div>
-                        </div>
-                    </div>
-                    <div class="ins-example">
-                        <span class="ins-ico"><i class="bi bi-bank"></i></span>
-                        <div>
-                            <div class="ins-title">{% trans "A deposit matures soon" %}</div>
-                            <p class="ins-text">{% trans "Your FD matures on 3 Nov, with about ₹2.1L coming back to you. You might decide where it goes next, or leave it for now." %}</p>
-                            <div class="ins-meta"><span class="ins-chip">{% trans "Matures" %} 3 Nov</span><span class="ins-chip">₹2,10,000</span></div>
-                        </div>
-                    </div>
-                    <div class="ins-example">
-                        <span class="ins-ico"><i class="bi bi-arrow-repeat"></i></span>
-                        <div>
-                            <div class="ins-title">{% trans "Netflix now costs a bit more" %}</div>
-                            <p class="ins-text">{% trans "Netflix went up from ₹499 to ₹649 on the latest entry. If you expected this, you can dismiss it." %}</p>
-                            <div class="ins-meta"><span class="ins-chip">₹499 &rarr; ₹649</span><span class="ins-step">{% trans "Review subscriptions" %} &rarr;</span></div>
-                        </div>
-                    </div>
-                    <div class="ins-example">
-                        <span class="ins-ico"><i class="bi bi-graph-up-arrow"></i></span>
-                        <div>
-                            <div class="ins-title">{% trans "A steady run of saving" %}</div>
-                            <p class="ins-text">{% trans "You have kept more than you spent for 6 months in a row. Small habits like this add up quietly." %}</p>
-                        </div>
-                    </div>
-                </div>
-                <p class="text-center text-lg-start mt-3 mb-0" style="font-size: 12px; color: var(--tmr-ink-400);">{% trans "Examples. Yours are written from your own entries." %}</p>
-            </div>
+        {# The words of the tour come from here, so they are translated like the rest of the page. #}
+        <div id="tp-captions" hidden>
+            {% trans "Dashboard" as l_dash %}{% trans "Your month at a glance" as t_dash %}{% trans "Net worth, income, spending and savings rate on one screen, with calm insights alongside." as d_dash %}
+            <div data-k="dash" data-l="{{ l_dash }}" data-t="{{ t_dash }}" data-d="{{ d_dash }}"></div>
+            {% trans "Quick add" as l_add %}{% trans "Type it. It's logged." as t_add %}{% trans "Write what you spent the way you would say it. Amount, category and account are filled in, and it lands in your ledger." as d_add %}
+            <div data-k="add" data-l="{{ l_add }}" data-t="{{ t_add }}" data-d="{{ d_add }}"></div>
+            {% trans "Budgets" as l_bud %}{% trans "Know what is safe to spend today" as t_bud %}{% trans "A daily number based on your budget, your pace and the days left in the month. Overspent categories surface first." as d_bud %}
+            <div data-k="bud" data-l="{{ l_bud }}" data-t="{{ t_bud }}" data-d="{{ d_bud }}"></div>
+            {% trans "Net worth" as l_nw %}{% trans "Watch your net worth grow" as t_nw %}{% trans "One real-time number across savings, SIPs, loans and cards, shown as a trajectory you can tap into." as d_nw %}
+            <div data-k="nw" data-l="{{ l_nw }}" data-t="{{ t_nw }}" data-d="{{ d_nw }}"></div>
+            {% trans "Calendar" as l_cal %}{% trans "Every day, at a glance" as t_cal %}{% trans "Income, spending and investments by day, with salary days starred and busy days shaded darker." as d_cal %}
+            <div data-k="cal" data-l="{{ l_cal }}" data-t="{{ t_cal }}" data-d="{{ d_cal }}"></div>
+            {% trans "Loans" as l_loan %}{% trans "Loans with the full picture" as t_loan %}{% trans "See how much is principal, how much is interest and how much is left, for every loan you carry." as d_loan %}
+            <div data-k="loan" data-l="{{ l_loan }}" data-t="{{ t_loan }}" data-d="{{ d_loan }}"></div>
+            {% trans "Goals" as l_goal %}{% trans "Goals with a finish date" as t_goal %}{% trans "Set a target, move money towards it and see the date you will actually reach it at your real saving pace." as d_goal %}
+            <div data-k="goal" data-l="{{ l_goal }}" data-t="{{ t_goal }}" data-d="{{ d_goal }}"></div>
         </div>
     </div>
 </section>
@@ -2016,100 +1509,6 @@
         </div>
     </div>
 </section>
-
-<!-- FEATURES (THE EXPERIENCE) -->
-<section class="landing-section" id="features">
-    <div class="container py-5 text-center text-lg-start">
-        <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-400); margin-bottom: var(--space-3);" class="mx-auto mx-lg-0">{% trans "Built around how you actually spend" %}</div>
-        <h2 class="section-title">{% trans "Built for how Indian salaried professionals actually live." %}</h2>
-        <div class="row g-4 mt-4">
-            <!-- 1: Smart Insights -->
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card h-100">
-                    <div class="feature-title" style="color: var(--tmr-teal-600);">{% trans "Spot spending leaks before they become habits" %}</div>
-                    <div class="feature-desc">{% trans "Insights read your own entries and show exactly which categories are growing month over month, in one calm sentence." %}</div>
-                </div>
-            </div>
-            <!-- 3: Visual Net Worth -->
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card h-100">
-                    <div class="feature-title">{% trans "Watch your net worth grow" %}</div>
-                    <div class="feature-desc">{% trans "One real-time number across savings, SIPs, and credit cards. Not a list of transactions - a trajectory." %}</div>
-                </div>
-            </div>
-            <!-- 4: Automated SIPs -->
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card h-100">
-                    <div class="feature-title">{% trans "Set recurring expenses once, forget them forever." %}</div>
-                    <div class="feature-desc">{% trans "Set up your SIPs, rent, and subscriptions once. Only log what changes, takes 30 seconds a day." %}</div>
-                </div>
-            </div>
-            <!-- 5: Savings Goals -->
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card h-100">
-                    <div class="feature-title">{% trans "See exactly when you'll hit your goals" %}</div>
-                    <div class="feature-desc">{% trans "Set a savings target and get a projected date based on your real saving pace - not guesswork." %}</div>
-                </div>
-            </div>
-            <!-- 6: Multi-language Support -->
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card h-100">
-                    <div class="feature-title">{% trans "Track in your own language" %}</div>
-                    <div class="feature-desc">{% trans "Fully translated in English, Hindi, and Marathi - finance that feels natural to read." %}</div>
-                </div>
-            </div>
-            <!-- 7: Multi-currency -->
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card h-100">
-                    <div class="feature-title">{% trans "Multi-currency Ready" %}</div>
-                    <div class="feature-desc">{% trans "Track USD, EUR, or any currency alongside ₹. Useful if you travel, freelance, or hold foreign investments." %}</div>
-                </div>
-            </div>
-            <!-- 8: CSV & Data Sovereignty -->
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card h-100">
-                    <div class="feature-title">{% trans "Your data is never locked in" %}</div>
-                    <div class="feature-desc">{% trans "Export your full transaction history to CSV anytime. No permission needed, no hoops to jump through." %}</div>
-                </div>
-            </div>
-            <!-- 9: Mobile App (PWA) -->
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card h-100">
-                    <div class="feature-title">{% trans "Feels like an app. No install required." %}</div>
-                    <div class="feature-desc">{% trans "Add to your home screen as a PWA on Android or iPhone. Works offline. Launches in under 2 seconds." %}</div>
-                </div>
-            </div>
-            <!-- 10: Loan Management & EMI Calculator -->
-            <div class="col-md-6 col-lg-4">
-                <div class="feature-card h-100">
-                    <div class="feature-title">{% trans "Loan Manager with EMI Calculator" %}</div>
-                    <div class="feature-desc">{% trans "Plan before you borrow. Preview your monthly EMI instantly. Track multiple loans, manage floating rates, and visualize your amortization schedule." %}</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Explore All Features CTA -->
-        <div class="text-center mt-5">
-            <a href="{% url 'features' %}" class="btn-primary-landing">
-                {% trans "Explore All Features" %} <i class="bi bi-arrow-right"></i>
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- LANGUAGE STRIP -->
-<div class="lang-strip">
-    <div class="container d-flex flex-wrap align-items-center justify-content-center gap-3">
-        <span class="lang-strip-label mb-0">{% trans "Available in your language:" %}</span>
-        <div class="lang-pill">🇬🇧 English</div>
-        <div class="lang-pill d-flex flex-column align-items-center justify-content-center py-1" style="gap: 2px;">
-            <div>🇮🇳 हिंदी</div>
-            <div style="font-size: 10px; font-weight: 500; color: var(--tmr-ink-600); line-height: 1;">अपनी भाषा में अपने पैसों को समझें</div>
-        </div>
-        <div class="lang-pill">🇮🇳 मराठी</div>
-        <span class="lang-strip-label mb-0" style="color:var(--accent)">{% trans "More coming soon" %}</span>
-    </div>
-</div>
 
 <!-- CONSOLIDATED TRUST SECTION -->
 <section class="landing-section py-5" style="background: var(--tmr-surface-1);">
@@ -2676,69 +2075,13 @@
         });
     }
 
-    // MAGIC DEMO LOGIC
-    const demoInput = document.getElementById('demo-input');
-    const resAmount = document.getElementById('demo-res-amount');
-    const resCategory = document.getElementById('demo-res-category');
-    const resDesc = document.getElementById('demo-res-desc');
-
-    const demoMappings = {
-        'Food': ['lunch', 'dinner', 'swiggy', 'zomato', 'pizza', 'burger', 'coffee', 'tea', 'cafe', 'restaurant', 'food', 'starbucks', 'tapri'],
-        'Transport': ['uber', 'ola', 'taxi', 'cab', 'bus', 'train', 'metro', 'fuel', 'petrol', 'diesel', 'auto', 'rental', 'rapido', 'office'],
-        'Groceries': ['milk', 'vegetables', 'fruits', 'bigbasket', 'blinkit', 'zepto', 'groceries', 'market'],
-        'Bills': ['electricity', 'water', 'gas', 'bill', 'recharge', 'wifi', 'internet', 'phone', 'mobile', 'netflix', 'prime', 'spotify', 'subscription'],
-        'Shopping': ['amazon', 'flipkart', 'myntra', 'clothes', 'shoes', 'mall', 'electronics'],
-        'Health': ['doctor', 'hospital', 'medicine', 'pharmacy', 'gym', 'fitness']
-    };
-
-    function updateDemo(text) {
-        if (!text) {
-            resAmount.textContent = '₹0';
-            resCategory.textContent = 'Other';
-            resDesc.textContent = '...';
-            return;
-        }
-        
-        const cleanText = text.toLowerCase();
-        const amountMatch = cleanText.match(/(?:₹|rs\.?|\$)?\s*(\d+(?:\.\d+)?)\s*(k)?\b/i);
-        let amount = amountMatch ? amountMatch[1] : 0;
-        if (amountMatch && amountMatch[2]?.toLowerCase() === 'k') amount = parseFloat(amount) * 1000;
-        
-        let category = "Other";
-        for (const [cat, keywords] of Object.entries(demoMappings)) {
-            if (keywords.some(kw => cleanText.includes(kw))) {
-                category = cat;
-                break;
-            }
-        }
-        
-        let description = text.replace(/(?:₹|rs\.?|\$)?\s*(\d+(?:\.\d+)?)\s*(k)?\b/gi, '').trim();
-        if (!description && amount > 0) description = "Expense";
-        if (description) description = description.charAt(0).toUpperCase() + description.slice(1);
-
-        resAmount.textContent = '₹' + (amount || 0);
-        resCategory.textContent = category;
-        resDesc.textContent = description || '...';
-    }
-
-    if (demoInput) {
-        demoInput.addEventListener('input', (e) => updateDemo(e.target.value));
-        if (demoInput.value) {
-            updateDemo(demoInput.value);
-        }
-    }
-
-    window.runDemo = function(text) {
-        demoInput.value = text;
-        updateDemo(text);
-        demoInput.focus();
-    };
-
     billingTrack.addEventListener('click', () => { isYearly = !isYearly; updateLpPricing(); });
     billingTrack.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isYearly = !isYearly; updateLpPricing(); } });
     labelMonthly.addEventListener('click', () => { if (isYearly) { isYearly = false; updateLpPricing(); } });
     labelYearly.addEventListener('click', () => { if (!isYearly) { isYearly = true; updateLpPricing(); } });
 </script>
+
+    <script src="{% static 'js/landing_tour.js' %}" defer></script>
 
     <!-- Bootstrap JS — deferred; landing page interactive elements don't depend on it synchronously -->
     <script src="{% static 'vendor/bootstrap/bootstrap.bundle.min.js' %}" defer></script>
@@ -2774,109 +2117,6 @@
         });
     </script>
     {% endif %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var dataEl = document.getElementById('networth-demo-data');
-            if (!dataEl) return;
-            var rowsData = [];
-            try {
-                rowsData = JSON.parse(dataEl.textContent);
-            } catch (e) {
-                return;
-            }
-            if (!rowsData || !rowsData.length) return;
-
-            function fmtINR(n) {
-                var sign = n < 0 ? '-' : '';
-                n = Math.abs(Math.round(n));
-                return sign + '₹' + n.toLocaleString('en-IN');
-            }
-
-            var rowsEl = document.getElementById('tmrDemoRows');
-            var nwValEl = document.getElementById('tmrNwValue');
-            var nwSubEl = document.getElementById('tmrNwSub');
-            if (!rowsEl || !nwValEl || !nwSubEl) return;
-
-            var rowEls = Array.from(rowsEl.children);
-            var prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-            if (prefersReduced) {
-                var total = 0;
-                rowsData.forEach(function (item, i) {
-                    var sign = item.is_liability ? -1 : 1;
-                    total += sign * item.amount;
-                    if (rowEls[i]) rowEls[i].classList.add('show');
-                });
-                nwValEl.textContent = fmtINR(total);
-                nwSubEl.textContent = '{% trans "All accounts, one number." %}';
-                return;
-            }
-
-            var running = 0;
-            var animFrame = null;
-            var timeouts = [];
-
-            function animateTo(target) {
-                if (animFrame) cancelAnimationFrame(animFrame);
-                var start = running;
-                var delta = target - start;
-                var t0 = performance.now();
-                var dur = 850;
-                function step(t) {
-                    var p = Math.min(1, (t - t0) / dur);
-                    var eased = 1 - Math.pow(1 - p, 3);
-                    nwValEl.textContent = fmtINR(start + delta * eased);
-                    if (p < 1) {
-                        animFrame = requestAnimationFrame(step);
-                    } else {
-                        running = target;
-                    }
-                }
-                animFrame = requestAnimationFrame(step);
-            }
-
-            function reset() {
-                timeouts.forEach(function (t) { clearTimeout(t); });
-                timeouts = [];
-                if (animFrame) cancelAnimationFrame(animFrame);
-                running = 0;
-                nwValEl.textContent = '₹0';
-                nwSubEl.innerHTML = '&nbsp;';
-                rowEls.forEach(function (el) {
-                    el.classList.remove('show');
-                });
-            }
-
-            function run() {
-                reset();
-                var total = 0;
-                var stepInterval = 1500;
-                rowsData.forEach(function (item, i) {
-                    var t = setTimeout(function () {
-                        if (rowEls[i]) {
-                            rowEls[i].classList.add('show');
-                        }
-                        var sign = item.is_liability ? -1 : 1;
-                        total += sign * item.amount;
-                        animateTo(total);
-                        nwSubEl.textContent = (item.is_liability ? '− {% trans "subtracted" %} ' : '+ {% trans "added" %} ') + item.name;
-
-                        if (i === rowsData.length - 1) {
-                            var tFinal = setTimeout(function () {
-                                nwSubEl.textContent = '{% trans "All accounts, one number." %}';
-                            }, 950);
-                            timeouts.push(tFinal);
-                            var tLoop = setTimeout(run, 4000);
-                            timeouts.push(tLoop);
-                        }
-                    }, i * stepInterval);
-                    timeouts.push(t);
-                });
-            }
-
-            run();
-        });
-    </script>
     {% include 'components/cookie_consent.html' %}
 </body>
 </html>

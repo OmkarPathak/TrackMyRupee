@@ -23141,3 +23141,151 @@ msgstr "तुमचा डेटा कुठे राहतो: ॲप्ल�
 #: templates/security.html:41
 msgid "Our application servers run in Bangalore and our database in Mumbai, both in India, so what you store in TrackMyRupee is kept and processed in India. Emails, analytics and error reports go through providers outside India; the Privacy Policy lists exactly what each one receives."
 msgstr "आमचे ॲप्लिकेशन सर्व्हर बेंगळुरूमध्ये आणि आमचा डेटाबेस मुंबईत आहे, दोन्ही भारतात, त्यामुळे TrackMyRupee मध्ये तुम्ही साठवलेले सर्व काही भारतात ठेवले आणि प्रोसेस केले जाते. ईमेल, ॲनालिटिक्स आणि त्रुटी अहवाल भारताबाहेरील प्रदात्यांमधून जातात; प्रत्येकाला नेमके काय मिळते ते गोपनीयता धोरणात दिले आहे."
+
+#: templates/landing.html
+msgid "The whole product"
+msgstr "संपूर्ण प्रॉडक्ट"
+
+#: templates/landing.html
+msgid "See it work, before you sign up."
+msgstr "साइन अप करण्यापूर्वी ते कसे चालते ते पहा."
+
+#: templates/landing.html
+msgid "This is what you get after you log in, on your computer or your phone. Pick a screen, or let it play."
+msgstr "लॉग इन केल्यानंतर तुम्हाला हेच मिळते, संगणकावर किंवा फोनवर. एखादी स्क्रीन निवडा, किंवा ती आपोआप चालू द्या."
+
+#: templates/landing.html
+msgid "Device"
+msgstr "डिव्हाइस"
+
+#: templates/landing.html
+msgid "Computer"
+msgstr "संगणक"
+
+#: templates/landing.html
+msgid "Phone"
+msgstr "फोन"
+
+#: templates/landing.html
+msgid "Pause"
+msgstr "थांबवा"
+
+#: templates/landing.html
+msgid "Play"
+msgstr "चालवा"
+
+#: templates/landing.html
+msgid "Product tour"
+msgstr "प्रॉडक्ट टूर"
+
+#: templates/landing.html
+msgid "Installs like an app"
+msgstr "अ‍ॅपसारखे इन्स्टॉल होते"
+
+#: templates/landing.html
+msgid "Add to your home screen. No app store."
+msgstr "तुमच्या होम स्क्रीनवर जोडा. अ‍ॅप स्टोअरची गरज नाही."
+
+#: templates/landing.html
+msgid "Works offline"
+msgstr "ऑफलाइनही चालते"
+
+#: templates/landing.html
+msgid "Opens fast, even on a weak signal."
+msgstr "कमकुवत सिग्नलवरही पटकन उघडते."
+
+#: templates/landing.html
+msgid "Type, don't tap through menus"
+msgstr "मेनूमध्ये टॅप करण्याऐवजी टाइप करा"
+
+#: templates/landing.html
+msgid "“swiggy 320” is enough."
+msgstr "“swiggy 320” लिहिणे पुरेसे आहे."
+
+#: templates/landing.html
+msgid "And no bank login. You stay in control."
+msgstr "आणि बँक लॉगिन नाही. नियंत्रण तुमच्या हातात राहते."
+
+#: templates/landing.html
+msgid "The product tour needs JavaScript."
+msgstr "प्रॉडक्ट टूरसाठी JavaScript आवश्यक आहे."
+
+#: templates/landing.html
+msgid "And more, built in"
+msgstr "आणि बरेच काही, आधीच समाविष्ट"
+
+#: templates/landing.html
+msgid "Any currency next to ₹"
+msgstr "₹ सोबत कोणतेही चलन"
+
+#: templates/landing.html
+msgid "Recurring items and SIPs"
+msgstr "आवर्ती खर्च आणि SIP"
+
+#: templates/landing.html
+msgid "Smart insights"
+msgstr "स्मार्ट इनसाइट्स"
+
+#: templates/landing.html
+msgid "Double-entry ledger"
+msgstr "डबल-एंट्री खातेवही"
+
+#: templates/landing.html
+msgid "CSV export anytime"
+msgstr "कधीही CSV एक्सपोर्ट"
+
+#: templates/landing.html
+msgid "Quick add"
+msgstr "झटपट जोडा"
+
+#: templates/landing.html
+msgid "Your month at a glance"
+msgstr "तुमचा महिना, एका नजरेत"
+
+#: templates/landing.html
+msgid "Net worth, income, spending and savings rate on one screen, with calm insights alongside."
+msgstr "एकूण संपत्ती, उत्पन्न, खर्च आणि बचत दर एकाच स्क्रीनवर, सोबत शांत इनसाइट्स."
+
+#: templates/landing.html
+msgid "Type it. It's logged."
+msgstr "टाइप करा, नोंद झाली."
+
+#: templates/landing.html
+msgid "Write what you spent the way you would say it. Amount, category and account are filled in, and it lands in your ledger."
+msgstr "तुम्ही बोलता तसे काय खर्च केले ते लिहा. रक्कम, श्रेणी आणि खाते आपोआप भरले जाते आणि ते तुमच्या खातेवहीत नोंदले जाते."
+
+#: templates/landing.html
+msgid "Know what is safe to spend today"
+msgstr "आज किती खर्च करणे सुरक्षित आहे ते जाणा"
+
+#: templates/landing.html
+msgid "A daily number based on your budget, your pace and the days left in the month. Overspent categories surface first."
+msgstr "तुमचे बजेट, तुमचा वेग आणि महिन्यातील उरलेले दिवस यांवर आधारित दैनिक आकडा. बजेटपेक्षा जास्त खर्च झालेल्या श्रेणी आधी दिसतात."
+
+#: templates/landing.html
+msgid "One real-time number across savings, SIPs, loans and cards, shown as a trajectory you can tap into."
+msgstr "बचत, SIP, कर्जे आणि कार्ड यांवरील एक रिअल-टाइम आकडा, ज्यात तुम्ही टॅप करून जाऊ शकता असा प्रवास म्हणून."
+
+#: templates/landing.html
+msgid "Every day, at a glance"
+msgstr "प्रत्येक दिवस, एका नजरेत"
+
+#: templates/landing.html
+msgid "Income, spending and investments by day, with salary days starred and busy days shaded darker."
+msgstr "दिवसानुसार उत्पन्न, खर्च आणि गुंतवणूक, ज्यात पगाराचे दिवस तार्याने चिन्हांकित आणि व्यस्त दिवस गडद रंगात आहेत."
+
+#: templates/landing.html
+msgid "Loans with the full picture"
+msgstr "संपूर्ण चित्रासह कर्जे"
+
+#: templates/landing.html
+msgid "See how much is principal, how much is interest and how much is left, for every loan you carry."
+msgstr "तुमच्या प्रत्येक कर्जात किती मुद्दल, किती व्याज आणि किती बाकी आहे ते पहा."
+
+#: templates/landing.html
+msgid "Goals with a finish date"
+msgstr "पूर्ण होण्याच्या तारखेसह उद्दिष्टे"
+
+#: templates/landing.html
+msgid "Set a target, move money towards it and see the date you will actually reach it at your real saving pace."
+msgstr "एक उद्दिष्ट ठरवा, त्याकडे पैसे वळवा आणि तुमच्या खऱ्या बचतीच्या वेगाने ते कोणत्या तारखेला पूर्ण होईल ते पहा."
