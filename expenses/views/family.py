@@ -454,7 +454,7 @@ def family_networth_view(request):
     months = 3 if request.GET.get('range') == '3m' else None
     graph = None
     if data is not None:
-        graph = chart(data.history, data.net_worth, timezone.localdate(), months)
+        graph = chart(data.history, data.net_worth, timezone.localdate(), months, start=data.since)
     return render(request, 'expenses/family/networth.html', {
         'household': household, 'banner': banner, 'data': data, 'graph': graph,
         'range': '3m' if months else 'all', 'family_page': 'networth',

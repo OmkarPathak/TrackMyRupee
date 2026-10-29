@@ -236,15 +236,17 @@ def _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today):
     if not counted:
         return ()
     first = min(s.amounts_since.date() for s in counted)
+    # The first point is the day sharing started, from the value recorded then, for what started that day
+    starters = [s for s in counted if s.amounts_since.date() == first and s.amounts_start_value is not None]
+    start = (first, sum((s.amounts_start_value for s in starters), ZERO)) if starters else None
     ends = _month_ends(first, today)
-    if not ends:
-        return ()
     owners = {s.owner_id for s in counted}
     snapshots = {}
-    for snap in (NetWorthSnapshot.objects.filter(user_id__in=owners, as_of_date__gte=ends[0].replace(day=1),
-                                                  as_of_date__lte=ends[-1])
-                 .order_by('as_of_date').values('user_id', 'as_of_date', 'breakdown')):
-        snapshots[(snap['user_id'], snap['as_of_date'].year, snap['as_of_date'].month)] = snap   # the latest of the month
+    if ends:
+        for snap in (NetWorthSnapshot.objects.filter(user_id__in=owners, as_of_date__gte=ends[0].replace(day=1),
+                                                      as_of_date__lte=ends[-1])
+                     .order_by('as_of_date').values('user_id', 'as_of_date', 'breakdown')):
+            snapshots[(snap['user_id'], snap['as_of_date'].year, snap['as_of_date'].month)] = snap   # latest of the month
     points = []
     for end in ends:
         total, seen = ZERO, False
@@ -259,6 +261,8 @@ def _history(shares_by_owner, kinds, currency_of_owner, viewer_currency, today):
             total += _signed(kinds[share.account_id], Decimal(str(raw)))
         if seen:
             points.append((end, total))
+    if start and not any(d == start[0] for d, _v in points):
+        points.insert(0, start)
     return tuple(points)
 
 

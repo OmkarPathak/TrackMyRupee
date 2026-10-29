@@ -64,7 +64,9 @@ class HistoryStartTests(FamilyTestCase):
                                         breakdown={str(account.pk): '48000.00'})
         shares.set_share(self.owner, account, 'AMOUNTS')         # amounts become visible today
         household.refresh_from_db()
-        self.assertEqual(summary.family_summary(household, self.partner).history, ())
+        history = summary.family_summary(household, self.partner).history
+        # only the day amounts became visible: the 48,000 month-end from while it was list only is not reachable
+        self.assertEqual(history, ((timezone.localdate(), D('50000.00')),))
 
 
 @override_settings(**LEDGER)

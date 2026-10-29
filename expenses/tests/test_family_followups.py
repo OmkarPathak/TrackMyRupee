@@ -4,9 +4,10 @@ from pathlib import Path
 
 from django.db.models import ProtectedError
 from django.test import override_settings
+from django.utils import timezone
 
 from expenses.family import shares, summary
-from expenses.models import Account, Household
+from expenses.models import Account, FamilyShare, Household
 
 from .family_base import FamilyTestCase, add_account, make_family
 
@@ -82,3 +83,69 @@ class PublicCopyTests(FamilyTestCase):
         self.assertIn('By default it opens only on request', security)
         self.assertNotIn('opened on request, with a delay and a veto for you', landing)
         self.assertIn('By default it opens on request', landing)
+
+
+@override_settings(**dict(LEDGER, FAMILY_SUMMARY_CACHE_SECONDS=0))
+class HistoryStartPointTests(FamilyTestCase):
+    def setUp(self):
+        super().setUp()
+        self.household = make_family(self.owner, self.partner)
+
+    def data(self):
+        self.household.refresh_from_db()
+        return summary.family_summary(self.household, self.partner)
+
+    def test_the_value_on_the_day_amounts_are_shared_is_recorded(self):
+        account = add_account(self.owner, 'Savings', balance='50000.00')
+        shares.set_share(self.owner, account, 'AMOUNTS')
+        self.assertEqual(FamilyShare.objects.get().amounts_start_value, D('50000.00'))
+
+    def test_a_list_only_share_records_nothing_until_amounts_are_shown(self):
+        account = add_account(self.owner, 'Savings', balance='50000.00')
+        shares.set_share(self.owner, account, 'LIST')
+        self.assertIsNone(FamilyShare.objects.get().amounts_start_value)
+        Account.objects.filter(pk=account.pk).update(balance=D('52000.00'))
+        shares.set_share(self.owner, account, 'AMOUNTS')
+        self.assertEqual(FamilyShare.objects.get().amounts_start_value, D('52000.00'))
+
+    def test_what_is_owed_is_recorded_as_negative(self):
+        card = add_account(self.owner, 'Card', account_type='CREDIT_CARD', balance='-4000.00')
+        shares.set_share(self.owner, card, 'AMOUNTS')
+        self.assertEqual(FamilyShare.objects.get().amounts_start_value, D('-4000.00'))
+
+    def test_sharing_a_whole_group_records_each_start_value(self):
+        a, b = add_account(self.owner, 'A', balance='100.00'), add_account(self.owner, 'B', balance='250.00')
+        shares.set_section(self.owner, [a, b], 'Bank and cash')
+        self.assertEqual(sorted(FamilyShare.objects.values_list('amounts_start_value', flat=True)),
+                         [D('100.00'), D('250.00')])
+
+    def test_the_history_starts_on_day_one_so_the_chart_has_a_line_straight_away(self):
+        shares.set_share(self.owner, add_account(self.owner, 'Savings', balance='50000.00'), 'AMOUNTS')
+        data = self.data()
+        self.assertEqual(data.history, ((timezone.localdate(), D('50000.00')),))
+
+    def test_the_first_point_is_what_it_was_then_not_what_it_is_now(self):
+        account = add_account(self.owner, 'Savings', balance='50000.00')
+        shares.set_share(self.owner, account, 'AMOUNTS')
+        Account.objects.filter(pk=account.pk).update(balance=D('70000.00'))
+        data = self.data()
+        self.assertEqual(data.history[0][1], D('50000.00'))
+        self.assertEqual(data.net_worth, D('70000.00'))
+
+    def test_the_chart_page_labels_the_first_point_start(self):
+        shares.set_share(self.owner, add_account(self.owner, 'Savings', balance='50000.00'), 'AMOUNTS')
+        self.client.force_login(self.partner)
+        from django.urls import reverse
+        page = self.client.get(reverse('family-networth'))
+        self.assertContains(page, '>Start</text>')
+        self.assertContains(page, '>Now</text>')
+
+    def test_a_share_made_before_start_values_were_recorded_still_works(self):
+        shares.set_share(self.owner, add_account(self.owner, 'Savings', balance='50000.00'), 'AMOUNTS')
+        FamilyShare.objects.update(amounts_start_value=None)
+        self.assertEqual(self.data().history, ())
+
+    def test_the_start_point_never_includes_a_list_only_account(self):
+        shares.set_share(self.owner, add_account(self.owner, 'Hidden', balance='99999.00'), 'LIST')
+        shares.set_share(self.owner, add_account(self.owner, 'Shown', balance='1000.00'), 'AMOUNTS')
+        self.assertEqual(self.data().history[0][1], D('1000.00'))

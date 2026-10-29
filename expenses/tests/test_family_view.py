@@ -118,7 +118,7 @@ class HistoryTests(ViewFixture):
         first = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
         end = today.replace(day=1) - timedelta(days=1)
         when = timezone.make_aware(timezone.datetime(first.year, first.month, 2))
-        FamilyShare.objects.update(created_at=when, amounts_since=when)
+        FamilyShare.objects.update(created_at=when, amounts_since=when, amounts_start_value=None)
         self.snapshot(self.owner, end - timedelta(days=3), {self.world.bank_account.pk: 40000})   # not month end
         self.snapshot(self.owner, end, {self.world.bank_account.pk: 42000,
                                         self.world.card_account.pk: -3000,
@@ -134,7 +134,7 @@ class HistoryTests(ViewFixture):
         today = timezone.localdate()
         end = today.replace(day=1) - timedelta(days=1)
         long_ago = timezone.make_aware(timezone.datetime(end.year, end.month, 1)) - timedelta(days=40)
-        FamilyShare.objects.update(created_at=long_ago, amounts_since=long_ago)
+        FamilyShare.objects.update(created_at=long_ago, amounts_since=long_ago, amounts_start_value=None)
         FamilyShare.objects.filter(account=self.kotak).update(created_at=timezone.now(), amounts_since=timezone.now())
         self.snapshot(self.owner, end, {self.world.bank_account.pk: 1000})
         self.snapshot(self.partner, end, {self.kotak.pk: 5000})
@@ -143,7 +143,8 @@ class HistoryTests(ViewFixture):
 
     def test_without_a_snapshot_there_is_no_history_point(self):
         FamilyShare.objects.update(created_at=timezone.now() - timedelta(days=90),
-                                   amounts_since=timezone.now() - timedelta(days=90))
+                                   amounts_since=timezone.now() - timedelta(days=90),
+                                   amounts_start_value=None)
         self.assertEqual(summary.family_summary(self.household, self.owner).history, ())
 
     def test_the_chart_needs_two_points_and_ends_with_now(self):

@@ -610,6 +610,9 @@ class FamilyShare(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     # When the family first got to see amounts for this account; the shared history never reaches back before it
     amounts_since = models.DateTimeField(default=timezone.now)
+    # What the account was worth (negative if owed) on that day: the first point of the shared history, so the line
+    # exists from day one instead of after the first month-end. Null for shares made before this was recorded.
+    amounts_start_value = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

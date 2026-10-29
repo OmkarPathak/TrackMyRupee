@@ -45,7 +45,7 @@ family sees that the item exists, with no amounts, and it is not counted).
 ## History
 
 Family history comes from the daily net worth snapshots, which store a per-account breakdown. It uses only the
-accounts shared, from the day each account's **amounts first became visible** (`amounts_since`), and only **month-end points**. An account that was list only, and is later switched to show amounts, never reveals the months before that. Daily movements are never shown,
+accounts shared, from the day each account's **amounts first became visible** (`amounts_since`), and only **month-end points**. An account that was list only, and is later switched to show amounts, never reveals the months before that. The first point is the value recorded on that day (`amounts_start_value`), which the family could already see, so the line exists from day one instead of after the first month-end. Daily movements are never shown,
 because a balance dropping on a given day reveals a purchase. The snapshot totals are never reused, because they
 include private accounts.
 
