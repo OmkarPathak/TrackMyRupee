@@ -82,6 +82,7 @@
         <h2 id="fam-nt-h">{% trans "Notes for the people you trust" %}</h2>
         <div class="mb-3"><label for="fam-docs" class="form-label fw-bold">{% trans "Where my documents are" %}</label><textarea class="form-control" id="fam-docs" name="documents" rows="3" maxlength="1000">{{ sheet.documents_note }}</textarea></div>
         <div class="mb-3"><label for="fam-contacts" class="form-label fw-bold">{% trans "People to call" %}</label><textarea class="form-control" id="fam-contacts" name="contacts" rows="3" maxlength="1000">{{ sheet.contacts_note }}</textarea></div>
+        <label class="d-flex gap-2 align-items-start mb-3"><input type="checkbox" class="form-check-input mt-1" name="use_nicknames" {% if use_nicknames %}checked{% endif %}><span><b>{% trans "Show my nicknames instead of real account names" %}</b><span class="fam-row-sub d-block">{% trans "Uses the names you chose on What I share. Accounts without a nickname show their real name." %}</span></span></label>
         <div class="fam-warn" role="note"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i><div><b>{% trans "Never put account numbers, passwords or PINs here." %}</b> {% trans "This sheet says what exists and where to look. It is not a will or a legal nomination." %}</div></div>
     </section>
 
@@ -102,6 +103,14 @@
             <label class="fam-choice"><input type="radio" name="mode" value="REQUEST" {% if mode == 'REQUEST' %}checked{% endif %}><span><b>{% trans "On request, with a delay" %}</b><span class="fam-row-sub">{% blocktrans trimmed with days=delay_days|translate_digits %}They ask. You are told by email and a notification, and can deny. If you do not answer within {{ days }} days they get a read-only copy.{% endblocktrans %}</span></span></label>
             <label class="fam-choice"><input type="radio" name="mode" value="ALWAYS" {% if mode == 'ALWAYS' %}checked{% endif %}><span><b>{% trans "Always visible to them" %}</b><span class="fam-row-sub">{% trans "They can open the sheet at any time. Best for a spouse you trust fully." %}</span></span></label>
         </fieldset>
+        <div class="mt-3">
+            <label for="fam-access" class="form-label fw-bold">{% trans "Access given on request lasts" %}</label>
+            <select class="form-select" id="fam-access" name="access_days">
+                <option value="" {% if not access_days %}selected{% endif %}>{% trans "Until I withdraw it" %}</option>
+                {% for d in access_choices %}<option value="{{ d }}" {% if access_days == d %}selected{% endif %}>{% blocktrans count n=d %}{{ n }} day, then they must ask again{% plural %}{{ n }} days, then they must ask again{% endblocktrans %}</option>{% endfor %}
+            </select>
+            <div class="fam-note">{% trans "You are told a week before it ends and can extend it. Does not apply to always visible." %}</div>
+        </div>
         <div class="fam-actions justify-content-end mt-3"><button type="submit" class="btn btn-action-primary">{% trans "Save emergency sheet" %}</button></div>
     </section>
 </form>
@@ -126,8 +135,11 @@
         <h2 id="fam-acc-h">{% trans "People who can open your sheet" %}</h2>
         <div class="fam-rows">
             {% for a in access %}
-            <div class="fam-row"><div class="fam-row-main fam-row-name">{{ a.name }}</div>
-                <form method="post" action="{% url 'family-emergency-deny' a.request.uuid %}" class="fam-row-end">{% csrf_token %}<button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Withdraw access" %}</button></form></div>
+            <div class="fam-row"><div class="fam-row-main"><div class="fam-row-name">{{ a.name }}</div>
+                <div class="fam-row-sub">{% if a.request.expires_at %}{% blocktrans trimmed with date=a.request.expires_at|date:"j M Y" %}Access until {{ date }}{% endblocktrans %}{% else %}{% trans "Access until you withdraw it" %}{% endif %}</div></div>
+                <div class="fam-row-end">
+                {% if a.request.expires_at %}<form method="post" action="{% url 'family-emergency-extend' a.request.uuid %}">{% csrf_token %}<button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Extend" %}</button></form>{% endif %}
+                <form method="post" action="{% url 'family-emergency-deny' a.request.uuid %}">{% csrf_token %}<button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Withdraw access" %}</button></form></div></div>
             {% endfor %}
         </div>
     </section>
@@ -142,7 +154,7 @@
                 <div class="fam-row-main">
                     <div class="fam-row-name">{{ a.row.name }}</div>
                     <div class="fam-row-sub">
-                        {% if a.state == 'granted' %}{% trans "You can open it" %}{% elif a.state == 'pending' %}{% trans "Request sent" %}{% elif a.state == 'denied' %}{% trans "Not shared for now" %}{% else %}{% trans "You can ask for it" %}{% endif %}
+                        {% if a.state == 'granted' %}{% trans "You can open it" %}{% elif a.state == 'pending' %}{% trans "Request sent" %}{% elif a.state == 'denied' %}{% trans "Not shared for now" %}{% elif a.state == 'expired' %}{% trans "Your access has ended" %}{% else %}{% trans "You can ask for it" %}{% endif %}
                     </div>
                 </div>
                 <div class="fam-row-end"><a class="btn btn-action-cancel btn-sm" href="{% url 'family-emergency-sheet' a.row.membership.pk %}">{% if a.state == 'granted' %}{% trans "Open" %}{% else %}{% trans "View" %}{% endif %}</a></div>

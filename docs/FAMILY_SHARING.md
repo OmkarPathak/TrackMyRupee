@@ -118,6 +118,10 @@ may ask (only people in the same family) and a mode:
   told. A denied person may ask again after `FAMILY_EMERGENCY_RETRY_DAYS` (7). The owner can withdraw access later.
 - **Always visible** to the people named.
 
+Access given on request can have an end date the owner chooses (30 days, 90 days, a year, or until withdrawn).
+When it ends the person must ask again. The owner is told a week before (job and emergency page) and can extend it.
+The owner can also show their sharing nicknames on the sheet instead of real account names.
+
 Access never depends on a plan (a lapsed subscription must not lock a family out), ends when anyone leaves or is
 removed, and answers 404 to anyone not allowed so the sheet's existence is not hinted at. Reading a sheet never
 writes: the "delay ran out" notice is sent by the notification job or when the owner opens their emergency page.

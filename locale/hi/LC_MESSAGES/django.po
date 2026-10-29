@@ -23023,3 +23023,69 @@ msgstr "साझाकरण तब तक बंद रहता है जब
 #: expenses/family
 msgid "Start"
 msgstr "शुरुआत"
+
+#: expenses/family
+msgid "Access extended."
+msgstr "पहुँच बढ़ा दी गई।"
+
+#: expenses/family
+msgid "Access given on request lasts"
+msgstr "अनुरोध पर दी गई पहुँच इतनी देर रहती है"
+
+#: expenses/family
+#, python-format
+msgid "Access until %(date)s"
+msgstr "%(date)s तक पहुँच"
+
+#: expenses/family
+msgid "Access until you withdraw it"
+msgstr "आपके वापस लेने तक पहुँच"
+
+#: expenses/family
+msgid "Choose how long access lasts."
+msgstr "चुनें कि पहुँच कितने समय तक रहे।"
+
+#: expenses/family
+msgid "Extend"
+msgstr "बढ़ाएँ"
+
+#: expenses/family
+msgid "Show my nicknames instead of real account names"
+msgstr "असली खाता नामों की जगह मेरे उपनाम दिखाएँ"
+
+#: expenses/family
+msgid "That access has no end date to extend."
+msgstr "उस पहुँच की कोई अंतिम तिथि नहीं है जिसे बढ़ाया जाए।"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s's access to your emergency sheet ends soon"
+msgstr "%(name)s की आपकी आपातकालीन शीट तक पहुँच जल्द समाप्त होगी"
+
+#: expenses/family
+#, python-format
+msgid "Their access ends on %(date)s. Open your emergency page to extend it or let it end."
+msgstr "उनकी पहुँच %(date)s को समाप्त होती है। इसे बढ़ाने के लिए अपना आपातकालीन पन्ना खोलें, या इसे समाप्त होने दें।"
+
+#: expenses/family
+msgid "Until I withdraw it"
+msgstr "जब तक मैं वापस न लूँ"
+
+#: expenses/family
+msgid "Uses the names you chose on What I share. Accounts without a nickname show their real name."
+msgstr "\"मैं क्या साझा करता हूँ\" पर आपके चुने नामों का उपयोग करता है। बिना उपनाम वाले खाते असली नाम दिखाते हैं।"
+
+#: expenses/family
+msgid "You are told a week before it ends and can extend it. Does not apply to always visible."
+msgstr "समाप्त होने से एक सप्ताह पहले आपको बताया जाता है और आप इसे बढ़ा सकते हैं। \"हमेशा दिखे\" पर लागू नहीं।"
+
+#: expenses/family
+msgid "Your access has ended"
+msgstr "आपकी पहुँच समाप्त हो गई है"
+
+#: expenses/family
+#, python-format
+msgid "%(counter)s day, then they must ask again"
+msgid_plural "%(counter)s days, then they must ask again"
+msgstr[0] "%(counter)s दिन, फिर उन्हें दोबारा माँगना होगा"
+msgstr[1] "%(counter)s दिन, फिर उन्हें दोबारा माँगना होगा"

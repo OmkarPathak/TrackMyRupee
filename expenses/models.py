@@ -654,6 +654,10 @@ class EmergencySheet(models.Model):
     mode = models.CharField(max_length=8, choices=MODE_CHOICES, default=REQUEST)
     documents_note = models.TextField(blank=True, max_length=1000)
     contacts_note = models.TextField(blank=True, max_length=1000)
+    # How long access given by a request lasts (None: until the owner withdraws it); not used in the always mode
+    access_days = models.PositiveSmallIntegerField(null=True, blank=True)
+    # Show the nicknames the owner uses for family sharing instead of the real account names
+    use_nicknames = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -702,6 +706,8 @@ class EmergencyRequest(models.Model):
     release_at = models.DateTimeField()
     decided_at = models.DateTimeField(null=True, blank=True)
     release_noted = models.BooleanField(default=False)     # the owner was told that the delay ran out
+    expires_at = models.DateTimeField(null=True, blank=True)   # when the access this request gives ends (None: never)
+    expiry_noted = models.BooleanField(default=False)      # the owner was told that access is about to end
 
     class Meta:
         ordering = ['-created_at', '-id']

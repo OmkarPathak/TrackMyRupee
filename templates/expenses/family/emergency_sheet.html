@@ -20,9 +20,9 @@
 </div>
 
 <div class="fam-stack">
-{% if state == 'ask' %}
+{% if state == 'ask' or state == 'expired' %}
     <section class="card fam-card fam-center">
-        <h2 class="fam-h2">{% trans "Ask for the emergency sheet" %}</h2>
+        <h2 class="fam-h2">{% if state == 'expired' %}{% trans "Your access has ended" %}{% else %}{% trans "Ask for the emergency sheet" %}{% endif %}</h2>
         <p>{% blocktrans trimmed with name=owner_name days=delay_days|translate_digits %}{{ name }} will be told. If they do not answer within {{ days }} days you get a read-only copy.{% endblocktrans %}</p>
         <form method="post" action="{% url 'family-emergency-ask' membership.pk %}" class="fam-actions">{% csrf_token %}<button type="submit" class="btn btn-action-primary">{% trans "Ask for the sheet" %}</button></form>
         <p class="fam-note">{% trans "The sheet says what exists and where to look. It never contains account numbers or passwords." %}</p>

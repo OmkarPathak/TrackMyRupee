@@ -352,3 +352,142 @@ class EmergencyPagesTests(EmergencyFixture):
             page = self.client.get(reverse('family-emergency'))
             self.assertContains(page, heading)
             self.assertNotContains(page, 'Notes for the people you trust')
+
+
+class AccessLimitTests(EmergencyFixture):
+    """Access given on request can have an end date, which the owner is warned about and can extend."""
+
+    def limited(self, days=30, **kw):
+        sheet = emergency.save_sheet(
+            self.owner, 'REQUEST', {self.world.bank_account.pk: 'Priya Mehta'}, [self.partner.pk],
+            'Blue folder', 'CA', access_days=days, **kw)
+        return sheet
+
+    def test_access_days_must_be_one_of_the_choices_or_empty(self):
+        for bad in (7, '45', 'x', -1):
+            with self.assertRaises(households.FamilyError):
+                self.limited(days=bad)
+        self.assertIsNone(self.limited(days='').access_days)
+        self.assertEqual(self.limited(days='90').access_days, 90)
+
+    def test_the_default_is_until_withdrawn(self):
+        self.save()
+        self.assertIsNone(self.sheet().access_days)
+        request = emergency.ask(self.partner, self.sheet())
+        self.assertIsNone(request.expires_at)
+
+    def test_approved_access_ends_after_the_chosen_period_and_the_person_must_ask_again(self):
+        self.limited(30)
+        request = emergency.ask(self.partner, self.sheet())
+        emergency.decide(self.owner, request, approve=True)
+        request.refresh_from_db()
+        self.assertEqual((request.expires_at - request.decided_at).days, 30)
+        self.assertEqual(self.state(self.partner)[0], emergency.GRANTED)
+        EmergencyRequest.objects.update(expires_at=timezone.now() - timedelta(minutes=1))
+        self.assertEqual(self.state(self.partner)[0], emergency.EXPIRED)
+        again = emergency.ask(self.partner, self.sheet())
+        self.assertNotEqual(again.pk, request.pk)
+        self.assertEqual(self.state(self.partner)[0], emergency.PENDING)
+
+    def test_access_from_the_delay_running_out_also_ends(self):
+        self.limited(30)
+        request = emergency.ask(self.partner, self.sheet())
+        EmergencyRequest.objects.update(release_at=timezone.now() - timedelta(days=40),
+                                        expires_at=timezone.now() - timedelta(days=10))
+        self.assertEqual(self.state(self.partner)[0], emergency.EXPIRED)
+        self.assertEqual(emergency.people_with_access(self.sheet()), [])
+        self.assertIsNotNone(request)
+
+    def test_always_visible_has_no_end_date(self):
+        emergency.save_sheet(self.owner, 'ALWAYS', {}, [self.partner.pk], '', '', access_days=30)
+        self.assertEqual(self.state(self.partner)[0], emergency.GRANTED)
+
+    def test_the_owner_is_warned_once_a_week_before_and_can_extend(self):
+        self.limited(30)
+        request = emergency.ask(self.partner, self.sheet())
+        emergency.decide(self.owner, request, approve=True)
+        Notification.objects.all().delete()
+        EmergencyRequest.objects.update(expires_at=timezone.now() + timedelta(days=3))
+        self.assertEqual(emergency.notify_expiring_access(), 1)
+        self.assertEqual(emergency.notify_expiring_access(), 0)
+        note = Notification.objects.get(user=self.owner)
+        self.assertIn('ends soon', note.title)
+        self.world.assert_clean(note)
+        emergency.extend(self.owner, EmergencyRequest.objects.get())
+        extended = EmergencyRequest.objects.get()
+        self.assertGreater((extended.expires_at - timezone.now()).days, 28)
+        self.assertFalse(extended.expiry_noted)
+
+    def test_no_warning_for_access_far_from_ending_or_not_yet_given(self):
+        self.limited(30)
+        emergency.ask(self.partner, self.sheet())         # still inside the delay: nothing has been given
+        EmergencyRequest.objects.update(expires_at=timezone.now() + timedelta(days=3))
+        self.assertEqual(emergency.notify_expiring_access(), 0)
+
+    def test_only_the_owner_can_extend_and_only_when_there_is_an_end_date(self):
+        self.save()                                           # until withdrawn
+        request = emergency.ask(self.partner, self.sheet())
+        emergency.decide(self.owner, request, approve=True)
+        with self.assertRaises(households.FamilyError):
+            emergency.extend(self.owner, EmergencyRequest.objects.get())
+        with self.assertRaises(households.FamilyError):
+            emergency.extend(self.partner, EmergencyRequest.objects.get())
+
+    def test_the_pages_show_the_end_date_and_the_extend_button(self):
+        self.limited(30)
+        request = emergency.ask(self.partner, self.sheet())
+        emergency.decide(self.owner, request, approve=True)
+        self.client.force_login(self.owner)
+        page = self.client.get(reverse('family-emergency'))
+        self.assertContains(page, 'Access until')
+        self.assertContains(page, reverse('family-emergency-extend', args=[request.uuid]))
+        self.client.post(reverse('family-emergency-extend', args=[request.uuid]))
+        self.assertEqual(self.client.get(reverse('family-emergency-extend', args=[request.uuid])).status_code, 405)
+
+    def test_nobody_else_can_extend(self):
+        self.limited(30)
+        request = emergency.ask(self.partner, self.sheet())
+        emergency.decide(self.owner, request, approve=True)
+        self.client.force_login(self.partner)
+        self.assertEqual(self.client.post(reverse('family-emergency-extend', args=[request.uuid])).status_code, 404)
+
+    def test_an_expired_requester_sees_that_access_ended_and_can_ask_again(self):
+        self.limited(30)
+        request = emergency.ask(self.partner, self.sheet())
+        emergency.decide(self.owner, request, approve=True)
+        EmergencyRequest.objects.update(expires_at=timezone.now() - timedelta(minutes=1))
+        self.client.force_login(self.partner)
+        pk = HouseholdMember.objects.get(user=self.owner).pk
+        page = self.client.get(reverse('family-emergency-sheet', args=[pk]))
+        self.assertContains(page, 'Your access has ended')
+        self.assertContains(page, 'Ask for the sheet')
+        self.assertNotContains(page, 'Joint Savings')
+
+    def test_the_editor_saves_the_period_and_nickname_choice(self):
+        self.client.force_login(self.owner)
+        post = {'mode': 'REQUEST', 'access_days': '90', 'use_nicknames': 'on',
+                f'include_{self.world.bank_account.uuid}': 'on'}
+        self.client.post(reverse('family-emergency-save'), post)
+        sheet = self.sheet()
+        self.assertEqual((sheet.access_days, sheet.use_nicknames), (90, True))
+        self.assertContains(self.client.get(reverse('family-emergency')), '90 days, then they must ask again')
+
+
+class SheetNicknameTests(EmergencyFixture):
+    def names(self, sheet):
+        return [r['item'].name for _k, _l, rows in emergency.sheet_content(sheet)['groups'] for r in rows]
+
+    def test_real_names_by_default_and_nicknames_when_chosen(self):
+        from expenses.family import shares
+        shares.set_share(self.owner, self.world.bank_account, 'AMOUNTS', alias='Joint pot')
+        sheet = self.save()
+        self.assertIn('Joint Savings', self.names(sheet))
+        emergency.save_sheet(self.owner, 'REQUEST', {self.world.bank_account.pk: ''}, [self.partner.pk], '', '',
+                             use_nicknames=True)
+        self.assertEqual(self.names(self.sheet()), ['Joint pot'])
+
+    def test_an_account_without_a_nickname_keeps_its_real_name(self):
+        emergency.save_sheet(self.owner, 'REQUEST', {self.world.bank_account.pk: ''}, [self.partner.pk], '', '',
+                             use_nicknames=True)
+        self.assertEqual(self.names(self.sheet()), ['Joint Savings'])
+        self.world.assert_clean(emergency.sheet_content(self.sheet()))

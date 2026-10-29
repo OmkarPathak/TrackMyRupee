@@ -23086,3 +23086,69 @@ msgstr "शेअरिंग तुम्ही खाते-दर-खात�
 #: expenses/family
 msgid "Start"
 msgstr "सुरुवात"
+
+#: expenses/family
+msgid "Access extended."
+msgstr "प्रवेश वाढवला."
+
+#: expenses/family
+msgid "Access given on request lasts"
+msgstr "विनंतीवर दिलेला प्रवेश इतका काळ राहतो"
+
+#: expenses/family
+#, python-format
+msgid "Access until %(date)s"
+msgstr "%(date)s पर्यंत प्रवेश"
+
+#: expenses/family
+msgid "Access until you withdraw it"
+msgstr "तुम्ही काढून घेईपर्यंत प्रवेश"
+
+#: expenses/family
+msgid "Choose how long access lasts."
+msgstr "प्रवेश किती काळ राहील ते निवडा."
+
+#: expenses/family
+msgid "Extend"
+msgstr "वाढवा"
+
+#: expenses/family
+msgid "Show my nicknames instead of real account names"
+msgstr "खऱ्या खाते नावांऐवजी माझी टोपणनावे दाखवा"
+
+#: expenses/family
+msgid "That access has no end date to extend."
+msgstr "त्या प्रवेशाला वाढवण्यासाठी अंतिम तारीख नाही."
+
+#: expenses/family
+#, python-format
+msgid "%(name)s's access to your emergency sheet ends soon"
+msgstr "%(name)s यांचा तुमच्या आणीबाणी शीटपर्यंतचा प्रवेश लवकरच संपेल"
+
+#: expenses/family
+#, python-format
+msgid "Their access ends on %(date)s. Open your emergency page to extend it or let it end."
+msgstr "त्यांचा प्रवेश %(date)s रोजी संपतो. तो वाढवण्यासाठी तुमचे आणीबाणी पान उघडा, किंवा तो संपू द्या."
+
+#: expenses/family
+msgid "Until I withdraw it"
+msgstr "मी काढून घेईपर्यंत"
+
+#: expenses/family
+msgid "Uses the names you chose on What I share. Accounts without a nickname show their real name."
+msgstr "\"मी काय शेअर करतो\" वर तुम्ही निवडलेली नावे वापरते. टोपणनाव नसलेली खाती खरे नाव दाखवतात."
+
+#: expenses/family
+msgid "You are told a week before it ends and can extend it. Does not apply to always visible."
+msgstr "संपण्याच्या एक आठवडा आधी तुम्हाला कळवले जाते आणि तुम्ही ते वाढवू शकता. \"नेहमी दिसेल\" ला लागू नाही."
+
+#: expenses/family
+msgid "Your access has ended"
+msgstr "तुमचा प्रवेश संपला आहे"
+
+#: expenses/family
+#, python-format
+msgid "%(counter)s day, then they must ask again"
+msgid_plural "%(counter)s days, then they must ask again"
+msgstr[0] "%(counter)s दिवस, मग त्यांना पुन्हा मागावे लागेल"
+msgstr[1] "%(counter)s दिवस, मग त्यांना पुन्हा मागावे लागेल"

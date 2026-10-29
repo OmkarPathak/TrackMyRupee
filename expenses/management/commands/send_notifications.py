@@ -54,6 +54,7 @@ class Command(BaseCommand):
         # Family emergency sheets whose delay ran out with no answer (the owner is told once)
         from expenses.family import emergency
         emergency.notify_due_releases()
+        emergency.notify_expiring_access()
         
         # --- Pre-fetch all necessary data to avoid N+1 queries ---
         

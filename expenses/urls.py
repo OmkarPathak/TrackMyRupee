@@ -91,6 +91,7 @@ urlpatterns = [
     path('family/emergency/sheet/<int:pk>/', views.family_emergency_sheet_view, name='family-emergency-sheet'),
     path('family/emergency/sheet/<int:pk>/ask/', views.family_emergency_ask_view, name='family-emergency-ask'),
     path('family/emergency/request/<uuid:pk>/cancel/', views.family_emergency_cancel_view, name='family-emergency-cancel'),
+    path('family/emergency/request/<uuid:pk>/extend/', views.family_emergency_extend_view, name='family-emergency-extend'),
     path('family/emergency/request/<uuid:pk>/approve/', views.family_emergency_decide_view, {'decision': 'approve'}, name='family-emergency-approve'),
     path('family/emergency/request/<uuid:pk>/deny/', views.family_emergency_decide_view, {'decision': 'deny'}, name='family-emergency-deny'),
     path('family/notes/dismiss/', views.family_note_dismiss_view, name='family-note-dismiss'),

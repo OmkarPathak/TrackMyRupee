@@ -7,6 +7,7 @@ a subscription has lapsed. Only people in the owner's household, and only those 
 """
 import logging
 import re
+from dataclasses import replace
 from datetime import timedelta
 
 from django.conf import settings
@@ -14,6 +15,7 @@ from django.core.mail import send_mail
 from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone, translation
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
 from ..models import (
@@ -22,6 +24,7 @@ from ..models import (
     EmergencyRequest,
     EmergencySheet,
     EmergencySheetItem,
+    FamilyShare,
     FinancialAuditLog,
     Notification,
 )
@@ -36,7 +39,9 @@ NOMINEE_MAX = 100
 # A run this long looks like an account, card or Aadhaar number, which must never be written on the sheet
 NUMBER_RUN = re.compile(r'\d[\d \-]{7,}\d')
 
-NONE, ASK, PENDING, DENIED, GRANTED = 'none', 'ask', 'pending', 'denied', 'granted'
+NONE, ASK, PENDING, DENIED, GRANTED, EXPIRED = 'none', 'ask', 'pending', 'denied', 'granted', 'expired'
+ACCESS_CHOICES = (30, 90, 365)         # how long access given by a request can last; none chosen means until withdrawn
+EXPIRY_WARNING_DAYS = 7
 
 
 def _audit(user, action, obj_id, diff):
@@ -65,7 +70,7 @@ def check_notes(*notes):
 
 
 @transaction.atomic
-def save_sheet(owner, mode, included, allowed_ids, documents, contacts):
+def save_sheet(owner, mode, included, allowed_ids, documents, contacts, access_days=None, use_nicknames=False):
     """Save ``owner``'s sheet. ``included`` maps account id -> nominee for what is on it; ``allowed_ids`` are the
     users who may ask."""
     household = households.household_for(owner)
@@ -75,9 +80,19 @@ def save_sheet(owner, mode, included, allowed_ids, documents, contacts):
         raise FamilyError('mode', _("Choose how they get access."))
     documents, contacts = (documents or '').strip(), (contacts or '').strip()
     check_notes(documents, contacts)
+    if access_days in ('', None, 0, '0'):
+        access_days = None
+    else:
+        try:
+            access_days = int(access_days)
+        except (TypeError, ValueError):
+            access_days = -1
+        if access_days not in ACCESS_CHOICES:
+            raise FamilyError('access', _("Choose how long access lasts."))
 
     sheet, _created = EmergencySheet.objects.get_or_create(owner=owner)
     sheet.mode, sheet.documents_note, sheet.contacts_note = mode, documents, contacts
+    sheet.access_days, sheet.use_nicknames = access_days, bool(use_nicknames)
     sheet.save()
 
     own_ids = set(Account.objects.filter(user=owner, is_active=True, pk__in=list(included)).values_list('pk', flat=True))
@@ -119,13 +134,21 @@ def state_for(viewer, sheet, now=None):
     if request is None or request.status == EmergencyRequest.CANCELLED:
         return ASK, request
     if request.status == EmergencyRequest.APPROVED:
-        return GRANTED, request
+        return (EXPIRED, request) if _expired(request, now) else (GRANTED, request)
     if request.status == EmergencyRequest.DENIED:
         retry = timedelta(days=settings.FAMILY_EMERGENCY_RETRY_DAYS)
         return (DENIED, request) if request.decided_at and request.decided_at + retry > now else (ASK, request)
     if request.release_at <= now:
-        return GRANTED, request
+        return (EXPIRED, request) if _expired(request, now) else (GRANTED, request)
     return PENDING, request
+
+
+def _expired(request, now):
+    return request.expires_at is not None and request.expires_at <= now
+
+
+def _expiry_for(sheet, start):
+    return start + timedelta(days=sheet.access_days) if sheet.access_days else None
 
 
 def notify_due_releases(owner=None, now=None):
@@ -172,11 +195,12 @@ def time_left(request, now=None):
 def ask(viewer, sheet):
     EmergencySheet.objects.select_for_update().get(pk=sheet.pk)     # one request at a time per sheet
     state, _request = state_for(viewer, sheet)
-    if state != ASK or sheet.mode != EmergencySheet.REQUEST:
+    if state not in (ASK, EXPIRED) or sheet.mode != EmergencySheet.REQUEST:
         raise FamilyError('not_allowed', _("You cannot ask for this sheet right now."))
     now = timezone.now()
+    release_at = now + timedelta(days=settings.FAMILY_EMERGENCY_DELAY_DAYS)
     request = EmergencyRequest.objects.create(
-        sheet=sheet, requester=viewer, release_at=now + timedelta(days=settings.FAMILY_EMERGENCY_DELAY_DAYS))
+        sheet=sheet, requester=viewer, release_at=release_at, expires_at=_expiry_for(sheet, release_at))
     _audit(viewer, 'CREATE', sheet.pk, {'request': request.pk})
     with translation.override(getattr(sheet.owner.profile, 'language', None) or settings.LANGUAGE_CODE):
         _notify(sheet.owner, _("%(name)s asked for your emergency sheet") % {'name': display_name(viewer)},
@@ -203,7 +227,10 @@ def decide(owner, request, approve):
         return request
     request.status = EmergencyRequest.APPROVED if approve else EmergencyRequest.DENIED
     request.decided_at = timezone.now()
-    request.save(update_fields=['status', 'decided_at'])
+    if approve:
+        request.expires_at = _expiry_for(request.sheet, request.decided_at)
+        request.expiry_noted = False
+    request.save(update_fields=['status', 'decided_at', 'expires_at', 'expiry_noted'])
     _audit(owner, 'UPDATE', request.sheet_id, {'request': request.pk, 'status': request.status})
     with translation.override(getattr(request.requester.profile, 'language', None) or settings.LANGUAGE_CODE):
         if approve:
@@ -228,9 +255,48 @@ def people_with_access(sheet, now=None):
     for request in sheet.requests.filter(status__in=[EmergencyRequest.APPROVED, EmergencyRequest.PENDING]) \
             .select_related('requester'):
         if request.status == EmergencyRequest.APPROVED or request.release_at <= now:
-            if sheet.allowed.filter(user=request.requester).exists():
+            if not _expired(request, now) and sheet.allowed.filter(user=request.requester).exists():
                 out.append(request)
     return out
+
+
+def extend(owner, request):
+    """Give a person who has access another full period from today (only when access has a limit)."""
+    sheet = request.sheet
+    if sheet.owner_id != owner.pk:
+        raise FamilyError('not_owner', _("Only the owner of the sheet can answer."))
+    now = timezone.now()
+    granted = request.status == EmergencyRequest.APPROVED or (
+        request.status == EmergencyRequest.PENDING and request.release_at <= now)
+    if not granted or not sheet.access_days:
+        raise FamilyError('closed', _("That access has no end date to extend."))
+    request.expires_at, request.expiry_noted = _expiry_for(sheet, now), False
+    request.save(update_fields=['expires_at', 'expiry_noted'])
+    _audit(owner, 'UPDATE', sheet.pk, {'request': request.pk, 'extended': True})
+
+
+def notify_expiring_access(owner=None, now=None):
+    """Tell owners, once, that someone's access to their sheet is about to end, so they can extend it."""
+    now = now or timezone.now()
+    soon = EmergencyRequest.objects.filter(
+        status__in=[EmergencyRequest.APPROVED, EmergencyRequest.PENDING], expiry_noted=False,
+        expires_at__gt=now, expires_at__lte=now + timedelta(days=EXPIRY_WARNING_DAYS))
+    if owner is not None:
+        soon = soon.filter(sheet__owner=owner)
+    told = 0
+    for request in soon.select_related('sheet__owner__profile', 'requester__profile'):
+        if request.status == EmergencyRequest.PENDING and request.release_at > now:
+            continue                                    # nothing has been given yet
+        if not EmergencyRequest.objects.filter(pk=request.pk, expiry_noted=False).update(expiry_noted=True):
+            continue
+        owner_user = request.sheet.owner
+        with translation.override(getattr(owner_user.profile, 'language', None) or settings.LANGUAGE_CODE):
+            _notify(owner_user,
+                    _("%(name)s's access to your emergency sheet ends soon") % {'name': display_name(request.requester)},
+                    _("Their access ends on %(date)s. Open your emergency page to extend it or let it end.")
+                    % {'date': date_format(request.expires_at, 'j M')})
+        told += 1
+    return told
 
 
 # ---- what the sheet says ----------------------------------------------------------------------------------------
@@ -239,11 +305,15 @@ def sheet_content(sheet):
     """The sheet as a reader sees it: only the accounts the owner put on it, grouped, with nominees and notes."""
     nominees = dict(sheet.items.values_list('account_id', 'nominee'))
     owned = summary.own_items(sheet.owner)
+    nicknames = dict(FamilyShare.objects.filter(owner=sheet.owner).exclude(alias='').values_list('account_id', 'alias')) \
+        if sheet.use_nicknames else {}
     by_section = {}
     for account_id, nominee in nominees.items():
         item = owned.get(account_id)
         if item is None:
             continue
+        if account_id in nicknames:
+            item = replace(item, name=nicknames[account_id])
         by_section.setdefault(item.section, []).append({'item': item, 'nominee': nominee})
     groups = [(key, label, sorted(by_section[key], key=lambda r: r['item'].name))
               for key, label, _kinds in catalog.SECTIONS if by_section.get(key)]
