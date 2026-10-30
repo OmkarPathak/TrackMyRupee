@@ -107,14 +107,19 @@
     
     <style>
         :root {
-            --tmr-teal-400: #1D9E75;
+            --tmr-teal-400: #0F7657;
+            --tmr-teal-100: #9FE1CB;
             --tmr-teal-50: #E1F5EE;
             --tmr-teal-600: #0F6E56;
+            --tmr-teal-800: #085041;
             --tmr-surface-0: #faf9f6;
+            --tmr-surface-1: #f5f4f0;
+            --tmr-surface-2: #e8e5de;
             --tmr-surface-3: #D4D4D2;
             --tmr-ink-900: #1A1A19;
-            --tmr-ink-600: #6B6B68;
-            --tmr-ink-400: #9E9D9A;
+            --tmr-ink-800: #3D3D3B;
+            --tmr-ink-600: #4B4B48;
+            --tmr-ink-400: #595956;
             --tmr-ink-50: #F7F7F6;
             --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
             /* Landing page color aliases */
@@ -485,10 +490,72 @@
             .cta-final h2 { font-size: 20px; margin-bottom: 16px; }
             .btn-primary-cta, .btn-secondary-cta { padding: 10px 22px; font-size: 14px; }
         }
+
+        /* ---- Same look as the landing page: cream and white sections, big bold headings, teal chips, pill buttons ---- */
+        .features-header .section-kicker { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--tmr-teal-600); margin: 0 0 14px; max-width: none; line-height: 1.4; }
+        .features-header { background: var(--tmr-surface-0); padding: 72px 0 64px; }
+        .features-header h1 { font-size: clamp(2.4rem, 5.2vw, 3.6rem); font-weight: 800; letter-spacing: -0.035em; line-height: 1.04; margin-bottom: 16px; }
+        .features-header p { font-size: 18px; line-height: 1.65; color: var(--tmr-ink-600); }
+        .trust-pills span { background: var(--tmr-teal-50); color: var(--tmr-teal-800); border: 0; font-size: 13px; font-weight: 600; padding: 6px 14px; }
+        .demo-card { border-radius: 20px; border-color: var(--tmr-surface-2); box-shadow: 0 16px 48px rgba(8,80,65,.10); }
+        .features-bar { background: rgba(250,249,246,.95); border-bottom: 1px solid var(--tmr-surface-2); }
+        .features-jump a { background: #fff; border-color: var(--tmr-surface-3); }
+        .features-jump a.active { background: var(--tmr-teal-600); border-color: var(--tmr-teal-600); }
+        .feature-search { border-color: var(--tmr-surface-3); }
+
+        /* full-width sections that alternate white and cream, each with a centred heading */
+        .features-content { max-width: none; padding: 0; margin: 0; }
+        .feature-category { margin: 0; padding: 80px 5%; }
+        .feature-category:nth-of-type(odd) { background: #ffffff; }
+        .feature-category:nth-of-type(even) { background: var(--tmr-surface-1); }
+        .feature-category > .category-header, .feature-category > .features-grid { max-width: 1200px; margin-left: auto; margin-right: auto; }
+        .category-header { border-left: 0; padding-left: 0; text-align: center; margin-bottom: 44px; }
+        .category-header h2 { display: block; font-size: clamp(1.7rem, 3.4vw, 2.2rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: 10px; }
+        .category-emoji { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; margin: 0 auto 16px; border-radius: 16px; background: var(--tmr-teal-50); font-size: 28px; }
+        .category-header p { font-size: 17px; line-height: 1.6; color: var(--tmr-ink-600); max-width: 640px; margin: 0 auto; }
+        .features-grid { gap: 18px; }
+        .feature-item { border-color: var(--tmr-surface-2); border-radius: 16px; padding: 26px; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+        .feature-category:nth-of-type(odd) .feature-item { background: var(--tmr-surface-0); }
+        .feature-category:nth-of-type(even) .feature-item { background: #ffffff; }
+        .feature-item:hover { border-color: var(--tmr-teal-400); box-shadow: 0 12px 36px rgba(8,80,65,.08); }
+        .feature-icon { border-radius: 14px; }
+        .fi { width: 1em; height: 1em; fill: none; stroke: var(--tmr-teal-600); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+        .feature-icon { font-size: 25px; }
+        .features-jump a .fi { width: 15px; height: 15px; margin-right: 6px; vertical-align: -2px; stroke: currentColor; }
+        .feature-item h3 { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.3; margin-bottom: 12px; }
+        .feature-item p { font-size: 15.5px; line-height: 1.75; letter-spacing: .005em; word-spacing: .06em; color: var(--tmr-ink-600); }
+        .no-match { padding: 60px 5%; }
+
+        /* closing call to action: the same dark band as the landing page */
+        .cta-final { background: var(--tmr-ink-900); border-radius: 0; margin: 0; padding: 88px 5%; }
+        .cta-final h2 { color: #fff; font-size: clamp(1.6rem, 3.4vw, 2.2rem); letter-spacing: -0.03em; line-height: 1.2; max-width: 720px; margin: 0 auto 28px; }
+        .btn-primary-cta { background: var(--tmr-teal-600); border-radius: 99px; padding: 16px 32px; font-size: 16px; }
+        .btn-primary-cta:hover { background: var(--tmr-teal-400); }
+        .btn-secondary-cta { color: #fff !important; border: 1px solid rgba(255,255,255,.4); border-radius: 99px; padding: 16px 32px; font-size: 16px; }
+        .btn-secondary-cta:hover { background: rgba(255,255,255,.1); }
+
+        @media (max-width: 576px) {
+            .features-header { padding: 36px 0 30px; }
+            .features-header h1 { font-size: 2.2rem; }
+            .features-header p { font-size: 15.5px; }
+            .feature-category { padding: 48px 5%; }
+            .category-header { margin-bottom: 26px; padding-left: 0; }
+            .category-header h2 { font-size: 1.6rem; }
+            .category-header p { font-size: 15px; }
+            .category-emoji { width: 46px; height: 46px; font-size: 24px; margin-bottom: 12px; }
+            .feature-item { padding: 22px 20px; border-radius: 14px; }
+            .feature-item h3 { font-size: 17px; margin-bottom: 10px; }
+            .feature-item p { font-size: 15.5px; line-height: 1.75; }
+            .features-grid { gap: 16px; }
+            .cta-final { padding: 56px 5%; margin: 0; }
+            .cta-final h2 { font-size: 1.5rem; }
+            .btn-primary-cta, .btn-secondary-cta { padding: 13px 26px; font-size: 15px; }
+        }
     </style>
 </head>
 <body>
 <script>document.documentElement.classList.add('js');</script>
+{% include 'partials/features_icons.html' %}
 {% include 'partials/clear_saved_filters.html' %}
     <!-- NAV -->
     {% include "components/public_navbar.html" with is_landing=False %}
@@ -497,6 +564,7 @@
     <header class="features-header">
         <div class="hero-grid">
           <div class="hero-copy">
+            <p class="section-kicker">{% trans "The whole product" %}</p>
             <h1>{% trans "All Features" %}</h1>
             <p>{% trans "Comprehensive tools designed to transform your personal finance." %}</p>
             <div class="trust-pills">
@@ -518,7 +586,7 @@
     <div class="features-bar">
         <div class="features-bar-inner">
             <nav class="features-jump" id="features-jump" aria-label="{% trans 'Feature categories' %}">
-                {% for category in features %}<a href="#{{ category.id }}" data-target="{{ category.id }}">{{ category.icon }} {{ category.title }}</a>{% endfor %}
+                {% for category in features %}<a href="#{{ category.id }}" data-target="{{ category.id }}"><svg class="fi" aria-hidden="true"><use href="#fi-{{ category.icon }}"/></svg>{{ category.title }}</a>{% endfor %}
             </nav>
             <input type="search" class="feature-search" id="feature-search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search features' %}">
         </div>
@@ -529,13 +597,13 @@
         {% for category in features %}
         <section class="feature-category" id="{{ category.id }}">
             <div class="category-header">
-                <h2><span class="category-emoji" aria-hidden="true">{{ category.icon }}</span>{{ category.title }}</h2>
+                <h2><span class="category-emoji" aria-hidden="true"><svg class="fi" aria-hidden="true"><use href="#fi-{{ category.icon }}"/></svg></span>{{ category.title }}</h2>
                 <p>{{ category.description }}</p>
             </div>
             <div class="features-grid">
                 {% for feature in category.items %}
                 <div class="feature-item reveal">
-                    <div class="feature-icon" aria-hidden="true">{{ feature.icon }}</div>
+                    <div class="feature-icon" aria-hidden="true"><svg class="fi"><use href="#fi-{{ feature.icon }}"/></svg></div>
                     <h3>{{ feature.title }}</h3>
                     <p>{{ feature.desc }}</p>
                 </div>

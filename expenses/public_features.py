@@ -6,19 +6,19 @@ reading and no external AI, and the page must not suggest otherwise.
 from django.utils.translation import gettext as _
 
 
-# Decorative emoji per category and per card, in card order. Not translated: they are symbols, not text.
+# Decorative icon per category and per card, in card order: names of the symbols in templates/partials/features_icons.html.
 ICONS = {
-    'tracking': ('💬', ['💬', '🧠', '🔁', '📅', '🔎', '📤']),
-    'accounts': ('🏦', ['🇮🇳', '💰', '📈', '💳', '✅', '🛡️']),
-    'investments': ('📊', ['🗂️', '🔄', '🔗', '⏰', '🧩', '💸']),
-    'planning': ('🗓️', ['🔁', '🎚️', '🏁', '🏠', '🎉']),
-    'flows': ('🧭', ['🪄', '🗺️', '🛟']),
-    'family': ('👨‍👩‍👧', ['👪', '🗂️', '🔐', '👁️', '🆘', '🌿', '🧾']),
-    'noticing': ('✨', ['👀', '🔢', '🌿', '🗓️', '🎛️', '🧭', '🔒']),
-    'insights': ('💡', ['📊', '✅', '📉', '🎁']),
-    'alerts': ('🔔', ['⏰', '🌙']),
-    'trust': ('🔒', ['🙈', '⚖️', '🗑️', '🔓']),
-    'everywhere': ('🌏', ['🗣️', '📲', '💱', '🌗', '🎬']),
+    'tracking': ('chat', ['chat', 'sparkle', 'repeat', 'calendar', 'search', 'upload']),
+    'accounts': ('bank', ['rupee', 'wallet', 'trend-up', 'card', 'check', 'shield']),
+    'investments': ('bars', ['layers', 'swap', 'link', 'clock', 'blocks', 'coins']),
+    'planning': ('calendar', ['repeat', 'sliders', 'flag', 'home', 'gift']),
+    'flows': ('compass', ['wand', 'map', 'lifebuoy']),
+    'family': ('people', ['people', 'layers', 'key', 'eye', 'lifebuoy', 'leaf', 'receipt']),
+    'noticing': ('sparkle', ['eye', 'hash', 'leaf', 'calendar', 'sliders', 'compass', 'lock']),
+    'insights': ('bulb', ['bars', 'check', 'trend-down', 'gift']),
+    'alerts': ('bell', ['clock', 'moon']),
+    'trust': ('lock', ['eye-off', 'scales', 'trash', 'unlock']),
+    'everywhere': ('globe', ['language', 'phone', 'currency', 'theme', 'play']),
 }
 
 
