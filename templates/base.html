@@ -261,7 +261,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="TrackMyRupee | Personal Finance System for India. No SMS. No Bank Login.">
     <meta name="twitter:description" content="Stop Guessing. Start Growing. Track your expenses and master your budget with TrackMyRupee.">
-    <meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
+    <meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v3.png?v=3.0">
     <meta name="twitter:url" content="{{ request.build_absolute_uri }}">
 
     <!-- Open Graph -->
@@ -269,7 +269,7 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:title" content="TrackMyRupee | Personal Finance System for India. No SMS. No Bank Login.">
     <meta property="og:description" content="Stop Guessing. Start Growing. Track your expenses and master your budget with TrackMyRupee.">
-    <meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
+    <meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v3.png?v=3.0">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
         {% block extra_head %}{% endblock %}
@@ -277,7 +277,7 @@
 
     <!-- PWA -->
     <link rel="manifest" href="{% url 'manifest' %}">
-    <meta name="theme-color" content="#1D9E75">
+    <meta name="theme-color" content="#0F7657">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     {# No black-translucent: iOS 26 blurs the top ~40pt of a page running under the status bar. Default style starts the page below an opaque bar. Only applies to apps (re)added to the Home Screen. #}
@@ -533,8 +533,8 @@
         .multiselect.dropdown-toggle:focus,
         .multiselect.dropdown-toggle:active,
         .btn-group.show .multiselect.dropdown-toggle {
-            border-color: #1D9E75 !important;
-            box-shadow: 0 0 0 0.25rem rgba(29, 158, 117, 0.15) !important;
+            border-color: #0F7657 !important;
+            box-shadow: 0 0 0 0.25rem rgba(15, 118, 87, 0.15) !important;
             outline: 0;
             color: var(--bs-body-color);
             background-color: var(--bs-body-bg);
@@ -591,12 +591,12 @@
         }
 
         .multiselect-container>li>a:hover {
-            background-color: rgba(29, 158, 117, 0.05);
+            background-color: rgba(15, 118, 87, 0.05);
             color: var(--bs-body-color);
         }
 
         .multiselect-container>li.active>a {
-            background-color: rgba(29, 158, 117, 0.1);
+            background-color: rgba(15, 118, 87, 0.1);
             color: var(--bs-body-color);
         }
 
@@ -671,7 +671,7 @@
         }
 
         .multiselect-container input[type="checkbox"]:checked {
-            background-color: #1D9E75;
+            background-color: #0F7657;
             border-color: transparent;
         }
 
@@ -764,7 +764,7 @@
     {% endif %}
     {% if request.user.username == 'demo' %}
     <div class="alert alert-primary text-center fw-bold m-0 rounded-0 shadow-sm demo-banner d-flex justify-content-center align-items-center flex-wrap gap-2 gap-sm-3"
-        role="alert" style="z-index: 1060; border: none; background: linear-gradient(90deg, #1D9E75, #1a4a35); color: white; position: fixed; top: 0; left: 0; right: 0; min-height: 40px; padding: 0.5rem 1rem;">
+        role="alert" style="z-index: 1060; border: none; background: linear-gradient(90deg, #0F7657, #1a4a35); color: white; position: fixed; top: 0; left: 0; right: 0; min-height: 40px; padding: 0.5rem 1rem;">
         <div class="d-flex align-items-center">
             <i class="bi bi-stars me-2"></i> 
             <span class="d-none d-sm-inline">{% trans "You're in Demo Mode. This is a demo with sample data for illustration." %}</span>

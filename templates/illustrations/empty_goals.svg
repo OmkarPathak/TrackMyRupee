@@ -1,44 +1,44 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Piggy bank with coin and flag -->
   <g transform="translate(55, 18)">
     <!-- Piggy body -->
-    <ellipse cx="45" cy="55" rx="35" ry="28" stroke="#1D9E75" stroke-width="2.5" fill="white"/>
+    <ellipse cx="45" cy="55" rx="35" ry="28" stroke="#0F7657" stroke-width="2.5" fill="white"/>
     <!-- Ears -->
-    <ellipse cx="22" cy="35" rx="8" ry="10" stroke="#1D9E75" stroke-width="2" fill="white"/>
+    <ellipse cx="22" cy="35" rx="8" ry="10" stroke="#0F7657" stroke-width="2" fill="white"/>
     <!-- Snout -->
-    <ellipse cx="75" cy="55" rx="8" ry="6" stroke="#1D9E75" stroke-width="2" fill="white"/>
-    <circle cx="73" cy="53" r="1.5" fill="#1D9E75" opacity="0.4"/>
-    <circle cx="77" cy="53" r="1.5" fill="#1D9E75" opacity="0.4"/>
+    <ellipse cx="75" cy="55" rx="8" ry="6" stroke="#0F7657" stroke-width="2" fill="white"/>
+    <circle cx="73" cy="53" r="1.5" fill="#0F7657" opacity="0.4"/>
+    <circle cx="77" cy="53" r="1.5" fill="#0F7657" opacity="0.4"/>
     <!-- Eye -->
-    <circle cx="58" cy="46" r="2.5" fill="#1D9E75" opacity="0.5"/>
+    <circle cx="58" cy="46" r="2.5" fill="#0F7657" opacity="0.5"/>
     <!-- Legs -->
-    <path d="M30 80V92" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M60 80V92" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M30 80V92" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M60 80V92" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round"/>
 
     <!-- Coin slot -->
-    <path d="M38 28L52 28" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M38 28L52 28" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round"/>
 
     <!-- Coin dropping in -->
-    <circle cx="45" cy="15" r="8" stroke="#1D9E75" stroke-width="2" fill="white"/>
-    <text x="45" y="19" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#1D9E75" opacity="0.6">₹</text>
+    <circle cx="45" cy="15" r="8" stroke="#0F7657" stroke-width="2" fill="white"/>
+    <text x="45" y="19" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#0F7657" opacity="0.6">₹</text>
 
     <!-- Flag on back (goal achieved) -->
-    <path d="M40 28V5" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M40 5L52 10L40 15" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="#1D9E75" fill-opacity="0.12"/>
+    <path d="M40 28V5" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M40 5L52 10L40 15" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="#0F7657" fill-opacity="0.12"/>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M150 20L153 23M153 20L150 23"/>
     <path d="M42 125L44 127M44 125L42 127"/>
-    <circle cx="160" cy="108" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="35" cy="25" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="160" cy="108" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="35" cy="25" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

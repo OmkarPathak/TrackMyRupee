@@ -1,32 +1,32 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Pie chart with segments pulled apart (distribution) -->
   <g transform="translate(100, 72)">
     <!-- Segment 1 (top-right, pulled out) -->
-    <path d="M2 -2L2 -36A36 36 0 0 1 33 -14Z" stroke="#1D9E75" stroke-width="2.5" fill="#1D9E75" fill-opacity="0.2" transform="translate(2,-2)"/>
+    <path d="M2 -2L2 -36A36 36 0 0 1 33 -14Z" stroke="#0F7657" stroke-width="2.5" fill="#0F7657" fill-opacity="0.2" transform="translate(2,-2)"/>
     <!-- Segment 2 (bottom-right) -->
-    <path d="M0 0L33 -14A36 36 0 0 1 20 30Z" stroke="#1D9E75" stroke-width="2.5" fill="#1D9E75" fill-opacity="0.12" transform="translate(1,1)"/>
+    <path d="M0 0L33 -14A36 36 0 0 1 20 30Z" stroke="#0F7657" stroke-width="2.5" fill="#0F7657" fill-opacity="0.12" transform="translate(1,1)"/>
     <!-- Segment 3 (bottom-left, largest) -->
-    <path d="M0 0L20 30A36 36 0 0 1 -30 20Z" stroke="#1D9E75" stroke-width="2.5" fill="#1D9E75" fill-opacity="0.06" transform="translate(-1,1)"/>
+    <path d="M0 0L20 30A36 36 0 0 1 -30 20Z" stroke="#0F7657" stroke-width="2.5" fill="#0F7657" fill-opacity="0.06" transform="translate(-1,1)"/>
     <!-- Segment 4 (top-left) -->
-    <path d="M0 0L-30 20A36 36 0 0 1 0 -36Z" stroke="#1D9E75" stroke-width="2.5" fill="white" transform="translate(-1,-1)"/>
+    <path d="M0 0L-30 20A36 36 0 0 1 0 -36Z" stroke="#0F7657" stroke-width="2.5" fill="white" transform="translate(-1,-1)"/>
     
     <!-- Percentage labels -->
-    <text x="22" y="-18" font-family="system-ui" font-size="8" fill="#1D9E75" opacity="0.5">35%</text>
-    <text x="20" y="18" font-family="system-ui" font-size="8" fill="#1D9E75" opacity="0.4">25%</text>
+    <text x="22" y="-18" font-family="system-ui" font-size="8" fill="#0F7657" opacity="0.5">35%</text>
+    <text x="20" y="18" font-family="system-ui" font-size="8" fill="#0F7657" opacity="0.4">25%</text>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M155 20L158 23M158 20L155 23"/>
     <path d="M40 125L42 127M42 125L40 127"/>
-    <circle cx="160" cy="108" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="35" cy="22" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="160" cy="108" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="35" cy="22" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

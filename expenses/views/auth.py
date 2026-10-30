@@ -1,4 +1,5 @@
 import json
+import random
 import threading
 import logging
 from datetime import date
@@ -34,6 +35,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 from django.utils.decorators import method_decorator
+from django.utils.cache import patch_vary_headers
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.generic import TemplateView
 
@@ -269,24 +272,66 @@ class OnboardingView(LoginRequiredMixin, TemplateView):
                 'error': _('Something went wrong, please try again.')
             }, status=400)
 
+LANDING_VARIANT_COOKIE = 'tmr_lp'
+LANDING_VARIANTS = ('tour', 'classic')
+LANDING_VARIANT_MAX_AGE = 90 * 24 * 3600
+
+
 class LandingPageView(TemplateView):
     template_name = 'landing.html'
+    template_names = {'tour': 'landing.html', 'classic': 'landing_classic.html'}
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return redirect('home')
         return super().dispatch(request, *args, **kwargs)
 
+    @staticmethod
+    def _split_is_running():
+        percent = getattr(settings, 'LANDING_TOUR_PERCENT', 100)
+        return 0 < percent < 100
+
+    def _choose_variant(self, request):
+        """Returns (variant, set_cookie). The chosen variant sticks via the first-party tmr_lp cookie."""
+        override = request.GET.get('lp')
+        if override in LANDING_VARIANTS:
+            return override, True
+        percent = getattr(settings, 'LANDING_TOUR_PERCENT', 100)
+        if percent >= 100:
+            return 'tour', False
+        if percent <= 0:
+            return 'classic', False
+        current = request.COOKIES.get(LANDING_VARIANT_COOKIE)
+        if current in LANDING_VARIANTS:
+            return current, False
+        return ('tour' if random.random() * 100 < percent else 'classic'), True
+
+    def get_template_names(self):
+        return [self.template_names[self.variant]]
+
+    def get_context_data(self, **kwargs):
+        context = self._build_context(**kwargs)
+        context['landing_variant'] = self.variant
+        return context
+
     def get(self, request, *args, **kwargs):
+        self.variant, set_cookie = self._choose_variant(request)
         response = super().get(request, *args, **kwargs)
         response['Link'] = '</llms.txt>; rel="service-doc", </sitemap.xml>; rel="describedby"'
         # A shared cache (the CDN) may keep the English page for anonymous visitors for a few minutes. Anyone with a
-        # session or a chosen language, or who reads another language, always gets their own copy.
+        # session or a chosen language, or who reads another language, always gets their own copy. While the
+        # experiment splits visitors (or a ?lp= override is used) the page differs per visitor, so it is never shared.
         shareable = (response.status_code == 200 and (translation.get_language() or '').startswith('en')
                      and settings.SESSION_COOKIE_NAME not in request.COOKIES
-                     and settings.LANGUAGE_COOKIE_NAME not in request.COOKIES)
+                     and settings.LANGUAGE_COOKIE_NAME not in request.COOKIES
+                     and not self._split_is_running() and request.GET.get('lp') not in LANDING_VARIANTS)
         response['Cache-Control'] = ('public, max-age=0, s-maxage=300, stale-while-revalidate=3600'
                                      if shareable else 'private, no-cache')
+        if self._split_is_running() or request.GET.get('lp') in LANDING_VARIANTS:
+            patch_vary_headers(response, ['Cookie'])
+        if set_cookie:
+            response.set_cookie(LANDING_VARIANT_COOKIE, self.variant, max_age=LANDING_VARIANT_MAX_AGE,
+                                samesite='Lax', secure=request.is_secure())
         return response
 
     def _get_demo_net_worth_breakdown(self):
@@ -392,7 +437,7 @@ class LandingPageView(TemplateView):
         cache.set(cache_key, result, timeout=3600)
         return result
 
-    def get_context_data(self, **kwargs):
+    def _build_context(self, **kwargs):
         from django.core.cache import cache
         context = super().get_context_data(**kwargs)
         plans = SubscriptionPlan.objects.filter(is_active=True)
@@ -406,7 +451,8 @@ class LandingPageView(TemplateView):
             cache.set('landing_total_users_count', total_users_count, timeout=3600)
         context['total_users_count'] = total_users_count
 
-        context['demo_networth_rows'] = self._get_demo_net_worth_breakdown()
+        if self.variant == 'classic':
+            context['demo_networth_rows'] = self._get_demo_net_worth_breakdown()
         return context
 
 class FeaturesPageView(TemplateView):
@@ -491,6 +537,12 @@ def demo_login(request):
 
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     messages.success(request, _("🚀 Welcome to Demo Mode! Feel free to explore the app."))
+    next_url = request.GET.get('next', '')
+    if (next_url.startswith('/') and not next_url.startswith('//') and '\\' not in next_url
+            and not any(ord(c) < 32 for c in next_url)
+            and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()},
+                                                require_https=request.is_secure())):
+        return redirect(next_url)
     return redirect('home')
 
 def demo_signup(request):

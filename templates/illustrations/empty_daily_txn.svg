@@ -1,41 +1,41 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Timeline / daily transactions -->
   <g transform="translate(55, 18)">
     <!-- Vertical timeline spine -->
-    <path d="M15 10V95" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" opacity="0.2"/>
+    <path d="M15 10V95" stroke="#0F7657" stroke-width="2" stroke-linecap="round" opacity="0.2"/>
     
     <!-- Node 1 -->
-    <circle cx="15" cy="18" r="5" stroke="#1D9E75" stroke-width="2" fill="white"/>
-    <path d="M25 15H75" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
-    <path d="M25 22H60" stroke="#1D9E75" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
+    <circle cx="15" cy="18" r="5" stroke="#0F7657" stroke-width="2" fill="white"/>
+    <path d="M25 15H75" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+    <path d="M25 22H60" stroke="#0F7657" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
     
     <!-- Node 2 -->
-    <circle cx="15" cy="42" r="5" fill="#1D9E75" fill-opacity="0.2" stroke="#1D9E75" stroke-width="2"/>
-    <path d="M25 39H80" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
-    <path d="M25 46H55" stroke="#1D9E75" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
+    <circle cx="15" cy="42" r="5" fill="#0F7657" fill-opacity="0.2" stroke="#0F7657" stroke-width="2"/>
+    <path d="M25 39H80" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+    <path d="M25 46H55" stroke="#0F7657" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
     
     <!-- Node 3 -->
-    <circle cx="15" cy="66" r="5" stroke="#1D9E75" stroke-width="2" fill="white"/>
-    <path d="M25 63H70" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
-    <path d="M25 70H50" stroke="#1D9E75" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
+    <circle cx="15" cy="66" r="5" stroke="#0F7657" stroke-width="2" fill="white"/>
+    <path d="M25 63H70" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+    <path d="M25 70H50" stroke="#0F7657" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
     
     <!-- Node 4 (fading) -->
-    <circle cx="15" cy="90" r="5" stroke="#1D9E75" stroke-width="2" fill="white" opacity="0.4"/>
-    <path d="M25 87H65" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.1"/>
+    <circle cx="15" cy="90" r="5" stroke="#0F7657" stroke-width="2" fill="white" opacity="0.4"/>
+    <path d="M25 87H65" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.1"/>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M155 18L158 21M158 18L155 21"/>
     <path d="M40 122L42 124M42 122L40 124"/>
-    <circle cx="160" cy="108" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="35" cy="22" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="160" cy="108" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="35" cy="22" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

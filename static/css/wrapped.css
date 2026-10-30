@@ -7,7 +7,7 @@
 .wr-page .mobile-bottom-nav, .wr-page .fab-container { display: none !important; }
 .wr-page main, .wr-page .main-content-container, .wr-page .container-fluid, .wr-page .container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
 
-.wr-sheet, .wr { --wr-teal: #1d9e75; --wr-teal-d: #0f5f47; --wr-ink: #0d1512; }
+.wr-sheet, .wr { --wr-teal: #0f7657; --wr-teal-d: #0f5f47; --wr-ink: #0d1512; }
 .wr {
       position: fixed; inset: 0; z-index: 1500; overflow-y: auto; background: #0b1210;
       min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 12px;
@@ -44,7 +44,7 @@ body:has(.demo-banner) .wr { padding-top: 64px; --wr-extra: 52px; }
 .wr-card.on { display: flex; animation: wrIn .25s ease-out; }
 @keyframes wrIn { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .wr-card.on { animation: none; } }
-.wr-card.c1 { background: radial-gradient(circle at 85% 8%, #3fd1a0 0%, #1d9e75 38%, #0f5f47 100%); }
+.wr-card.c1 { background: radial-gradient(circle at 85% 8%, #3fd1a0 0%, #0f7657 38%, #0f5f47 100%); }
 .wr-card.c2 { background: linear-gradient(160deg, #1b2a4a 0%, #0d1512 100%); }
 .wr-card.c3 { background: linear-gradient(165deg, #f4a261 0%, #e76f51 100%); }
 .wr-card.c4 { background: linear-gradient(160deg, #17332a 0%, #0d1512 100%); }
@@ -52,7 +52,7 @@ body:has(.demo-banner) .wr { padding-top: 64px; --wr-extra: 52px; }
 .wr-card.c6 { background: linear-gradient(160deg, #3a2a52 0%, #15101f 100%); }
 
 .wr-brand { display: flex; align-items: center; gap: 2.2cqw; font-weight: 700; font-size: 4.9cqw; }
-.wr-brand i { width: 6.1cqw; height: 6.1cqw; border-radius: 1.9cqw; background: #fff; color: #1d9e75; display: grid; place-items: center; font-style: normal; font-size: 4.2cqw; }
+.wr-brand i { width: 6.1cqw; height: 6.1cqw; border-radius: 1.9cqw; background: #fff; color: #0f7657; display: grid; place-items: center; font-style: normal; font-size: 4.2cqw; }
 .wr-eyebrow { margin-top: auto; font-size: 4.2cqw; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
 .wr-big { font-family: 'Instrument Serif', serif; font-size: 16.0cqw; line-height: 1; margin: 2.8cqw 0 2.2cqw; overflow-wrap: anywhere; }
 .wr-mid { font-size: 5.9cqw; line-height: 1.35; }

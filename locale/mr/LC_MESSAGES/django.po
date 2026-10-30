@@ -23141,3 +23141,327 @@ msgstr "तुमचा डेटा कुठे राहतो: ॲप्ल�
 #: templates/security.html:41
 msgid "Our application servers run in Bangalore and our database in Mumbai, both in India, so what you store in TrackMyRupee is kept and processed in India. Emails, analytics and error reports go through providers outside India; the Privacy Policy lists exactly what each one receives."
 msgstr "आमचे ॲप्लिकेशन सर्व्हर बेंगळुरूमध्ये आणि आमचा डेटाबेस मुंबईत आहे, दोन्ही भारतात, त्यामुळे TrackMyRupee मध्ये तुम्ही साठवलेले सर्व काही भारतात ठेवले आणि प्रोसेस केले जाते. ईमेल, ॲनालिटिक्स आणि त्रुटी अहवाल भारताबाहेरील प्रदात्यांमधून जातात; प्रत्येकाला नेमके काय मिळते ते गोपनीयता धोरणात दिले आहे."
+
+#: templates/landing.html
+msgid "The whole product"
+msgstr "संपूर्ण प्रॉडक्ट"
+
+#: templates/landing.html
+msgid "See it work, before you sign up."
+msgstr "साइन अप करण्यापूर्वी ते कसे चालते ते पहा."
+
+#: templates/landing.html
+msgid "This is what you get after you log in, on your computer or your phone. Pick a screen, or let it play."
+msgstr "लॉग इन केल्यानंतर तुम्हाला हेच मिळते, संगणकावर किंवा फोनवर. एखादी स्क्रीन निवडा, किंवा ती आपोआप चालू द्या."
+
+#: templates/landing.html
+msgid "Device"
+msgstr "डिव्हाइस"
+
+#: templates/landing.html
+msgid "Computer"
+msgstr "संगणक"
+
+#: templates/landing.html
+msgid "Phone"
+msgstr "फोन"
+
+#: templates/landing.html
+msgid "Pause"
+msgstr "थांबवा"
+
+#: templates/landing.html
+msgid "Play"
+msgstr "चालवा"
+
+#: templates/landing.html
+msgid "Product tour"
+msgstr "प्रॉडक्ट टूर"
+
+#: templates/landing.html
+msgid "Installs like an app"
+msgstr "अ‍ॅपसारखे इन्स्टॉल होते"
+
+#: templates/landing.html
+msgid "Add to your home screen. No app store."
+msgstr "तुमच्या होम स्क्रीनवर जोडा. अ‍ॅप स्टोअरची गरज नाही."
+
+#: templates/landing.html
+msgid "Works offline"
+msgstr "ऑफलाइनही चालते"
+
+#: templates/landing.html
+msgid "Opens fast, even on a weak signal."
+msgstr "कमकुवत सिग्नलवरही पटकन उघडते."
+
+#: templates/landing.html
+msgid "Type, don't tap through menus"
+msgstr "मेनूमध्ये टॅप करण्याऐवजी टाइप करा"
+
+#: templates/landing.html
+msgid "“swiggy 320” is enough."
+msgstr "“swiggy 320” लिहिणे पुरेसे आहे."
+
+#: templates/landing.html
+msgid "And no bank login. You stay in control."
+msgstr "आणि बँक लॉगिन नाही. नियंत्रण तुमच्या हातात राहते."
+
+#: templates/landing.html
+msgid "The product tour needs JavaScript."
+msgstr "प्रॉडक्ट टूरसाठी JavaScript आवश्यक आहे."
+
+#: templates/landing.html
+msgid "And more, built in"
+msgstr "आणि बरेच काही, आधीच समाविष्ट"
+
+#: templates/landing.html
+msgid "Any currency next to ₹"
+msgstr "₹ सोबत कोणतेही चलन"
+
+#: templates/landing.html
+msgid "Recurring items and SIPs"
+msgstr "आवर्ती खर्च आणि SIP"
+
+#: templates/landing.html
+msgid "Smart insights"
+msgstr "स्मार्ट इनसाइट्स"
+
+#: templates/landing.html
+msgid "Double-entry ledger"
+msgstr "डबल-एंट्री खातेवही"
+
+#: templates/landing.html
+msgid "CSV export anytime"
+msgstr "कधीही CSV एक्सपोर्ट"
+
+#: templates/landing.html
+msgid "Quick add"
+msgstr "झटपट जोडा"
+
+#: templates/landing.html
+msgid "Your month at a glance"
+msgstr "तुमचा महिना, एका नजरेत"
+
+#: templates/landing.html
+msgid "Net worth, income, spending and savings rate on one screen, with calm insights alongside."
+msgstr "एकूण संपत्ती, उत्पन्न, खर्च आणि बचत दर एकाच स्क्रीनवर, सोबत शांत इनसाइट्स."
+
+#: templates/landing.html
+msgid "Type it. It's logged."
+msgstr "टाइप करा, नोंद झाली."
+
+#: templates/landing.html
+msgid "Write what you spent the way you would say it. Amount, category and account are filled in, and it lands in your ledger."
+msgstr "तुम्ही बोलता तसे काय खर्च केले ते लिहा. रक्कम, श्रेणी आणि खाते आपोआप भरले जाते आणि ते तुमच्या खातेवहीत नोंदले जाते."
+
+#: templates/landing.html
+msgid "Know what is safe to spend today"
+msgstr "आज किती खर्च करणे सुरक्षित आहे ते जाणा"
+
+#: templates/landing.html
+msgid "A daily number based on your budget, your pace and the days left in the month. Overspent categories surface first."
+msgstr "तुमचे बजेट, तुमचा वेग आणि महिन्यातील उरलेले दिवस यांवर आधारित दैनिक आकडा. बजेटपेक्षा जास्त खर्च झालेल्या श्रेणी आधी दिसतात."
+
+#: templates/landing.html
+msgid "One real-time number across savings, SIPs, loans and cards, shown as a trajectory you can tap into."
+msgstr "बचत, SIP, कर्जे आणि कार्ड यांवरील एक रिअल-टाइम आकडा, ज्यात तुम्ही टॅप करून जाऊ शकता असा प्रवास म्हणून."
+
+#: templates/landing.html
+msgid "Every day, at a glance"
+msgstr "प्रत्येक दिवस, एका नजरेत"
+
+#: templates/landing.html
+msgid "Income, spending and investments by day, with salary days starred and busy days shaded darker."
+msgstr "दिवसानुसार उत्पन्न, खर्च आणि गुंतवणूक, ज्यात पगाराचे दिवस तार्याने चिन्हांकित आणि व्यस्त दिवस गडद रंगात आहेत."
+
+#: templates/landing.html
+msgid "Loans with the full picture"
+msgstr "संपूर्ण चित्रासह कर्जे"
+
+#: templates/landing.html
+msgid "See how much is principal, how much is interest and how much is left, for every loan you carry."
+msgstr "तुमच्या प्रत्येक कर्जात किती मुद्दल, किती व्याज आणि किती बाकी आहे ते पहा."
+
+#: templates/landing.html
+msgid "Goals with a finish date"
+msgstr "पूर्ण होण्याच्या तारखेसह उद्दिष्टे"
+
+#: templates/landing.html
+msgid "Set a target, move money towards it and see the date you will actually reach it at your real saving pace."
+msgstr "एक उद्दिष्ट ठरवा, त्याकडे पैसे वळवा आणि तुमच्या खऱ्या बचतीच्या वेगाने ते कोणत्या तारखेला पूर्ण होईल ते पहा."
+
+#: templates/landing.html
+msgid "Set it once. It runs itself."
+msgstr "एकदा सेट करा. ते स्वतः चालते."
+
+#: templates/landing.html
+msgid "Salary, rent, SIPs and premiums are posted on their due dates, with a reminder before each one. Nothing to remember."
+msgstr "पगार, भाडे, SIP आणि प्रीमियम देय तारखेला नोंदवले जातात, प्रत्येकापूर्वी स्मरणासह. काहीही लक्षात ठेवायची गरज नाही."
+
+#: templates/landing.html
+msgid "Every Indian account in one place"
+msgstr "प्रत्येक भारतीय खाते, एका ठिकाणी"
+
+#: templates/landing.html
+msgid "Savings, FDs, PPF, EPF, NPS, demat, gold, property and cards, grouped and added up into one net worth."
+msgstr "बचत, FD, PPF, EPF, NPS, डीमॅट, सोने, मालमत्ता आणि कार्ड, गटांमध्ये विभागलेली आणि एका एकूण संपत्तीत जोडलेली."
+
+#: templates/landing.html
+msgid "Tell it what happened in your life"
+msgstr "सांगा तुमच्या आयुष्यात काय घडले"
+
+#: templates/landing.html
+msgid "\"I started a new job.\" \"I took a loan.\" One short form sets up the account, the recurring entry and the reminders linked behind it."
+msgstr "\"मी नवी नोकरी सुरू केली.\" \"मी कर्ज घेतले.\" एक छोटा फॉर्म त्यामागील खाते, आवर्ती नोंद आणि स्मरणे सेट करतो."
+
+#: templates/landing.html
+msgid "Each of you keeps your own account and shares only what you choose. The family sees the combined picture of what was shared, never a transaction."
+msgstr "तुमच्यापैकी प्रत्येकाचे स्वतःचे खाते असते आणि तुम्ही निवडलेलेच शेअर करता. कुटुंबाला शेअर केलेल्या गोष्टींचे एकत्रित चित्र दिसते, कधीही व्यवहार नाही."
+
+#: templates/landing.html
+msgid "Private by default. Shared by choice."
+msgstr "डिफॉल्टनुसार खाजगी. निवडीनुसार शेअर."
+
+#: templates/landing.html
+msgid "No SMS reading, no bank login. In a family, nothing is shared until you switch it on, and you can preview exactly what they will see."
+msgstr "SMS वाचन नाही, बँक लॉगिन नाही. कुटुंबात, तुम्ही चालू करेपर्यंत काहीही शेअर होत नाही आणि त्यांना नेमके काय दिसेल ते तुम्ही आधी पाहू शकता."
+
+#: templates/landing.html
+msgid "Open this screen in the live demo"
+msgstr "ही स्क्रीन लाइव्ह डेमोमध्ये उघडा"
+
+#: templates/landing.html
+msgid "The Financial Operating System for India"
+msgstr "भारताची फायनान्शियल ऑपरेटिंग सिस्टम"
+
+#: templates/landing.html
+msgid "Know where every rupee went."
+msgstr "प्रत्येक रुपया कुठे गेला ते जाणून घ्या."
+
+#: templates/landing.html
+msgid "No SMS reading. No bank login."
+msgstr "SMS वाचन नाही. बँक लॉगिन नाही."
+
+#: templates/landing.html
+msgid "Net worth, a double-entry ledger, investments, loans and cash flow in one privacy-first place."
+msgstr "एकूण संपत्ती, डबल-एंट्री खातेवही, गुंतवणूक, कर्ज आणि कॅश फ्लो, एकाच प्रायव्हसी-फर्स्ट ठिकाणी."
+
+#: templates/landing.html
+msgid "TrackMyRupee runs on subscriptions: no ads, no selling your data, no profiles built on your behaviour. Your data has no role in our business model, and never will."
+msgstr "TrackMyRupee सबस्क्रिप्शनवर चालते: जाहिराती नाहीत, तुमचा डेटा विकणे नाही, तुमच्या वर्तनावर प्रोफाइल नाहीत. तुमच्या डेटाची आमच्या व्यवसाय मॉडेलमध्ये कोणतीही भूमिका नाही आणि कधीही असणार नाही."
+
+#: templates/landing.html
+msgid "Free to start. No bank access needed."
+msgstr "सुरू करणे मोफत. बँक अ‍ॅक्सेसची गरज नाही."
+
+#: templates/landing.html
+msgid "Where did your salary go?"
+msgstr "तुमचा पगार कुठे गेला?"
+
+#: templates/landing.html
+msgid "Just type what you spent, like “swiggy 320”. TrackMyRupee handles the rest, and it never asks for your bank login or reads your SMS."
+msgstr "फक्त काय खर्च केले ते लिहा, जसे “swiggy 320”. बाकी TrackMyRupee सांभाळते, आणि ते कधीही तुमचे बँक लॉगिन मागत नाही किंवा तुमचे SMS वाचत नाही."
+
+#: templates/landing.html
+msgid "Your salary is gone by the 20th. Let's find out where."
+msgstr "तुमचा पगार २० तारखेपर्यंत संपतो. चला शोधूया कुठे गेला ते."
+
+#: templates/landing.html
+msgid "Type what you spend, like “swiggy 320”, and watch the picture fill in: where it went, what you're worth, what's due next month. No bank login. No SMS access."
+msgstr "काय खर्च केले ते लिहा, जसे “swiggy 320”, आणि पूर्ण चित्र तयार होत जाते: पैसे कुठे गेले, तुमची एकूण संपत्ती किती, पुढच्या महिन्यात काय द्यायचे आहे. बँक लॉगिन नाही. SMS अ‍ॅक्सेस नाही."
+
+#: templates/landing.html
+msgid "You earn well."
+msgstr "तुम्ही चांगले कमावता."
+
+#: templates/landing.html
+msgid "So why is month-end always a surprise?"
+msgstr "मग महिन्याच्या शेवटी नेहमी आश्चर्य का वाटते?"
+
+#: templates/landing.html
+msgid "Type what you spend. See where it went, what you're worth and what's due next month. No bank login. No SMS access."
+msgstr "काय खर्च केले ते लिहा. पैसे कुठे गेले, तुमची एकूण संपत्ती किती आणि पुढच्या महिन्यात काय द्यायचे आहे ते पाहा. बँक लॉगिन नाही. SMS अ‍ॅक्सेस नाही."
+
+#: templates/landing.html
+msgid "Try it"
+msgstr "करून पाहा"
+
+#: templates/landing.html
+msgid "Type a spend, like swiggy 320"
+msgstr "खर्च लिहा, जसे swiggy 320"
+
+#: templates/landing.html
+msgid "Add an amount, like 320"
+msgstr "रक्कम जोडा, जसे 320"
+
+#: templates/landing.html
+msgid "Stop guessing where your <span class=\"hero-accent\">salary goes.</span>"
+msgstr "<span class=\"hero-accent\">तुमचा पगार कुठे जातो</span> याचा अंदाज बांधणे थांबवा."
+
+#: templates/landing.html
+msgid "Every other money app wants your bank login or your SMS inbox. TrackMyRupee wants neither. Type what you spend and watch your whole financial picture take shape."
+msgstr "इतर प्रत्येक मनी अ‍ॅप तुमचे बँक लॉगिन किंवा SMS इनबॉक्स मागते. TrackMyRupee यापैकी काहीही मागत नाही. फक्त काय खर्च केले ते लिहा आणि तुमचे संपूर्ण आर्थिक चित्र आकार घेताना पाहा."
+
+#: templates/landing.html
+msgid "The money app that speaks <span class=\"hero-accent\">PPF, SIPs and home loans.</span>"
+msgstr "PPF, SIP आणि होम लोनची भाषा <span class=\"hero-accent\">समजणारे मनी अ‍ॅप.</span>"
+
+#: templates/landing.html
+msgid "30+ kinds of Indian accounts in one place, from salary accounts and FDs to NPS, gold, demat and your family's net worth. Easy on day one, deep enough for the spreadsheet crowd. No bank login. No SMS access."
+msgstr "३० पेक्षा जास्त प्रकारची भारतीय खाती एकाच ठिकाणी: पगार खाते आणि FD पासून NPS, सोने, डीमॅट आणि कुटुंबाच्या एकूण संपत्तीपर्यंत. पहिल्या दिवशी सोपे, आणि स्प्रेडशीट वापरणाऱ्यांसाठी पुरेसे सखोल. बँक लॉगिन नाही. SMS अ‍ॅक्सेस नाही."
+
+#: templates/landing.html
+msgid "India's most complete <span class=\"hero-accent\">money app.</span>"
+msgstr "भारतातील सर्वात संपूर्ण <span class=\"hero-accent\">मनी अ‍ॅप.</span>"
+
+#: templates/landing.html
+msgid "From salary accounts and FDs to PPF, NPS, SIPs, gold, demat, home loans and your family's net worth. Easy on day one, deep enough for the spreadsheet crowd. No bank login. No SMS access."
+msgstr "पगार खाते आणि FD पासून PPF, NPS, SIP, सोने, डीमॅट, होम लोन आणि कुटुंबाच्या एकूण संपत्तीपर्यंत. पहिल्या दिवशी सोपे, आणि स्प्रेडशीट वापरणाऱ्यांसाठी पुरेसे सखोल. बँक लॉगिन नाही. SMS अ‍ॅक्सेस नाही."
+
+#: templates/landing.html
+msgid "30+ account types"
+msgstr "३०+ प्रकारची खाती"
+
+#: templates/landing.html
+msgid "Hindi, Marathi, English"
+msgstr "हिंदी, मराठी, इंग्रजी"
+
+#: templates/landing.html
+msgid "Open source"
+msgstr "ओपन सोर्स"
+
+#: templates/landing.html
+msgid "From salary accounts and FDs to PPF, NPS, SIPs, gold, demat, home loans and your family's net worth. Easy on day one, deep enough for the spreadsheet crowd."
+msgstr "पगार खाते आणि FD पासून PPF, NPS, SIP, सोने, डीमॅट, होम लोन आणि कुटुंबाच्या एकूण संपत्तीपर्यंत. पहिल्या दिवशी सोपे, आणि स्प्रेडशीट वापरणाऱ्यांसाठी पुरेसे सखोल."
+
+#: templates/landing.html
+msgid "Everything is entered by you, never pulled from your bank or phone. No ads, ever. No bank or SMS permission, ever."
+msgstr "सर्व काही तुम्ही स्वतः नोंदवता, तुमच्या बँक किंवा फोनमधून काहीही ओढले जात नाही. कधीही जाहिराती नाहीत. बँक किंवा SMS ची परवानगी कधीही नाही."
+
+#: templates/landing.html
+msgid "Your entire financial life."
+msgstr "तुमचे संपूर्ण आर्थिक आयुष्य."
+
+#: templates/landing.html
+msgid "One powerful place."
+msgstr "एक दमदार ठिकाण."
+
+#: templates/landing.html
+msgid "From your first savings account to a portfolio spanning mutual funds, stocks, FDs, PPF, NPS, gold, real estate and more — track everything you own, see your complete net worth, and understand how your money is growing."
+msgstr "तुमच्या पहिल्या बचत खात्यापासून ते म्युच्युअल फंड, शेअर्स, FD, PPF, NPS, सोने, रिअल इस्टेट आणि बरेच काही असलेल्या पोर्टफोलिओपर्यंत, तुमच्याकडे जे आहे ते सर्व ट्रॅक करा, तुमची संपूर्ण एकूण संपत्ती पाहा आणि तुमचा पैसा कसा वाढत आहे ते समजून घ्या."
+
+#: templates/landing.html
+msgid "Simple enough for anyone. Powerful enough for everyone."
+msgstr "कोणासाठीही सोपे. प्रत्येकासाठी दमदार."
+
+#: templates/landing.html
+msgid "Complete net worth"
+msgstr "संपूर्ण एकूण संपत्ती"
+
+#: templates/landing.html
+msgid "Built for power users"
+msgstr "पॉवर युजर्ससाठी बनवलेले"
+
+#: templates/landing.html
+msgid "From your first savings account to a portfolio spanning mutual funds, stocks, FDs, PPF, NPS, gold, real estate and more. Track everything you own, see your complete net worth, and understand how your money is growing."
+msgstr "तुमच्या पहिल्या बचत खात्यापासून ते म्युच्युअल फंड, शेअर्स, FD, PPF, NPS, सोने, रिअल इस्टेट आणि बरेच काही असलेल्या पोर्टफोलिओपर्यंत, तुमच्याकडे जे आहे ते सर्व ट्रॅक करा, तुमची संपूर्ण एकूण संपत्ती पाहा आणि तुमचा पैसा कसा वाढत आहे ते समजून घ्या."

@@ -19,6 +19,8 @@
     var PH_HOST = '{{ POSTHOG_HOST|default:""|escapejs }}';
     var PH_ID = '{{ POSTHOG_DISTINCT_ID|default:""|escapejs }}';
     var PH_TIER = '{{ POSTHOG_TIER|default:""|escapejs }}';
+    // A page in an experiment sets window.tmrLandingVariant before this snippet; it is sent only after consent.
+    var LP_VARIANT = (typeof window.tmrLandingVariant === 'string') ? window.tmrLandingVariant : '';
     var afterLoad = window.tmrAfterLoad || function (fn) { fn(); };
 
     // Page addresses carry search and filter text (?search=salary), which must not reach analytics.
@@ -73,12 +75,14 @@
             'analytics_storage': 'granted'
         });
         gtag('js', new Date());
+        if (LP_VARIANT) { gtag('set', 'user_properties', { landing_variant: LP_VARIANT }); }
         gtag('config', GA_ID, {
             allow_google_signals: false,
             allow_ad_personalization_signals: false,
             page_location: pageUrl(),
             page_referrer: cleanUrl(document.referrer)
         });
+        if (LP_VARIANT) { gtag('event', 'landing_variant', { landing_variant: LP_VARIANT, non_interaction: true }); }
         afterLoad(function () {
             var g = document.createElement('script');
             g.async = true;
@@ -109,6 +113,7 @@
                     return props;
                 }
             });
+            if (LP_VARIANT) { posthog.register({ landing_variant: LP_VARIANT }); }
             posthog.capture('$pageview');
             if (PH_ID) { posthog.identify(PH_ID, PH_TIER ? { tier: PH_TIER } : {}); }
             // HTMX navigations swap content without a full page load.

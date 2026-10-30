@@ -313,6 +313,14 @@ try:
 except ValueError:
     INSIGHTS_SHADOW_PERCENT = 10
 
+# Landing page experiment: share of new visitors (0-100) who see the short product tour; the rest see the classic long
+# page. 100 = everyone sees the tour, 0 = everyone sees the classic page. Under test the tour is shown (unless a test
+# overrides it) so tests of the tour need no setup.
+try:
+    LANDING_TOUR_PERCENT = max(0, min(100, int(os.environ.get('LANDING_TOUR_PERCENT', 100 if IS_TESTING else 50))))
+except ValueError:
+    LANDING_TOUR_PERCENT = 100 if IS_TESTING else 50
+
 # How long a finished Analytics tab is kept (seconds). Any write by the user clears it sooner; tests turn it off.
 ANALYTICS_CACHE_SECONDS = 0 if IS_TESTING else 300
 

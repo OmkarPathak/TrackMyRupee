@@ -1,39 +1,39 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Speedometer / pace indicator -->
   <g transform="translate(100, 80)">
     <!-- Track -->
-    <path d="M-45 10A48 48 0 0 1 45 10" stroke="#1D9E75" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.1"/>
+    <path d="M-45 10A48 48 0 0 1 45 10" stroke="#0F7657" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.1"/>
     <!-- Progress arc (partial fill) -->
-    <path d="M-45 10A48 48 0 0 1 -20 -40" stroke="#1D9E75" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.4"/>
+    <path d="M-45 10A48 48 0 0 1 -20 -40" stroke="#0F7657" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.4"/>
     
     <!-- Tick marks -->
-    <path d="M-42 -18L-36 -14" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
-    <path d="M-25 -38L-20 -32" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
-    <path d="M0 -48L0 -42" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
-    <path d="M25 -38L20 -32" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
-    <path d="M42 -18L36 -14" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+    <path d="M-42 -18L-36 -14" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+    <path d="M-25 -38L-20 -32" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+    <path d="M0 -48L0 -42" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+    <path d="M25 -38L20 -32" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+    <path d="M42 -18L36 -14" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
 
     <!-- Runner icon (person pacing) -->
-    <circle cx="-15" cy="-35" r="4" stroke="#1D9E75" stroke-width="2" fill="white"/>
-    <path d="M-15 -31L-15 -22M-15 -26L-21 -22M-15 -26L-9 -22M-15 -22L-20 -15M-15 -22L-10 -15" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="-15" cy="-35" r="4" stroke="#0F7657" stroke-width="2" fill="white"/>
+    <path d="M-15 -31L-15 -22M-15 -26L-21 -22M-15 -26L-9 -22M-15 -22L-20 -15M-15 -22L-10 -15" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 
     <!-- Goal flag -->
-    <path d="M40 -20V-45" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/>
-    <path d="M40 -45L52 -40L40 -35" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="#1D9E75" fill-opacity="0.15"/>
+    <path d="M40 -20V-45" stroke="#0F7657" stroke-width="2" stroke-linecap="round"/>
+    <path d="M40 -45L52 -40L40 -35" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="#0F7657" fill-opacity="0.15"/>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M160 18L163 21M163 18L160 21"/>
     <path d="M32 120L34 122M34 120L32 122"/>
-    <circle cx="165" cy="105" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="28" cy="22" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="165" cy="105" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="28" cy="22" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

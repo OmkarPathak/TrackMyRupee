@@ -49,7 +49,7 @@ body {
 
 .form-control:focus {
   border-color: var(--color-success);
-  box-shadow: 0 0 0 0.25rem rgba(29, 158, 117, 0.15);
+  box-shadow: 0 0 0 0.25rem rgba(15, 118, 87, 0.15);
 }
 
 /* Search bar specific integration */
@@ -66,13 +66,13 @@ body {
 
 .search-input-group:focus-within {
   border-color: var(--color-success) !important;
-  box-shadow: 0 0 0 0.25rem rgba(29, 158, 117, 0.15) !important;
+  box-shadow: 0 0 0 0.25rem rgba(15, 118, 87, 0.15) !important;
 }
 
 /* Global Card Refinements */
 .card {
   box-shadow: none !important;
-  /* box-shadow: 0 0 0 0.03rem rgba(29, 158, 117, 0.15) !important; */
+  /* box-shadow: 0 0 0 0.03rem rgba(15, 118, 87, 0.15) !important; */
   border: 0.1px solid var(--bs-border-color-translucent) !important;
   border-radius: 18px !important;
   --bs-card-border-radius: 18px;
@@ -102,8 +102,8 @@ body {
 /* --- Premium Table Refinements --- */
 .table {
   --bs-table-bg: transparent;
-  --bs-table-striped-bg: rgba(29, 158, 117, 0.02);
-  --bs-table-hover-bg: rgba(29, 158, 117, 0.05);
+  --bs-table-striped-bg: rgba(15, 118, 87, 0.02);
+  --bs-table-hover-bg: rgba(15, 118, 87, 0.05);
   border-color: var(--bs-border-color-translucent);
 }
 
@@ -124,7 +124,7 @@ body.has-sidebar .table-responsive .table,
 body.has-sidebar table.table {
   --bs-table-bg: #fcfbfa;
   --bs-table-striped-bg: rgba(0, 0, 0, 0.012);
-  --bs-table-hover-bg: rgba(29, 158, 117, 0.04);
+  --bs-table-hover-bg: rgba(15, 118, 87, 0.04);
   --bs-table-border-color: rgba(0, 0, 0, 0.04);
   background-color: #fcfbfa !important;
 }
@@ -267,15 +267,15 @@ body.has-sidebar table.table td {
 @keyframes fab-pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(29, 158, 117, 0.4);
+    box-shadow: 0 0 0 0 rgba(15, 118, 87, 0.4);
   }
   70% {
     transform: scale(1.04);
-    box-shadow: 0 0 0 12px rgba(29, 158, 117, 0);
+    box-shadow: 0 0 0 12px rgba(15, 118, 87, 0);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(29, 158, 117, 0);
+    box-shadow: 0 0 0 0 rgba(15, 118, 87, 0);
   }
 }
 
@@ -328,7 +328,7 @@ body.has-sidebar table.table td {
 :root {
   --color-primary: #1a1a18; /* Warm Ink Black */
   --color-secondary: #0F7657; /* Forest Green (Accessible Text Contrast >= 4.5:1) */
-  --color-success: #1D9E75; /* Forest Green (Buttons/Fill UI >= 3.0:1) */
+  --color-success: #0F7657; /* Forest Green (Buttons/Fill UI >= 3.0:1) */
   --color-success-text: #0F7657; /* Deep Forest Green (Text Contrast >= 4.5:1 on Light BGs & Option C) */
   --color-danger: #E05C45; /* Warm Danger Red (Buttons/UI) */
   --color-danger-text: #B93822; /* Accessible Warm Red (Text Contrast >= 4.5:1 on Light BGs & Option C) */
@@ -342,7 +342,7 @@ body.has-sidebar table.table td {
 
   --surface-color: #ffffff;
   --text-main: #1a1a18; /* Warm Ink Black */
-  --color-accent: #1D9E75;
+  --color-accent: #0F7657;
   --color-accent2: #D4831A;
   --border-color: rgba(26,26,24,0.1);
   --paper: #faf8f5;
@@ -368,8 +368,8 @@ body.has-sidebar table.table td {
   --bs-danger-rgb: 192, 57, 43;
 
   /* Override Bootstrap success */
-  --bs-success: #1D9E75;
-  --bs-success-rgb: 29, 158, 117;
+  --bs-success: #0F7657;
+  --bs-success-rgb: 15, 118, 87;
 
   /* Toast Notification Standardized Colors */
   /* Success toasts use the primary green (same as the primary buttons) in light and dark themes. */
@@ -436,8 +436,8 @@ body.demo-mode .sidebar {
 }
 
 .sidebar-greeting-box {
-  background: rgba(29, 158, 117, 0.05);
-  border: 1px solid rgba(29, 158, 117, 0.1);
+  background: rgba(15, 118, 87, 0.05);
+  border: 1px solid rgba(15, 118, 87, 0.1);
   border-radius: 12px;
   padding: 1rem;
   transition: all 0.3s ease;
@@ -523,7 +523,7 @@ body.demo-mode .sidebar {
 }
 
 .type-bank .account-dot, 
-.type-cash .account-dot { background-color: #1D9E75; }
+.type-cash .account-dot { background-color: #0F7657; }
 .type-investment .account-dot, 
 .type-fixed_deposit .account-dot { background-color: #6610f2; }
 .type-credit_card .account-dot { background-color: #fd7e14; }
@@ -606,13 +606,13 @@ body.demo-mode .sidebar {
 }
 
 .btn-search-trigger:hover {
-  background-color: rgba(29, 158, 117, 0.04) !important;
-  border-color: rgba(29, 158, 117, 0.3) !important;
+  background-color: rgba(15, 118, 87, 0.04) !important;
+  border-color: rgba(15, 118, 87, 0.3) !important;
   color: var(--bs-body-color) !important;
 }
 
 .btn-search-trigger:focus {
-  box-shadow: 0 0 0 0.2rem rgba(29, 158, 117, 0.15) !important;
+  box-shadow: 0 0 0 0.2rem rgba(15, 118, 87, 0.15) !important;
 }
 
 /* Collapsed sidebar trigger behavior */
@@ -671,7 +671,7 @@ body.demo-mode .sidebar {
 
 /* Active Item State with Soft Green Wash */
 .sidebar .nav-link.active {
-  background-color: rgba(29, 158, 117, 0.1) !important;
+  background-color: rgba(15, 118, 87, 0.1) !important;
   color: var(--color-success-text, #0F7657) !important;
   font-weight: 600;
   border: none !important;
@@ -1110,15 +1110,15 @@ body.has-sidebar {
 }
 
 .badge-soft-primary {
-  background-color: rgba(29, 158, 117, 0.08);
+  background-color: rgba(15, 118, 87, 0.08);
   color: var(--color-success-text, #0F7657);
-  border: 1px solid rgba(29, 158, 117, 0.18);
+  border: 1px solid rgba(15, 118, 87, 0.18);
 }
 
 [data-bs-theme="dark"] .badge-soft-primary {
-  background-color: rgba(29, 158, 117, 0.15);
+  background-color: rgba(15, 118, 87, 0.15);
   color: #9FE1CB;
-  border: 1px solid rgba(29, 158, 117, 0.25);
+  border: 1px solid rgba(15, 118, 87, 0.25);
 }
 
 .badge-soft-secondary {
@@ -1634,8 +1634,8 @@ a.btn-danger:active {
 
 /* Accent Text Utility */
 .text-gradient-primary {
-  color: #1D9E75 !important;
-  -webkit-text-fill-color: #1D9E75 !important;
+  color: #0F7657 !important;
+  -webkit-text-fill-color: #0F7657 !important;
   display: inline-block;
 }
 
@@ -1957,7 +1957,7 @@ a.btn-danger:active {
 
 /* Progress Bars */
 .progress-bar {
-  --bs-progress-bar-bg: #1D9E75;
+  --bs-progress-bar-bg: #0F7657;
 }
 .progress-thin {
   height: 6px;
@@ -1970,7 +1970,7 @@ a.btn-danger:active {
 
 /* Category Colors (cycling) - Flat solid colors */
 .cat-color-0 {
-  background-color: #1D9E75;
+  background-color: #0F7657;
 } /* Forest Green */
 .cat-color-1 {
   background-color: #D4831A;
@@ -2005,7 +2005,7 @@ a.btn-danger:active {
 
 /* Semantic Progress Bar Colors - Premium Palette */
 .progress-gradient-success {
-  background-color: #1D9E75;
+  background-color: #0F7657;
 }
 .progress-gradient-warning {
   background-color: #D4831A;
@@ -2014,7 +2014,7 @@ a.btn-danger:active {
   background-color: #E05C45;
 }
 .progress-gradient-teal {
-  background-color: #1D9E75;
+  background-color: #0F7657;
 }
 
 /* Fix for Multiselect Dropdown Visibility */
@@ -2360,7 +2360,7 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 
 .form-card:hover {
   box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-  border-color: rgba(29, 158, 117, 0.2);
+  border-color: rgba(15, 118, 87, 0.2);
 }
 
 .form-card .form-label {
@@ -2381,9 +2381,9 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 
 .form-card .form-control:focus,
 .form-card .form-select:focus {
-  border-color: #1D9E75;
+  border-color: #0F7657;
   background-color: #fff;
-  box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.1);
+  box-shadow: 0 0 0 4px rgba(15, 118, 87, 0.1);
 }
 
 .remove-item-container {
@@ -2767,7 +2767,7 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 .mobile-fab-btn:hover {
   background-color: #157F5D;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22), 0 3px 8px rgba(29, 158, 117, 0.18);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22), 0 3px 8px rgba(15, 118, 87, 0.18);
 }
 
 .mobile-fab-btn:active {
@@ -2886,12 +2886,12 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 }
 
 .profile-avatar {
-  background-color: rgba(29, 158, 117, 0.08);
+  background-color: rgba(15, 118, 87, 0.08);
   transition: all 0.3s ease;
 }
 
 [data-bs-theme="dark"] .profile-avatar {
-  background-color: rgba(29, 158, 117, 0.15);
+  background-color: rgba(15, 118, 87, 0.15);
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
@@ -3172,11 +3172,11 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
   transition: background 0.2s, transform 0.15s;
 }
 [data-bs-theme="dark"] .nav-cta {
-  background: var(--tmr-teal-400, #1d9e75);
+  background: var(--tmr-teal-400, #0f7657);
   color: #ffffff !important;
 }
 .nav-cta:hover {
-  background: var(--tmr-teal-400, #1d9e75) !important;
+  background: var(--tmr-teal-400, #0f7657) !important;
   transform: translateY(-1px);
 }
 .mobile-nav-actions {
@@ -3574,7 +3574,7 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
 .tmr-pill.active,
 .tmr-chip.active {
   border-color: var(--color-success) !important;
-  background: rgba(29, 158, 117, 0.08);
+  background: rgba(15, 118, 87, 0.08);
   color: var(--color-success-text);
 }
 .tmr-stage { border-radius: 18px !important; }
@@ -4190,8 +4190,8 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
    The card variant uses the same Bootstrap classes as the install banner on the dashboard
    (card, shadow-sm, rounded-4, icon circle); this only adds that banner's green wash. */
 .tmr-reminder--card {
-  background: linear-gradient(135deg, rgba(29, 158, 117, 0.1), rgba(29, 158, 117, 0.05));
-  border: 1px solid rgba(29, 158, 117, 0.2) !important;
+  background: linear-gradient(135deg, rgba(15, 118, 87, 0.1), rgba(15, 118, 87, 0.05));
+  border: 1px solid rgba(15, 118, 87, 0.2) !important;
   margin-top: 1rem;   /* only takes space while the card is shown ([hidden] removes it) */
 }
 .tmr-reminder--plain { margin-top: 0.75rem; }

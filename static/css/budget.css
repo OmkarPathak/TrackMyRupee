@@ -205,9 +205,9 @@
 .bdx-ctl { width: auto; min-height: 40px; font-size: .82rem; padding-right: 2rem; }
 
 /* ---- adjust-limit dialog: the expense composer's look (24px card, 10px controls, green tint) ---- */
-.bdx-modal { --bdx-ctl-h: 2.56rem; --bdx-tint: rgba(29, 158, 117, .08); }
+.bdx-modal { --bdx-ctl-h: 2.56rem; --bdx-tint: rgba(15, 118, 87, .08); }
 @supports (color: color-mix(in srgb, red 10%, blue)) {
-    .bdx-modal { --bdx-tint: color-mix(in srgb, var(--color-success, #1D9E75) 9%, var(--bs-body-bg)); }
+    .bdx-modal { --bdx-tint: color-mix(in srgb, var(--color-success, #0F7657) 9%, var(--bs-body-bg)); }
 }
 .bdx-sheet-head { display: flex; align-items: center; gap: 12px; padding: 20px 22px 4px; }
 .bdx-sheet-titles { flex: 1; min-width: 0; }
@@ -229,11 +229,11 @@
     transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease; }
 .bdx-opt input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .bdx-opt i { color: var(--bs-secondary-color); }
-.bdx-opt:hover { border-color: var(--color-success, #1D9E75); }
-.bdx-opt:has(input:checked) { border-color: var(--color-success, #1D9E75); background: var(--bdx-tint); color: var(--color-success-text, #0F7657);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #1D9E75) 14%, transparent); }
+.bdx-opt:hover { border-color: var(--color-success, #0F7657); }
+.bdx-opt:has(input:checked) { border-color: var(--color-success, #0F7657); background: var(--bdx-tint); color: var(--color-success-text, #0F7657);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success, #0F7657) 14%, transparent); }
 .bdx-opt:has(input:checked) i { color: var(--color-success-text, #0F7657); }
-.bdx-opt:has(input:focus-visible) { outline: 2px solid var(--color-success, #1D9E75); outline-offset: 2px; }
+.bdx-opt:has(input:focus-visible) { outline: 2px solid var(--color-success, #0F7657); outline-offset: 2px; }
 .bdx-opt:has(input:disabled) { opacity: .5; cursor: not-allowed; }
 
 .bdx-notice { display: flex; gap: 8px; align-items: flex-start; margin: 16px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--bdx-tint); font-size: .88rem; line-height: 1.45; }
@@ -338,7 +338,7 @@
 .bdx-modal .form-control:focus, .bdx-modal .form-control:focus-visible,
 .bdx-modal .form-select:focus, .bdx-modal .form-select:focus-visible { border-color: var(--bs-border-color) !important; box-shadow: none !important; outline: 0 !important; }
 .bdx-opt:has(input:checked) { box-shadow: none; }
-.bdx-opt:has(input:focus-visible) { outline: 0; border-color: var(--color-success, #1D9E75); }
+.bdx-opt:has(input:focus-visible) { outline: 0; border-color: var(--color-success, #0F7657); }
 
 /* "Adjust limit" is a plain text link, like the other inline actions */
 .bdx-cat-foot .bdx-link { padding: 0; min-height: 36px; font-size: .82rem; }
@@ -378,10 +378,10 @@
 .bdx-chip--none i { color: var(--bdx-muted); }
 .bdx-chip-count { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px;
     background: var(--bdx-chip); color: var(--bdx-ink); font-size: .75rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.bdx-chip:hover { border-color: var(--color-success, #1D9E75); background: var(--bs-body-bg); }
-.bdx-chip.is-active { border-color: var(--color-success, #1D9E75); background: var(--bdx-green-soft); color: var(--bdx-green-text); font-weight: 600; }
-.bdx-chip.is-active .bdx-chip-count { background: var(--color-success, #1D9E75); color: #fff; }
-.bdx-chip:focus-visible { outline: 2px solid var(--color-success, #1D9E75); outline-offset: 2px; }
+.bdx-chip:hover { border-color: var(--color-success, #0F7657); background: var(--bs-body-bg); }
+.bdx-chip.is-active { border-color: var(--color-success, #0F7657); background: var(--bdx-green-soft); color: var(--bdx-green-text); font-weight: 600; }
+.bdx-chip.is-active .bdx-chip-count { background: var(--color-success, #0F7657); color: #fff; }
+.bdx-chip:focus-visible { outline: 2px solid var(--color-success, #0F7657); outline-offset: 2px; }
 @media (max-width: 767.98px) {
     .bdx-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
     .bdx-chip, .bdx-chip--over, .bdx-chip--limit, .bdx-chip--ok, .bdx-chip--none { min-height: 44px; }

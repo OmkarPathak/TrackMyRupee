@@ -3,7 +3,7 @@
 :root {
   /* Themed via the app's shared Bootstrap color-mode variables so light/dark match every
      other input, button and dropdown in the app instead of using one-off hardcoded colors. */
-  --tmr-filter-primary: var(--color-success, #1D9E75);
+  --tmr-filter-primary: var(--color-success, #0F7657);
   --tmr-filter-primary-hover: var(--tmr-filter-primary);
   --tmr-filter-bg-active: rgba(var(--bs-primary-rgb), 0.1);
   --tmr-filter-border-active: var(--tmr-filter-primary);

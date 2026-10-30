@@ -1,34 +1,34 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Gauge / Health meter -->
   <g transform="translate(100, 85)">
     <!-- Gauge arc background -->
-    <path d="M-50 0A50 50 0 0 1 50 0" stroke="#1D9E75" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.1"/>
+    <path d="M-50 0A50 50 0 0 1 50 0" stroke="#0F7657" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.1"/>
     <!-- Gauge arc segments (green zones) -->
-    <path d="M-50 0A50 50 0 0 1 -35 -35" stroke="#1D9E75" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.15"/>
-    <path d="M-35 -35A50 50 0 0 1 0 -50" stroke="#1D9E75" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.3"/>
-    <path d="M0 -50A50 50 0 0 1 35 -35" stroke="#1D9E75" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.5"/>
-    <path d="M35 -35A50 50 0 0 1 50 0" stroke="#1D9E75" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.7"/>
+    <path d="M-50 0A50 50 0 0 1 -35 -35" stroke="#0F7657" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.15"/>
+    <path d="M-35 -35A50 50 0 0 1 0 -50" stroke="#0F7657" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.3"/>
+    <path d="M0 -50A50 50 0 0 1 35 -35" stroke="#0F7657" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.5"/>
+    <path d="M35 -35A50 50 0 0 1 50 0" stroke="#0F7657" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.7"/>
     
     <!-- Needle -->
-    <path d="M0 5L0 -35" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="0" cy="0" r="5" fill="white" stroke="#1D9E75" stroke-width="2.5"/>
+    <path d="M0 5L0 -35" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="0" cy="0" r="5" fill="white" stroke="#0F7657" stroke-width="2.5"/>
     
     <!-- Heart icon above -->
-    <path d="M-6 -62C-6 -68 0 -72 0 -66C0 -72 6 -68 6 -62C6 -56 0 -52 0 -52C0 -52 -6 -56 -6 -62Z" stroke="#1D9E75" stroke-width="1.5" fill="#1D9E75" fill-opacity="0.15"/>
+    <path d="M-6 -62C-6 -68 0 -72 0 -66C0 -72 6 -68 6 -62C6 -56 0 -52 0 -52C0 -52 -6 -56 -6 -62Z" stroke="#0F7657" stroke-width="1.5" fill="#0F7657" fill-opacity="0.15"/>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M158 22L161 25M161 22L158 25"/>
     <path d="M35 118L37 120M37 118L35 120"/>
-    <circle cx="162" cy="100" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="30" cy="28" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="162" cy="100" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="30" cy="28" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

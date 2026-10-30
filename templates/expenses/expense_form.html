@@ -204,13 +204,13 @@
             const banner = document.createElement('div');
             banner.id = promptId;
             banner.className = 'p-3 rounded-3 d-flex align-items-start gap-3 mt-3 mb-2';
-            banner.style.backgroundColor = 'rgba(29, 158, 117, 0.1)';
-            banner.style.border = '1px solid rgba(29, 158, 117, 0.2)';
+            banner.style.backgroundColor = 'rgba(15, 118, 87, 0.1)';
+            banner.style.border = '1px solid rgba(15, 118, 87, 0.2)';
             banner.setAttribute('role', 'alert');
 
             const formattedAmount = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
             banner.innerHTML = `
-                <i class="bi bi-flag-fill flex-shrink-0 mt-1" style="color: #1D9E75; font-size: 1.2rem;"></i>
+                <i class="bi bi-flag-fill flex-shrink-0 mt-1" style="color: #0F7657; font-size: 1.2rem;"></i>
                 <div class="flex-grow-1">
                     <strong>{% trans "Large payment detected" %}</strong>
                     <p class="mb-2 small">{% trans "This looks like a large one-time payment. Logging it as a Capital Event will keep your monthly trends and averages accurate." %}</p>
