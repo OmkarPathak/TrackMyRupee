@@ -1,34 +1,34 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Bell notification -->
   <g transform="translate(60, 15)">
     <!-- Bell body -->
-    <path d="M25 45C25 30 30 15 45 15C60 15 65 30 65 45V55H25V45Z" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="white"/>
+    <path d="M25 45C25 30 30 15 45 15C60 15 65 30 65 45V55H25V45Z" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="white"/>
     <!-- Bell base -->
-    <path d="M20 55H70" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M20 55H70" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round"/>
     <!-- Clapper -->
-    <path d="M38 55V60C38 64 42 67 45 67C48 67 52 64 52 60V55" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M38 55V60C38 64 42 67 45 67C48 67 52 64 52 60V55" stroke="#0F7657" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <!-- Ring at top -->
-    <circle cx="45" cy="12" r="4" stroke="#1D9E75" stroke-width="2" fill="white"/>
+    <circle cx="45" cy="12" r="4" stroke="#0F7657" stroke-width="2" fill="white"/>
     
     <!-- Zzz (sleeping/no notifications) -->
-    <g transform="translate(60, 10)" fill="none" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.5">
+    <g transform="translate(60, 10)" fill="none" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.5">
       <path d="M0 10L8 10L0 18L8 18"/>
       <path d="M12 5L18 5L12 11L18 11"/>
     </g>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M148 22L151 25M151 22L148 25"/>
     <path d="M45 115L47 117M47 115L45 117"/>
-    <circle cx="155" cy="105" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="35" cy="30" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="155" cy="105" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="35" cy="30" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

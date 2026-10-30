@@ -1,34 +1,34 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Magnifying glass with document -->
   <g transform="translate(55, 20)">
     <!-- Document behind -->
-    <rect x="25" y="5" width="50" height="65" rx="6" stroke="#1D9E75" stroke-width="2" fill="white" opacity="0.6"/>
-    <path d="M35 20H65" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
-    <path d="M35 28H60" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
-    <path d="M35 36H55" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+    <rect x="25" y="5" width="50" height="65" rx="6" stroke="#0F7657" stroke-width="2" fill="white" opacity="0.6"/>
+    <path d="M35 20H65" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+    <path d="M35 28H60" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+    <path d="M35 36H55" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
     
     <!-- Magnifying glass -->
-    <circle cx="40" cy="55" r="22" stroke="#1D9E75" stroke-width="2.5" fill="white"/>
-    <path d="M55 70L72 87" stroke="#1D9E75" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="40" cy="55" r="22" stroke="#0F7657" stroke-width="2.5" fill="white"/>
+    <path d="M55 70L72 87" stroke="#0F7657" stroke-width="3" stroke-linecap="round"/>
     
     <!-- Sad/empty face inside glass -->
-    <circle cx="33" cy="50" r="2" fill="#1D9E75" fill-opacity="0.5"/>
-    <circle cx="47" cy="50" r="2" fill="#1D9E75" fill-opacity="0.5"/>
-    <path d="M34 62C36 59 44 59 46 62" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <circle cx="33" cy="50" r="2" fill="#0F7657" fill-opacity="0.5"/>
+    <circle cx="47" cy="50" r="2" fill="#0F7657" fill-opacity="0.5"/>
+    <path d="M34 62C36 59 44 59 46 62" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" fill="none"/>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M150 20L153 23M153 20L150 23"/>
     <path d="M38 115L40 117M40 115L38 117"/>
-    <circle cx="160" cy="100" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="30" cy="25" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="160" cy="100" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="30" cy="25" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

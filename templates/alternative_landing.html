@@ -13,14 +13,14 @@
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 <meta property="og:title" content="{{ meta_title }}">
 <meta property="og:description" content="{{ meta_description }}">
-<meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
+<meta property="og:image" content="https://trackmyrupee.com/static/img/og-preview-v3.png?v=3.0">
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="{{ request.build_absolute_uri }}">
 <meta name="twitter:title" content="{{ meta_title }}">
 <meta name="twitter:description" content="{{ meta_description }}">
-<meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v2.png?v=2.0">
+<meta name="twitter:image" content="https://trackmyrupee.com/static/img/og-preview-v3.png?v=3.0">
 <script type="application/ld+json">{{ faq_schema|safe }}</script>
 {% endblock %}
 
@@ -50,7 +50,7 @@
                             <tr>
                                 <th scope="col" style="width: 45%;">{% trans "Feature / Parameter" %}</th>
                                 <th scope="col" class="text-center" style="width: 25%;">{{ competitor_name }}</th>
-                                <th scope="col" class="text-center table-primary-header" style="width: 30%; background-color: rgba(29, 158, 117, 0.08); border-color: rgba(29, 158, 117, 0.15);">
+                                <th scope="col" class="text-center table-primary-header" style="width: 30%; background-color: rgba(15, 118, 87, 0.08); border-color: rgba(15, 118, 87, 0.15);">
                                     TrackMyRupee
                                 </th>
                             </tr>
@@ -68,7 +68,7 @@
                                         <span class="text-muted">—</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-center table-primary-cell" style="background-color: rgba(29, 158, 117, 0.03);">
+                                <td class="text-center table-primary-cell" style="background-color: rgba(15, 118, 87, 0.03);">
                                     <span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i> {% trans "No" %}</span>
                                 </td>
                             </tr>
@@ -84,7 +84,7 @@
                                         <span class="text-muted">—</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-center table-primary-cell" style="background-color: rgba(29, 158, 117, 0.03);">
+                                <td class="text-center table-primary-cell" style="background-color: rgba(15, 118, 87, 0.03);">
                                     <span class="text-success fw-bold"><i class="bi bi-shield-check-fill me-1"></i> {% trans "No (Zero Access)" %}</span>
                                 </td>
                             </tr>
@@ -96,7 +96,7 @@
                                 <td class="text-center text-danger fw-semibold">
                                     <i class="bi bi-x-circle-fill me-1"></i> {% trans "No" %}
                                 </td>
-                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(15, 118, 87, 0.03);">
                                     <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
                                 </td>
                             </tr>
@@ -108,7 +108,7 @@
                                 <td class="text-center text-muted">
                                     <i class="bi bi-x-circle me-1"></i> {% trans "No (Closed Source)" %}
                                 </td>
-                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(15, 118, 87, 0.03);">
                                     <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
                                 </td>
                             </tr>
@@ -120,7 +120,7 @@
                                 <td class="text-center text-muted">
                                     <i class="bi bi-x-circle me-1"></i> {% trans "No" %}
                                 </td>
-                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(15, 118, 87, 0.03);">
                                     <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
                                 </td>
                             </tr>
@@ -132,7 +132,7 @@
                                 <td class="text-center text-muted">
                                     <i class="bi bi-dash-circle me-1"></i> {% trans "Restricted" %}
                                 </td>
-                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(15, 118, 87, 0.03);">
                                     <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
                                 </td>
                             </tr>
@@ -144,7 +144,7 @@
                                 <td class="text-center text-success fw-semibold">
                                     <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes (Auto)" %}
                                 </td>
-                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(15, 118, 87, 0.03);">
                                     <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes (Manual)" %}
                                 </td>
                             </tr>
@@ -156,7 +156,7 @@
                                 <td class="text-center text-muted">
                                     <i class="bi bi-dash-circle me-1"></i> {% trans "Basic" %}
                                 </td>
-                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(29, 158, 117, 0.03);">
+                                <td class="text-center table-primary-cell text-success fw-bold" style="background-color: rgba(15, 118, 87, 0.03);">
                                     <i class="bi bi-check-circle-fill me-1"></i> {% trans "Yes" %}
                                 </td>
                             </tr>

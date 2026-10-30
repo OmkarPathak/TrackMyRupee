@@ -1,11 +1,11 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="100" cy="100" r="90" fill="#1D9E75" fill-opacity="0.05"/>
-    <circle cx="100" cy="100" r="70" fill="#1D9E75" fill-opacity="0.1"/>
-    <rect x="85" y="60" width="30" height="50" rx="15" fill="#1D9E75" />
-    <path d="M70 100C70 116.569 83.4315 130 100 130C116.569 130 130 116.569 130 100" stroke="#1D9E75" stroke-width="8" stroke-linecap="round"/>
-    <path d="M100 130V150" stroke="#1D9E75" stroke-width="8" stroke-linecap="round"/>
-    <path d="M80 150H120" stroke="#1D9E75" stroke-width="8" stroke-linecap="round"/>
-    <circle cx="100" cy="100" r="95" stroke="#1D9E75" stroke-width="2" stroke-dasharray="8 8" opacity="0.2">
+    <circle cx="100" cy="100" r="90" fill="#0F7657" fill-opacity="0.05"/>
+    <circle cx="100" cy="100" r="70" fill="#0F7657" fill-opacity="0.1"/>
+    <rect x="85" y="60" width="30" height="50" rx="15" fill="#0F7657" />
+    <path d="M70 100C70 116.569 83.4315 130 100 130C116.569 130 130 116.569 130 100" stroke="#0F7657" stroke-width="8" stroke-linecap="round"/>
+    <path d="M100 130V150" stroke="#0F7657" stroke-width="8" stroke-linecap="round"/>
+    <path d="M80 150H120" stroke="#0F7657" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="100" cy="100" r="95" stroke="#0F7657" stroke-width="2" stroke-dasharray="8 8" opacity="0.2">
         <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="20s" repeatCount="indefinite" />
     </circle>
 </svg>

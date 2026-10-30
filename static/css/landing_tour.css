@@ -110,10 +110,10 @@
 .tp-sim .chart{margin-top:12px}
 .tp-sim .chart .hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
 .tp-sim .chart svg{width:100%;height:auto;display:block}
-.tp-sim .chart .ln{fill:none;stroke:#1D9E75;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:tp-draw 2.2s .3s forwards ease-in-out}
-.tp-sim .chart .ar{fill:#1D9E75;opacity:0;animation:tp-fadeA 1s 1.6s forwards}
+.tp-sim .chart .ln{fill:none;stroke:#0F7657;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:tp-draw 2.2s .3s forwards ease-in-out}
+.tp-sim .chart .ar{fill:#0F7657;opacity:0;animation:tp-fadeA 1s 1.6s forwards}
 @keyframes tp-fadeA{to{opacity:.14}}
-.tp-sim .chart .pt{fill:#1D9E75;stroke:#fff;stroke-width:1.2;opacity:0;animation:tp-fadeB .3s forwards}
+.tp-sim .chart .pt{fill:#0F7657;stroke:#fff;stroke-width:1.2;opacity:0;animation:tp-fadeB .3s forwards}
 @keyframes tp-fadeB{to{opacity:1}}
 .tp-sim .chart text{font-family:var(--sans);font-size:8px;fill:#595956}
 .tp-sim .tip{position:absolute;background:var(--ink-900);color:#fff;font-size:11px;font-weight:600;padding:6px 10px;border-radius:8px;opacity:0;transform:translateY(6px);transition:all .35s}

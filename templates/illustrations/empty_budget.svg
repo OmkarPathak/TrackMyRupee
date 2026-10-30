@@ -1,32 +1,32 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Target / Budget goal -->
   <g transform="translate(60, 20)">
     <!-- Outer ring -->
-    <circle cx="40" cy="45" r="38" stroke="#1D9E75" stroke-width="2.5" fill="white"/>
+    <circle cx="40" cy="45" r="38" stroke="#0F7657" stroke-width="2.5" fill="white"/>
     <!-- Middle ring -->
-    <circle cx="40" cy="45" r="25" stroke="#1D9E75" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
+    <circle cx="40" cy="45" r="25" stroke="#0F7657" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
     <!-- Inner ring -->
-    <circle cx="40" cy="45" r="12" stroke="#1D9E75" stroke-width="2" fill="white"/>
+    <circle cx="40" cy="45" r="12" stroke="#0F7657" stroke-width="2" fill="white"/>
     <!-- Bullseye -->
-    <circle cx="40" cy="45" r="4" fill="#1D9E75"/>
+    <circle cx="40" cy="45" r="4" fill="#0F7657"/>
     
     <!-- Arrow hitting target -->
-    <path d="M68 17L44 41" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M68 17L63 17M68 17L68 22" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M68 17L44 41" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M68 17L63 17M68 17L68 22" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M150 25L153 28M153 25L150 28"/>
     <path d="M45 120L47 122M47 120L45 122"/>
-    <circle cx="155" cy="100" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="40" cy="30" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="155" cy="100" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="40" cy="30" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

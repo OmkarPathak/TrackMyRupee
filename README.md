@@ -9,11 +9,11 @@ Unlike traditional finance apps, TrackMyRupee **does not** read your SMS, **does
 
 <div align="center">
 
-![Stars](https://img.shields.io/github/stars/omkarpathak/trackmyrupee?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
-![Forks](https://img.shields.io/github/forks/omkarpathak/trackmyrupee?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
-![Django](https://img.shields.io/badge/Django-4.2-green?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
-![License](https://img.shields.io/badge/license-AGPL--3.0-blue?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
-![Privacy First](https://img.shields.io/badge/Privacy-First-brightgreen?labelColor=F0F0E8&style=for-the-badge&color=1D9E75)
+![Stars](https://img.shields.io/github/stars/omkarpathak/trackmyrupee?labelColor=F0F0E8&style=for-the-badge&color=0F7657)
+![Forks](https://img.shields.io/github/forks/omkarpathak/trackmyrupee?labelColor=F0F0E8&style=for-the-badge&color=0F7657)
+![Django](https://img.shields.io/badge/Django-4.2-green?labelColor=F0F0E8&style=for-the-badge&color=0F7657)
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue?labelColor=F0F0E8&style=for-the-badge&color=0F7657)
+![Privacy First](https://img.shields.io/badge/Privacy-First-brightgreen?labelColor=F0F0E8&style=for-the-badge&color=0F7657)
 
 </div>
 

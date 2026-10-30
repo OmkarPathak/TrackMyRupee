@@ -28,7 +28,7 @@
     <!-- Summary Hero Cards -->
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-4">
-            <div class="card border-0 rounded-4 p-3 shadow-sm h-100" style="background-color: rgba(var(--bs-primary-rgb), 0.08); border: 1px solid rgba(29, 158, 117, 0.15) !important;">
+            <div class="card border-0 rounded-4 p-3 shadow-sm h-100" style="background-color: rgba(var(--bs-primary-rgb), 0.08); border: 1px solid rgba(15, 118, 87, 0.15) !important;">
                 <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Total Portfolio Value" %}</div>
                 <div class="fs-3 fw-bold text-success mb-1">{{ user_currency }}{{ total_valuation|ind_comma:user_currency|translate_digits }}</div>
                 <div class="small text-muted">{{ holdings.count|translate_digits }} {% trans "active holdings" %}</div>

@@ -1,32 +1,32 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Wallet illustration -->
   <g transform="translate(55, 22)">
     <!-- Wallet body -->
-    <rect x="5" y="15" width="80" height="60" rx="8" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="white"/>
+    <rect x="5" y="15" width="80" height="60" rx="8" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="white"/>
     <!-- Wallet flap -->
-    <path d="M5 35C5 35 5 15 5 12C5 7.58172 8.58172 4 13 4H77C81.4183 4 85 7.58172 85 12V15" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M5 35H85" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M5 35C5 35 5 15 5 12C5 7.58172 8.58172 4 13 4H77C81.4183 4 85 7.58172 85 12V15" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M5 35H85" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round"/>
     <!-- Wallet clasp -->
-    <path d="M85 42C85 42 95 42 95 50C95 58 85 58 85 58" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="92" cy="50" r="3" stroke="#1D9E75" stroke-width="2" fill="white"/>
+    <path d="M85 42C85 42 95 42 95 50C95 58 85 58 85 58" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="92" cy="50" r="3" stroke="#0F7657" stroke-width="2" fill="white"/>
 
     <!-- Coin floating out -->
-    <circle cx="45" cy="-8" r="12" stroke="#1D9E75" stroke-width="2" fill="white"/>
-    <path d="M41 -12H49M41 -8H49M48 -12C48 -12 48 -4 43 -2" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="45" cy="-8" r="12" stroke="#0F7657" stroke-width="2" fill="white"/>
+    <path d="M41 -12H49M41 -8H49M48 -12C48 -12 48 -4 43 -2" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round"/>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M148 18L151 21M151 18L148 21"/>
     <path d="M40 110L42 112M42 110L40 112"/>
-    <circle cx="160" cy="100" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="35" cy="30" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="160" cy="100" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="35" cy="30" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

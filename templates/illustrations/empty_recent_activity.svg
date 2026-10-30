@@ -1,43 +1,43 @@
 <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Background horizontal streaks -->
-  <rect x="20" y="62" width="160" height="10" rx="5" fill="#1D9E75" fill-opacity="0.06"/>
-  <rect x="35" y="78" width="130" height="8" rx="4" fill="#1D9E75" fill-opacity="0.08"/>
-  <rect x="50" y="92" width="100" height="6" rx="3" fill="#1D9E75" fill-opacity="0.05"/>
-  <rect x="10" y="48" width="80" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
-  <rect x="130" y="48" width="60" height="6" rx="3" fill="#1D9E75" fill-opacity="0.04"/>
+  <rect x="20" y="62" width="160" height="10" rx="5" fill="#0F7657" fill-opacity="0.06"/>
+  <rect x="35" y="78" width="130" height="8" rx="4" fill="#0F7657" fill-opacity="0.08"/>
+  <rect x="50" y="92" width="100" height="6" rx="3" fill="#0F7657" fill-opacity="0.05"/>
+  <rect x="10" y="48" width="80" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
+  <rect x="130" y="48" width="60" height="6" rx="3" fill="#0F7657" fill-opacity="0.04"/>
 
   <!-- Clock with activity feed -->
   <g transform="translate(60, 22)">
     <!-- Clock face -->
-    <circle cx="35" cy="40" r="32" stroke="#1D9E75" stroke-width="2.5" fill="white"/>
+    <circle cx="35" cy="40" r="32" stroke="#0F7657" stroke-width="2.5" fill="white"/>
     <!-- Clock ticks -->
-    <path d="M35 12V16" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
-    <path d="M35 64V68" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
-    <path d="M7 40H11" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
-    <path d="M59 40H63" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+    <path d="M35 12V16" stroke="#0F7657" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+    <path d="M35 64V68" stroke="#0F7657" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+    <path d="M7 40H11" stroke="#0F7657" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+    <path d="M59 40H63" stroke="#0F7657" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
     <!-- Clock hands -->
-    <path d="M35 40V22" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"/>
-    <path d="M35 40L50 33" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="35" cy="40" r="3" fill="#1D9E75"/>
+    <path d="M35 40V22" stroke="#0F7657" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M35 40L50 33" stroke="#0F7657" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="35" cy="40" r="3" fill="#0F7657"/>
     
     <!-- Activity lines (feed items) -->
-    <path d="M72 25H95" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
-    <path d="M72 33H90" stroke="#1D9E75" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
-    <path d="M72 45H95" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
-    <path d="M72 53H88" stroke="#1D9E75" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
-    <path d="M72 65H92" stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round" opacity="0.15"/>
+    <path d="M72 25H95" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+    <path d="M72 33H90" stroke="#0F7657" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
+    <path d="M72 45H95" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.25"/>
+    <path d="M72 53H88" stroke="#0F7657" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
+    <path d="M72 65H92" stroke="#0F7657" stroke-width="1.5" stroke-linecap="round" opacity="0.15"/>
     
     <!-- Dots for timeline -->
-    <circle cx="68" cy="25" r="2" fill="#1D9E75" opacity="0.35"/>
-    <circle cx="68" cy="45" r="2" fill="#1D9E75" opacity="0.25"/>
-    <circle cx="68" cy="65" r="2" fill="#1D9E75" opacity="0.12"/>
+    <circle cx="68" cy="25" r="2" fill="#0F7657" opacity="0.35"/>
+    <circle cx="68" cy="45" r="2" fill="#0F7657" opacity="0.25"/>
+    <circle cx="68" cy="65" r="2" fill="#0F7657" opacity="0.12"/>
   </g>
 
   <!-- Sparkle accents -->
-  <g stroke="#1D9E75" stroke-width="1.5" stroke-linecap="round">
+  <g stroke="#0F7657" stroke-width="1.5" stroke-linecap="round">
     <path d="M165 18L168 21M168 18L165 21"/>
     <path d="M28 120L30 122M30 120L28 122"/>
-    <circle cx="168" cy="105" r="2" fill="#1D9E75" fill-opacity="0.15"/>
-    <circle cx="25" cy="25" r="1.5" fill="#1D9E75" fill-opacity="0.2"/>
+    <circle cx="168" cy="105" r="2" fill="#0F7657" fill-opacity="0.15"/>
+    <circle cx="25" cy="25" r="1.5" fill="#0F7657" fill-opacity="0.2"/>
   </g>
 </svg>

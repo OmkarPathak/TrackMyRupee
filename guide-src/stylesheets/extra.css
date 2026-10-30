@@ -1,7 +1,7 @@
 /* ==========================================================================
    TrackMyRupee Docs — extra.css
    Overrides mkdocs-material defaults to match the live app's design tokens.
-   Primary: #1D9E75  |  RGB: 29, 158, 117
+   Primary: #0F7657  |  RGB: 15, 118, 87
    Fonts: DM Sans (body), Instrument Serif (h1), Inter (code alt)
    ========================================================================== */
 
@@ -47,32 +47,32 @@ body,
 }
 
 /* --------------------------------------------------------------------------
-   3. Primary / accent palette — #1D9E75 (RGB 29 158 117)
+   3. Primary / accent palette — #0F7657 (RGB 29 158 117)
    Material uses --md-primary-* vars throughout.
    -------------------------------------------------------------------------- */
 
 /* Light scheme */
 [data-md-color-scheme="default"] {
-  --md-primary-fg-color:          #1D9E75;
+  --md-primary-fg-color:          #0F7657;
   --md-primary-fg-color--light:   #2dbb8e;
   --md-primary-fg-color--dark:    #176f52;
-  --md-accent-fg-color:           #1D9E75;
-  --md-accent-fg-color--transparent: rgba(29, 158, 117, 0.10);
+  --md-accent-fg-color:           #0F7657;
+  --md-accent-fg-color--transparent: rgba(15, 118, 87, 0.10);
 
   /* Sidebar active indicator */
   --md-primary-bg-color:          #ffffff;
   --md-primary-bg-color--light:   rgba(255,255,255,0.85);
 
   /* Subtle tint for admonition / callout backgrounds */
-  --tmr-primary-subtle:           rgba(29, 158, 117, 0.08);
-  --tmr-primary-border:           rgba(29, 158, 117, 0.25);
+  --tmr-primary-subtle:           rgba(15, 118, 87, 0.08);
+  --tmr-primary-border:           rgba(15, 118, 87, 0.25);
 }
 
 /* Dark / slate scheme */
 [data-md-color-scheme="slate"] {
   --md-primary-fg-color:          #2dbb8e;
   --md-primary-fg-color--light:   #40d4a6;
-  --md-primary-fg-color--dark:    #1D9E75;
+  --md-primary-fg-color--dark:    #0F7657;
   --md-accent-fg-color:           #2dbb8e;
   --md-accent-fg-color--transparent: rgba(45, 187, 142, 0.12);
 
@@ -154,7 +154,7 @@ body,
 /* Hover & Focus states */
 .md-nav--primary .md-nav__link:hover,
 .md-nav--primary .md-nav__link:focus {
-  color: #1D9E75 !important;
+  color: #0F7657 !important;
 }
 
 [data-md-color-scheme="slate"] .md-nav--primary .md-nav__link:hover,
@@ -165,7 +165,7 @@ body,
 /* Active navigation item */
 .md-nav--primary .md-nav__link--active,
 .md-nav--primary .md-nav__item--active > .md-nav__link {
-  color: #1D9E75 !important;
+  color: #0F7657 !important;
   font-weight: 600 !important;
 }
 
@@ -210,8 +210,8 @@ body,
 }
 
 .md-nav--secondary .md-nav__link--active {
-  color: #1D9E75;
-  border-left: 2px solid #1D9E75;
+  color: #0F7657;
+  border-left: 2px solid #0F7657;
   padding-left: 0.6rem;
 }
 
@@ -224,7 +224,7 @@ body,
    7. Buttons and links
    -------------------------------------------------------------------------- */
 .md-typeset a {
-  color: #1D9E75;
+  color: #0F7657;
 }
 .md-typeset a:hover {
   color: #176f52;
@@ -242,7 +242,7 @@ body,
    -------------------------------------------------------------------------- */
 .md-typeset .admonition.note,
 .md-typeset details.note {
-  border-color: #1D9E75;
+  border-color: #0F7657;
 }
 .md-typeset .admonition.note > .admonition-title,
 .md-typeset details.note > summary {
@@ -250,12 +250,12 @@ body,
 }
 .md-typeset .admonition.note > .admonition-title::before,
 .md-typeset details.note > summary::before {
-  background-color: #1D9E75;
+  background-color: #0F7657;
 }
 
 .md-typeset .admonition.tip,
 .md-typeset details.tip {
-  border-color: #1D9E75;
+  border-color: #0F7657;
 }
 .md-typeset .admonition.tip > .admonition-title,
 .md-typeset details.tip > summary {
@@ -263,7 +263,7 @@ body,
 }
 .md-typeset .admonition.tip > .admonition-title::before,
 .md-typeset details.tip > summary::before {
-  background-color: #1D9E75;
+  background-color: #0F7657;
 }
 
 /* --------------------------------------------------------------------------
@@ -335,7 +335,7 @@ body,
    12. Search results highlight
    -------------------------------------------------------------------------- */
 .md-search-result mark {
-  background-color: rgba(29, 158, 117, 0.20);
+  background-color: rgba(15, 118, 87, 0.20);
   color: inherit;
   border-radius: 2px;
 }
@@ -352,7 +352,7 @@ body,
 
 .md-typeset ol li strong:first-child,
 .md-typeset ol li > p > strong:first-child {
-  color: #1D9E75;
+  color: #0F7657;
 }
 
 [data-md-color-scheme="slate"] .md-typeset ol li strong:first-child,

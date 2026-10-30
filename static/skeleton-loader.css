@@ -490,8 +490,8 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 3px solid rgba(var(--bs-primary-rgb, 29, 158, 117), 0.2);
-  border-top-color: var(--bs-primary, #1D9E75);
+  border: 3px solid rgba(var(--bs-primary-rgb, 15, 118, 87), 0.2);
+  border-top-color: var(--bs-primary, #0F7657);
   animation: tmr-spin 0.7s linear infinite;
 }
 @keyframes tmr-spin { to { transform: rotate(360deg); } }
