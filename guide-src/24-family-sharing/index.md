@@ -14,7 +14,7 @@ Family Sharing answers two questions that no single person's app can:
 Everyone keeps their **own TrackMyRupee account**. Each person chooses which of their accounts to share, and the family sees a combined, **read-only** picture of only what was shared. Nobody can change, or even see, anything you did not share.
 
 !!! info "Pro plan"
-    Family view needs **every member on Pro**. See [What happens when a plan ends](#plans-and-what-happens-when-one-ends).
+    Family view needs **every member on Pro**. See [What happens when a plan ends](#7-plans-and-what-happens-when-one-ends).
 
 ---
 

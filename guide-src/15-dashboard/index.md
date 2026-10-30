@@ -1,6 +1,8 @@
+---
 title: Dashboard
 description: How the TrackMyRupee Dashboard works out income, spending, savings, categories, trends and net worth for the period you are viewing.
 keywords: TrackMyRupee dashboard, savings rate, spending by category, salary cycle, month on month, net worth
+---
 
 # Dashboard
 

@@ -1,6 +1,8 @@
+---
 title: Accrued vs Invested Balance View
 description: Understand when to use Invested or Accrued balance view in TrackMyRupee for deposits, holdings, assets, and insurance.
 keywords: accrued vs invested, TrackMyRupee balance view, FD accrued value, holdings valuation, insurance surrender value
+---
 
 # Accrued vs Invested Balance View
 
