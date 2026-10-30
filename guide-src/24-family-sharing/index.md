@@ -36,6 +36,8 @@ Everyone keeps their **own TrackMyRupee account**. Each person chooses which of 
 
 A family has up to **5 members**, and a person can belong to **one family** at a time. Seats taken by members and by open invitations both count, so cancel an unused invitation to free its seat.
 
+![The Family page: members, pending invitations and the invite box](img/family-home-desktop.webp){ loading=lazy }
+
 ### Joining
 
 The invitation link is single-use and expires after **7 days**. The person opening it must sign in, and must be on **Pro** (an invitee without Pro is offered the 7-day trial or the plans page first). Before joining they see what the family can and cannot see, and accepting records their consent to share.
@@ -57,6 +59,8 @@ For each account, pick one of two levels:
 
 You can also give an account a **nickname**, shown to the family instead of its real name, so a personal account name never has to be revealed.
 
+![What I share: switch accounts on, choose amounts or list only, and give a nickname](img/family-share-desktop.webp){ loading=lazy }
+
 ### What each type shows
 
 | Type | Fields the family sees (when amounts are shown) |
@@ -70,7 +74,9 @@ For an insurance policy you can write **who it covers** (names, as free text) so
 
 ### Preview what they see
 
-**Family > Preview** shows exactly what each member sees of your shared accounts, built by the same code they see it from. Use it before and after changing anything.
+Choose **Preview as a family member** on **What I share** to see exactly what each member sees of your shared accounts, built by the same code they see it from. Use it before and after changing anything.
+
+![Previewing what a family member sees](img/family-preview-desktop.webp){ loading=lazy }
 
 ### Stopping, and the activity list
 
@@ -89,11 +95,15 @@ Members see a **Me / Family** switch on Net worth and Accounts.
 * **By member**, showing what each person contributes.
 * **History**, month by month (see below).
 
+![Family net worth, with what the family owns and owes](img/family-networth-desktop.webp){ loading=lazy }
+
 Only accounts shared with amounts are counted, and only in the viewer's currency. Items shared as **List only**, or shared in another currency, are shown but not counted, and the page says how many.
 
 ### Who holds what
 
 A single inventory of the family's **credit cards, insurance, bank accounts and deposits, and loans and property**, with the member who holds each, plus **Coming up in the next 30 days** for card bills and insurance premiums.
+
+![Who holds what: cards, policies and accounts by member, with gentle notes above](img/family-inventory-desktop.webp){ loading=lazy }
 
 ### History
 
@@ -122,6 +132,8 @@ You can dismiss a note, or switch **Gentle notes** off for yourself. It affects 
 * **How long access lasts.** For access given on request you can choose 30 days, 90 days, a year, or until you withdraw it. A week before it ends you are told, and you can **Extend** it from the emergency page. When it ends the person must ask again.
 * **Nicknames.** Optionally show the nicknames you use on **What I share** instead of real account names.
 * It is read-only, can be printed, and does not depend on a plan: it still opens if a subscription has lapsed.
+
+![If something happens to me: pick what is on the sheet and who can ask for it](img/family-emergency-desktop.webp){ loading=lazy }
 
 Leaving or being removed from the family ends emergency access in both directions.
 

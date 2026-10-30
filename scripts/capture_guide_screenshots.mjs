@@ -46,13 +46,20 @@ const CLEAN = `(() => {
         try { localStorage.setItem('theme', 'light'); localStorage.setItem('cookieConsent', 'accepted'); } catch (e) {}
         document.documentElement.setAttribute('data-bs-theme', 'light');
         document.body.classList.remove('demo-mode');
-        document.querySelectorAll('.sidebar *, nav *').forEach((e) => { if (!e.children.length && e.textContent.trim() === 'DE') e.textContent = 'RI'; });
+        document.querySelectorAll('body *').forEach((e) => { if (!e.children.length && e.textContent.trim() === 'DE') e.textContent = 'RI'; });
         const style = document.createElement('style');
         style.textContent = '.demo-banner{display:none!important} #cookie-banner,.cookie-banner,#cookieConsent{display:none!important}';
         document.head.appendChild(style); return true;
       })()`;
 const shots = [
   { file: '01-getting-started/img/dashboard-desktop.webp', url: '/dashboard/' },
+  // Family sharing needs a household on the demo account (seed one first: an owner with two members, shares and an emergency sheet)
+  { file: '24-family-sharing/img/family-home-desktop.webp', url: '/family/' },
+  { file: '24-family-sharing/img/family-share-desktop.webp', url: '/family/share/' },
+  { file: '24-family-sharing/img/family-preview-desktop.webp', url: '/family/preview/' },
+  { file: '24-family-sharing/img/family-networth-desktop.webp', url: '/family/net-worth/' },
+  { file: '24-family-sharing/img/family-inventory-desktop.webp', url: '/family/accounts/' },
+  { file: '24-family-sharing/img/family-emergency-desktop.webp', url: '/family/emergency/' },
   { file: '01-getting-started/img/salary-cycle-desktop.webp', url: '/settings/profile/' },
   { file: '01-getting-started/img/categories-desktop.webp', url: '/category/list/' },
   { file: '02-accounts/img/accounts-list-desktop.webp', url: '/accounts/list/?sort=attention' },
