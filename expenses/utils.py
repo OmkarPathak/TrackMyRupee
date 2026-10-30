@@ -81,6 +81,21 @@ def get_exchange_rate(from_curr, to_curr):
             logger.warning("Failed to record FXRate: %s", db_err)
         return Decimal(str(rate))
 
+    from django.conf import settings
+    allratestoday_key = getattr(settings, 'ALLRATESTODAY_API_KEY', '')
+    if allratestoday_key:
+        try:
+            # Optional: AllRatesToday, only used when ALLRATESTODAY_API_KEY is set
+            art_response = requests.get(
+                f"https://allratestoday.com/api/v1/rates?source={from_code}&target={to_code}",
+                headers={'Authorization': f"Bearer {allratestoday_key}"},
+                timeout=5,
+            )
+            art_response.raise_for_status()
+            return record(art_response.json()[0]['rate'], 'AllRatesToday')
+        except Exception as art_e:
+            logger.warning("AllRatesToday API error: %s. Trying Frankfurter...", art_e)
+
     try:
         # Primary: Frankfurter API
         response = requests.get(f"https://api.frankfurter.app/latest?from={from_code}&to={to_code}", timeout=5)
