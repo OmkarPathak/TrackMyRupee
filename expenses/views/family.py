@@ -49,6 +49,7 @@ __all__ = [
     'family_invite_renew_view',
     'family_join_view',
     'family_leave_view',
+    'family_delete_view',
     'family_member_remove_view',
     'family_share_view',
     'family_share_edit_view',
@@ -229,6 +230,19 @@ def family_leave_view(request):
         messages.error(request, error.message)
     else:
         messages.success(request, _("You have left the family. Nothing of yours is shared any more."))
+    return redirect('family-home')
+
+
+@family_view
+@require_POST
+def family_delete_view(request):
+    _owned_household_or_404(request)
+    try:
+        households.delete_household(request.user)
+    except households.FamilyError as error:
+        messages.error(request, error.message)
+    else:
+        messages.success(request, _("The family has been deleted. Nothing is shared any more."))
     return redirect('family-home')
 
 

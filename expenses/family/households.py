@@ -212,6 +212,29 @@ def leave(user):
     return household
 
 
+def delete_household(owner):
+    """The owner ends the family for everyone. Every member is taken out, everything shared stops being visible
+    straight away, and each member's consent is recorded as withdrawn. Only the owner may do this."""
+    membership = HouseholdMember.objects.select_related('household').filter(user=owner).first()
+    if membership is None:
+        raise FamilyError('not_member', _("You are not in a family."))
+    if membership.household.owner_id != owner.id:
+        raise FamilyError('not_owner', _("Only the person who started the family can delete it."))
+    with transaction.atomic():
+        household = _lock_household(membership.household_id)
+        if household.owner_id != owner.id:      # ownership may have moved while we waited for the lock
+            raise FamilyError('not_owner', _("Only the person who started the family can delete it."))
+        member_users = [m.user for m in household.members.select_related('user')]
+        for member_user in member_users:
+            _end_emergency_links(member_user)
+            ConsentEvent.objects.create(user=member_user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
+                                        consent_version=CONSENT_VERSION)
+        household_id = household.id
+        # Members, shares, invitations and dismissed notes all go with the household (cascade)
+        household.delete()
+        _audit(owner, 'DELETE', 'Household', household_id, {'members': [u.id for u in member_users]})
+
+
 def remove_member(owner, membership):
     household = membership.household
     if household.owner_id != owner.id:

@@ -23465,3 +23465,23 @@ msgstr "पॉवर युजर्ससाठी बनवलेले"
 #: templates/landing.html
 msgid "From your first savings account to a portfolio spanning mutual funds, stocks, FDs, PPF, NPS, gold, real estate and more. Track everything you own, see your complete net worth, and understand how your money is growing."
 msgstr "तुमच्या पहिल्या बचत खात्यापासून ते म्युच्युअल फंड, शेअर्स, FD, PPF, NPS, सोने, रिअल इस्टेट आणि बरेच काही असलेल्या पोर्टफोलिओपर्यंत, तुमच्याकडे जे आहे ते सर्व ट्रॅक करा, तुमची संपूर्ण एकूण संपत्ती पाहा आणि तुमचा पैसा कसा वाढत आहे ते समजून घ्या."
+
+#: expenses/family
+msgid "Only the person who started the family can delete it."
+msgstr "कुटुंब फक्त ज्याने ते सुरू केले तीच व्यक्ती हटवू शकते."
+
+#: expenses/family
+msgid "The family has been deleted. Nothing is shared any more."
+msgstr "कुटुंब हटवले आहे. आता काहीही शेअर केलेले नाही."
+
+#: expenses/family
+msgid "Delete family"
+msgstr "कुटुंब हटवा"
+
+#: expenses/family
+msgid "Delete the family for everyone? Every member is removed and nothing stays shared. This cannot be undone."
+msgstr "सर्वांसाठी कुटुंब हटवायचे? प्रत्येक सदस्य काढून टाकला जाईल आणि काहीही शेअर राहणार नाही. हे पूर्ववत करता येणार नाही."
+
+#: expenses/family
+msgid "Only you, as the person who started the family, can do this. Every member is removed and everything shared stops being visible straight away."
+msgstr "हे फक्त तुम्ही करू शकता, कारण तुम्ही कुटुंब सुरू केले आहे. प्रत्येक सदस्य काढून टाकला जाईल आणि शेअर केलेले सर्व काही लगेच दिसणे बंद होईल."

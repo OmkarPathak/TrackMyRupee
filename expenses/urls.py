@@ -84,6 +84,7 @@ urlpatterns = [
     path('family/invite/<uuid:pk>/renew/', views.family_invite_renew_view, name='family-invite-renew'),
     path('family/join/<str:token>/', views.family_join_view, name='family-join'),
     path('family/leave/', views.family_leave_view, name='family-leave'),
+    path('family/delete/', views.family_delete_view, name='family-delete'),
     path('family/net-worth/', views.family_networth_view, name='family-networth'),
     path('family/accounts/', views.family_inventory_view, name='family-inventory'),
     path('family/emergency/', views.family_emergency_view, name='family-emergency'),
