@@ -20,6 +20,7 @@ from expenses.models import (
     HouseholdInvitation,
     HouseholdMember,
 )
+from . import notices
 
 CONSENT_PURPOSE = 'family_sharing'
 CONSENT_VERSION = '1.0'
@@ -204,17 +205,27 @@ def leave(user):
         if remaining is None:
             household.delete()
             return None
+        handed_to = None
         if household.owner_id == user.id:
             household.owner = remaining.user
             household.save(update_fields=['owner'])
+            handed_to = remaining.user
         bump(household)
         _audit(user, 'DELETE', 'HouseholdMember', membership_id, {'household': household.id})
+    if handed_to is not None:
+        notices.ownership_handed_on(handed_to, user, household.name)
     return household
 
 
-def delete_household(owner):
-    """The owner ends the family for everyone. Every member is taken out, everything shared stops being visible
-    straight away, and each member's consent is recorded as withdrawn. Only the owner may do this."""
+def _same_name(typed, actual):
+    """Names match when they are the same words, ignoring case and extra spaces."""
+    return ' '.join((typed or '').split()).casefold() == ' '.join((actual or '').split()).casefold()
+
+
+def delete_household(owner, confirm_name):
+    """The owner ends the family for everyone. ``confirm_name`` must be the family's name, typed by the owner, so a
+    stray tap cannot do it. Every member is taken out, everything shared stops being visible straight away, each
+    member's consent is recorded as withdrawn and the other members are told. Only the owner may do this."""
     membership = HouseholdMember.objects.select_related('household').filter(user=owner).first()
     if membership is None:
         raise FamilyError('not_member', _("You are not in a family."))
@@ -224,15 +235,41 @@ def delete_household(owner):
         household = _lock_household(membership.household_id)
         if household.owner_id != owner.id:      # ownership may have moved while we waited for the lock
             raise FamilyError('not_owner', _("Only the person who started the family can delete it."))
-        member_users = [m.user for m in household.members.select_related('user')]
+        if not _same_name(confirm_name, household.name):
+            raise FamilyError('name_mismatch', _("Type the family name exactly as shown to delete it."))
+        member_users = [m.user for m in household.members.select_related('user__profile')]
         for member_user in member_users:
             _end_emergency_links(member_user)
             ConsentEvent.objects.create(user=member_user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
                                         consent_version=CONSENT_VERSION)
-        household_id = household.id
+        household_id, household_name = household.id, household.name
         # Members, shares, invitations and dismissed notes all go with the household (cascade)
         household.delete()
         _audit(owner, 'DELETE', 'Household', household_id, {'members': [u.id for u in member_users]})
+    notices.family_deleted(member_users, owner, household_name)
+
+
+def transfer_ownership(owner, membership):
+    """The owner makes another member the owner. The former owner stays in the family as an ordinary member."""
+    household = membership.household
+    if household.owner_id != owner.id:
+        raise FamilyError('not_owner', _("Only the person who started the family can hand it over."))
+    if membership.user_id == owner.id:
+        raise FamilyError('is_owner', _("You are already the owner."))
+    with transaction.atomic():
+        locked = _lock_household(household.pk)
+        if locked.owner_id != owner.id:
+            raise FamilyError('not_owner', _("Only the person who started the family can hand it over."))
+        new_owner = HouseholdMember.objects.select_related('user__profile').filter(
+            pk=membership.pk, household=locked).first()
+        if new_owner is None:
+            raise FamilyError('not_member', _("That person is no longer in the family."))
+        locked.owner = new_owner.user
+        locked.save(update_fields=['owner'])
+        bump(locked)
+        _audit(owner, 'UPDATE', 'Household', locked.id, {'owner': {'from': owner.id, 'to': new_owner.user_id}})
+    notices.ownership_given(new_owner.user, owner, locked.name)
+    return locked
 
 
 def remove_member(owner, membership):
@@ -253,3 +290,4 @@ def remove_member(owner, membership):
                                     consent_version=CONSENT_VERSION)
         bump(household)
         _audit(owner, 'DELETE', 'HouseholdMember', membership_id, {'removed_user': removed_user.id})
+    notices.member_removed(removed_user, owner, household.name)

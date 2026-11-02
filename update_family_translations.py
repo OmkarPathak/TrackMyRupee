@@ -24,9 +24,16 @@ LOCALES = {'hi': 1, 'mr': 2}
 
 # Where the family strings live. Add a path here when a new family template or module is added.
 TEMPLATE_GLOBS = ['templates/expenses/family/**/*.html']
-PYTHON_FILES = ['expenses/views/family.py', 'expenses/family/*.py']
+PYTHON_FILES = ['expenses/views/family.py', 'expenses/family/*.py', 'expenses/flows/family.py']
 # Strings in shared templates that family sharing added (the sidebar and the mobile menu)
-SHARED_STRINGS = [('', 'Family'), ('', 'New')]
+SHARED_STRINGS = [
+    ('', 'Family'), ('', 'New'), ('', 'Family sharing for up to 5 people'),
+    # the features page and its FEATURES.md twin
+    ('', 'Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy. A checklist shows what is still missing, such as a policy with no nominee.'),
+    ('', 'Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away. The owner can remove a member, hand the family to another member, or delete it, and everyone affected is told.'),
+    # the privacy policy
+    ('', 'Last updated: November 2026'),
+]
 
 # (context, msgid): (msgid_plural or None, hindi, marathi)   for a plural: ((hi1, hi2), (mr1, mr2))
 ENTRIES = {
@@ -124,6 +131,185 @@ ENTRIES = {
     ('', 'Only you, as the person who started the family, can do this. Every member is removed and everything shared stops being visible straight away.'): (
         None, 'यह केवल आप कर सकते हैं, क्योंकि आपने परिवार शुरू किया है। हर सदस्य हटा दिया जाएगा और साझा किया गया सब कुछ तुरंत दिखना बंद हो जाएगा।',
         'हे फक्त तुम्ही करू शकता, कारण तुम्ही कुटुंब सुरू केले आहे. प्रत्येक सदस्य काढून टाकला जाईल आणि शेअर केलेले सर्व काही लगेच दिसणे बंद होईल.'),
+
+    # ---- delete, hand over, notices, checklist, family flow ----
+    ('', '%(done)s of %(total)s done. This checks the sheet as you last saved it.'): (
+        None, '%(total)s में से %(done)s पूरे। यह आपकी आखिरी बार सहेजी गई शीट की जाँच करता है।',
+        '%(total)s पैकी %(done)s पूर्ण. तुम्ही शेवटची जतन केलेली शीट यात तपासली जाते.'),
+    ('', '%(name)s deleted the family'): (
+        None, '%(name)s ने परिवार हटा दिया',
+        '%(name)s यांनी कुटुंब हटवले'),
+    ('', '%(name)s is now the owner of the family. You are still a member.'): (
+        None, '%(name)s अब परिवार के मालिक हैं। आप अब भी सदस्य हैं।',
+        '%(name)s आता कुटुंबाचे मालक आहेत. तुम्ही अजूनही सदस्य आहात.'),
+    ('', '%(name)s left the family "%(family)s", so you are now its owner. You can invite people, remove members and delete the family.'): (
+        None, '%(name)s ने परिवार "%(family)s" छोड़ दिया, इसलिए अब आप इसके मालिक हैं। आप लोगों को आमंत्रित कर सकते हैं, सदस्यों को हटा सकते हैं और परिवार हटा सकते हैं।',
+        '%(name)s यांनी कुटुंब "%(family)s" सोडले, म्हणून आता तुम्ही त्याचे मालक आहात. तुम्ही लोकांना आमंत्रित करू शकता, सदस्यांना काढू शकता आणि कुटुंब हटवू शकता.'),
+    ('', '%(name)s made you the owner of the family "%(family)s". You can now invite people, remove members and delete the family.'): (
+        None, '%(name)s ने आपको परिवार "%(family)s" का मालिक बना दिया है। अब आप लोगों को आमंत्रित कर सकते हैं, सदस्यों को हटा सकते हैं और परिवार हटा सकते हैं।',
+        '%(name)s यांनी तुम्हाला कुटुंब "%(family)s" चे मालक केले आहे. आता तुम्ही लोकांना आमंत्रित करू शकता, सदस्यांना काढू शकता आणि कुटुंब हटवू शकता.'),
+    ('', '%(name)s removed you from the family "%(family)s". Nothing of yours is shared any more, and you no longer see anything shared with you. Your own data is untouched.'): (
+        None, '%(name)s ने आपको परिवार "%(family)s" से हटा दिया है। आपका कुछ भी साझा नहीं है, और आपके साथ साझा किया गया कुछ भी अब नहीं दिखता। आपका अपना डेटा जस का तस है।',
+        '%(name)s यांनी तुम्हाला कुटुंब "%(family)s" मधून काढून टाकले आहे. तुमचे काहीही शेअर केलेले नाही आणि तुमच्यासोबत शेअर केलेले काहीही आता दिसत नाही. तुमचा स्वतःचा डेटा तसाच आहे.'),
+    ('', 'A family, with you as the owner'): (
+        None, 'एक परिवार, जिसके मालिक आप हैं',
+        'एक कुटुंब, ज्याचे मालक तुम्ही आहात'),
+    ('', 'A short note is enough, for example the cupboard or locker they are in.'): (
+        None, 'एक छोटा नोट काफी है, जैसे वे किस अलमारी या लॉकर में हैं।',
+        'एक छोटी नोंद पुरेशी आहे, उदा. ती कोणत्या कपाटात किंवा लॉकरमध्ये आहेत.'),
+    ('', 'Add them below, or leave them off on purpose.'): (
+        None, 'इन्हें नीचे जोड़ें, या जानबूझकर छोड़ दें।',
+        'यांना खाली जोडा, किंवा जाणूनबुजून वगळा.'),
+    ('', 'Choose who can ask for the sheet'): (
+        None, 'चुनें कि शीट कौन माँग सकता है',
+        'शीट कोण मागू शकते ते निवडा'),
+    ('', 'Delete family for everyone'): (
+        None, 'सभी के लिए परिवार हटाएँ',
+        'सर्वांसाठी कुटुंब हटवा'),
+    ('', 'Emergency sheet checklist'): (
+        None, 'आपातकालीन शीट की चेकलिस्ट',
+        'आपत्कालीन शीटची चेकलिस्ट'),
+    ('', 'Every account on the sheet has a nominee'): (
+        None, 'शीट के हर खाते का एक नॉमिनी है',
+        'शीटवरील प्रत्येक खात्याला नॉमिनी आहे'),
+    ('', 'Every account you track is on the sheet'): (
+        None, 'आप जो भी खाता ट्रैक करते हैं वह शीट पर है',
+        'तुम्ही ट्रॅक करत असलेले प्रत्येक खाते शीटवर आहे'),
+    ('', 'Every insurance policy is on the sheet'): (
+        None, 'हर बीमा पॉलिसी शीट पर है',
+        'प्रत्येक विमा पॉलिसी शीटवर आहे'),
+    ('', 'Family name'): (
+        None, 'परिवार का नाम',
+        'कुटुंबाचे नाव'),
+    ('', 'Family sharing for up to 5 people'): (
+        None, '5 लोगों तक के लिए परिवार साझाकरण',
+        '5 लोकांपर्यंत कुटुंब शेअरिंग'),
+    ('', 'For example your advisor, accountant or the branch that holds a locker.'): (
+        None, 'जैसे आपका सलाहकार, अकाउंटेंट या वह शाखा जहाँ लॉकर है।',
+        'उदा. तुमचे सल्लागार, अकाउंटंट किंवा लॉकर असलेली शाखा.'),
+    ('', 'Give the family a name. You can invite people on the next page.'): (
+        None, 'परिवार को एक नाम दें। अगले पेज पर आप लोगों को आमंत्रित कर सकते हैं।',
+        'कुटुंबाला नाव द्या. पुढच्या पानावर तुम्ही लोकांना आमंत्रित करू शकता.'),
+    ('', 'I want to share the big picture with my family'): (
+        None, 'मैं अपने परिवार के साथ पूरी तस्वीर साझा करना चाहता/चाहती हूँ',
+        'मला माझ्या कुटुंबासोबत संपूर्ण चित्र शेअर करायचे आहे'),
+    ('', 'Is your sheet ready?'): (
+        None, 'क्या आपकी शीट तैयार है?',
+        'तुमची शीट तयार आहे का?'),
+    ('', 'List the people to call'): (
+        None, 'जिन्हें फ़ोन करना है उनकी सूची बनाएँ',
+        'ज्यांना फोन करायचा आहे त्यांची यादी करा'),
+    ('', 'Make %(name)s the owner? You will stay in the family as a member, but only the owner can invite people, remove members or delete the family.'): (
+        None, '%(name)s को मालिक बनाएँ? आप सदस्य के रूप में परिवार में बने रहेंगे, लेकिन केवल मालिक ही लोगों को आमंत्रित कर सकता है, सदस्यों को हटा सकता है या परिवार हटा सकता है।',
+        '%(name)s यांना मालक करायचे? तुम्ही सदस्य म्हणून कुटुंबात राहाल, पण फक्त मालकच लोकांना आमंत्रित करू शकतो, सदस्यांना काढू शकतो किंवा कुटुंब हटवू शकतो.'),
+    ('', 'Make owner'): (
+        None, 'मालिक बनाएँ',
+        'मालक करा'),
+    ('', 'No accounts are on the sheet yet'): (
+        None, 'शीट पर अभी कोई खाता नहीं है',
+        'शीटवर अजून कोणतेही खाते नाही'),
+    ('', 'Nothing shared yet'): (
+        None, 'अभी कुछ भी साझा नहीं है',
+        'अजून काहीही शेअर केलेले नाही'),
+    ('', 'Only the person who started the family can hand it over.'): (
+        None, 'परिवार को केवल वही व्यक्ति सौंप सकता है जिसने उसे शुरू किया है।',
+        'कुटुंब फक्त ज्याने ते सुरू केले तीच व्यक्ती सोपवू शकते.'),
+    ('', 'Only you, as the owner, can do this. You can also hand the family to another member, or remove a member, from the list above.'): (
+        None, 'यह केवल आप, मालिक के रूप में, कर सकते हैं। आप ऊपर की सूची से परिवार किसी और सदस्य को सौंप सकते हैं, या किसी सदस्य को हटा सकते हैं।',
+        'हे फक्त तुम्ही, मालक म्हणून, करू शकता. वरील यादीतून तुम्ही कुटुंब दुसऱ्या सदस्याला सोपवू शकता, किंवा एखाद्या सदस्याला काढू शकता.'),
+    ('', 'Private by default'): (
+        None, 'डिफ़ॉल्ट रूप से निजी',
+        'डिफॉल्टनुसार खाजगी'),
+    ('', 'Say where your documents are'): (
+        None, 'बताएँ कि आपके दस्तावेज़ कहाँ हैं',
+        'तुमची कागदपत्रे कुठे आहेत ते सांगा'),
+    ('', 'Shown at the top of the Family page. Leave it blank to call it "Our family".'): (
+        None, 'परिवार पेज के ऊपर दिखता है। खाली छोड़ने पर इसका नाम "हमारा परिवार" होगा।',
+        'कुटुंब पानाच्या वर दिसते. रिक्त ठेवल्यास त्याचे नाव "आमचे कुटुंब" असेल.'),
+    ('', 'Some accounts are not on the sheet'): (
+        None, 'कुछ खाते शीट पर नहीं हैं',
+        'काही खाती शीटवर नाहीत'),
+    ('', 'Some accounts on the sheet have no nominee'): (
+        None, 'शीट पर कुछ खातों का कोई नॉमिनी नहीं है',
+        'शीटवरील काही खात्यांना नॉमिनी नाही'),
+    ('', 'Some insurance policies are not on the sheet'): (
+        None, 'कुछ बीमा पॉलिसियाँ शीट पर नहीं हैं',
+        'काही विमा पॉलिसी शीटवर नाहीत'),
+    ('', 'Someone can ask for the sheet'): (
+        None, 'कोई शीट माँग सकता है',
+        'कोणीतरी शीट मागू शकते'),
+    ('', 'Start a family, then invite the people you trust. Nothing is shared until you choose it.'): (
+        None, 'एक परिवार शुरू करें, फिर उन लोगों को आमंत्रित करें जिन पर आप भरोसा करते हैं। जब तक आप न चुनें, कुछ भी साझा नहीं होता।',
+        'एक कुटुंब सुरू करा, मग तुमचा विश्वास असलेल्या लोकांना आमंत्रित करा. तुम्ही निवडेपर्यंत काहीही शेअर होत नाही.'),
+    ('', 'Switch on the accounts you want your family to find, and write who the nominee is for each.'): (
+        None, 'वे खाते चालू करें जो आप चाहते हैं कि परिवार को मिलें, और हर एक का नॉमिनी कौन है यह लिखें।',
+        'तुमच्या कुटुंबाला सापडावीत अशी खाती चालू करा, आणि प्रत्येकाचा नॉमिनी कोण आहे ते लिहा.'),
+    ('', 'That person is no longer in the family.'): (
+        None, 'वह व्यक्ति अब परिवार में नहीं है।',
+        'ती व्यक्ती आता कुटुंबात नाही.'),
+    ('', 'The family "%(family)s" no longer exists. Nothing is shared any more, and you no longer see anything shared with you. Your own data is untouched.'): (
+        None, 'परिवार "%(family)s" अब मौजूद नहीं है। अब कुछ भी साझा नहीं है, और आपके साथ साझा किया गया कुछ भी अब नहीं दिखता। आपका अपना डेटा जस का तस है।',
+        'कुटुंब "%(family)s" आता अस्तित्वात नाही. आता काहीही शेअर केलेले नाही आणि तुमच्यासोबत शेअर केलेले काहीही आता दिसत नाही. तुमचा स्वतःचा डेटा तसाच आहे.'),
+    ('', 'This removes every member and everything shared stops being visible straight away. It cannot be undone.'): (
+        None, 'इससे हर सदस्य हट जाता है और साझा किया गया सब कुछ तुरंत दिखना बंद हो जाता है। इसे वापस नहीं किया जा सकता।',
+        'यामुळे प्रत्येक सदस्य काढला जातो आणि शेअर केलेले सर्व काही लगेच दिसणे बंद होते. हे पूर्ववत करता येणार नाही.'),
+    ('', 'Type <b>%(name)s</b> to confirm'): (
+        None, 'पुष्टि के लिए <b>%(name)s</b> टाइप करें',
+        'खात्रीसाठी <b>%(name)s</b> टाइप करा'),
+    ('', 'Type the family name exactly as shown to delete it.'): (
+        None, 'इसे हटाने के लिए परिवार का नाम ठीक वैसे ही टाइप करें जैसा दिखाया गया है।',
+        'हटवण्यासाठी कुटुंबाचे नाव दाखवल्याप्रमाणे अचूक टाइप करा.'),
+    ('', 'Until you do, nobody in your family can open it.'): (
+        None, 'जब तक आप ऐसा नहीं करते, आपके परिवार में कोई इसे नहीं खोल सकता।',
+        'तुम्ही हे करेपर्यंत तुमच्या कुटुंबातील कोणीही ती उघडू शकत नाही.'),
+    ('', 'Write down who the nominee is, so your family knows who to turn to.'): (
+        None, 'लिखें कि नॉमिनी कौन है, ताकि आपके परिवार को पता रहे कि किससे संपर्क करना है।',
+        'नॉमिनी कोण आहे ते लिहा, म्हणजे तुमच्या कुटुंबाला कोणाकडे जायचे ते कळेल.'),
+    ('', 'You are already the owner.'): (
+        None, 'आप पहले से ही मालिक हैं।',
+        'तुम्ही आधीच मालक आहात.'),
+    ('', 'You are now the owner of the family'): (
+        None, 'अब आप परिवार के मालिक हैं',
+        'आता तुम्ही कुटुंबाचे मालक आहात'),
+    ('', 'You have listed people to call'): (
+        None, 'आपने फ़ोन करने वाले लोगों की सूची बना ली है',
+        'तुम्ही फोन करायच्या लोकांची यादी केली आहे'),
+    ('', 'You have said where your documents are'): (
+        None, 'आपने बता दिया है कि आपके दस्तावेज़ कहाँ हैं',
+        'तुम्ही कागदपत्रे कुठे आहेत ते सांगितले आहे'),
+    ('', 'You were removed from the family'): (
+        None, 'आपको परिवार से हटा दिया गया',
+        'तुम्हाला कुटुंबातून काढून टाकण्यात आले'),
+    ('', 'You will be the owner. Nothing is shared until you choose it.'): (
+        None, 'आप मालिक होंगे। जब तक आप न चुनें, कुछ भी साझा नहीं होता।',
+        'तुम्ही मालक असाल. तुम्ही निवडेपर्यंत काहीही शेअर होत नाही.'),
+    ('', 'Your family'): (
+        None, 'आपका परिवार',
+        'तुमचे कुटुंब'),
+    ('', 'Your family may not know these exist. Add them below.'): (
+        None, 'हो सकता है आपके परिवार को इनके बारे में पता न हो। इन्हें नीचे जोड़ें।',
+        'तुमच्या कुटुंबाला हे अस्तित्वात असल्याचे माहीत नसेल. यांना खाली जोडा.'),
+
+    ('', 'You are the owner'): (None, 'आप मालिक हैं', 'तुम्ही मालक आहात'),
+    ('', 'You choose what to share'): (None, 'क्या साझा करना है, आप चुनते हैं', 'काय शेअर करायचे ते तुम्ही ठरवता'),
+    ('', 'Invitations next'): (None, 'आमंत्रण अगले चरण में', 'आमंत्रणे पुढच्या टप्प्यात'),
+    ('', 'From the Family page'): (None, 'परिवार पृष्ठ से', 'कुटुंब पानावरून'),
+    # ---- features page and privacy policy, updated for removing, handing over and deleting ----
+    ('', 'Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy. A checklist shows what is still missing, such as a policy with no nominee.'): (
+        None, 'एक छोटी शीट लिखें कि क्या-क्या है और कहाँ देखना है, खाता नंबर या पासवर्ड कभी नहीं। चुनें कि कौन माँग सकता है। वे अनुरोध करते हैं, आप स्वीकार या अस्वीकार कर सकते हैं, और 7 दिनों में जवाब न दें तो उन्हें केवल पढ़ने वाली प्रति मिल जाती है। एक चेकलिस्ट दिखाती है कि अभी क्या कमी है, जैसे बिना नॉमिनी वाली पॉलिसी।',
+        'काय आहे आणि कुठे पाहायचे याची एक छोटी शीट लिहा, खाते क्रमांक किंवा पासवर्ड कधीही नाही. कोण मागू शकते ते ठरवा. ते विनंती करतात, तुम्ही मंजूर किंवा नाकारू शकता, आणि 7 दिवसांत उत्तर दिले नाही तर त्यांना फक्त वाचता येणारी प्रत मिळते. एक चेकलिस्ट अजून काय कमी आहे ते दाखवते, उदा. नॉमिनी नसलेली पॉलिसी.'),
+    ('', 'Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away. The owner can remove a member, hand the family to another member, or delete it, and everyone affected is told.'): (
+        None, 'हर व्यक्ति का अपना TrackMyRupee खाता रहता है। परिवार दृश्य के लिए सभी का Pro पर होना ज़रूरी है, अधिकतम 5 लोग। प्लान समाप्त हो तो परिवार दृश्य रुक जाता है और कुछ भी नहीं हटता। छोड़ने पर सारा साझाकरण तुरंत बंद हो जाता है। मालिक किसी सदस्य को हटा सकता है, परिवार किसी दूसरे सदस्य को सौंप सकता है, या उसे हटा सकता है, और प्रभावित हर व्यक्ति को बताया जाता है।',
+        'प्रत्येकाचे स्वतःचे TrackMyRupee खाते राहते. कुटुंब दृश्यासाठी सर्वजण Pro वर असणे आवश्यक आहे, जास्तीत जास्त 5 जण. प्लॅन संपला तर कुटुंब दृश्य थांबते आणि काहीही हटवले जात नाही. सोडल्यावर सर्व शेअरिंग लगेच थांबते. मालक सदस्याला काढू शकतो, कुटुंब दुसऱ्या सदस्याला सोपवू शकतो, किंवा ते हटवू शकतो, आणि प्रभावित प्रत्येकाला कळवले जाते.'),
+    ('', 'Your family membership, the accounts you choose to share and at what level (amounts or list only), an optional nickname for each, and an emergency sheet if you write one (what exists and where to look, never account numbers or passwords) &rarr; Showing a combined family view to the other members of your family &rarr; Consent, given when you join &rarr; Until you stop sharing, leave the family, are removed from it, the owner deletes it, or you delete your account.'): (
+        None, 'आपकी परिवार सदस्यता, वे खाते जिन्हें आप साझा करना चुनते हैं और किस स्तर पर (राशि के साथ या केवल सूची), हर खाते का वैकल्पिक उपनाम, और यदि आप लिखें तो आपातकालीन शीट (क्या है और कहाँ देखना है, खाता नंबर या पासवर्ड कभी नहीं) &rarr; आपके परिवार के अन्य सदस्यों को संयुक्त पारिवारिक दृश्य दिखाना &rarr; सहमति, जो आप जुड़ते समय देते हैं &rarr; जब तक आप साझा करना बंद न करें, परिवार छोड़ें, उससे हटाए जाएँ, मालिक उसे हटा दे, या आप अपना खाता हटाएँ।',
+        'तुमचे कुटुंब सदस्यत्व, तुम्ही शेअर करण्यासाठी निवडलेली खाती आणि कोणत्या स्तरावर (रकमेसह किंवा फक्त यादी), प्रत्येकाचे ऐच्छिक टोपणनाव, आणि तुम्ही लिहिल्यास आणीबाणी शीट (काय आहे आणि कुठे पाहायचे, खाते क्रमांक किंवा पासवर्ड कधीही नाही) &rarr; तुमच्या कुटुंबातील इतर सदस्यांना एकत्रित कौटुंबिक दृश्य दाखवणे &rarr; संमती, जी तुम्ही सामील होताना देता &rarr; तुम्ही शेअरिंग थांबवेपर्यंत, कुटुंब सोडेपर्यंत, तुम्हाला त्यातून काढले जाईपर्यंत, मालकाने ते हटवेपर्यंत किंवा तुम्ही खाते हटवेपर्यंत.'),
+    ('', "Stopping sharing or leaving a family ends the other members' view straight away and removes your shares and emergency-sheet links. Deleting your account does the same. If you owned the family, ownership passes to the longest-standing member, and if you were the last member the family ends. The owner can also remove a member, hand the family to another member, or delete the family after typing its name to confirm. Removal and deletion end sharing in the same way, and the people affected are told by a notification and an email. An invitation link is single-use and expires after 7 days; we store only a hash of it."): (
+        None, 'साझा करना बंद करने या परिवार छोड़ने पर अन्य सदस्यों का दृश्य तुरंत समाप्त हो जाता है और आपके साझाकरण व आपातकालीन-शीट लिंक हट जाते हैं। आपका खाता हटाने पर भी यही होता है। यदि आप परिवार के मालिक थे, तो स्वामित्व सबसे पुराने सदस्य को मिल जाता है, और यदि आप अंतिम सदस्य थे तो परिवार समाप्त हो जाता है। मालिक किसी सदस्य को हटा भी सकता है, परिवार किसी दूसरे सदस्य को सौंप सकता है, या पुष्टि के लिए उसका नाम टाइप करके परिवार हटा सकता है। हटाना और परिवार हटाना साझा करने को उसी तरह खत्म करते हैं, और प्रभावित लोगों को नोटिफ़िकेशन और ईमेल से बताया जाता है। आमंत्रण लिंक एक बार ही काम करता है और 7 दिनों में समाप्त हो जाता है; हम उसका केवल हैश संग्रहीत करते हैं।',
+        'शेअरिंग थांबवल्यावर किंवा कुटुंब सोडल्यावर इतर सदस्यांचे दृश्य लगेच संपते आणि तुमचे शेअर्स व आणीबाणी-शीट लिंक काढले जातात. तुमचे खाते हटवल्यावरही हेच होते. तुम्ही कुटुंबाचे मालक असाल तर मालकी सर्वात जुन्या सदस्याकडे जाते, आणि तुम्ही शेवटचे सदस्य असाल तर कुटुंब संपते. मालक सदस्याला काढूही शकतो, कुटुंब दुसऱ्या सदस्याला सोपवू शकतो, किंवा खात्रीसाठी त्याचे नाव टाइप करून कुटुंब हटवू शकतो. काढून टाकणे आणि कुटुंब हटवणे शेअरिंग त्याच प्रकारे संपवतात, आणि प्रभावित लोकांना नोटिफिकेशन आणि ईमेलने कळवले जाते. आमंत्रण लिंक एकदाच चालते आणि 7 दिवसांत संपते; आम्ही फक्त तिचा हॅश साठवतो.'),
+    ('', 'Last updated: November 2026'): (
+        None, 'अंतिम अपडेट: नवंबर 2026',
+        'शेवटचे अपडेट: नोव्हेंबर 2026'),
 
     # ---- the invitation page ----
     ('', '%(name)s invited you to join a family'): (

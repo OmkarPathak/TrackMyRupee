@@ -24,7 +24,7 @@
         </div>
         <div class="d-flex align-items-baseline flex-wrap gap-2">
             <div class="tmr-review-headline fw-bold tmr-review-hero-headline" style="font-size: 2.25rem; font-weight: 800; color: #165b40; line-height: 1.1;">
-                {{ review.user_currency|default:"₹" }}<span data-count-up data-value="{{ preview.headline|default:0 }}">{{ preview.headline|default:0 }}</span>
+                {% if preview.headline_text %}{{ preview.headline_text }}{% else %}{{ review.user_currency|default:"₹" }}<span data-count-up data-value="{{ preview.headline|default:0 }}">{{ preview.headline|default:0 }}</span>{% endif %}
             </div>
             {% if preview.headline_suffix %}
             <div class="text-muted fw-medium" style="font-size: 1.1rem;">
@@ -60,7 +60,7 @@
                     <div class="tmr-create-card-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background-color: #E8F5E9; color: #165b40; font-size: 1.25rem;">
                         <i class="bi {{ card.icon|default:'bi-check2-circle' }}"></i>
                     </div>
-                    <div class="min-w-0 flex-grow-1">
+                    <div class="flex-grow-1" style="min-width: 0;">
                         <div class="fw-bold text-dark text-truncate" style="font-size: 0.95rem;">{{ card.title }}</div>
                         <div class="text-muted small text-truncate" style="font-size: 0.825rem; line-height: 1.3;">{{ card.description }}</div>
                     </div>

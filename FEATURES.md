@@ -71,9 +71,9 @@ _One household picture, with each person choosing what to share._
 - **Who holds what.** See every credit card, insurance policy, loan and deposit the family has, and whose it is. A card shows its limit and next bill date, a policy its cover, premium and due date, a loan its EMI.
 - **Nothing is shared until you share it.** Joining a family shares nothing. You pick each account and choose Show amounts or List only. Transactions, categories, notes and the holdings inside an account are never shared.
 - **See exactly what they see.** A preview shows your family's view of your shared accounts. Give an account a nickname if its real name is private. Stop sharing at any time and it disappears for them at once.
-- **Emergency access.** Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy.
+- **Emergency access.** Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy. A checklist shows what is still missing, such as a policy with no nominee.
 - **Gentle notes, never comparisons.** A few calm, optional observations, such as a premium falling due or a card bill coming up, built only from what is shared. They never compare people or judge an amount, and each person can switch them off.
-- **Your own account, your own data.** Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away.
+- **Your own account, your own data.** Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away. The owner can remove a member, hand the family to another member, or delete it, and everyone affected is told.
 
 <a id="noticing"></a>
 ## Insights that notice for you

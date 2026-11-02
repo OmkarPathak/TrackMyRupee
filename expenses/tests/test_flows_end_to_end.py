@@ -16,7 +16,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from django.core.exceptions import ValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -47,6 +47,7 @@ def today():
     return timezone.localdate()
 
 
+@override_settings(FAMILY_ENABLED=True)      # the Family flow only exists while family sharing is on
 class FlowTestBase(TestCase):
     """PRO-tier user (no plan limits) with a cash wallet and a bank account."""
 
@@ -141,6 +142,7 @@ def valid_payloads(test):
         'car': dict(name='Honda City', purchase_price='1200000', acquisition_date='2026-10-01', from_account=cash),
         'gold': dict(route='physical', name='Gold Chain', amount='200000', acquisition_date='2026-10-01',
                      from_account=cash),
+        'family': dict(name='The Test Family'),
     }
 
 
@@ -1338,8 +1340,14 @@ class TestFlowHttpLayer(FlowTestBase):
                 self.assertEqual(self.client.post(reverse('flow-preview', kwargs={'key': key}), junk).status_code, 200)
         self.assertEqual(FinancialFlow.objects.count(), 0)
 
+    # Flows whose form has no required field, so an empty submit is a valid one (the Family name defaults)
+    NO_REQUIRED_FIELDS = {'family'}
+
     def test_commit_with_invalid_form_shows_errors_and_creates_nothing(self):
         for key in FlowRegistry.all():
+            if key in self.NO_REQUIRED_FIELDS:
+                self.assertTrue(self.form(key, {}).is_valid(), key)
+                continue
             with self.subTest(flow=key):
                 response = self.post_commit(key, {}, hx=False)
                 self.assertEqual(response.status_code, 200)
@@ -1442,7 +1450,7 @@ class TestFlowHttpLayer(FlowTestBase):
     def test_landing_lists_every_flow_and_reflects_setup_progress(self):
         response = self.client.get(reverse('tmr-flows'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['total_count'], 11)
+        self.assertEqual(response.context['total_count'], 12)
         self.assertEqual(response.context['configured_count'], 0)
         for key, payload in valid_payloads(self).items():
             self.post_commit(key, payload)
@@ -1512,7 +1520,7 @@ class TestFlowEdgeCases(FlowTestBase):
                     self.assertTrue(str(getattr(flow, attr)), attr)
                 self.assertTrue(flow.tags)
                 self.assertTrue(flow.creates)
-                self.assertIn(flow.category, ('debt', 'income', 'bills', 'savings', 'assets'))
+                self.assertIn(flow.category, ('debt', 'income', 'bills', 'savings', 'assets', 'family'))
 
     def test_review_screen_summarises_each_flow_with_cards_and_headline(self):
         for key, payload in valid_payloads(self).items():
@@ -1522,8 +1530,11 @@ class TestFlowEdgeCases(FlowTestBase):
                 review = flow.review_context(self.user, form, form.cleaned_data)
                 self.assertTrue(review['what_we_create'], 'no "what we will create" cards')
                 self.assertTrue(review['sections'], 'no answers listed')
-                self.assertTrue(review['headline_suffix'])
                 self.assertTrue(review['summary'])
                 preview = flow.preview(self.user, form.cleaned_data)
-                self.assertIn('headline', preview)
+                if 'headline_text' in preview:      # a flow whose headline is a name, not an amount (Family)
+                    self.assertTrue(preview['headline_text'])
+                else:
+                    self.assertTrue(review['headline_suffix'])
+                    self.assertIn('headline', preview)
                 self.assertEqual(preview.get('warnings', []), [])

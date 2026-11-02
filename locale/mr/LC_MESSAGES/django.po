@@ -23485,3 +23485,256 @@ msgstr "सर्वांसाठी कुटुंब हटवायचे?
 #: expenses/family
 msgid "Only you, as the person who started the family, can do this. Every member is removed and everything shared stops being visible straight away."
 msgstr "हे फक्त तुम्ही करू शकता, कारण तुम्ही कुटुंब सुरू केले आहे. प्रत्येक सदस्य काढून टाकला जाईल आणि शेअर केलेले सर्व काही लगेच दिसणे बंद होईल."
+
+#: expenses/family
+#, python-format
+msgid "%(done)s of %(total)s done. This checks the sheet as you last saved it."
+msgstr "%(total)s पैकी %(done)s पूर्ण. तुम्ही शेवटची जतन केलेली शीट यात तपासली जाते."
+
+#: expenses/family
+#, python-format
+msgid "%(name)s deleted the family"
+msgstr "%(name)s यांनी कुटुंब हटवले"
+
+#: expenses/family
+#, python-format
+msgid "%(name)s is now the owner of the family. You are still a member."
+msgstr "%(name)s आता कुटुंबाचे मालक आहेत. तुम्ही अजूनही सदस्य आहात."
+
+#: expenses/family
+#, python-format
+msgid "%(name)s left the family \"%(family)s\", so you are now its owner. You can invite people, remove members and delete the family."
+msgstr "%(name)s यांनी कुटुंब \"%(family)s\" सोडले, म्हणून आता तुम्ही त्याचे मालक आहात. तुम्ही लोकांना आमंत्रित करू शकता, सदस्यांना काढू शकता आणि कुटुंब हटवू शकता."
+
+#: expenses/family
+#, python-format
+msgid "%(name)s made you the owner of the family \"%(family)s\". You can now invite people, remove members and delete the family."
+msgstr "%(name)s यांनी तुम्हाला कुटुंब \"%(family)s\" चे मालक केले आहे. आता तुम्ही लोकांना आमंत्रित करू शकता, सदस्यांना काढू शकता आणि कुटुंब हटवू शकता."
+
+#: expenses/family
+#, python-format
+msgid "%(name)s removed you from the family \"%(family)s\". Nothing of yours is shared any more, and you no longer see anything shared with you. Your own data is untouched."
+msgstr "%(name)s यांनी तुम्हाला कुटुंब \"%(family)s\" मधून काढून टाकले आहे. तुमचे काहीही शेअर केलेले नाही आणि तुमच्यासोबत शेअर केलेले काहीही आता दिसत नाही. तुमचा स्वतःचा डेटा तसाच आहे."
+
+#: expenses/family
+msgid "A family, with you as the owner"
+msgstr "एक कुटुंब, ज्याचे मालक तुम्ही आहात"
+
+#: expenses/family
+msgid "A short note is enough, for example the cupboard or locker they are in."
+msgstr "एक छोटी नोंद पुरेशी आहे, उदा. ती कोणत्या कपाटात किंवा लॉकरमध्ये आहेत."
+
+#: expenses/family
+msgid "Add them below, or leave them off on purpose."
+msgstr "यांना खाली जोडा, किंवा जाणूनबुजून वगळा."
+
+#: expenses/family
+msgid "Choose who can ask for the sheet"
+msgstr "शीट कोण मागू शकते ते निवडा"
+
+#: expenses/family
+msgid "Delete family for everyone"
+msgstr "सर्वांसाठी कुटुंब हटवा"
+
+#: expenses/family
+msgid "Emergency sheet checklist"
+msgstr "आपत्कालीन शीटची चेकलिस्ट"
+
+#: expenses/family
+msgid "Every account on the sheet has a nominee"
+msgstr "शीटवरील प्रत्येक खात्याला नॉमिनी आहे"
+
+#: expenses/family
+msgid "Every account you track is on the sheet"
+msgstr "तुम्ही ट्रॅक करत असलेले प्रत्येक खाते शीटवर आहे"
+
+#: expenses/family
+msgid "Every insurance policy is on the sheet"
+msgstr "प्रत्येक विमा पॉलिसी शीटवर आहे"
+
+#: expenses/family
+msgid "Family name"
+msgstr "कुटुंबाचे नाव"
+
+#: expenses/family
+msgid "Family sharing for up to 5 people"
+msgstr "5 लोकांपर्यंत कुटुंब शेअरिंग"
+
+#: expenses/family
+msgid "For example your advisor, accountant or the branch that holds a locker."
+msgstr "उदा. तुमचे सल्लागार, अकाउंटंट किंवा लॉकर असलेली शाखा."
+
+#: expenses/family
+msgid "Give the family a name. You can invite people on the next page."
+msgstr "कुटुंबाला नाव द्या. पुढच्या पानावर तुम्ही लोकांना आमंत्रित करू शकता."
+
+#: expenses/family
+msgid "I want to share the big picture with my family"
+msgstr "मला माझ्या कुटुंबासोबत संपूर्ण चित्र शेअर करायचे आहे"
+
+#: expenses/family
+msgid "Is your sheet ready?"
+msgstr "तुमची शीट तयार आहे का?"
+
+#: expenses/family
+msgid "List the people to call"
+msgstr "ज्यांना फोन करायचा आहे त्यांची यादी करा"
+
+#: expenses/family
+#, python-format
+msgid "Make %(name)s the owner? You will stay in the family as a member, but only the owner can invite people, remove members or delete the family."
+msgstr "%(name)s यांना मालक करायचे? तुम्ही सदस्य म्हणून कुटुंबात राहाल, पण फक्त मालकच लोकांना आमंत्रित करू शकतो, सदस्यांना काढू शकतो किंवा कुटुंब हटवू शकतो."
+
+#: expenses/family
+msgid "Make owner"
+msgstr "मालक करा"
+
+#: expenses/family
+msgid "No accounts are on the sheet yet"
+msgstr "शीटवर अजून कोणतेही खाते नाही"
+
+#: expenses/family
+msgid "Nothing shared yet"
+msgstr "अजून काहीही शेअर केलेले नाही"
+
+#: expenses/family
+msgid "Only the person who started the family can hand it over."
+msgstr "कुटुंब फक्त ज्याने ते सुरू केले तीच व्यक्ती सोपवू शकते."
+
+#: expenses/family
+msgid "Only you, as the owner, can do this. You can also hand the family to another member, or remove a member, from the list above."
+msgstr "हे फक्त तुम्ही, मालक म्हणून, करू शकता. वरील यादीतून तुम्ही कुटुंब दुसऱ्या सदस्याला सोपवू शकता, किंवा एखाद्या सदस्याला काढू शकता."
+
+#: expenses/family
+msgid "Private by default"
+msgstr "डिफॉल्टनुसार खाजगी"
+
+#: expenses/family
+msgid "Say where your documents are"
+msgstr "तुमची कागदपत्रे कुठे आहेत ते सांगा"
+
+#: expenses/family
+msgid "Shown at the top of the Family page. Leave it blank to call it \"Our family\"."
+msgstr "कुटुंब पानाच्या वर दिसते. रिक्त ठेवल्यास त्याचे नाव \"आमचे कुटुंब\" असेल."
+
+#: expenses/family
+msgid "Some accounts are not on the sheet"
+msgstr "काही खाती शीटवर नाहीत"
+
+#: expenses/family
+msgid "Some accounts on the sheet have no nominee"
+msgstr "शीटवरील काही खात्यांना नॉमिनी नाही"
+
+#: expenses/family
+msgid "Some insurance policies are not on the sheet"
+msgstr "काही विमा पॉलिसी शीटवर नाहीत"
+
+#: expenses/family
+msgid "Someone can ask for the sheet"
+msgstr "कोणीतरी शीट मागू शकते"
+
+#: expenses/family
+msgid "Start a family, then invite the people you trust. Nothing is shared until you choose it."
+msgstr "एक कुटुंब सुरू करा, मग तुमचा विश्वास असलेल्या लोकांना आमंत्रित करा. तुम्ही निवडेपर्यंत काहीही शेअर होत नाही."
+
+#: expenses/family
+msgid "Switch on the accounts you want your family to find, and write who the nominee is for each."
+msgstr "तुमच्या कुटुंबाला सापडावीत अशी खाती चालू करा, आणि प्रत्येकाचा नॉमिनी कोण आहे ते लिहा."
+
+#: expenses/family
+msgid "That person is no longer in the family."
+msgstr "ती व्यक्ती आता कुटुंबात नाही."
+
+#: expenses/family
+#, python-format
+msgid "The family \"%(family)s\" no longer exists. Nothing is shared any more, and you no longer see anything shared with you. Your own data is untouched."
+msgstr "कुटुंब \"%(family)s\" आता अस्तित्वात नाही. आता काहीही शेअर केलेले नाही आणि तुमच्यासोबत शेअर केलेले काहीही आता दिसत नाही. तुमचा स्वतःचा डेटा तसाच आहे."
+
+#: expenses/family
+msgid "This removes every member and everything shared stops being visible straight away. It cannot be undone."
+msgstr "यामुळे प्रत्येक सदस्य काढला जातो आणि शेअर केलेले सर्व काही लगेच दिसणे बंद होते. हे पूर्ववत करता येणार नाही."
+
+#: expenses/family
+#, python-format
+msgid "Type <b>%(name)s</b> to confirm"
+msgstr "खात्रीसाठी <b>%(name)s</b> टाइप करा"
+
+#: expenses/family
+msgid "Type the family name exactly as shown to delete it."
+msgstr "हटवण्यासाठी कुटुंबाचे नाव दाखवल्याप्रमाणे अचूक टाइप करा."
+
+#: expenses/family
+msgid "Until you do, nobody in your family can open it."
+msgstr "तुम्ही हे करेपर्यंत तुमच्या कुटुंबातील कोणीही ती उघडू शकत नाही."
+
+#: expenses/family
+msgid "Write down who the nominee is, so your family knows who to turn to."
+msgstr "नॉमिनी कोण आहे ते लिहा, म्हणजे तुमच्या कुटुंबाला कोणाकडे जायचे ते कळेल."
+
+#: expenses/family
+msgid "You are already the owner."
+msgstr "तुम्ही आधीच मालक आहात."
+
+#: expenses/family
+msgid "You are now the owner of the family"
+msgstr "आता तुम्ही कुटुंबाचे मालक आहात"
+
+#: expenses/family
+msgid "You have listed people to call"
+msgstr "तुम्ही फोन करायच्या लोकांची यादी केली आहे"
+
+#: expenses/family
+msgid "You have said where your documents are"
+msgstr "तुम्ही कागदपत्रे कुठे आहेत ते सांगितले आहे"
+
+#: expenses/family
+msgid "You were removed from the family"
+msgstr "तुम्हाला कुटुंबातून काढून टाकण्यात आले"
+
+#: expenses/family
+msgid "You will be the owner. Nothing is shared until you choose it."
+msgstr "तुम्ही मालक असाल. तुम्ही निवडेपर्यंत काहीही शेअर होत नाही."
+
+#: expenses/family
+msgid "Your family"
+msgstr "तुमचे कुटुंब"
+
+#: expenses/family
+msgid "Your family may not know these exist. Add them below."
+msgstr "तुमच्या कुटुंबाला हे अस्तित्वात असल्याचे माहीत नसेल. यांना खाली जोडा."
+
+#: expenses/family
+msgid "You are the owner"
+msgstr "तुम्ही मालक आहात"
+
+#: expenses/family
+msgid "You choose what to share"
+msgstr "काय शेअर करायचे ते तुम्ही ठरवता"
+
+#: expenses/family
+msgid "Invitations next"
+msgstr "आमंत्रणे पुढच्या टप्प्यात"
+
+#: expenses/family
+msgid "From the Family page"
+msgstr "कुटुंब पानावरून"
+
+#: expenses/family
+msgid "Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy. A checklist shows what is still missing, such as a policy with no nominee."
+msgstr "काय आहे आणि कुठे पाहायचे याची एक छोटी शीट लिहा, खाते क्रमांक किंवा पासवर्ड कधीही नाही. कोण मागू शकते ते ठरवा. ते विनंती करतात, तुम्ही मंजूर किंवा नाकारू शकता, आणि 7 दिवसांत उत्तर दिले नाही तर त्यांना फक्त वाचता येणारी प्रत मिळते. एक चेकलिस्ट अजून काय कमी आहे ते दाखवते, उदा. नॉमिनी नसलेली पॉलिसी."
+
+#: expenses/family
+msgid "Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away. The owner can remove a member, hand the family to another member, or delete it, and everyone affected is told."
+msgstr "प्रत्येकाचे स्वतःचे TrackMyRupee खाते राहते. कुटुंब दृश्यासाठी सर्वजण Pro वर असणे आवश्यक आहे, जास्तीत जास्त 5 जण. प्लॅन संपला तर कुटुंब दृश्य थांबते आणि काहीही हटवले जात नाही. सोडल्यावर सर्व शेअरिंग लगेच थांबते. मालक सदस्याला काढू शकतो, कुटुंब दुसऱ्या सदस्याला सोपवू शकतो, किंवा ते हटवू शकतो, आणि प्रभावित प्रत्येकाला कळवले जाते."
+
+#: expenses/family
+msgid "Your family membership, the accounts you choose to share and at what level (amounts or list only), an optional nickname for each, and an emergency sheet if you write one (what exists and where to look, never account numbers or passwords) &rarr; Showing a combined family view to the other members of your family &rarr; Consent, given when you join &rarr; Until you stop sharing, leave the family, are removed from it, the owner deletes it, or you delete your account."
+msgstr "तुमचे कुटुंब सदस्यत्व, तुम्ही शेअर करण्यासाठी निवडलेली खाती आणि कोणत्या स्तरावर (रकमेसह किंवा फक्त यादी), प्रत्येकाचे ऐच्छिक टोपणनाव, आणि तुम्ही लिहिल्यास आणीबाणी शीट (काय आहे आणि कुठे पाहायचे, खाते क्रमांक किंवा पासवर्ड कधीही नाही) &rarr; तुमच्या कुटुंबातील इतर सदस्यांना एकत्रित कौटुंबिक दृश्य दाखवणे &rarr; संमती, जी तुम्ही सामील होताना देता &rarr; तुम्ही शेअरिंग थांबवेपर्यंत, कुटुंब सोडेपर्यंत, तुम्हाला त्यातून काढले जाईपर्यंत, मालकाने ते हटवेपर्यंत किंवा तुम्ही खाते हटवेपर्यंत."
+
+#: expenses/family
+msgid "Stopping sharing or leaving a family ends the other members' view straight away and removes your shares and emergency-sheet links. Deleting your account does the same. If you owned the family, ownership passes to the longest-standing member, and if you were the last member the family ends. The owner can also remove a member, hand the family to another member, or delete the family after typing its name to confirm. Removal and deletion end sharing in the same way, and the people affected are told by a notification and an email. An invitation link is single-use and expires after 7 days; we store only a hash of it."
+msgstr "शेअरिंग थांबवल्यावर किंवा कुटुंब सोडल्यावर इतर सदस्यांचे दृश्य लगेच संपते आणि तुमचे शेअर्स व आणीबाणी-शीट लिंक काढले जातात. तुमचे खाते हटवल्यावरही हेच होते. तुम्ही कुटुंबाचे मालक असाल तर मालकी सर्वात जुन्या सदस्याकडे जाते, आणि तुम्ही शेवटचे सदस्य असाल तर कुटुंब संपते. मालक सदस्याला काढूही शकतो, कुटुंब दुसऱ्या सदस्याला सोपवू शकतो, किंवा खात्रीसाठी त्याचे नाव टाइप करून कुटुंब हटवू शकतो. काढून टाकणे आणि कुटुंब हटवणे शेअरिंग त्याच प्रकारे संपवतात, आणि प्रभावित लोकांना नोटिफिकेशन आणि ईमेलने कळवले जाते. आमंत्रण लिंक एकदाच चालते आणि 7 दिवसांत संपते; आम्ही फक्त तिचा हॅश साठवतो."
+
+#: expenses/family
+msgid "Last updated: November 2026"
+msgstr "शेवटचे अपडेट: नोव्हेंबर 2026"

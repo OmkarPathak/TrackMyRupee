@@ -5,13 +5,14 @@ from collections import OrderedDict
 
 from django.core.exceptions import ImproperlyConfigured
 
-CATEGORY_ORDER = ["debt", "income", "bills", "savings", "assets"]
+CATEGORY_ORDER = ["debt", "income", "bills", "savings", "assets", "family"]
 CATEGORY_LABELS = {
     "debt": "Debt",
     "income": "Income",
     "bills": "Bills",
     "savings": "Savings & investments",
     "assets": "Assets",
+    "family": "Family",
 }
 
 _FLOW_REGISTRY = {}

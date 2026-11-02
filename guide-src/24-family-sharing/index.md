@@ -34,6 +34,8 @@ Everyone keeps their **own TrackMyRupee account**. Each person chooses which of 
 2. Choose **Create your family** and give it a name, such as "Our family". You become its **owner**.
 3. Under **Invite someone**, choose **Send invite**. Enter an email address to have the link emailed to them, or leave it empty and send the link yourself.
 
+You can also start a family from **TMR Flows**: choose **I want to share the big picture with my family**. It appears there when family sharing is switched on for you, and it needs a Pro plan. It only creates the family. You invite people from the Family page afterwards.
+
 A family has up to **5 members**, and a person can belong to **one family** at a time. Seats taken by members and by open invitations both count, so cancel an unused invitation to free its seat.
 
 ![The Family page: members, pending invitations and the invite box](img/family-home-desktop.webp){ loading=lazy }
@@ -131,11 +133,12 @@ You can dismiss a note, or switch **Gentle notes** off for yourself. It affects 
     * **Always.** Allowed members can open the sheet whenever they like.
 * **How long access lasts.** For access given on request you can choose 30 days, 90 days, a year, or until you withdraw it. A week before it ends you are told, and you can **Extend** it from the emergency page. When it ends the person must ask again.
 * **Nicknames.** Optionally show the nicknames you use on **What I share** instead of real account names.
+* **Checklist.** At the top of the page, **Is your sheet ready?** shows what is still missing from the sheet as you last saved it: insurance policies or other accounts that are not on it, accounts with no nominee, no note about where your documents are, nobody to call, and nobody allowed to ask. Credit cards and loans never need a nominee.
 * It is read-only, can be printed, and does not depend on a plan: it still opens if a subscription has lapsed.
 
 ![If something happens to me: pick what is on the sheet and who can ask for it](img/family-emergency-desktop.webp){ loading=lazy }
 
-Leaving or being removed from the family ends emergency access in both directions.
+Leaving, being removed, or the family being deleted ends emergency access in both directions.
 
 ---
 
@@ -149,12 +152,14 @@ Family view needs every member on **Pro**.
 
 ---
 
-## 8. Leaving, removing and ending
+## 8. Leaving, removing, handing over and deleting
 
 * **Any member can leave** at any time from the Family page. Their shares end immediately in both directions.
-* **Only the owner can remove** another member. Removal works the same way.
-* If the **owner leaves**, the longest-standing member becomes the owner. If the last member leaves, the family ends.
-* Joining records your consent; leaving records that it was withdrawn.
+* **Only the owner can remove** another member. Removal works the same way, and the person removed is told by a notification and an email.
+* **Handing the family over.** The owner can choose **Make owner** beside any member. That person becomes the owner and is told. You stay in the family as an ordinary member, and can no longer invite people, remove members or delete the family.
+* If the **owner leaves**, the longest-standing member becomes the owner and is told. If the last member leaves, the family ends.
+* **Deleting the family.** Only the owner can do this, with **Delete family** at the bottom of the Family page. To stop an accidental tap, you must type the family's name exactly as shown (capital letters and extra spaces do not matter). Every member is removed, all sharing and emergency access end at once, and every other member is told by a notification and an email. Nobody's own accounts or data are touched. It cannot be undone.
+* Joining records your consent; leaving, being removed, or the family being deleted records that it was withdrawn.
 
 ---
 
@@ -178,5 +183,9 @@ Family view needs every member on **Pro**.
 **What if a member is in another currency?** Their amounts are shown to them, but not added into a family total in a different currency.
 
 **Do members share one login?** No. Everyone keeps their own account, password and data.
+
+**Will I be told if I am removed, or the family is deleted?** Yes, by a notification in the app and an email. They say who did it, and never mention any account.
+
+**Can the owner delete the family?** Yes, and only the owner. They must type the family's name to confirm. See section 8.
 
 **What happens to my data if I leave?** Your own account is untouched. All your shares stop, and the family can no longer see anything of yours.

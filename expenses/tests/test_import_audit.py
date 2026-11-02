@@ -15,6 +15,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.tests.clock import pin_today
 from expenses.ledger_read_service import LedgerReadService
 from expenses.ledger_service import LedgerPostingService
 from expenses.models import Account, Expense, FXRate, ImportLock, JournalEntry, UserProfile
@@ -244,6 +245,7 @@ class OneBadRowDoesNotSpoilTheRestTests(Base):
 
 
 class DatesTests(Base):
+    @pin_today()      # 60 days ahead must stay inside this year: from November it lands in January, which has no "future" this year
     def test_a_date_without_a_year_that_would_be_in_the_future_means_last_year(self):
         future = today() + timedelta(days=60)
         res = self.results(csv_file([['Date', 'Description', 'Amount'], [future.strftime('%d %b'), 'Late bill', 10]]))

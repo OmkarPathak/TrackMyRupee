@@ -28,6 +28,8 @@ from expenses.models import (
     CapitalEvent,
     FinancialFlow,
     Holding,
+    Household,
+    HouseholdMember,
     Income,
     Loan,
     LoanInterestRate,
@@ -54,6 +56,7 @@ class TestFlowRegistry(TestCase):
         'savingsgoal',
         'car',
         'gold',
+        'family',
     }
 
     def test_registry_exposes_core_flows(self):
@@ -69,9 +72,9 @@ class TestFlowRegistry(TestCase):
         self.assertIn('savings', grouped)
         self.assertIn('assets', grouped)
 
-    def test_registry_contains_exactly_11_flows(self):
+    def test_registry_contains_exactly_12_flows(self):
         flows = FlowRegistry.all()
-        self.assertEqual(len(flows), 11)
+        self.assertEqual(len(flows), 12)
         self.assertEqual(set(flows.keys()), self.EXPECTED_KEYS)
 
     def test_flow_classes_defined_exactly_once_per_file(self):
@@ -94,7 +97,7 @@ class TestFlowRegistry(TestCase):
                     if is_flow:
                         class_definitions.setdefault(node.name, []).append(py_file.name)
 
-        self.assertEqual(len(class_definitions), 11)
+        self.assertEqual(len(class_definitions), 12)
         for class_name, files in class_definitions.items():
             self.assertEqual(len(files), 1, f"Flow class {class_name} defined {len(files)} times: {files}")
 
@@ -316,6 +319,7 @@ class TestFlowEndpointCoverage(TestCase):
         'loan',
         'rentbill',
         'savingsgoal',
+        'family',
     }
 
     def setUp(self):
@@ -2114,7 +2118,12 @@ class TestFlowLandingPageAndConfiguredStatus(TestCase):
         )
         self.assertTrue(all_flows['gold'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
 
-        # All 11 flows configured now
+        # 12. FamilyFlow: configured once the user is in a family
+        household = Household.objects.create(owner=self.user, name='Our family')
+        HouseholdMember.objects.create(household=household, user=self.user)
+        self.assertTrue(all_flows['family'].is_configured(self.user, FlowSnapshot.for_user(self.user)))
+
+        # All 12 flows configured now
         final_snapshot = FlowSnapshot.for_user(self.user)
         for key, flow in all_flows.items():
             self.assertTrue(flow.is_configured(self.user, final_snapshot), f"Flow '{key}' should now be configured")

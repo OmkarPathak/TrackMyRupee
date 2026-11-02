@@ -9,6 +9,7 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.tests.clock import MID_MONTH, pin_today
 from expenses.filters.definitions import AMOUNT_RANGE_OPTIONS, EXPENSE_FILTERS
 from expenses.filters.engine import apply_filter_config
 from expenses.models import Account, Expense, FXRate, Income
@@ -227,9 +228,10 @@ class SortTests(Base):
         self.assertEqual(self.descriptions(sort='amount_asc'),
                          ['three hundred rupees', 'five dollars', 'nine hundred rupees'])
 
+    @pin_today()      # dates two days back must stay in the month the list opens on, whatever day this runs
     def test_date_sorts_both_ways(self):
-        self.expense(1, 'a', when=TODAY - timedelta(days=2))
-        self.expense(1, 'b', when=TODAY - timedelta(days=1))
+        self.expense(1, 'a', when=MID_MONTH - timedelta(days=2))
+        self.expense(1, 'b', when=MID_MONTH - timedelta(days=1))
         self.assertEqual(self.descriptions(sort='date_desc'), ['b', 'a'])
         self.assertEqual(self.descriptions(sort='date_asc'), ['a', 'b'])
 

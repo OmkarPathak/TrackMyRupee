@@ -20,6 +20,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.tests.clock import pin_today
 from expenses.composer import (
     LARGE_AMOUNT_DEFAULT,
     LARGE_AMOUNT_THRESHOLDS,
@@ -454,6 +455,7 @@ class TestExpenseListView(ExpenseTestBase):
         self.assertEqual(self.ids(self.client.get(self.url, {'q': 'swiggy'})), [a.id])
         self.assertEqual(self.ids(self.client.get(self.url, {'search': 'nomatch'})), [])
 
+    @pin_today()      # dates two days back must stay in the month the list opens on, whatever day this runs
     def test_sorting(self):
         old_big = self.expense('900', date=today() - timedelta(days=2))
         mid = self.expense('500', date=today() - timedelta(days=1))

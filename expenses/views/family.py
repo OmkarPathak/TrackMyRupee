@@ -50,6 +50,7 @@ __all__ = [
     'family_join_view',
     'family_leave_view',
     'family_delete_view',
+    'family_member_make_owner_view',
     'family_member_remove_view',
     'family_share_view',
     'family_share_edit_view',
@@ -238,11 +239,26 @@ def family_leave_view(request):
 def family_delete_view(request):
     _owned_household_or_404(request)
     try:
-        households.delete_household(request.user)
+        households.delete_household(request.user, request.POST.get('confirm_name', ''))
     except households.FamilyError as error:
         messages.error(request, error.message)
     else:
         messages.success(request, _("The family has been deleted. Nothing is shared any more."))
+    return redirect('family-home')
+
+
+@family_view
+@require_POST
+def family_member_make_owner_view(request, pk):
+    household = _owned_household_or_404(request)
+    membership = get_object_or_404(HouseholdMember, pk=pk, household=household)
+    try:
+        households.transfer_ownership(request.user, membership)
+    except households.FamilyError as error:
+        messages.error(request, error.message)
+    else:
+        messages.success(request, _("%(name)s is now the owner of the family. You are still a member.")
+                         % {'name': display_name(membership.user)})
     return redirect('family-home')
 
 
@@ -584,6 +600,7 @@ def family_emergency_view(request):
         'access_choices': emergency.ACCESS_CHOICES,
         'use_nicknames': sheet.use_nicknames if sheet else False,
         'delay_days': settings.FAMILY_EMERGENCY_DELAY_DAYS,
+        'checklist': emergency.checklist(request.user, sheet),
         'family_page': 'emergency',
     })
 

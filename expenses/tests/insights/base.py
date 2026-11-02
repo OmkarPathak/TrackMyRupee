@@ -5,13 +5,18 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import TestCase, override_settings
-from django.utils import translation
+from django.utils import timezone, translation
 
 from expenses.insights import registry
 from expenses.models import Account, Category, Expense, Income, UserProfile
 
+from ..clock import pin_clock
+
 D = Decimal
 TODAY = datetime.date(2026, 10, 22)
+# 9 a.m. on TODAY. The scenarios below are dated around TODAY, so the clock the code reads is pinned to it: against
+# the real clock a test passes only while the real date sits near TODAY (it failed on the 1st and 2nd of a month).
+NOW = timezone.make_aware(datetime.datetime.combine(TODAY, datetime.time(9, 0)))
 ENGINE_ON = override_settings(INSIGHTS_ENGINE_MODE='on')
 
 
@@ -26,6 +31,7 @@ class InsightBase(TestCase):
     salary_day = 1
 
     def setUp(self):
+        pin_clock(self, TODAY, NOW)
         cache.clear()
         # a request from a Hindi or Marathi profile leaves that language active on the thread; never leak it
         self.addCleanup(translation.deactivate)

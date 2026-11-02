@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from expenses import calendar_data
+from expenses.tests.clock import pin_today
 from expenses.models import (
     Account, CapitalEvent, Expense, FXRate, Income, Loan, LoanRepayment, RecurringTransaction, Transfer,
     UserProfile,
@@ -457,6 +458,7 @@ class TestCalendarLayout(CalBase):
         self.assertRegex(css, r'\.cal-main\s*\{[^}]*height:\s*calc\(100dvh')
         self.assertRegex(css, r'\.cal-weeks \.cal-week\s*\{[^}]*flex:\s*1 1 0')
 
+    @pin_today()      # today's panel loads only when the month shown (October 2026, see page()) contains today
     def test_tapping_a_day_scrolls_to_the_panel_smoothly(self):
         html = self.page()
         self.assertIn("scrollIntoView({ behavior: 'smooth', block: 'start' })", html)

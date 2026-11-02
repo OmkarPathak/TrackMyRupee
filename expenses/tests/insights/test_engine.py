@@ -1,6 +1,6 @@
 """The engine: storing, ranking, caps, cooldowns, dismissal, snooze, plan gating, failure isolation, query counts."""
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
@@ -10,9 +10,7 @@ from expenses.insights import engine, prefs, sampling
 from expenses.insights.types import Insight, Kind, Module, Plan, Surface, Tone
 from expenses.models import Account, InsightFeedback, InsightState, UserProfile
 
-from .base import ENGINE_ON, TODAY, D, InsightBase, month_start, temp_rule
-
-NOW = timezone.make_aware(datetime(2026, 10, 22, 9, 0))
+from .base import ENGINE_ON, NOW, TODAY, D, InsightBase, month_start, temp_rule
 
 
 def insight(rule_id='cashflow.test', module=Module.CASHFLOW, priority=50, key='2026-10', surfaces=None, sensitive=False,
@@ -244,6 +242,8 @@ class ReadPathTests(StoredBase):
         engine.dismiss(self.user, earlier.uuid)
         self.assertEqual([p.insight.dedupe_key for p in self.generate(now=timezone.now())], ['b'])
         self.store('cashflow.cool', insight(rule_id='cashflow.cool', key='c'))   # created after the dismissal
+        # the clock is pinned, so say "after" explicitly: a row made in the same instant is not after
+        InsightState.objects.filter(rule_id='cashflow.cool', dedupe_key='c').update(created_at=NOW + timedelta(minutes=5))
         self.assertEqual([p.insight.dedupe_key for p in self.generate(now=timezone.now())], ['b'])
         InsightState.objects.filter(pk=earlier.pk).update(dismissed_at=timezone.now() - timedelta(days=11))
         self.assertEqual(sorted(p.insight.dedupe_key for p in self.generate(now=timezone.now())), ['b', 'c'])

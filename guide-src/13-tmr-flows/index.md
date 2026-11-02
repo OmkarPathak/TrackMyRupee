@@ -27,6 +27,8 @@ There are 11 Flows today, grouped into five categories:
 | [Savings and investments](savings-and-investments.md) | I started a SIP, I booked an FD, I contribute to PPF / EPF / NPS, I'm saving for something |
 | [Assets](assets.md) | I bought a car, I bought gold |
 
+A twelfth Flow, **I want to share the big picture with my family**, appears under its own **Family** category when family sharing is switched on for you. It starts a family and nothing else: it needs a Pro plan, shares nothing and invites nobody. You invite people afterwards from the Family page. See [Family sharing](../24-family-sharing/index.md).
+
 ---
 
 ## 2. Opening TMR Flows
