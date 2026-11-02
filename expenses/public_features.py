@@ -197,7 +197,7 @@ def _feature_categories():
                 },
                 {
                     'title': _('Emergency access'),
-                    'desc': _('Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy.'),
+                    'desc': _('Write a short sheet of what exists and where to look, never account numbers or passwords. Choose who may ask. They request it, you can approve or deny, and if you do not answer within 7 days they get a read-only copy. A checklist shows what is still missing, such as a policy with no nominee.'),
                 },
                 {
                     'title': _('Gentle notes, never comparisons'),
@@ -205,7 +205,7 @@ def _feature_categories():
                 },
                 {
                     'title': _('Your own account, your own data'),
-                    'desc': _('Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away.'),
+                    'desc': _('Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away. The owner can remove a member, hand the family to another member, or delete it, and everyone affected is told.'),
                 },
             ],
         },

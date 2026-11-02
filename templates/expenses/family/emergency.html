@@ -16,6 +16,24 @@
     {% if sheet %}<div class="fam-actions"><a href="{% url 'family-emergency-sheet' request.user.household_membership.pk %}?print=1" class="btn btn-action-cancel" target="_blank" rel="noopener">{% trans "Print or save as PDF" %}</a></div>{% endif %}
 </div>
 
+<section class="card fam-card mb-3" aria-labelledby="fam-ck-h" id="fam-checklist">
+    <h2 id="fam-ck-h">{% trans "Is your sheet ready?" %}</h2>
+    <p class="fam-note">{% blocktrans trimmed with done=checklist.done|translate_digits total=checklist.total|translate_digits %}{{ done }} of {{ total }} done. This checks the sheet as you last saved it.{% endblocktrans %}</p>
+    <div class="fam-progress" role="progressbar" aria-valuemin="0" aria-valuemax="{{ checklist.total }}" aria-valuenow="{{ checklist.done }}" aria-label="{% trans 'Emergency sheet checklist' %}"><span style="width: {% widthratio checklist.done checklist.total 100 %}%"></span></div>
+    <div>
+        {% for item in checklist.items %}
+        <div class="fam-check {% if item.done %}is-done{% else %}is-todo{% endif %}" data-check="{{ item.key }}">
+            <i class="bi {% if item.done %}bi-check-circle-fill{% else %}bi-exclamation-circle-fill{% endif %}" aria-hidden="true"></i>
+            <div>
+                <div class="fam-check-title">{{ item.title }}</div>
+                {% if item.names %}<div class="fam-check-names">{{ item.names|join:", " }}</div>{% endif %}
+                {% if item.detail %}<div class="fam-check-detail">{{ item.detail }}</div>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
 <div class="fam-split">
 <form method="post" action="{% url 'family-emergency-save' %}" class="fam-stack" id="fam-em-form">
     {% csrf_token %}

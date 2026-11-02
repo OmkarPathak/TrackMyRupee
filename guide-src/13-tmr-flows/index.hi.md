@@ -27,6 +27,8 @@ TrackMyRupee को बताइए कि आपकी ज़िंदगी �
 | [बचत और निवेश](savings-and-investments.hi.md) | I started a SIP, I booked an FD, I contribute to PPF / EPF / NPS, I'm saving for something |
 | [संपत्ति](assets.hi.md) | I bought a car, I bought gold |
 
+एक बारहवाँ Flow, **I want to share the big picture with my family**, तब अपनी **Family** श्रेणी में दिखता है जब आपके लिए family sharing चालू हो। यह केवल परिवार शुरू करता है: इसके लिए Pro प्लान चाहिए, यह कुछ भी साझा नहीं करता और किसी को आमंत्रित नहीं करता। लोगों को आप बाद में Family पृष्ठ से आमंत्रित करते हैं। देखें [Family sharing](../24-family-sharing/index.hi.md)।
+
 ---
 
 ## 2. TMR Flows खोलना

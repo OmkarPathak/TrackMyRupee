@@ -16,6 +16,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.tests.clock import pin_today
 from expenses.forms import IncomeForm
 from expenses.models import (
     INCOME_GROUP_TYPES,
@@ -397,6 +398,7 @@ class TestIncomeListView(IncomeTestBase):
         self.income('20', description='Other')
         self.assertEqual(self.ids(self.client.get(self.url, {'search': 'ACME'})), [a.id])
 
+    @pin_today()      # dates two days back must stay in the month the list opens on, whatever day this runs
     def test_sorting(self):
         old_big = self.income('900', date=today() - timedelta(days=2))
         new_small = self.income('100')

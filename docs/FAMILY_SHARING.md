@@ -61,8 +61,17 @@ Family view needs **every member on Pro** (`UserProfile.is_pro`, which respects 
 ## Households
 
 - A user belongs to at most one household; a household has at most 5 members.
-- The creator is the owner. Any member can leave. Only the owner can remove another member.
-- Leaving or being removed ends all sharing in both directions immediately.
+- The creator is the owner. Any member can leave. Only the owner can remove another member, hand the family to
+  another member (the former owner stays as an ordinary member) or delete the family.
+- Leaving, being removed or the family being deleted ends all sharing in both directions immediately.
+- Deleting needs the owner to type the family's name (ignoring case and extra spaces). The check is made on the
+  server (`households.delete_household`), so the disabled button on the page is only a convenience.
+- People are told when something changes without them doing it (`expenses/family/notices.py`): everyone else when
+  the family is deleted, the person removed, the person made owner (or who inherits it when the owner leaves). Each
+  gets an in-app notification and a short plain email in their own language, and neither names an account. A failed
+  email never undoes the change.
+- Guided setup (TMR Flows) has a **Family** step that creates the family through `households.create_household`. It is
+  offered only while family sharing is on for the user (`Flow.is_available`), needs Pro, and invites nobody.
 - An invitation is a single-use link with a hashed token that expires after 7 days.
 - Joining records the member's consent (`ConsentEvent`, purpose `family_sharing`).
 
@@ -121,6 +130,11 @@ may ask (only people in the same family) and a mode:
 Access given on request can have an end date the owner chooses (30 days, 90 days, a year, or until withdrawn).
 When it ends the person must ask again. The owner is told a week before (job and emergency page) and can extend it.
 The owner can also show their sharing nicknames on the sheet instead of real account names.
+
+A checklist on the emergency page (`emergency.checklist`) reads the saved sheet and says what is still missing:
+insurance policies or other accounts that are not on the sheet, accounts on it with no nominee, no note about
+documents, no one to call, and nobody allowed to ask. Cards and loans never need a nominee. A check that does not
+apply is left out, and it never looks at anyone else's accounts.
 
 Access never depends on a plan (a lapsed subscription must not lock a family out), ends when anyone leaves or is
 removed, and answers 404 to anyone not allowed so the sheet's existence is not hinted at. Reading a sheet never

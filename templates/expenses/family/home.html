@@ -82,6 +82,10 @@
                             <span class="badge badge-soft-danger">{% trans "Plan ended" %}</span>
                         {% endif %}
                         {% if is_owner and not row.is_owner %}
+                        <form method="post" action="{% url 'family-member-make-owner' row.membership.pk %}" onsubmit="return confirm('{% blocktrans trimmed with name=row.name|escapejs %}Make {{ name }} the owner? You will stay in the family as a member, but only the owner can invite people, remove members or delete the family.{% endblocktrans %}')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-action-cancel btn-sm">{% trans "Make owner" %}</button>
+                        </form>
                         <form method="post" action="{% url 'family-member-remove' row.membership.pk %}" onsubmit="return confirm('{% trans 'Remove this person from the family? Everything they shared stops being visible straight away.' %}')">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-action-danger btn-sm">{% trans "Remove" %}</button>
@@ -158,11 +162,19 @@
             <p class="fam-note">{% trans "If you leave, everything you shared stops being visible straight away, and so does everything shared with you." %}</p>
             {% if is_owner %}
             <hr class="fam-hr">
-            <form method="post" action="{% url 'family-delete' %}" onsubmit="return confirm('{% trans 'Delete the family for everyone? Every member is removed and nothing stays shared. This cannot be undone.' %}')">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-action-danger">{% trans "Delete family" %}</button>
-            </form>
-            <p class="fam-note">{% trans "Only you, as the person who started the family, can do this. Every member is removed and everything shared stops being visible straight away." %}</p>
+            <details class="fam-delete">
+                <summary class="btn btn-action-danger">{% trans "Delete family" %}</summary>
+                <form method="post" action="{% url 'family-delete' %}" class="fam-delete-form" data-fam-delete>
+                    {% csrf_token %}
+                    <p class="fam-note">{% trans "This removes every member and everything shared stops being visible straight away. It cannot be undone." %}</p>
+                    <label for="fam-delete-name" class="form-label fw-bold">{% blocktrans trimmed with name=household.name %}Type <b>{{ name }}</b> to confirm{% endblocktrans %}</label>
+                    <input type="text" class="form-control" id="fam-delete-name" name="confirm_name" autocomplete="off" autocapitalize="off" spellcheck="false" data-expected="{{ household.name }}">
+                    <div class="fam-actions mt-2">
+                        <button type="submit" class="btn btn-action-danger" data-fam-delete-go disabled>{% trans "Delete family for everyone" %}</button>
+                    </div>
+                </form>
+            </details>
+            <p class="fam-note">{% trans "Only you, as the owner, can do this. You can also hand the family to another member, or remove a member, from the list above." %}</p>
             {% endif %}
         </section>
     </div>
@@ -172,6 +184,16 @@
 
 {% block extra_js %}
 <script>
+    (function () {
+        var form = document.querySelector('[data-fam-delete]');
+        if (!form) return;
+        var input = form.querySelector('input[name="confirm_name"]');
+        var go = form.querySelector('[data-fam-delete-go]');
+        var norm = function (v) { return v.trim().replace(/\s+/g, ' ').toLowerCase(); };
+        var sync = function () { go.disabled = norm(input.value) !== norm(input.dataset.expected); };
+        input.addEventListener('input', sync);
+        sync();
+    })();
     (function () {
         var button = document.getElementById('fam-copy-btn');
         if (!button) return;

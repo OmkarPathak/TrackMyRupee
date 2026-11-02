@@ -13,6 +13,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.tests.clock import pin_today
 from expenses.forms import CapitalEventForm
 from expenses.models import (
     CAPITAL_SUBTYPE_CHOICES,
@@ -347,6 +348,7 @@ class TestCapitalEventList(CapBase):
         self.event(note='Other', account=None)
         self.assertEqual(self.ids(search='RENOVATION'), [a.id])
 
+    @pin_today()      # dates two days back must stay in the month the list opens on, whatever day this runs
     def test_sorting(self):
         old_big = self.event('900', date=today() - timedelta(days=2), account=None)
         new_small = self.event('100', account=None)

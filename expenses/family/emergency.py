@@ -299,6 +299,57 @@ def notify_expiring_access(owner=None, now=None):
     return told
 
 
+# ---- the checklist ----------------------------------------------------------------------------------------------
+
+# Kinds of account someone can be named the nominee of (a card or a loan has no nominee, it is a liability)
+NOMINEE_KINDS = (catalog.BANK, catalog.INSURANCE, catalog.PROPERTY, catalog.INVESTMENT)
+
+
+def checklist(owner, sheet):
+    """What is still missing from ``owner``'s emergency sheet, as a list the page shows and a count of what is done.
+
+    Only the saved sheet is checked, so it never nags about a change the owner has not saved yet. A check that does
+    not apply (no insurance policies, say) is left out rather than shown as done. Returns
+    ``{'items': [{'key', 'done', 'title', 'detail', 'names'}], 'done': int, 'total': int}``."""
+    accounts = [a for a in owner.accounts.filter(is_active=True).order_by('name', 'id')
+                if catalog.kind_of(a.account_type) in NOMINEE_KINDS]
+    nominees = dict(sheet.items.values_list('account_id', 'nominee')) if sheet else {}
+    policies = [a for a in accounts if catalog.kind_of(a.account_type) == catalog.INSURANCE]
+    others = [a for a in accounts if catalog.kind_of(a.account_type) != catalog.INSURANCE]
+    items = []
+
+    def add(key, done, done_title, todo_title, detail='', names=()):
+        items.append({'key': key, 'done': done, 'title': done_title if done else todo_title,
+                      'detail': '' if done else detail, 'names': [] if done else list(names)})
+
+    if policies:
+        missing = [a.name for a in policies if a.pk not in nominees]
+        add('policies', not missing, _("Every insurance policy is on the sheet"),
+            _("Some insurance policies are not on the sheet"),
+            _("Your family may not know these exist. Add them below."), missing)
+    if others:
+        missing = [a.name for a in others if a.pk not in nominees]
+        add('accounts', not missing, _("Every account you track is on the sheet"),
+            _("Some accounts are not on the sheet"),
+            _("Add them below, or leave them off on purpose."), missing)
+    if nominees:
+        no_nominee = [a.name for a in accounts if a.pk in nominees and not nominees[a.pk]]
+        add('nominees', not no_nominee, _("Every account on the sheet has a nominee"),
+            _("Some accounts on the sheet have no nominee"),
+            _("Write down who the nominee is, so your family knows who to turn to."), no_nominee)
+    elif accounts:
+        add('nominees', False, '', _("No accounts are on the sheet yet"),
+            _("Switch on the accounts you want your family to find, and write who the nominee is for each."))
+    add('documents', bool(sheet and sheet.documents_note.strip()), _("You have said where your documents are"),
+        _("Say where your documents are"), _("A short note is enough, for example the cupboard or locker they are in."))
+    add('contacts', bool(sheet and sheet.contacts_note.strip()), _("You have listed people to call"),
+        _("List the people to call"), _("For example your advisor, accountant or the branch that holds a locker."))
+    add('allowed', bool(sheet and sheet.allowed.exists()), _("Someone can ask for the sheet"),
+        _("Choose who can ask for the sheet"), _("Until you do, nobody in your family can open it."))
+    done = sum(1 for i in items if i['done'])
+    return {'items': items, 'done': done, 'total': len(items)}
+
+
 # ---- what the sheet says ----------------------------------------------------------------------------------------
 
 def sheet_content(sheet):

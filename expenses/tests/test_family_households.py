@@ -273,7 +273,7 @@ class LeavingAndRemovingTests(FamilyTestCase):
 
     def test_the_owner_deletes_the_family_for_everyone(self):
         self.client.force_login(self.owner)
-        response = self.client.post(reverse('family-delete'))
+        response = self.client.post(reverse('family-delete'), {'confirm_name': self.household.name})
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Household.objects.filter(pk=self.household.pk).exists())
         self.assertFalse(HouseholdMember.objects.filter(user__in=[self.owner, self.partner, self.parent]).exists())
@@ -282,7 +282,7 @@ class LeavingAndRemovingTests(FamilyTestCase):
 
     def test_a_member_cannot_delete_the_family(self):
         self.client.force_login(self.partner)
-        self.assertEqual(self.client.post(reverse('family-delete')).status_code, 404)
+        self.assertEqual(self.client.post(reverse('family-delete'), {'confirm_name': self.household.name}).status_code, 404)
         self.assertTrue(Household.objects.filter(pk=self.household.pk).exists())
         self.assertTrue(HouseholdMember.objects.filter(user=self.partner).exists())
 
@@ -290,7 +290,7 @@ class LeavingAndRemovingTests(FamilyTestCase):
         self.client.force_login(self.owner)
         self.assertEqual(self.client.get(reverse('family-delete')).status_code, 405)
         with self.assertRaises(households.FamilyError):
-            households.delete_household(self.partner)
+            households.delete_household(self.partner, self.household.name)
         self.assertTrue(Household.objects.filter(pk=self.household.pk).exists())
 
     def test_only_the_owner_sees_the_delete_button(self):

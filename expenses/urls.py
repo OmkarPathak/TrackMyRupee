@@ -105,6 +105,7 @@ urlpatterns = [
     path('family/share/<uuid:pk>/stop/', views.family_share_stop_view, name='family-share-stop'),
     path('family/preview/', views.family_preview_view, name='family-preview'),
     path('family/preview/<int:pk>/', views.family_preview_view, name='family-preview-member'),
+    path('family/members/<int:pk>/make-owner/', views.family_member_make_owner_view, name='family-member-make-owner'),
     path('family/members/<int:pk>/remove/', views.family_member_remove_view, name='family-member-remove'),
     path('api/amfi-schemes/search/', views.search_amfi_schemes, name='search-amfi-schemes'),
     path('api/filters/options/', views.FilterOptionsView.as_view(), name='filter-options-api'),

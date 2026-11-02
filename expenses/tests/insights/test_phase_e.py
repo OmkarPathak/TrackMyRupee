@@ -213,9 +213,9 @@ class RealPageTests(AnalyticsBase):
     @ENGINE_ON
     def test_with_the_engine_on_creeping_up_follows_salary_cycles(self):
         UserProfile.objects.filter(user=self.user).update(salary_date=15)
-        key = date(today().year, today().month, 1)
         from expenses import budget_cycle
-        cycle = key
+        # the cycle we are in now: before the 15th that is the one that began last month, not this month's
+        cycle = budget_cycle.budget_month_of(15, today())
         spans = []
         for _ in range(3):
             cycle = budget_cycle.previous_month(cycle)

@@ -232,5 +232,23 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-warn { display: flex; gap: .7rem; align-items: center; background: rgba(212,131,26,.12); border: 1px solid rgba(212,131,26,.28); color: var(--fam-amber); border-radius: 12px; padding: .7rem .9rem; font-size: .88rem; }
     .fam-warn i { font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
     [data-bs-theme="dark"] .fam-warn { background: rgba(244,180,78,.14); border-color: rgba(244,180,78,.30); }
+
+    /* Deleting a family: a native <details>, so it opens without script; the name check is also enforced on the server */
+    .fam-delete > summary { list-style: none; display: inline-block; cursor: pointer; }
+    .fam-delete > summary::-webkit-details-marker { display: none; }
+    .fam-delete[open] > summary { display: none; }
+    .fam-delete-form { max-width: 28rem; }
+
+    /* The emergency checklist: what is still missing from the sheet */
+    .fam-check { display: flex; gap: .7rem; align-items: flex-start; padding: .65rem 0; border-top: 1px solid var(--fam-line); }
+    .fam-check:first-child { border-top: 0; }
+    .fam-check > i { font-size: 1.1rem; line-height: 1.35; flex-shrink: 0; }
+    .fam-check.is-done > i { color: var(--fam-green); }
+    .fam-check.is-todo > i { color: var(--fam-amber); }
+    .fam-check-title { font-weight: 700; font-size: .92rem; line-height: 1.35; color: var(--bs-body-color); }
+    .fam-check-names { font-size: .85rem; font-weight: 600; line-height: 1.4; margin-top: .15rem; overflow-wrap: anywhere; color: var(--bs-body-color); }
+    .fam-check-detail { font-size: .82rem; color: var(--fam-muted); line-height: 1.4; margin-top: .1rem; overflow-wrap: anywhere; }
+    .fam-progress { height: .4rem; border-radius: 99px; background: var(--fam-soft); overflow: hidden; margin: .6rem 0 .3rem; }
+    .fam-progress > span { display: block; height: 100%; background: var(--fam-green); border-radius: 99px; }
     @media print { .fam-tabs, .fam-noprint, .sidebar, .navbar, .fam-banner { display: none !important; } .fam-card { border: 0; box-shadow: none; } }
 </style>

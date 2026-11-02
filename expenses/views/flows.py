@@ -30,6 +30,8 @@ class FlowBaseView(LoginRequiredMixin):
             self.flow = FlowRegistry.get(key)
         except KeyError as exc:
             raise Http404 from exc
+        if request.user.is_authenticated and not self.flow.is_available(request.user):
+            raise Http404
         return super().dispatch(request, *args, **kwargs)
 
     def get_idempotency_key(self):
@@ -112,6 +114,8 @@ class FlowLandingView(LoginRequiredMixin, TemplateView):
 
         flow_items = []
         for key, flow in all_flows.items():
+            if not flow.is_available(self.request.user):
+                continue
             is_configured = flow.is_configured(self.request.user, snapshot)
             flow_items.append({
                 'key': flow.key,
@@ -129,6 +133,9 @@ class FlowLandingView(LoginRequiredMixin, TemplateView):
                 'setup_url': reverse('flow-detail', kwargs={'key': flow.key}),
                 'edit_url': flow.get_edit_url(self.request.user),
             })
+
+        if any(f['category'] == 'family' for f in flow_items):
+            categories.append({'key': 'family', 'label': _('Family')})
 
         configured_count = sum(1 for f in flow_items if f['is_configured'])
         total_count = len(flow_items)
@@ -238,9 +245,10 @@ class FlowCommitView(FlowBaseView, View):
         self.rotate_idempotency_key()
 
         messages.success(request, f'{self.flow.label} created successfully.')
+        success_url = self.flow.get_success_url(result)
         if request.headers.get('HX-Request', '').lower() == 'true':
             response = HttpResponse(status=204)
-            response['HX-Redirect'] = reverse('home')
+            response['HX-Redirect'] = success_url
             return response
-        return redirect('home')
+        return redirect(success_url)
 

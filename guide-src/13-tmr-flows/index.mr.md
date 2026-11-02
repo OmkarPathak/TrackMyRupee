@@ -27,6 +27,8 @@
 | [बचत आणि गुंतवणूक](savings-and-investments.mr.md) | I started a SIP, I booked an FD, I contribute to PPF / EPF / NPS, I'm saving for something |
 | [मालमत्ता](assets.mr.md) | I bought a car, I bought gold |
 
+एक बारावा Flow, **I want to share the big picture with my family**, तुमच्यासाठी family sharing चालू असेल तेव्हा स्वतःच्या **Family** श्रेणीत दिसतो. तो फक्त कुटुंब सुरू करतो: त्यासाठी Pro प्लॅन लागतो, तो काहीही शेअर करत नाही आणि कोणालाही आमंत्रित करत नाही. लोकांना तुम्ही नंतर Family पेजवरून आमंत्रित करता. पाहा [Family sharing](../24-family-sharing/index.mr.md).
+
 ---
 
 ## 2. TMR Flows उघडणे

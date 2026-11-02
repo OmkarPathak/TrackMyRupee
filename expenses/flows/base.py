@@ -23,6 +23,7 @@ from typing import Any, ClassVar
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models.signals import post_save
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from finance_tracker.plans import get_limit
@@ -275,6 +276,14 @@ class Flow:
 
     def get_edit_url(self, user) -> str:
         return ""
+
+    def is_available(self, user) -> bool:
+        """Whether this flow is offered to ``user`` at all (a flow behind a feature flag says no until it is on)."""
+        return True
+
+    def get_success_url(self, result) -> str:
+        """Where to go after a successful commit."""
+        return reverse('home')
 
     def preview(self, user, cleaned_data) -> dict:
         return {}
