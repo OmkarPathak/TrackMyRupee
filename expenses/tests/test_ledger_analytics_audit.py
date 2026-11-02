@@ -4,6 +4,7 @@ import datetime
 from decimal import Decimal
 from io import StringIO
 
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.management import call_command
@@ -235,7 +236,7 @@ class YearInReviewGoalsTests(Base):
         bank = self.account()
         year = today().year
         goal = SavingsGoal.objects.create(user=self.user, name='Long', target_amount=D('100'), currency='₹')
-        SavingsGoal.objects.filter(pk=goal.pk).update(created_at=timezone.now().replace(year=year - 1))
+        SavingsGoal.objects.filter(pk=goal.pk).update(created_at=timezone.now() - relativedelta(years=1))
         GoalContribution.objects.create(goal=goal, account=bank, amount=D('100'), date=today())
         goal.refresh_from_db()
         self.assertTrue(goal.is_completed)

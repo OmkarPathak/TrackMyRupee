@@ -591,12 +591,12 @@ class TestPostingEngine(SubBase):
         self.assertGreaterEqual(len(months), 12)
 
     def test_month_end_schedule_does_not_post_both_the_start_date_and_month_end(self):
-        start = date(today().year - 1, 1, 30)           # a Thursday; Jan 2025's last working day is Fri 31st
-        rt = self.rt(start=start, is_last_working_day=True, description='Rent')
-        self.assertEqual(rt.first_due_date(), date(start.year, 1, 31))
-        self.assertEqual(rt.next_due_date, date(start.year, 1, 31))
+        start = date(2025, 1, 30)           # a Thursday; Jan 2025's last working day is Fri 31st (a fixed year: 30 Jan is
+        rt = self.rt(start=start, is_last_working_day=True, description='Rent')      # a Friday in some years)
+        self.assertEqual(rt.first_due_date(), date(2025, 1, 31))
+        self.assertEqual(rt.next_due_date, date(2025, 1, 31))
         self.run_engine()
-        self.assertEqual(Expense.objects.order_by('date').first().date, date(start.year, 1, 31))
+        self.assertEqual(Expense.objects.order_by('date').first().date, date(2025, 1, 31))
 
     def test_a_manual_entry_for_the_same_day_is_not_duplicated(self):
         Expense.objects.create(user=self.user, date=today(), amount=D('100'), description='Netflix (Recurring)',

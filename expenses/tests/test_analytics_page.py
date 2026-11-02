@@ -16,7 +16,7 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import translation
 
-from expenses.tests.clock import pin_today
+from expenses.tests.clock import MID_MONTH, pin_clock
 from expenses.analytics import cashflow, spending, wealth
 from expenses.analytics.common import Page, cache_key
 from expenses.ledger_read_service import LedgerReadService
@@ -34,11 +34,17 @@ from expenses.savings import savings_for_period
 from .test_analytics_module import AnalyticsBase, month_start, today
 
 D = Decimal
-LAST_YEAR = today().year - 1
+# The tests are written around mid-October 2026. A test that puts data on 3 March "last year" needs today to be past
+# 3 March for the year-to-date comparison to reach it, so the clock is pinned (see PageCase) and last year follows it.
+LAST_YEAR = MID_MONTH.year - 1
 LAST_YEAR_RANGE = {'time_period': 'custom', 'start_date': f'{LAST_YEAR}-01-01', 'end_date': f'{LAST_YEAR}-12-31'}
 
 
 class PageCase(AnalyticsBase):
+    def setUp(self):
+        super().setUp()
+        pin_clock(self, tick=True)      # moves on from the pinned day: the cache version needs time to pass
+
     def page(self, tab='spend', **params):
         request = RequestFactory().get('/analytics/', params)
         request.user = User.objects.get(pk=self.user.pk)      # fresh, so a plan changed with .update() is seen
@@ -369,7 +375,6 @@ class SpendingTabTests(PageCase):
         self.assertEqual(row['delta']['text'], '▲ 50%')
         self.assertEqual(row['delta']['tone'], 'bad')
 
-    @pin_today()      # on the 1st, the first day and today are the same day and the line has one point
     def test_cumulative_spending_adds_up_day_by_day(self):
         first = today().replace(day=1)
         self.expense(100, first)
@@ -379,7 +384,6 @@ class SpendingTabTests(PageCase):
         self.assertEqual(chart['current'][0], 100.0)
         self.assertEqual(chart['current'], sorted(chart['current']))
 
-    @pin_today()      # needs a month that has a day before today to compare with
     def test_cumulative_spending_lines_up_with_the_comparison_period_by_day(self):
         prev = month_start(1)
         self.expense(50, prev)
@@ -601,7 +605,6 @@ class HealthTests(PageCase):
         self.expense(100)
         self.assertEqual(self.rows()['Spending trend']['value'], '—')
 
-    @pin_today()      # the 30-day window must reach the 1st: on the 31st it starts on the 2nd
     def test_the_emergency_fund_is_cash_in_months_of_spending(self):
         self.expense(10000, month_start(0))
         Account.objects.filter(pk=self.bank.pk).update(balance=D('60000'))

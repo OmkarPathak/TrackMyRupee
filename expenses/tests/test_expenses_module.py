@@ -13,6 +13,7 @@ from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
@@ -1270,7 +1271,7 @@ class TestExpenseExport(ExpenseTestBase):
 
     def test_legacy_year_and_month_parameters_still_work(self):
         self.expense('10', description='this-year')
-        self.expense('10', description='older', date=today().replace(year=today().year - 2))
+        self.expense('10', description='older', date=today() - relativedelta(years=2))      # not .replace(year=): 29 Feb has no year-2
         self.assertEqual(self.descriptions(time_period='all', year=str(today().year)), {'this-year'})
         self.assertEqual(self.descriptions(time_period='all', month=str(today().month), year=str(today().year)), {'this-year'})
 

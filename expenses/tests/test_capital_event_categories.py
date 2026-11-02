@@ -8,6 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.tests.clock import pin_clock
 from expenses.budgets import bulk_monthly_spend, monthly_spend_by_category, normalize_category
 from expenses.forms import CapitalEventForm
 from expenses.models import Account, CapitalEvent, Category, Expense, RecurringTransaction
@@ -128,6 +129,7 @@ class AnalyticsSwitchTests(Base):
 
     def setUp(self):
         super().setUp()
+        pin_clock(self, tick=True)      # 15 January must be behind us, or the year-to-date period cannot reach it
         when = datetime.date(today().year, 1, 15)
         Expense.objects.create(user=self.user, account=self.bank, amount=2000, base_amount=2000, date=when,
                                category='Electronics', currency='₹', exchange_rate=1)
