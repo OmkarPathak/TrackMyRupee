@@ -16,6 +16,7 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import translation
 
+from expenses.tests.clock import pin_today
 from expenses.analytics import cashflow, spending, wealth
 from expenses.analytics.common import Page, cache_key
 from expenses.ledger_read_service import LedgerReadService
@@ -368,6 +369,7 @@ class SpendingTabTests(PageCase):
         self.assertEqual(row['delta']['text'], '▲ 50%')
         self.assertEqual(row['delta']['tone'], 'bad')
 
+    @pin_today()      # on the 1st, the first day and today are the same day and the line has one point
     def test_cumulative_spending_adds_up_day_by_day(self):
         first = today().replace(day=1)
         self.expense(100, first)
@@ -377,6 +379,7 @@ class SpendingTabTests(PageCase):
         self.assertEqual(chart['current'][0], 100.0)
         self.assertEqual(chart['current'], sorted(chart['current']))
 
+    @pin_today()      # needs a month that has a day before today to compare with
     def test_cumulative_spending_lines_up_with_the_comparison_period_by_day(self):
         prev = month_start(1)
         self.expense(50, prev)
@@ -598,6 +601,7 @@ class HealthTests(PageCase):
         self.expense(100)
         self.assertEqual(self.rows()['Spending trend']['value'], '—')
 
+    @pin_today()      # the 30-day window must reach the 1st: on the 31st it starts on the 2nd
     def test_the_emergency_fund_is_cash_in_months_of_spending(self):
         self.expense(10000, month_start(0))
         Account.objects.filter(pk=self.bank.pk).update(balance=D('60000'))
