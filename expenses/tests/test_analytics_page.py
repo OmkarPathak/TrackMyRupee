@@ -16,6 +16,7 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import translation
 
+from expenses.tests.clock import MID_MONTH, pin_clock
 from expenses.analytics import cashflow, spending, wealth
 from expenses.analytics.common import Page, cache_key
 from expenses.ledger_read_service import LedgerReadService
@@ -33,11 +34,17 @@ from expenses.savings import savings_for_period
 from .test_analytics_module import AnalyticsBase, month_start, today
 
 D = Decimal
-LAST_YEAR = today().year - 1
+# The tests are written around mid-October 2026. A test that puts data on 3 March "last year" needs today to be past
+# 3 March for the year-to-date comparison to reach it, so the clock is pinned (see PageCase) and last year follows it.
+LAST_YEAR = MID_MONTH.year - 1
 LAST_YEAR_RANGE = {'time_period': 'custom', 'start_date': f'{LAST_YEAR}-01-01', 'end_date': f'{LAST_YEAR}-12-31'}
 
 
 class PageCase(AnalyticsBase):
+    def setUp(self):
+        super().setUp()
+        pin_clock(self, tick=True)      # moves on from the pinned day: the cache version needs time to pass
+
     def page(self, tab='spend', **params):
         request = RequestFactory().get('/analytics/', params)
         request.user = User.objects.get(pk=self.user.pk)      # fresh, so a plan changed with .update() is seen

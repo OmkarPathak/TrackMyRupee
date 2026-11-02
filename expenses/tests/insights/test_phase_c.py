@@ -8,6 +8,7 @@ from django.test import SimpleTestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
+from expenses.tests.clock import pin_today
 from expenses.analytics.facts import LoanPaid, load_loan_paid
 from expenses.insights import engine, prefs, registry, sampling
 from expenses.insights.context import InsightContext
@@ -142,6 +143,7 @@ class LoanRuleTests(SimpleTestCase):
         interest_only.repayment_type = 'INTEREST_ONLY'
         self.assertEqual(run('loans.extra_emi_effect', sampling.scenario(loans=[interest_only])), [])
 
+    @pin_today(TODAY)      # the loans are dated from the sample's TODAY; the savings estimate counts to the clock's today
     def test_months_read_as_months_under_a_year_and_two_months_is_not_worth_a_mention(self):
         [found] = run('loans.extra_emi_effect', sampling.scenario(loans=[_loan('Car Loan', 800000, 600000, '10', months=60, started=12)]))
         self.assertEqual(found.numbers['months_saved'], 3)

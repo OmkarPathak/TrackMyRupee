@@ -15,6 +15,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.tests.clock import pin_today
 from expenses.forms import LoanForm, LoanInterestRateForm, LoanRepaymentForm
 from expenses.models import (
     Account,
@@ -224,6 +225,7 @@ class TestAmortizationSchedule(LoanBase):
     def schedule(self, loan):
         return LoanService.generate_amortization_schedule(Loan.objects.get(pk=loan.pk))
 
+    @pin_today()      # "two months ago" plus two months is today only if no month is cut short: not on the 31st
     def test_covers_the_remaining_term_and_clears_the_balance(self):
         loan = self.loan('100000', '12', 12, started=today() - relativedelta(months=2))
         rows = self.schedule(loan)

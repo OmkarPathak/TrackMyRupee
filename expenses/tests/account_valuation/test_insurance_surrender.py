@@ -179,7 +179,9 @@ class InsuranceHistoricalPremiumsTestCase(TestCase):
 
     def _create(self, historical):
         from datetime import timedelta
-        start = date.today().replace(year=date.today().year - 2) - timedelta(days=10)
+
+        from dateutil.relativedelta import relativedelta
+        start = date.today() - relativedelta(years=2) - timedelta(days=10)      # not .replace(year=): 29 Feb has no year-2
         data = {
             'name': 'LIC', 'account_type': 'LIFE_INSURANCE', 'currency': '₹', 'balance': '0.00',
             'create_new_asset': 'CREATE_NEW', 'asset_name': 'LIC Plan', 'policy_number': 'P1',

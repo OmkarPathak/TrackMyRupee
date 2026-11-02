@@ -2,7 +2,6 @@
 the Dashboard and the writes all agree on it."""
 import datetime
 from decimal import Decimal
-from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -11,6 +10,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.tests.clock import pin_clock
 from expenses.budget_cycle import (
     budget_month_of,
     budget_range,
@@ -100,10 +100,9 @@ class CycleMathTests(TestCase):
 class Base(TestCase):
     def setUp(self):
         # These tests are written around 19 Oct 2026. A limit set through Category.limit starts in the budget month
-        # of the real "today" (on 25 Oct with a salary day of 25 that is November), so hold the clock still.
-        patcher = mock.patch('django.utils.timezone.localdate', return_value=d(2026, 10, 19))
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        # of the real "today" (on 25 Oct with a salary day of 25 that is November), so hold the clock still. All of it:
+        # the dashboard reads timezone.localtime(), not only localdate().
+        pin_clock(self, d(2026, 10, 19))
         cache.clear()
         self.user = User.objects.create_user('cyc-user', password='pw')
         profile, _ = UserProfile.objects.get_or_create(user=self.user, defaults={'currency': '₹'})

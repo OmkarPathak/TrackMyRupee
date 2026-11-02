@@ -10,6 +10,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from expenses.tests.clock import pin_today
 from expenses.models import (
     Account, CapitalEvent, Category, Expense, FXRate, Income, Loan, LoanRepayment, Transfer, UserProfile,
 )
@@ -227,6 +228,7 @@ class TestMonthOverMonth(DashBase):
 
 
 class TestSalaryCycle(DashBase):
+    @pin_today()      # a salary day of 1 means calendar months, and 29-31 is cut short in some months: use the 15th
     def test_cycle_view_counts_only_the_current_cycle(self):
         profile = self.user.profile
         profile.salary_date = today().day

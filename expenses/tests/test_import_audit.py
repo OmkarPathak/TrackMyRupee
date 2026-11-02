@@ -8,6 +8,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import openpyxl
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -318,7 +319,7 @@ class PlanLimitTests(Base):
         for i in range(cap):
             Expense.objects.create(user=self.user, account=self.bank, amount=D('1'), date=today(), category='Food',
                                    currency='₹', description=f'old{i}')
-        last_year = today().replace(year=today().year - 1)
+        last_year = today() - relativedelta(years=1)      # not .replace(year=): 29 Feb has no last year
         rows = [['Date', 'Description', 'Amount']] + [[last_year.isoformat(), f'past{i}', 5 + i] for i in range(10)]
         res = self.results(csv_file(rows))
         self.assertEqual((res['created_count'], res['limit_skipped']), (10, 0))
