@@ -271,6 +271,34 @@ class LeavingAndRemovingTests(FamilyTestCase):
         self.client.post(reverse('family-member-remove', args=[membership.pk]))
         self.assertTrue(HouseholdMember.objects.filter(user=self.owner).exists())
 
+    def test_the_owner_deletes_the_family_for_everyone(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(reverse('family-delete'))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Household.objects.filter(pk=self.household.pk).exists())
+        self.assertFalse(HouseholdMember.objects.filter(user__in=[self.owner, self.partner, self.parent]).exists())
+        for user in (self.owner, self.partner, self.parent):
+            self.assertTrue(ConsentEvent.objects.filter(user=user, action='WITHDRAWN').exists())
+
+    def test_a_member_cannot_delete_the_family(self):
+        self.client.force_login(self.partner)
+        self.assertEqual(self.client.post(reverse('family-delete')).status_code, 404)
+        self.assertTrue(Household.objects.filter(pk=self.household.pk).exists())
+        self.assertTrue(HouseholdMember.objects.filter(user=self.partner).exists())
+
+    def test_delete_family_is_post_only_and_the_service_refuses_non_owners(self):
+        self.client.force_login(self.owner)
+        self.assertEqual(self.client.get(reverse('family-delete')).status_code, 405)
+        with self.assertRaises(households.FamilyError):
+            households.delete_household(self.partner)
+        self.assertTrue(Household.objects.filter(pk=self.household.pk).exists())
+
+    def test_only_the_owner_sees_the_delete_button(self):
+        self.client.force_login(self.owner)
+        self.assertContains(self.client.get(reverse('family-home')), reverse('family-delete'))
+        self.client.force_login(self.partner)
+        self.assertNotContains(self.client.get(reverse('family-home')), reverse('family-delete'))
+
     def test_leaving_bumps_the_cache_version(self):
         before = Household.objects.get(pk=self.household.pk).cache_version
         households.leave(self.partner)
