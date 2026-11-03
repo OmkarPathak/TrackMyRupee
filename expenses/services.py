@@ -18,7 +18,14 @@ from .models import (
     LoanRepayment,
     annotate_loan_principal_totals,
 )
-from .savings import CASHBACK_REFUND_TYPES, calculate_savings, counted_capital_total, loan_interest_total, monthly_savings
+from .savings import (
+    calculate_savings,
+    counted_capital_refund_total,
+    counted_capital_total,
+    income_totals,
+    loan_interest_total,
+    monthly_savings,
+)
 from .utils import get_exchange_rate, get_safe_date
 
 logger = logging.getLogger(__name__)
@@ -137,11 +144,9 @@ class FinancialService:
             total_interest=Sum(F('interest_portion') * F('exchange_rate'))
         )
         
-        income_agg = Income.objects.filter(
+        income_agg = {'total': income_totals(Income.objects.filter(
             user=user, date__gte=start_date, date__lte=end_date
-        ).aggregate(
-            total=Sum('base_amount')
-        )
+        ))[0]}
         
         total_expense = float(agg['total'] or 0) + float(loan_interest_agg['total_interest'] or 0)
 
@@ -620,15 +625,12 @@ class SalaryAnalysisService:
         for repay in loan_repayments:
             total_loan_principal += (repay.base_amount or Decimal('0')) - (repay.interest_portion or Decimal('0')) * (repay.exchange_rate or Decimal('1'))
 
-        income_total = sum((inc.base_amount or Decimal('0') for inc in income_list), Decimal('0'))
-        cashback_refund = sum(
-            (inc.base_amount or Decimal('0') for inc in income_list if inc.source_type in CASHBACK_REFUND_TYPES),
-            Decimal('0'),
-        )
+        # (income that pays back a capital event is not income: it comes off that event below)
+        income_total, cashback_refund = income_totals(income_list)
         total_expenses = sum((exp.base_amount or Decimal('0') for exp in expense_list), Decimal('0'))
         total_cap_events = counted_capital_total(
             CapitalEvent.objects.filter(user=user, date__gte=cycle_start, date__lte=cycle_end)
-        )
+        ) - counted_capital_refund_total(income_list)
         result = calculate_savings(
             income=income_total,
             cashback_refund=cashback_refund,

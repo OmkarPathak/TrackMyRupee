@@ -225,13 +225,15 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
 class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Income
-        fields = ['date', 'amount', 'currency', 'account', 'source_type', 'description', 'client_dedup_key']
+        fields = ['date', 'amount', 'currency', 'account', 'source_type', 'refund_for_capital_event', 'description',
+                  'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'source_type': forms.Select(attrs={'class': 'form-select'}),
+            'refund_for_capital_event': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('e.g. Salary from company, Freelance project details')}),
             'client_dedup_key': forms.HiddenInput(),
         }
@@ -257,6 +259,15 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
         self.fields['source_type'].label = _("Source Type")
         self.fields['description'].required = False
         self.fields['description'].label = _("Description")
+        # Which of the user's own capital events this money pays back (only for "Refund / Reimbursement").
+        refund_field = self.fields['refund_for_capital_event']
+        refund_field.required = False
+        refund_field.label = _("Refund for")
+        refund_field.empty_label = _("Not linked: counts as income")
+        refund_field.help_text = _("Pick the capital event this pays back, so it reduces that event instead of adding to your income.")
+        refund_field.queryset = (CapitalEvent.objects.filter(user=self.user, is_deleted=False).order_by('-date', '-id')
+                                 if self.user else CapitalEvent.objects.none())
+        refund_field.label_from_instance = self._capital_event_label
         if self.user:
             self.fields['currency'].initial = self.user.profile.currency
             
@@ -275,6 +286,18 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
         else:
             self.fields['account'].queryset = Account.objects.none()
         
+    @staticmethod
+    def _capital_event_label(event):
+        label = f"{event.date:%d %b %Y} · {event.report_category} · {event.currency}{event.amount:,.2f}"
+        return f"{label} · {event.note[:40]}" if event.note else label
+
+    def clean_refund_for_capital_event(self):
+        event = self.cleaned_data.get('refund_for_capital_event')
+        # A page or client that does not send the field leaves an existing link alone.
+        if 'refund_for_capital_event' not in self.data and self.instance.pk:
+            return self.instance.refund_for_capital_event
+        return event
+
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
         if amount is not None and amount <= 0:
@@ -292,6 +315,9 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
         cleaned = super().clean()
         if cleaned.get('add_to_recurring') and not cleaned.get('frequency'):
             self.add_error('frequency', _('Choose how often this income repeats.'))
+        # Only a refund can pay back a capital event: any other type drops the link rather than hiding it.
+        if cleaned.get('source_type') != 'Refund / Reimbursement':
+            cleaned['refund_for_capital_event'] = None
         return cleaned
 
     def _post_clean(self):

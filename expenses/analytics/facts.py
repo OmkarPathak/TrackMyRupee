@@ -18,7 +18,7 @@ from django.db.models import Count, F, Q, Sum
 
 from ..account_types import investment_codes
 from ..budgets import capital_report_name, normalize_category
-from ..savings import CASHBACK_REFUND_TYPES, SavingsResult, calculate_savings
+from ..savings import CASHBACK_REFUND_TYPES, LINKED_REFUND, SavingsResult, calculate_savings
 
 ZERO = Decimal('0')
 
@@ -59,7 +59,7 @@ def load_income_rows(user, first: date, last: date) -> list[IncomeRow]:
 
     # (cashback and refunds are not income anywhere else in the app, so they do not count as pay arriving)
     rows = Income.objects.filter(user=user, date__range=(first, last)).exclude(
-        source_type__in=CASHBACK_REFUND_TYPES).order_by('date', 'id').values_list(
+        source_type__in=CASHBACK_REFUND_TYPES).exclude(LINKED_REFUND).order_by('date', 'id').values_list(
         'date', 'source_type', 'base_amount')
     return [IncomeRow(d, t or '', a or ZERO) for d, t, a in rows]
 
@@ -262,11 +262,14 @@ def load_facts(user, first: date, last: date, *, categories: Iterable[str] = (),
     incomes = Income.objects.filter(user=user, **window)
     if account_ids:
         incomes = incomes.filter(account_id__in=account_ids)
+    # (money paying back a capital event is not income: it is left out here and taken off that event below)
     for row in incomes.values('date').annotate(
-            total=Sum('base_amount'), cb_rf=Sum('base_amount', filter=Q(source_type__in=CASHBACK_REFUND_TYPES))):
+            total=Sum('base_amount'), cb_rf=Sum('base_amount', filter=Q(source_type__in=CASHBACK_REFUND_TYPES)),
+            linked=Sum('base_amount', filter=LINKED_REFUND),
+            linked_cb_rf=Sum('base_amount', filter=LINKED_REFUND & Q(source_type__in=CASHBACK_REFUND_TYPES))):
         i = facts.index(row['date'])
-        facts.income[i] += row['total'] or ZERO
-        facts.cashback_refund[i] += row['cb_rf'] or ZERO
+        facts.income[i] += (row['total'] or ZERO) - (row['linked'] or ZERO)
+        facts.cashback_refund[i] += (row['cb_rf'] or ZERO) - (row['linked_cb_rf'] or ZERO)
 
     expenses = Expense.objects.filter(user=user, **window)
     if categories:
@@ -297,6 +300,25 @@ def load_facts(user, first: date, last: date, *, categories: Iterable[str] = (),
         facts.names.setdefault(key, name)
         i, amount = facts.index(row['date']), row['total'] or ZERO
         if row['exclude_from_averages']:
+            facts.capital_extra[i] += amount
+            facts._add(facts.capital_cats_extra, i, key, amount)
+        else:
+            facts.capital_counted[i] += amount
+            facts._add(facts.capital_cats_counted, i, key, amount)
+
+    # Income that pays back a capital event comes off that event, on the day the money arrived.
+    refunds = incomes.filter(LINKED_REFUND)
+    if categories:
+        refunds = refunds.filter(refund_for_capital_event__category__in=categories)
+    for row in refunds.values(
+            'date', 'refund_for_capital_event__category', 'refund_for_capital_event__subtype',
+            'refund_for_capital_event__exclude_from_averages').annotate(total=Sum('base_amount')):
+        name = capital_report_name(row['refund_for_capital_event__category'], row['refund_for_capital_event__subtype'],
+                                   subtype_names)
+        key = normalize_category(name)
+        facts.names.setdefault(key, name)
+        i, amount = facts.index(row['date']), -(row['total'] or ZERO)
+        if row['refund_for_capital_event__exclude_from_averages']:
             facts.capital_extra[i] += amount
             facts._add(facts.capital_cats_extra, i, key, amount)
         else:

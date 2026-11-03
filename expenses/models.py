@@ -1249,9 +1249,16 @@ class Income(models.Model):
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='incomes', verbose_name=_('Account'))
     import_batch = models.ForeignKey('ImportBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name='incomes', verbose_name=_('Import'))
 
+    # Optional: this money is paying back (part of) a capital event, e.g. friends settling a trip you paid for.
+    # The account balance is credited as for any income, but in the reports the amount is taken off that
+    # event instead of counting as income. Empty (every existing row) means an ordinary income entry.
+    refund_for_capital_event = models.ForeignKey(
+        'CapitalEvent', on_delete=models.SET_NULL, null=True, blank=True, related_name='refunds',
+        verbose_name=_('Refund for'))
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
 

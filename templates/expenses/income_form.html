@@ -75,6 +75,18 @@
                             {% endif %}
                         </div>
 
+                        <!-- Refund link: only for "Refund / Reimbursement" -->
+                        <div class="col-12 mb-3" id="refund-for-container" style="display: none;">
+                            <label for="{{ form.refund_for_capital_event.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.refund_for_capital_event.label }}</label>
+                            {{ form.refund_for_capital_event }}
+                            <div class="form-text small">{{ form.refund_for_capital_event.help_text }}</div>
+                            {% if form.refund_for_capital_event.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.refund_for_capital_event.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
                         <!-- Row 3: Description -->
                         <div class="col-12 mb-3">
                             <label for="{{ form.description.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.description.label }}</label>
@@ -108,6 +120,13 @@
 
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
+                            const sourceType = document.getElementById('{{ form.source_type.id_for_label }}');
+                            const refundBox = document.getElementById('refund-for-container');
+                            if (sourceType && refundBox) {
+                                const syncRefund = () => { refundBox.style.display = sourceType.value === 'Refund / Reimbursement' ? 'block' : 'none'; };
+                                sourceType.addEventListener('change', syncRefund);
+                                syncRefund();
+                            }
                             const checkbox = document.getElementById('{{ form.add_to_recurring.id_for_label }}');
                             const frequencyContainer = document.getElementById('frequency-container');
                             
