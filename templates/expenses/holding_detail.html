@@ -187,7 +187,7 @@
                         </div>
                         <div class="col-4">
                             <label class="form-label fw-semibold" for="purchaseAmount">{% trans "Amount" %}</label>
-                            <input type="number" step="0.01" min="0" name="amount" id="purchaseAmount" class="form-control rounded-3" data-calc>
+                            <input type="number" data-money step="0.01" min="0" name="amount" id="purchaseAmount" class="form-control rounded-3" data-calc>
                         </div>
                     </div>
                     <div class="form-text small text-muted mb-3" id="purchaseHint" data-buy="{% trans 'Enter any two; the third is worked out.' %}{% if has_feed %} {% trans 'For a mutual fund you can enter only the amount: the units are then worked out from the NAV.' %}{% endif %}">

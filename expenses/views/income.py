@@ -36,7 +36,7 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
     paginate_by = 20
 
     def get_queryset(self):
-        base_qs = Income.objects.filter(user=self.request.user).select_related('account')
+        base_qs = Income.objects.filter(user=self.request.user).select_related('account', 'refund_for_capital_event')
         queryset, self.applied_state = apply_filter_config(base_qs, self.request, INCOME_FILTERS)
         return queryset
 

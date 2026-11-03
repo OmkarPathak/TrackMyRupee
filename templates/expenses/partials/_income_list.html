@@ -161,7 +161,8 @@
                                     <td>
                                         <span class="badge-soft badge-soft-success">{{ income.source_type }}</span>
                                     </td>
-                                    <td title="{{ income.description|default:'' }}">{{ income.description|default:"-" }}</td>
+                                    <td title="{{ income.description|default:'' }}">{{ income.description|default:"-" }}
+                                        {% if income.refund_for_capital_event_id %}<div class="small text-muted" title="{% trans 'Pays back a capital event: reduces it instead of counting as income' %}"><i class="bi bi-arrow-return-left"></i> {% trans "Pays back" %}: {{ income.refund_for_capital_event.report_category }}</div>{% endif %}</td>
                                     <td title="{{ income.account.name|default:'' }}">{{ income.account.name|default:"-" }}</td>
                                     <td class="text-end fw-bold tmr-amount text-success">
                                         +{{ user.profile.currency}}{{ income.base_amount|compact_amount:user.profile.currency|translate_digits }}
@@ -241,6 +242,7 @@
                                     <p class="text-muted small mb-0 mt-1 text-truncate" style="font-size: 0.78rem;" title="{{ income.source }}{% if income.account %} · {{ income.account.name }}{% endif %}">
                                         {{ income.source }}{% if income.account %} &middot; {{ income.account.name }}{% endif %}
                                     </p>
+                                    {% if income.refund_for_capital_event_id %}<p class="text-muted small mb-0 text-truncate" style="font-size: 0.72rem;"><i class="bi bi-arrow-return-left"></i> {% trans "Pays back" %}: {{ income.refund_for_capital_event.report_category }}</p>{% endif %}
                                 </div>
                                 <!-- Right: Amount -->
                                 <div class="flex-shrink-0 text-end">

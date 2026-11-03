@@ -312,7 +312,7 @@
                     <!-- STEP 1: ACCOUNT BASICS -->
                     <div class="wizard-step-content" id="step1Content">
                         <div class="row g-3">
-                            <div class="col-12">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.name.id_for_label }}">{% trans "Account Name" %}</label>
                                 {{ form.name }}
                                 <div class="form-text">{% trans "Give this account a clear name (e.g. HDFC Savings, Emergency Fund)." %}</div>
@@ -321,7 +321,7 @@
                                 {% endif %}
                             </div>
 
-                            <div class="col-12 col-sm-6">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.account_type.id_for_label }}">{% trans "Account Type" %}</label>
                                 {{ form.account_type }}
                                 <div class="form-text">{% trans "Category of bank or asset account." %}</div>

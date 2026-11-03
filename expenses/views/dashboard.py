@@ -48,6 +48,8 @@ from ..budgets import (
     normalize_category,
 )
 from ..savings import (
+    LINKED_REFUND,
+    LINKED_TO_COUNTED,
     calculate_savings,
     period_totals,
     savings_for_period,
@@ -702,6 +704,8 @@ def home_view(request):
         income=(incomes, Sum('base_amount')),
         interest=(loan_repayments_selected, Sum(F('interest_portion') * F('exchange_rate'))),
         capital=(included_events_qs, Sum('base_amount')),
+        refunds=(incomes, Sum('base_amount', filter=LINKED_REFUND)),
+        refunds_counted=(incomes, Sum('base_amount', filter=LINKED_TO_COUNTED)),
     )
 
     # Merge periods
@@ -722,13 +726,16 @@ def home_view(request):
             amt = float(t.amount)
         invest_map[p_key] = invest_map.get(p_key, 0.0) + amt
 
-    inc_map = {normalize_period(p): float(v) for p, v in _trend['income'].items()}
+    # income that pays back a capital event is not income: it is left out here and taken off the (counted) event
+    inc_map = {normalize_period(p): float(v) - float(_trend['refunds'].get(p) or 0) for p, v in _trend['income'].items()}
     inc_periods = set(inc_map)
     exp_periods_base = set(normalize_period(e['period']) for e in exp_trend_base)
     loan_map = {normalize_period(p): {'interest': float(v or 0)} for p, v in _trend['interest'].items()}
     loan_periods = set(loan_map)
     invest_periods = set(invest_map.keys())
     cap_map = {normalize_period(p): float(v or 0) for p, v in _trend['capital'].items()}
+    for p, v in _trend['refunds_counted'].items():
+        cap_map[normalize_period(p)] = cap_map.get(normalize_period(p), 0.0) - float(v or 0)
     all_periods_sorted = sorted(list(inc_periods.union(exp_periods_base).union(loan_periods).union(invest_periods).union(cap_map.keys())))
     
     ie_labels = [p.strftime(date_fmt) for p in all_periods_sorted]
@@ -773,7 +780,8 @@ def home_view(request):
     
     # Single aggregate replaces both the Python-loop sum and the separate .count() call
     _cap_agg = included_events_qs.aggregate(total=Sum('base_amount'), count=Count('id'))
-    included_capital_events_total = _cap_agg['total'] or Decimal('0.00')
+    # money paying back a counted capital event comes off it (period_totals already left it out of income)
+    included_capital_events_total = (_cap_agg['total'] or Decimal('0.00')) - _period['refund_capital']
     _included_events_count = _cap_agg['count'] or 0
 
     total_expenses = total_expenses_base + total_loan_interest + included_capital_events_total
