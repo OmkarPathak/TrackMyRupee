@@ -1238,6 +1238,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#i-paid-for-a-group-trip-or-dinner-and-my-friends-paid-me-back-how-do-i-record-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      I paid for a group trip or dinner and my friends paid me back. How do I record it?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#what-is-a-capital-event-and-when-should-i-use-it" class="md-nav__link">
     <span class="md-ellipsis">
       What is a Capital Event and when should I use it?
@@ -1673,6 +1682,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#i-paid-for-a-group-trip-or-dinner-and-my-friends-paid-me-back-how-do-i-record-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      I paid for a group trip or dinner and my friends paid me back. How do I record it?
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#what-is-a-capital-event-and-when-should-i-use-it" class="md-nav__link">
     <span class="md-ellipsis">
       What is a Capital Event and when should I use it?
@@ -1986,6 +2004,8 @@
 <p><strong>A PDF statement.</strong> You can also choose a bank statement <code>.pdf</code>. It is read in your browser: the PDF, and its password if it has one (you are asked for it), never leave your device. TrackMyRupee finds the table of transactions by its heading row (Date, Narration, Withdrawal, Deposit, Balance and the like), turns it into a CSV in the file box, and then works exactly as for a spreadsheet, starting with <strong>Preview</strong>. This works for statements with a real text table, which is how most banks produce them; a scanned or photographed statement cannot be read, and neither can a layout without a heading row. In those cases download the statement as CSV or Excel from your bank. Check the preview carefully, since PDF layouts differ more than spreadsheets do.</p>
 <p><strong>Changed your mind?</strong> Every import is listed under <strong>Settings → Import → History</strong>. <strong>Undo</strong> removes the expenses that import created and puts your account balance back, exactly as if you had deleted each one yourself, and you can import the same file again afterwards. Rows that were not imported, with the reason for each, can be downloaded as a CSV from the summary or from that list.</p>
 <p>A row with no category gets a match from your own categories or past entries, otherwise <strong>Other</strong>; a column called <em>Transaction Type</em> is never used as the category. A date written without a year (such as <em>15 Dec</em>) means the most recent such date, never one in the future. Dates such as 03/04/2026 are read day first, unless another date in the same file (such as 04/25/2026) shows the file is month first. Amounts can include ₹, Rs. or INR. Only one import can run at a time. On the Free plan the monthly expense limit also applies to imports: rows dated in the current month beyond the limit are skipped and the upload summary tells you how many.</p>
+<h3 id="i-paid-for-a-group-trip-or-dinner-and-my-friends-paid-me-back-how-do-i-record-it">I paid for a group trip or dinner and my friends paid me back. How do I record it?<a class="headerlink" href="#i-paid-for-a-group-trip-or-dinner-and-my-friends-paid-me-back-how-do-i-record-it" title="Permanent link">&para;</a></h3>
+<p>Log your payment as usual (an expense, or a capital event if it is big). When the money comes back, add it as income with Source Type <strong>Refund / Reimbursement</strong> and, in the <strong>Refund for</strong> box, search for and pick the expense or capital event it paid back. The refund then stops counting as income, and that expense shows only your own share, in its own month, category and budget, while your account balance still goes up by what you received. The shortcut is <strong>Add refund</strong> in the expense's (or capital event's) menu. See <a href="../04-transactions-income/#4-refunds-and-reimbursements-link-them-to-what-they-paid-back">Refunds and Reimbursements</a>.</p>
 <h3 id="what-is-a-capital-event-and-when-should-i-use-it">What is a Capital Event and when should I use it?<a class="headerlink" href="#what-is-a-capital-event-and-when-should-i-use-it" title="Permanent link">&para;</a></h3>
 <p>A Capital Event is a large, one-off payment such as a car down-payment, home renovation advance, or lump-sum medical bill that you do not want distorting your monthly average charts. It still appears in your cash flow and net worth but is excluded from budget calculations. As a rule of thumb: if the amount is large enough to make your average monthly expense chart look abnormal for months, log it as a Capital Event. See <a href="../09-capital-events/">Capital Events</a>.</p>
 <h3 id="why-does-the-new-expense-form-show-a-check-tag-on-some-fields">Why does the new expense form show a "Check" tag on some fields?<a class="headerlink" href="#why-does-the-new-expense-form-show-a-check-tag-on-some-fields" title="Permanent link">&para;</a></h3>
@@ -2035,9 +2055,9 @@
 </table>
 <p>Expand the <strong>Health Breakdown</strong> section on the Analytics page to see four component metrics: Savings Rate, Expense Growth, Consistency (positive-savings months out of last 10), and Risk Buffer (months of runway). See <a href="../11-analytics-and-health/">Analytics and Health</a>.</p>
 <h3 id="how-is-my-savings-rate-calculated">How is my savings rate calculated?<a class="headerlink" href="#how-is-my-savings-rate-calculated" title="Permanent link">&para;</a></h3>
-<p>Savings rate = (Income − Expenses − Loan interest − Capital Events that count towards averages) ÷ (Income − Cashback and Refund income) × 100. The same formula is used on the Dashboard, Analytics, Month on Month, the Transactions page, and the monthly email. See <a href="../11-analytics-and-health/#3-how-the-savings-rate-is-calculated">How the Savings Rate Is Calculated</a> for the rules and a worked example.</p>
+<p>Savings rate = (Income − Expenses − Loan interest − Capital Events that count towards averages) ÷ (Income − Cashback and Refund income) × 100. Refunds you linked to an expense or capital event are not income, and each expense counts for its amount less those refunds. The same formula is used on the Dashboard, Analytics, Month on Month, the Transactions page, and the monthly email. See <a href="../11-analytics-and-health/#3-how-the-savings-rate-is-calculated">How the Savings Rate Is Calculated</a> for the rules and a worked example.</p>
 <h3 id="why-is-my-savings-rate-different-from-what-i-expected">Why is my savings rate different from what I expected?<a class="headerlink" href="#why-is-my-savings-rate-different-from-what-i-expected" title="Permanent link">&para;</a></h3>
-<p>The usual reasons are: loan <strong>principal</strong> is not counted as spending (only the interest is), Capital Events are left out unless you turned off their <strong>Exclude from Averages &amp; Trends</strong> setting, and Cashback and Refund income is not part of the base your rate is measured against. Also check that the pages you compare are looking at the same period and filters.</p>
+<p>The usual reasons are: loan <strong>principal</strong> is not counted as spending (only the interest is), Capital Events are left out unless you turned off their <strong>Exclude from Averages &amp; Trends</strong> setting, and Cashback and Refund income is not part of the base your rate is measured against (and a refund linked to an expense or capital event is not income at all). Also check that the pages you compare are looking at the same period and filters.</p>
 <hr />
 <h2 id="loans">Loans<a class="headerlink" href="#loans" title="Permanent link">&para;</a></h2>
 <h3 id="why-did-my-loan-disappear-or-turn-grey">Why did my loan disappear or turn grey?<a class="headerlink" href="#why-did-my-loan-disappear-or-turn-grey" title="Permanent link">&para;</a></h3>

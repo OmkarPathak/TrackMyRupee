@@ -778,13 +778,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-where-the-income-appears" class="md-nav__link">
+  <a href="#4-refunds-and-reimbursements-link-them-to-what-they-paid-back" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Where the Income Appears
+      4. Refunds and Reimbursements: Link Them to What They Paid Back
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="4. Where the Income Appears">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-where-the-income-appears" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Where the Income Appears
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Where the Income Appears">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -802,9 +811,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-editing-or-deleting-an-income-entry" class="md-nav__link">
+  <a href="#6-editing-or-deleting-an-income-entry" class="md-nav__link">
     <span class="md-ellipsis">
-      5. Editing or Deleting an Income Entry
+      6. Editing or Deleting an Income Entry
     </span>
   </a>
   
@@ -1233,13 +1242,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-where-the-income-appears" class="md-nav__link">
+  <a href="#4-refunds-and-reimbursements-link-them-to-what-they-paid-back" class="md-nav__link">
     <span class="md-ellipsis">
-      4. Where the Income Appears
+      4. Refunds and Reimbursements: Link Them to What They Paid Back
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="4. Where the Income Appears">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-where-the-income-appears" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Where the Income Appears
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Where the Income Appears">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1257,9 +1275,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-editing-or-deleting-an-income-entry" class="md-nav__link">
+  <a href="#6-editing-or-deleting-an-income-entry" class="md-nav__link">
     <span class="md-ellipsis">
-      5. Editing or Deleting an Income Entry
+      6. Editing or Deleting an Income Entry
     </span>
   </a>
   
@@ -1346,7 +1364,7 @@
 </table>
 <div class="admonition info">
 <p class="admonition-title">Why source type matters</p>
-<p>The app separates your predictable income (Salary) from one-off receipts (Refund / Reimbursement) when calculating your savings rate. Cashback and Rewards and Refund / Reimbursement types are excluded from the savings rate denominator so they do not inflate your rate artificially.</p>
+<p>The app separates your predictable income (Salary) from one-off receipts (Refund / Reimbursement) when calculating your savings rate. Cashback and Rewards and Refund / Reimbursement types are excluded from the savings rate denominator so they do not inflate your rate artificially. A refund you <a href="#4-refunds-and-reimbursements-link-them-to-what-they-paid-back">link to the expense or capital event it paid back</a> is not income at all.</p>
 </div>
 <hr />
 <h2 id="3-filling-the-form">3. Filling the Form<a class="headerlink" href="#3-filling-the-form" title="Permanent link">&para;</a></h2>
@@ -1354,9 +1372,9 @@
 <ol>
 <li><strong>Date</strong>: When the money arrived.</li>
 <li><strong>Account</strong> (required): Which account the money landed in. The income is added to that account's balance. If you forget to choose one, the form asks you to pick an account and nothing is saved.</li>
-<li><strong>Amount</strong>: The amount received.</li>
-<li><strong>Currency</strong>: Defaults to your profile currency.</li>
+<li><strong>Amount and currency</strong>: One joined field. The box on the left shows the currency (your profile currency to begin with); click it to choose another, and type to search the list (for example <code>usd</code>). Then type the amount. Digits are grouped as you type, the way that currency is written: <code>100000</code> becomes <strong>1,00,000</strong> for the rupee and <strong>100,000</strong> for the others. You only type digits, and the plain number is what is saved.</li>
 <li><strong>Source Type</strong>: Select from the list above.</li>
+<li><strong>Refund for</strong> (only for Refund / Reimbursement): What this refund paid back. See <a href="#4-refunds-and-reimbursements-link-them-to-what-they-paid-back">Refunds and Reimbursements</a>.</li>
 <li><strong>Description</strong> (optional): A short note, such as the client name or invoice number.</li>
 </ol>
 <p>If this income repeats, tick <strong>Make this a recurring income</strong> and choose the <strong>Frequency</strong> (it is required once the box is ticked). This creates a subscription that auto-posts the income going forward without any manual entry. The entry you are saving counts as the first one, so it is not posted twice.</p>
@@ -1371,7 +1389,39 @@
 </ul>
 <p>Click <strong>Save</strong> when done.</p>
 <hr />
-<h2 id="4-where-the-income-appears">4. Where the Income Appears<a class="headerlink" href="#4-where-the-income-appears" title="Permanent link">&para;</a></h2>
+<h2 id="4-refunds-and-reimbursements-link-them-to-what-they-paid-back">4. Refunds and Reimbursements: Link Them to What They Paid Back<a class="headerlink" href="#4-refunds-and-reimbursements-link-them-to-what-they-paid-back" title="Permanent link">&para;</a></h2>
+<p>Say you paid Rs. 20,000 for a trip stay for four friends, and they sent you back Rs. 15,000. Your real cost was Rs. 5,000. If you simply log the Rs. 15,000 as income, your income looks higher than it was and the Rs. 20,000 still sits in your spending as if it were all yours.</p>
+<p>Link the refund to what it paid back instead. When you choose <strong>Refund / Reimbursement</strong> as the Source Type, a <strong>Refund for</strong> search box appears:</p>
+<ul>
+<li><strong>Not linked to anything</strong> is the default and is always the first choice. The money counts as ordinary income, exactly as before.</li>
+<li>Below it, the <strong>5 most recent expenses and capital events</strong> are listed together, newest first, each tagged <strong>Expense</strong> or <strong>Capital event</strong>. Tap or click one to link the refund to it.</li>
+<li>To find something older, <strong>type</strong>. The search covers both your expenses and your capital events: the description or note, the category, the amount (commas are ignored), the date, and a capital event's type.</li>
+<li>The chosen item shows in the box with an <strong>x</strong> to unlink it again.</li>
+</ul>
+<p>Once linked:</p>
+<ul>
+<li>The refund is <strong>not counted as income</strong>: not on the Dashboard, in the savings rate, on the Transactions page, in your emails, or in Analytics.</li>
+<li>The expense (or capital event) counts for <strong>what it really cost</strong>: its amount less everything refunded against it. In the example, the trip shows Rs. 5,000, in the month it was spent, in its own category and against its own budget.</li>
+<li>Your account balance still goes <strong>up</strong> by the amount you received, because the money really arrived.</li>
+</ul>
+<div class="admonition info">
+<p class="admonition-title">Which month does it count in?</p>
+<p>A refund reduces the <strong>expense it paid back</strong>, in that expense's own month, not the month the refund arrived. So a dinner on 20 October, repaid on 3 November, shows its real cost in October. For a capital event that you counted in your averages, the refund comes off in the month it arrived.</p>
+</div>
+<p>A few rules keep the numbers honest:</p>
+<ul>
+<li>You can only link to your own entries, and a refund pays back <strong>one</strong> thing: an expense or a capital event, not both.</li>
+<li>The refunds against one expense cannot add up to more than the expense cost. The form tells you how much can still be refunded.</li>
+<li>Delete the expense and its refunds count as ordinary income again, because there is nothing left for them to pay back.</li>
+<li>The <strong>Expenses</strong> and <strong>Capital Events</strong> lists show "refunded" and "Net" under an amount that has refunds, and each has an <strong>Add refund</strong> action in its menu that opens this form with the item already chosen. Opening an expense or capital event for editing lists its refunds too.</li>
+</ul>
+<p>To link a refund you already saved without a link, open it from the Income list, choose <strong>Refund / Reimbursement</strong>, pick what it paid back, and save.</p>
+<div class="admonition example">
+<p class="admonition-title">Real-world use case</p>
+<p>On a Goa trip, Meera pays the Rs. 20,000 villa advance and logs it as a capital event. Back home, her three friends send Rs. 15,000 between them. She logs it as income with Source Type <strong>Refund / Reimbursement</strong>, types <code>villa</code> in <strong>Refund for</strong>, and picks the villa advance. Her savings and Dashboard no longer show Rs. 15,000 of extra income, and the villa now shows as Rs. 5,000 net, which is her real share. Her bank balance is still correct, because the money did arrive.</p>
+</div>
+<hr />
+<h2 id="5-where-the-income-appears">5. Where the Income Appears<a class="headerlink" href="#5-where-the-income-appears" title="Permanent link">&para;</a></h2>
 <p>After saving, the income entry appears in:</p>
 <p><img alt="The Income page" loading="lazy" src="img/income-list-desktop.webp" /></p>
 <ul>
@@ -1405,9 +1455,10 @@
 </tbody>
 </table>
 <p>Next to the totals, a small chart shows your <strong>Earned</strong> income for the last six months, so you can see at a glance whether your regular income is steady. Passive and one-off income are not in that chart.</p>
+<p>The Income page shows <strong>money received</strong>, so a refund you linked still appears in this list and in these totals: it did arrive. It is the Dashboard, the savings rate, and the other reports that leave it out, because it is not income.</p>
 <p>You can search the description, filter by source type, income group, account, or amount, and sort by date or amount. See <a href="../14-filters-and-search/">Search and Filters</a>. Income in another currency is converted to your own currency at the rate of the day you save it, and the totals use the converted amounts.</p>
 <hr />
-<h2 id="5-editing-or-deleting-an-income-entry">5. Editing or Deleting an Income Entry<a class="headerlink" href="#5-editing-or-deleting-an-income-entry" title="Permanent link">&para;</a></h2>
+<h2 id="6-editing-or-deleting-an-income-entry">6. Editing or Deleting an Income Entry<a class="headerlink" href="#6-editing-or-deleting-an-income-entry" title="Permanent link">&para;</a></h2>
 <p>Find the entry in the Income list. Click or tap it to open the edit form. Change any field and click <strong>Save</strong> to apply the update. The account balance is corrected automatically: change the amount and it moves only by the difference, move the entry to another account and the money moves with it.</p>
 <p>To delete, use the delete action on the income detail screen and confirm the prompt. The amount is taken back out of the account.</p>
 <div class="admonition example">
@@ -1418,6 +1469,7 @@
 <h2 id="related-links">Related Links<a class="headerlink" href="#related-links" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="../03-transactions-expenses/">Adding Expenses</a></li>
+<li><a href="../09-capital-events/">Capital Events</a></li>
 <li><a href="../05-transactions-recurring/">Recurring Transactions and Subscriptions</a></li>
 <li><a href="../11-analytics-and-health/">Analytics: Spending, Cashflow and Net Worth</a></li>
 </ul>
