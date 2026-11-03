@@ -4432,3 +4432,33 @@ input[data-money-ready] { font-variant-numeric: tabular-nums; }
 .tmr-picker-kind--event { background: rgba(var(--bs-primary-rgb), 0.1); color: var(--bs-primary); border-color: rgba(var(--bs-primary-rgb), 0.3); }
 .tmr-picker-row--none { border-bottom: 1px solid var(--bs-border-color); border-radius: 0.4rem 0.4rem 0 0; margin-bottom: 0.25rem; }
 .tmr-picker-row--none .tmr-picker-side { justify-content: center; color: var(--bs-primary); }
+
+/* Inside a .form-card the inputs are the page's own size (0.9rem text, 0.5rem padding, 16px text on phones), so the joined
+   amount + currency control takes that height instead of Bootstrap's default: it lines up with the fields around it. */
+.form-card .tmr-money-group, .form-card .tmr-money-group.input-group-lg { --tmr-money-box: calc(1.35rem + 1rem + 2px); }
+@media (max-width: 767.98px) { .form-card .tmr-money-group, .form-card .tmr-money-group.input-group-lg { --tmr-money-box: calc(1.5rem + 1rem + 2px); } }
+/* Edit/Add forms (.form-card): the segment takes the same 10px corners and 1.5px edge as the inputs beside it, and sits
+   flush against the amount box, so the pair reads as one control with no seam. */
+.form-card .tmr-money-group > .tmr-money-cur { border-width: 1.5px !important; border-radius: 10px 0 0 10px; }
+.form-card .tmr-money-group > .tmr-money-cur > .searchable-select-wrapper { border-radius: 8.5px 0 0 8.5px; overflow: hidden; }
+.form-card .tmr-money-group > .form-control, .form-card .tmr-money-group > .form-control:not(:first-child) { margin-left: 0 !important; border-radius: 0 10px 10px 0 !important; border-left: 0 !important; }
+.form-card .tmr-money-group > .form-control:focus { box-shadow: none; border-color: var(--tmr-money-fill); }
+.form-card .tmr-money-group:focus-within { border-radius: 10px; box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb, 15, 118, 87), .2); }
+.form-card .tmr-money-cur:focus-within { box-shadow: none; }
+
+/* Subtle focus for text fields, everywhere: a tinted border and a faint glow instead of a solid outline + dark border.
+   Buttons and links keep their keyboard-focus outline. */
+:root { --tmr-focus-border: rgba(15, 118, 87, .45); --tmr-focus-glow: rgba(15, 118, 87, .10); }
+[data-bs-theme="dark"] { --tmr-focus-border: rgba(93, 202, 165, .50); --tmr-focus-glow: rgba(93, 202, 165, .12); }
+input:not(.border-0):focus-visible, select:not(.border-0):focus-visible, textarea:not(.border-0):focus-visible,
+.form-control:not(.border-0):focus-visible, .form-select:not(.border-0):focus-visible,
+[data-bs-theme="dark"] input:not(.border-0):focus-visible, [data-bs-theme="dark"] select:not(.border-0):focus-visible,
+[data-bs-theme="dark"] textarea:not(.border-0):focus-visible, [data-bs-theme="dark"] .form-control:not(.border-0):focus-visible,
+[data-bs-theme="dark"] .form-select:not(.border-0):focus-visible { outline: none !important; }
+.form-control:focus, .form-select:focus, .form-card .form-control:focus, .form-card .form-select:focus {
+  border-color: var(--tmr-focus-border); box-shadow: 0 0 0 .2rem var(--tmr-focus-glow);
+}
+.search-input-group:focus-within { border-color: var(--tmr-focus-border) !important; box-shadow: 0 0 0 .2rem var(--tmr-focus-glow) !important; }
+.form-card .tmr-money-group > .form-control:focus { box-shadow: none; border-color: var(--bs-border-color); }
+.form-card .tmr-money-group:focus-within, .tmr-money-cur:focus-within { box-shadow: 0 0 0 .2rem var(--tmr-focus-glow); }
+.form-card .tmr-money-cur:focus-within { box-shadow: none; }

@@ -175,8 +175,8 @@
 }
 
 .tmr-search-box input:focus {
-  border-color: var(--tmr-filter-primary);
-  box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.15);
+  border-color: var(--tmr-focus-border, rgba(15, 118, 87, .45));
+  box-shadow: 0 0 0 .2rem var(--tmr-focus-glow, rgba(15, 118, 87, .10));
 }
 
 .tmr-search-box .tmr-search-clear-btn {
