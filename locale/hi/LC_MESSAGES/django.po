@@ -23675,3 +23675,59 @@ msgstr "साझा करना बंद करने या परिवा�
 #: expenses/family
 msgid "Last updated: November 2026"
 msgstr "अंतिम अपडेट: नवंबर 2026"
+
+#: expenses/forms.py:291 expenses/models.py:1257
+msgid "Refund for"
+msgstr "रिफंड किसके लिए"
+
+#: expenses/forms.py:292
+msgid "Not linked: counts as income"
+msgstr "जुड़ा नहीं: आय में गिना जाएगा"
+
+#: expenses/forms.py:293
+msgid "Pick the capital event this pays back, so it reduces that event instead of adding to your income."
+msgstr "वह कैपिटल इवेंट चुनें जिसका यह भुगतान लौटाता है, ताकि यह आपकी आय में जुड़ने के बजाय उस इवेंट की राशि घटाए।"
+
+#: templates/expenses/capital_event_form.html:166
+msgid "Refunds"
+msgstr "रिफंड"
+
+#: templates/expenses/capital_event_form.html:168
+#: templates/expenses/partials/_capital_event_list.html:133
+#: templates/expenses/partials/_capital_event_list.html:139
+msgid "Add refund"
+msgstr "रिफंड जोड़ें"
+
+#: templates/expenses/capital_event_form.html:181
+msgid "Refunded so far"
+msgstr "अब तक रिफंड"
+
+#: templates/expenses/capital_event_form.html:182
+msgid "Net cost"
+msgstr "शुद्ध लागत"
+
+#: templates/expenses/capital_event_form.html:185
+msgid "Nothing has been paid back against this event yet. If someone repays you for part of it, add it as a refund and only your own share stays counted."
+msgstr "इस इवेंट के लिए अभी तक कोई राशि वापस नहीं मिली है। अगर कोई इसके एक हिस्से का भुगतान लौटाता है, तो उसे रिफंड के रूप में जोड़ें और केवल आपका अपना हिस्सा गिना जाएगा।"
+
+#: templates/expenses/partials/_capital_event_list.html:86
+msgid "Paid back to you against this event"
+msgstr "इस इवेंट के बदले आपको लौटाई गई राशि"
+
+#: templates/expenses/partials/_capital_event_list.html:86
+msgid "refunded"
+msgstr "रिफंड"
+
+#: templates/expenses/partials/_capital_event_list.html:87
+#: templates/expenses/partials/_capital_event_list.html:219
+msgid "Net"
+msgstr "शुद्ध"
+
+#: templates/expenses/partials/_income_list.html:165
+msgid "Pays back a capital event: reduces it instead of counting as income"
+msgstr "कैपिटल इवेंट की भरपाई: आय में गिनने के बजाय उसे घटाता है"
+
+#: templates/expenses/partials/_income_list.html:165
+#: templates/expenses/partials/_income_list.html:245
+msgid "Pays back"
+msgstr "भरपाई"

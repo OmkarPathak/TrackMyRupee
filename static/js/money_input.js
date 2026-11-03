@@ -311,8 +311,9 @@
     el.addEventListener('blur', function () { paint(el, rawOf(el), false); });
     // A form that starts at 0.00: typing replaces it instead of landing behind it.
     el.addEventListener('focus', function () {
-      var raw = rawOf(el);
-      if (raw !== '' && parseFloat(raw) === 0) setTimeout(function () { try { el.select(); } catch (e) { /* not supported */ } }, 0);
+      var isZero = function () { var raw = rawOf(el); return raw !== '' && parseFloat(raw) === 0; };
+      // (checked again when it runs: a key typed in between has already replaced the zero)
+      if (isZero()) setTimeout(function () { if (isZero()) { try { el.select(); } catch (e) { /* not supported */ } } }, 0);
     });
     el.addEventListener('paste', function () { setTimeout(function () { paint(el, rawOf(el), false); }, 0); });
 

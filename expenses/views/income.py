@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Case, Count, DecimalField, F, Sum, Value, When
 from django.db.models.functions import TruncMonth
+from django.http import Http404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -256,6 +257,25 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs(); kwargs['user'] = self.request.user
         return kwargs
+
+    def get_initial(self):
+        """The "Add refund" action on a capital event links here with ?refund_for=<event>: open the form as a refund
+        for that event, in its currency and account. Anything that is not the user's own event is ignored."""
+        initial = super().get_initial()
+        raw = self.request.GET.get('refund_for')
+        if raw:
+            from ..models import CapitalEvent
+            from .utils import get_object_by_uuid_or_pk
+            try:
+                event = get_object_by_uuid_or_pk(CapitalEvent, raw, user=self.request.user)
+            except (Http404, ValueError, ValidationError):
+                event = None
+            if event is not None and not event.is_deleted:
+                initial.update({'source_type': 'Refund / Reimbursement', 'refund_for_capital_event': event.pk,
+                                'currency': event.currency, 'account': event.account_id})
+                if event.note:
+                    initial['description'] = event.note[:200]
+        return initial
 
     def form_valid(self, form):
         form.instance.user = self.request.user

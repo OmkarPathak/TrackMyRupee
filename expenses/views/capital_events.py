@@ -1,9 +1,12 @@
 
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Count, Sum
+from django.db.models import Count, DecimalField, F, OuterRef, Subquery, Sum, Value
+from django.db.models.functions import Coalesce
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
@@ -16,7 +19,7 @@ from expenses.views.utils import get_safe_redirect_url
 from ..filters.definitions import CAPITAL_EVENT_FILTERS
 from ..filters.engine import apply_filter_config
 from ..forms import CapitalEventForm
-from ..models import Account, CapitalEvent, Category, Expense, Loan
+from ..models import Account, CapitalEvent, Category, Expense, Income, Loan
 from ..posthog_utils import ph_capture
 from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 from .utils import (
@@ -39,6 +42,15 @@ def _find_source_expense(user, raw_id):
         return None
 
 
+def refunded_total_subquery():
+    """What has been paid back against each capital event (base currency): the income entries linked to it. A
+    subquery, not a join, so the list's own totals are never multiplied by the number of refunds."""
+    refunds = (Income.objects.filter(refund_for_capital_event=OuterRef('pk'), is_deleted=False)
+               .order_by().values('refund_for_capital_event').annotate(total=Sum('base_amount')).values('total'))
+    return Coalesce(Subquery(refunds, output_field=DecimalField(max_digits=15, decimal_places=2)),
+                    Value(0), output_field=DecimalField(max_digits=15, decimal_places=2))
+
+
 class CapitalEventListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
     model = CapitalEvent
     template_name = 'expenses/capital_event_list.html'
@@ -47,7 +59,9 @@ class CapitalEventListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListVie
     paginate_by = 20
 
     def get_queryset(self):
-        base_qs = CapitalEvent.objects.filter(user=self.request.user).select_related('account', 'linked_loan')
+        base_qs = (CapitalEvent.objects.filter(user=self.request.user).select_related('account', 'linked_loan')
+                   .annotate(refunded_total=refunded_total_subquery())
+                   .annotate(net_total=F('base_amount') - F('refunded_total')))
         queryset, self.applied_state = apply_filter_config(base_qs, self.request, CAPITAL_EVENT_FILTERS)
         return queryset
 
@@ -190,6 +204,14 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
         })
 
 
+def _event_refund_context(event):
+    """The refunds linked to one capital event (newest first) with what they add up to, for its edit page."""
+    refunds = list(Income.objects.filter(refund_for_capital_event=event, is_deleted=False)
+                   .select_related('account').order_by('-date', '-id'))
+    refunded = sum((r.base_amount for r in refunds), Decimal('0'))
+    return {'refunds': refunds, 'refunded_total': refunded, 'net_total': event.base_amount - refunded}
+
+
 class CapitalEventUpdateView(LoginRequiredMixin, View):
     template_name = 'expenses/capital_event_form.html'
 
@@ -206,6 +228,7 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
         return render(request, self.template_name, {
             'form': form,
             'event': event,
+            **_event_refund_context(event),
             'user_loans': Loan.objects.filter(user=request.user, is_active=True),
             'next_url': next_url,
         })
@@ -227,6 +250,7 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
                 return render(request, self.template_name, {
                     'form': form,
                     'event': event,
+                    **_event_refund_context(event),
                     'user_loans': Loan.objects.filter(user=request.user, is_active=True),
                     'next_url': next_url,
                 })
@@ -235,6 +259,7 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
         return render(request, self.template_name, {
             'form': form,
             'event': event,
+            **_event_refund_context(event),
             'user_loans': Loan.objects.filter(user=request.user, is_active=True),
             'next_url': next_url,
         })

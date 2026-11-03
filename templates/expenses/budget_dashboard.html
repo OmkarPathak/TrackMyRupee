@@ -32,7 +32,7 @@
                     <label for="bdx-amount" class="form-label">{% trans "Monthly limit" %}</label>
                     <div class="input-group">
                         <span class="input-group-text" id="bdx-symbol" aria-hidden="true">{{ currency_symbol }}</span>
-                        <input id="bdx-amount" type="text" class="form-control" inputmode="decimal" autocomplete="off" aria-describedby="bdx-preview-box bdx-error">
+                        <input id="bdx-amount" data-money type="text" class="form-control" inputmode="decimal" autocomplete="off" aria-describedby="bdx-preview-box bdx-error">
                     </div>
                     <p class="bdx-msg bdx-msg--error" id="bdx-error" role="alert" hidden></p>
 
@@ -85,7 +85,7 @@
                     <label for="bdx-new-amount" class="form-label">{% trans "Monthly limit" %}</label>
                     <div class="input-group">
                         <span class="input-group-text" aria-hidden="true">{{ currency_symbol }}</span>
-                        <input id="bdx-new-amount" type="text" class="form-control" inputmode="decimal" autocomplete="off" aria-describedby="bdx-new-error">
+                        <input id="bdx-new-amount" data-money type="text" class="form-control" inputmode="decimal" autocomplete="off" aria-describedby="bdx-new-error">
                     </div>
 
                     <fieldset class="bdx-scope">

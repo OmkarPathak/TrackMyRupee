@@ -23738,3 +23738,59 @@ msgstr "शेअरिंग थांबवल्यावर किंवा 
 #: expenses/family
 msgid "Last updated: November 2026"
 msgstr "शेवटचे अपडेट: नोव्हेंबर 2026"
+
+#: expenses/forms.py:291 expenses/models.py:1257
+msgid "Refund for"
+msgstr "रिफंड कशासाठी"
+
+#: expenses/forms.py:292
+msgid "Not linked: counts as income"
+msgstr "जोडलेले नाही: उत्पन्न म्हणून मोजले जाईल"
+
+#: expenses/forms.py:293
+msgid "Pick the capital event this pays back, so it reduces that event instead of adding to your income."
+msgstr "हे ज्या कॅपिटल इव्हेंटची परतफेड करते तो निवडा, म्हणजे ते तुमच्या उत्पन्नात भर घालण्याऐवजी त्या इव्हेंटची रक्कम कमी करेल."
+
+#: templates/expenses/capital_event_form.html:166
+msgid "Refunds"
+msgstr "रिफंड"
+
+#: templates/expenses/capital_event_form.html:168
+#: templates/expenses/partials/_capital_event_list.html:133
+#: templates/expenses/partials/_capital_event_list.html:139
+msgid "Add refund"
+msgstr "रिफंड जोडा"
+
+#: templates/expenses/capital_event_form.html:181
+msgid "Refunded so far"
+msgstr "आतापर्यंत रिफंड"
+
+#: templates/expenses/capital_event_form.html:182
+msgid "Net cost"
+msgstr "निव्वळ खर्च"
+
+#: templates/expenses/capital_event_form.html:185
+msgid "Nothing has been paid back against this event yet. If someone repays you for part of it, add it as a refund and only your own share stays counted."
+msgstr "या इव्हेंटसाठी अद्याप काहीही परत मिळालेले नाही. कोणी त्याचा काही भाग परत केल्यास तो रिफंड म्हणून जोडा, म्हणजे फक्त तुमचा स्वतःचा वाटा मोजला जाईल."
+
+#: templates/expenses/partials/_capital_event_list.html:86
+msgid "Paid back to you against this event"
+msgstr "या इव्हेंटपोटी तुम्हाला परत केलेली रक्कम"
+
+#: templates/expenses/partials/_capital_event_list.html:86
+msgid "refunded"
+msgstr "रिफंड"
+
+#: templates/expenses/partials/_capital_event_list.html:87
+#: templates/expenses/partials/_capital_event_list.html:219
+msgid "Net"
+msgstr "निव्वळ"
+
+#: templates/expenses/partials/_income_list.html:165
+msgid "Pays back a capital event: reduces it instead of counting as income"
+msgstr "कॅपिटल इव्हेंटची परतफेड: उत्पन्नात मोजण्याऐवजी तो कमी करते"
+
+#: templates/expenses/partials/_income_list.html:165
+#: templates/expenses/partials/_income_list.html:245
+msgid "Pays back"
+msgstr "परतफेड"
