@@ -59,8 +59,11 @@ class TableLayoutTests(TestCase):
     def test_stylesheet_defines_nowrap_cells_and_header_typography(self):
         css = open('static/style.css', encoding='utf-8').read()
         block = css[css.index('Data tables (every list in the app)'):]
-        self.assertIn('white-space: nowrap', block)          # badges/cells never wrap onto two lines
-        self.assertIn('table-layout: fixed', block)
+        self.assertIn('white-space: nowrap', block)          # amounts, dates, badges and the actions menu stay on one line
+        self.assertIn('table-layout: auto', block)           # columns size to their content and the table fits its space
+        self.assertNotIn('table-layout: fixed', block)
+        self.assertIn('width: auto !important', block)       # a <colgroup>'s widths are only hints
+        self.assertIn('-webkit-line-clamp: 2', block)        # text wraps (two lines at most) instead of being cut off
         self.assertIn('font-size: 14px !important', block)    # headers
         self.assertIn('font-size: 15px !important', block)    # body
         self.assertIn('tabular-nums', block)

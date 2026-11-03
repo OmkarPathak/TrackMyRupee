@@ -4021,25 +4021,54 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
 
 
 /* ==========================================================================
-   Data tables (every list in the app): column widths + typography only.
-   Opt in with <table class="table tmr-table"> and a <colgroup>. Fixed layout means long text is
-   trimmed with an ellipsis (full text in the title attribute, shown on hover) instead of widening
-   the table and pushing the Actions column off-screen. No colours, badges or behaviour change here.
+   Data tables (every list in the app). Opt in with <table class="table tmr-table">.
+   Columns size themselves from their content and the table always fits the space it is given, so there is no
+   sideways scrolling: dates, amounts, badges and the actions menu stay on one line, and text (descriptions, notes,
+   account names) wraps (two lines at most, the full text is in the title attribute and shows on hover) instead of
+   being cut off or widening the table. A <colgroup> in the markup is only a hint of what each column holds: its
+   widths are ignored here. No colours, badges or behaviour change here.
    ========================================================================== */
 .tmr-table {
-  table-layout: fixed;
+  table-layout: auto;
   width: 100%;
-  min-width: 680px;
+  min-width: 0 !important;
+}
+
+.tmr-table > colgroup > col {
+  width: auto !important;
 }
 
 .tmr-table td,
 .tmr-table th {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+/* Amounts, dates and the actions menu keep their text whole; the browser sizes those columns to it. Headers may wrap
+   when the table needs the room. */
+.tmr-table td.text-nowrap,
+.tmr-table td.tmr-amount,
+.tmr-table td:last-child {
   white-space: nowrap;
 }
 
-/* Cells that hold rich, multi-line content (or a whole empty-state block) may wrap instead of truncating */
+@media (max-width: 1199.98px) {
+  /* the small lines under an amount (refunded, net) may wrap; the amount itself stays whole */
+  .tmr-table td.tmr-amount .small,
+  .tmr-table td.tmr-amount small { white-space: normal !important; }
+  /* tighter cells when the table is short of room (the first and last columns carry extra padding) */
+  .tmr-table th,
+  .tmr-table td {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  .tmr-table th:first-child,
+  .tmr-table td:first-child { padding-left: 0.75rem !important; }
+  .tmr-table th:last-child,
+  .tmr-table td:last-child { padding-right: 0.75rem !important; }
+}
+
+/* Cells that hold rich, multi-line content (or a whole empty-state block) may wrap */
 .tmr-table td.tmr-wrap,
 .tmr-table td[colspan] {
   white-space: normal;
@@ -4090,15 +4119,33 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
   white-space: nowrap;
 }
 
+/* Inside a data table it wraps (two lines, then an ellipsis) so the column can share the width with the others */
+.tmr-table .tmr-truncate,
+.tmr-table td .text-truncate:not(.badge-soft) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
 /* Chips/badges inside table cells never exceed their column: they end with an ellipsis (full text is in
    the title attribute) rather than being clipped abruptly by the cell. */
 .tmr-table td .badge-soft {
   display: inline-block;
-  max-width: 100%;
+  /* A long label ends in an ellipsis (full text in the title) instead of widening the column. A fixed length, not a
+     percentage: a table ignores percentage max-widths when it works out how narrow a column can get. */
+  max-width: 12rem !important;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: nowrap !important;   /* a badge is always one line: a wrapped pill turns into a blob */
   vertical-align: middle;
+}
+
+@media (max-width: 1199.98px) {
+  /* (!important: some badges carry an inline max-width of their own) */
+  .tmr-table td .badge-soft { max-width: 7rem !important; }
 }
 
 .tmr-table td .badge-soft > i:not([class*="me-"]) {

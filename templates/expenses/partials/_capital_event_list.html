@@ -65,7 +65,7 @@
                             <th>{% trans "Amount" %}</th>
                             <th>{% trans "Note" %}</th>
                             <th>{% trans "Account" %}</th>
-                            <th>{% trans "Linked Loan" %}</th>
+                            <th class="d-none d-xl-table-cell">{% trans "Linked Loan" %}</th>
                             <th class="text-center">{% trans "Flags" %}</th>
                             <th class="pe-4 text-end">{% trans "Actions" %}</th>
                         </tr>
@@ -89,11 +89,12 @@
                             </td>
                             <td>
                                 <div class="tmr-truncate" title="{{ event.note|default:'' }}">{{ event.note|default:"—" }}</div>
+                                {% if event.linked_loan %}<div class="small text-muted d-xl-none"><i class="bi bi-link-45deg"></i> <a href="{% url 'loan-detail' event.linked_loan.pk %}" class="text-decoration-none text-muted">{{ event.linked_loan.name }}</a></div>{% endif %}
                             </td>
                             <td>
                                 <div class="tmr-truncate" title="{{ event.account.name|default:'' }}">{{ event.account.name|default:"—" }}</div>
                             </td>
-                            <td>
+                            <td class="d-none d-xl-table-cell">
                                 {% if event.linked_loan %}
                                     <a href="{% url 'loan-detail' event.linked_loan.pk %}" class="text-decoration-none">
                                         <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name }}
