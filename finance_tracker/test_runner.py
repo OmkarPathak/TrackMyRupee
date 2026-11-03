@@ -88,6 +88,30 @@ def _install_test_timing():
     unittest.TestCase.run = timed
 
 
+def _install_language_reset():
+    """Start every test in the project's default language, with an empty cache. A request in one test (a Hindi
+    page, say) leaves its language active on the worker thread, and cached pages and fragments (keyed by user id,
+    which every test database reuses) outlive the test that made them. A later test that checks English text, or
+    that another user's name is absent, then passes or fails depending on which tests the same worker happened to
+    run before it (the order differs between `--parallel` runs)."""
+    if getattr(unittest.TestCase.run, '_tmr_language_reset', False):
+        return
+    original = unittest.TestCase.run
+
+    def reset(self, result=None):
+        from django.conf import settings
+        from django.core.cache import caches
+        from django.utils import translation
+
+        translation.activate(settings.LANGUAGE_CODE)
+        for cache in caches.all(initialized_only=True):
+            cache.clear()
+        return original(self, result)
+
+    reset._tmr_language_reset = True
+    unittest.TestCase.run = reset
+
+
 def _start_fx_stub():
     """Replace requests.get with the offline exchange-rate stub (once per process)."""
     if getattr(_start_fx_stub, 'patcher', None) is None:
@@ -112,6 +136,7 @@ def _init_worker_offline(counter, *args, **kwargs):
     _init_worker(counter, *args, **kwargs)
     _start_fx_stub()
     _install_test_timing()
+    _install_language_reset()
     atexit.register(_exit_without_finalizing)
 
 
@@ -157,6 +182,7 @@ class ParallelTestRunner(DiscoverRunner):
         super().setup_test_environment(**kwargs)
         _start_fx_stub()
         _install_test_timing()
+        _install_language_reset()
 
     def teardown_test_environment(self, **kwargs):
         patcher = getattr(_start_fx_stub, 'patcher', None)
