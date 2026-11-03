@@ -25,8 +25,8 @@ Use the period picker to switch to last month, the last 3 or 6 months, this year
 
 | Number | What it is |
 |---|---|
-| **Income** | All income in the period, including cashback and refunds |
-| **Spent** | Expenses, plus the **interest** part of loan repayments, plus any [Capital Event](../09-capital-events/index.md) you chose to count in averages |
+| **Income** | All income in the period, including cashback and refunds, but not a refund you [linked to the expense or capital event it paid back](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back) (that is not income) |
+| **Spent** | Expenses (each one for what it really cost: its amount less any refunds linked to it), plus the **interest** part of loan repayments, plus any [Capital Event](../09-capital-events/index.md) you chose to count in averages |
 | **Saved** | Income minus Spent |
 | **Savings rate** | Saved divided by income, leaving cashback and refunds out of the income used for the rate |
 | **Invested** | Money you moved by transfer into investment accounts. It is shown separately and is **not** taken off Saved |

@@ -163,7 +163,7 @@
                                 <tbody>
                                     {% for sub in active_subs %}
                                     <tr>
-                                        <td class="ps-4">
+                                        <td class="ps-4 text-nowrap">
                                             {% if sub.is_locked %}
                                                 <span class="text-muted small">{% trans "Locked" %}</span>
                                             {% elif sub.annotated_next_date %}
@@ -371,7 +371,7 @@
                                 <tbody>
                                     {% for sub in renewing_soon %}
                                     <tr>
-                                        <td class="ps-4">
+                                        <td class="ps-4 text-nowrap">
                                             {% if sub.is_locked %}
                                                 <span class="text-muted small">{% trans "Locked" %}</span>
                                             {% elif sub.annotated_next_date %}

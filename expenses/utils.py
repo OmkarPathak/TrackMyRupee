@@ -137,8 +137,12 @@ def generate_year_in_review_data(user, year):
     ).filter(Q(finished_on__year=year) | Q(finished_on__isnull=True, created_at__year=year))
     
     # 1. Total Spend and Total Income (using base_amount to handle multi-currency)
-    total_spent = expenses.aggregate(total=Sum('base_amount'))['total'] or Decimal('0.00')
-    total_earned = incomes.aggregate(total=Sum('base_amount'))['total'] or Decimal('0.00')
+    from .refunds import net_sum
+    from .savings import income_totals
+    # (spent is what the expenses really cost, net of refunds; earned leaves out the entries that pay back an
+    # expense or a capital event: the same definitions as the savings figure)
+    total_spent = expenses.aggregate(total=net_sum())['total'] or Decimal('0.00')
+    total_earned = income_totals(incomes)[0] or Decimal('0.00')
     
     data['total_spent'] = total_spent
     data['total_earned'] = total_earned
@@ -161,14 +165,14 @@ def generate_year_in_review_data(user, year):
     
     # 2. Top 3 Categories
     top_categories = expenses.values('category').annotate(
-        total=Sum('base_amount'),
+        total=net_sum(),
         count=Count('id')
     ).order_by('-total')[:3]
     data['top_categories'] = list(top_categories)
     
     # 3. Highest and Lowest Spend Month
     monthly_spends = expenses.annotate(month=ExtractMonth('date')).values('month').annotate(
-        total=Sum('base_amount')
+        total=net_sum()
     ).order_by('-total')
     
     month_names = {

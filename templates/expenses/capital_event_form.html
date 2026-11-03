@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n static %}
+{% load i18n static digit_filters %}
 
 {% block title %}{% if event %}{% trans "Edit Capital Event" %}{% else %}{% trans "Add Capital Event" %}{% endif %}{% endblock %}
 
@@ -158,6 +158,34 @@
                             </button>
                         </div>
                     </form>
+
+                    {% if event %}
+                    <!-- Money that has come back against this event (income entries linked to it) -->
+                    <div class="border-top mt-4 pt-3" id="event-refunds">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h2 class="h6 fw-bold mb-0 tmr-ic"><i class="bi bi-arrow-return-left text-success" aria-hidden="true"></i>{% trans "Refunds" %}</h2>
+                            <a class="btn btn-sm btn-outline-success rounded-pill tmr-ic" href="{% url 'income-create' %}?refund_for={{ event.uuid }}&next={{ request.get_full_path|urlencode }}">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i>{% trans "Add refund" %}
+                            </a>
+                        </div>
+                        {% if refunds %}
+                            <ul class="list-unstyled small mb-2">
+                                {% for r in refunds %}
+                                <li class="d-flex justify-content-between py-1 border-bottom">
+                                    <span class="text-muted">{{ r.date|date:"d M Y" }}{% if r.account %} &middot; {{ r.account.name }}{% endif %}</span>
+                                    <a href="{% url 'income-edit' r.uuid %}" class="text-decoration-none fw-semibold">{{ r.currency }}{{ r.amount|ind_comma:r.currency }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="d-flex justify-content-between small">
+                                <span class="text-muted">{% trans "Refunded so far" %}: <strong>{{ user.profile.currency }}{{ refunded_total|ind_comma:user.profile.currency }}</strong></span>
+                                <span class="text-success fw-semibold">{% trans "Net cost" %}: {{ user.profile.currency }}{{ net_total|ind_comma:user.profile.currency }}</span>
+                            </div>
+                        {% else %}
+                            <p class="small text-muted mb-0">{% trans "Nothing has been paid back against this event yet. If someone repays you for part of it, add it as a refund and only your own share stays counted." %}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

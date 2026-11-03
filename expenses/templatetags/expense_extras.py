@@ -19,8 +19,9 @@ def url_replace(context, **kwargs):
 
 @register.filter(name='sum_base_amounts')
 def sum_base_amounts(expenses):
-    """Sum the base_amount of a list of expenses."""
-    return sum((e.base_amount or 0 for e in expenses), 0)
+    """What a list of expenses really cost (base currency): each amount less anything refunded against it, so a day's
+    total agrees with the page total."""
+    return sum(((e.base_amount or 0) - (getattr(e, 'refunded_base', 0) or 0) for e in expenses), 0)
 
 
 @register.filter(name='sum_net_unified_amounts')

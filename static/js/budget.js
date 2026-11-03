@@ -229,6 +229,7 @@
             var sym = document.createElement('span'); sym.className = 'input-group-text'; sym.textContent = t.symbol || '';
             wrap.appendChild(sym);
             var input = document.createElement('input'); input.type = 'text'; input.className = 'form-control'; input.inputMode = 'decimal';
+            input.setAttribute('data-money', '');       // grouped for the currency while typing (money_input.js)
             input.id = 'bdx-bulk-' + r.id; input.setAttribute('data-id', r.id);
             input.setAttribute('aria-label', fmt(t.bulkLabel, { name: r.name }));
             wrap.appendChild(input); row.appendChild(label); row.appendChild(wrap); box.appendChild(row);

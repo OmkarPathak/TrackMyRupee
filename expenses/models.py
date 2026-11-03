@@ -132,13 +132,24 @@ class ExpenseManager(FinanceBaseManager):
     def get_queryset(self):
         return super().get_queryset().select_related('account')
 
+    def get_monthly_summary(self, user, year, month):
+        # what the expenses really cost: the amount less anything refunded against them
+        return self.filter(
+            user=user,
+            date__year=year,
+            date__month=month
+        ).aggregate(
+            total=models.Sum(models.F('base_amount') - models.F('refunded_base')),
+            count=models.Count('id')
+        )
+
     def get_category_breakdown(self, user, year, month):
         return self.filter(
             user=user, 
             date__year=year, 
             date__month=month
         ).values('category').annotate(
-            total=models.Sum('base_amount')
+            total=models.Sum(models.F('base_amount') - models.F('refunded_base'))
         ).order_by('-total')
 
 class IncomeManager(FinanceBaseManager):
@@ -819,6 +830,9 @@ class Expense(models.Model):
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
     exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
     base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
+    # Money paid back against this expense (income entries linked to it), in base currency. Kept up to date by
+    # Income (expenses/refunds.py); reports add up base_amount - refunded_base so the cost shown is the real one.
+    refunded_base = models.DecimalField(max_digits=15, decimal_places=2, default=0, editable=False, verbose_name=_('Refunded (base currency)'))
 
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Account'))
     linked_physical_asset = models.ForeignKey('PhysicalAsset', on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses', verbose_name=_('Linked Physical Asset'))
@@ -832,6 +846,11 @@ class Expense(models.Model):
 
     objects = ExpenseManager()
     active = SoftDeleteManager()
+
+    @property
+    def net_base_amount(self):
+        """What this expense really cost (base currency): the amount less anything refunded against it."""
+        return (self.base_amount or Decimal('0')) - (self.refunded_base or Decimal('0'))
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -852,6 +871,9 @@ class Expense(models.Model):
 
                     old_account.balance += reversal_amount
                     old_account.save(update_fields=['balance', 'updated_at'])
+
+            if old_instance is not None:
+                self.refunded_base = old_instance.refunded_base    # owned by Income; never overwritten from a stale copy
 
             if getattr(self, 'category_fk', None):
                 self.category = self.category_fk.name
@@ -1255,6 +1277,11 @@ class Income(models.Model):
     refund_for_capital_event = models.ForeignKey(
         'CapitalEvent', on_delete=models.SET_NULL, null=True, blank=True, related_name='refunds',
         verbose_name=_('Refund for'))
+    # ...or an expense (a repaid group dinner). Only one of the two is ever set. The expense's own month, category and
+    # budget then show what it really cost (Expense.refunded_base).
+    refund_for_expense = models.ForeignKey(
+        'Expense', on_delete=models.SET_NULL, null=True, blank=True, related_name='refunds',
+        verbose_name=_('Refund for expense'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1302,6 +1329,10 @@ class Income(models.Model):
                 self.base_amount = (self.amount * self.exchange_rate).quantize(Decimal('0.01'))
 
             super().save(*args, **kwargs)
+
+            # The expense this pays back (or no longer pays back, or no longer counts for) shows what it really cost
+            from .refunds import recompute_expense_refunds
+            recompute_expense_refunds({self.refund_for_expense_id, old_instance.refund_for_expense_id if old_instance else None})
 
             # Apply new balance
             if self.account:
@@ -1433,7 +1464,10 @@ class Income(models.Model):
                     diff={'deleted': True}
                 )
             else:
+                refunded_expense_id = self.refund_for_expense_id
                 super().delete(*args, **kwargs)
+                from .refunds import recompute_expense_refunds
+                recompute_expense_refunds({refunded_expense_id})
 
     class Meta:
         constraints = [

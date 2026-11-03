@@ -18,6 +18,7 @@ from .models import (
     LoanRepayment,
     annotate_loan_principal_totals,
 )
+from .refunds import net_sum
 from .savings import (
     calculate_savings,
     counted_capital_refund_total,
@@ -93,7 +94,7 @@ class FinancialService:
         return Expense.objects.filter(
             user=user, date__year=year, date__month=month
         ).values('category').annotate(
-            total=Sum('base_amount')
+            total=net_sum()
         ).order_by('-total')
 
     @staticmethod
@@ -109,7 +110,7 @@ class FinancialService:
         
         daily_spend = Expense.objects.filter(
             user=user, date__gte=start_date, date__lte=today
-        ).values('date').annotate(total=Sum('base_amount'))
+        ).values('date').annotate(total=net_sum())
         
         spend_map = {item['date']: item['total'] for item in daily_spend}
         
@@ -135,7 +136,7 @@ class FinancialService:
         agg = Expense.objects.filter(
             user=user, date__gte=start_date, date__lte=end_date
         ).aggregate(
-            total=Sum('base_amount')
+            total=net_sum()
         )
 
         loan_interest_agg = LoanRepayment.objects.filter(
@@ -627,7 +628,7 @@ class SalaryAnalysisService:
 
         # (income that pays back a capital event is not income: it comes off that event below)
         income_total, cashback_refund = income_totals(income_list)
-        total_expenses = sum((exp.base_amount or Decimal('0') for exp in expense_list), Decimal('0'))
+        total_expenses = sum(((exp.base_amount or Decimal('0')) - exp.refunded_base for exp in expense_list), Decimal('0'))
         total_cap_events = counted_capital_total(
             CapitalEvent.objects.filter(user=user, date__gte=cycle_start, date__lte=cycle_end)
         ) - counted_capital_refund_total(income_list)

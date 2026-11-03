@@ -23,6 +23,8 @@ from django.db.models import Count, Q, Sum
 
 from .account_types import investment_codes
 from .models import CapitalEvent, Expense, Income, LoanRepayment, RecurringTransaction, Transfer
+from .refunds import net_sum
+from .savings import LINKED_REFUND
 
 MIN_YEAR = 2000
 MAX_YEARS_AHEAD = 50
@@ -127,7 +129,8 @@ def pending_by_day(user, start: date, end: date, search: str = '') -> dict[date,
 # ── Month grid ───────────────────────────────────────────────────────────────────────────────
 
 def _by_day(rows) -> dict[int, dict]:
-    return {r['date'].day: {'total': _dec(r['total']), 'count': r['count']} for r in rows}
+    # (`linked`, when a row has it, is income that pays back an expense or a capital event: not income)
+    return {r['date'].day: {'total': _dec(r['total']) - _dec(r.get('linked')), 'count': r['count']} for r in rows}
 
 
 def _merge(*maps) -> dict[int, dict]:
@@ -163,12 +166,13 @@ def build_month(user, year: int, month: int, today: date, search: str = '') -> l
     expenses, incomes, loans, capital, invest = _month_filters(user, year, month, search)
     agg = {'total': Sum('base_amount'), 'count': Count('id')}
 
-    expense_map = _by_day(expenses.values('date').annotate(**agg))
+    # (an expense counts for what it really cost: net of anything refunded against it)
+    expense_map = _by_day(expenses.values('date').annotate(total=net_sum(), count=Count('id')))
     loan_map = _by_day(loans.values('date').annotate(**agg))
     capital_map = _by_day(capital.values('date').annotate(**agg))
     out_map = _merge(expense_map, loan_map, capital_map)
 
-    income_map = _by_day(incomes.values('date').annotate(**agg))
+    income_map = _by_day(incomes.values('date').annotate(linked=Sum('base_amount', filter=LINKED_REFUND), **agg))
     invest_map = _by_day(invest.values('date').annotate(total=Sum('converted_amount'), count=Count('id')))
 
     salary_days = {

@@ -43,7 +43,7 @@
                             <tbody>
                                 {% for rec in page_obj %}
                                 <tr>
-                                    <td class="ps-4">{{ rec.statement_date|date:"j M Y" }}</td>
+                                    <td class="ps-4 text-nowrap">{{ rec.statement_date|date:"j M Y" }}</td>
                                     <td class="text-end tmr-amount">{{ rec.statement_balance|money_exact:account.currency }}</td>
                                     <td class="text-end tmr-amount">{{ rec.app_balance|money_exact:account.currency }}</td>
                                     <td>

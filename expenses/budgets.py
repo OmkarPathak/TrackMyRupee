@@ -17,6 +17,8 @@ from decimal import Decimal
 
 from django.db.models import Sum
 
+from .refunds import net_sum
+
 BUDGET_WARNING_PERCENT = 85
 
 NO_LIMIT, ON_TRACK, AT_LIMIT, OVER = 'nolimit', 'ontrack', 'limit', 'over'
@@ -83,7 +85,7 @@ def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decima
 
     first, last = user_budget_range(user, (year, month))   # a date range, not year/month lookups, so the date index applies
     expenses = (Expense.objects.filter(user=user, date__gte=first, date__lte=last).order_by()
-                .values('category').annotate(subtype=Value(''), total=Sum('base_amount'))
+                .values('category').annotate(subtype=Value(''), total=net_sum())
                 .values_list('category', 'subtype', 'total'))
     events = (CapitalEvent.objects.filter(user=user, date__gte=first, date__lte=last, exclude_from_budget=False)
               .order_by().values('category', 'subtype').annotate(total=Sum('base_amount'))
@@ -115,7 +117,7 @@ def monthly_spend_by_category_months(user, months) -> dict:
     # Two plain queries, not a UNION: the halves would put the date column in different positions
     # (annotations follow model fields in the SELECT), which Postgres refuses to union.
     expenses = (Expense.objects.filter(user=user, date__gte=first, date__lte=last).order_by()
-                .values('date', 'category').annotate(total=Sum('base_amount')))
+                .values('date', 'category').annotate(total=net_sum()))
     events = (CapitalEvent.objects.filter(user=user, date__gte=first, date__lte=last, exclude_from_budget=False)
               .order_by().values('date', 'category', 'subtype').annotate(total=Sum('base_amount')))
     names = None
@@ -159,7 +161,7 @@ def _bulk_spend(start, end, user_ids=None, except_ids=None) -> dict:
 
     spend: dict = {}
     for row in (narrow(Expense.objects.filter(date__gte=start, date__lte=end))
-                .values('user_id', 'category').annotate(total=Sum('base_amount'))):
+                .values('user_id', 'category').annotate(total=net_sum())):
         key = (row['user_id'], normalize_category(row['category']))
         spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
 

@@ -65,7 +65,7 @@
                             <th>{% trans "Amount" %}</th>
                             <th>{% trans "Note" %}</th>
                             <th>{% trans "Account" %}</th>
-                            <th>{% trans "Linked Loan" %}</th>
+                            <th class="d-none d-xl-table-cell">{% trans "Linked Loan" %}</th>
                             <th class="text-center">{% trans "Flags" %}</th>
                             <th class="pe-4 text-end">{% trans "Actions" %}</th>
                         </tr>
@@ -82,14 +82,19 @@
                             </td>
                             <td class="fw-bold tmr-amount">
                                 {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
+                                {% if event.refunded_total %}
+                                    <div class="small fw-normal text-muted tmr-ic" title="{% trans 'Paid back to you against this event' %}"><i class="bi bi-arrow-return-left" aria-hidden="true"></i>{{ user.profile.currency }}{{ event.refunded_total|ind_comma:user.profile.currency|translate_digits }} {% trans "refunded" %}</div>
+                                    <div class="small fw-semibold text-success text-nowrap">{% trans "Net" %} {{ user.profile.currency }}{{ event.net_total|ind_comma:user.profile.currency|translate_digits }}</div>
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="tmr-truncate" title="{{ event.note|default:'' }}">{{ event.note|default:"—" }}</div>
+                                {% if event.linked_loan %}<div class="small text-muted d-xl-none"><i class="bi bi-link-45deg"></i> <a href="{% url 'loan-detail' event.linked_loan.pk %}" class="text-decoration-none text-muted">{{ event.linked_loan.name }}</a></div>{% endif %}
                             </td>
                             <td>
                                 <div class="tmr-truncate" title="{{ event.account.name|default:'' }}">{{ event.account.name|default:"—" }}</div>
                             </td>
-                            <td>
+                            <td class="d-none d-xl-table-cell">
                                 {% if event.linked_loan %}
                                     <a href="{% url 'loan-detail' event.linked_loan.pk %}" class="text-decoration-none">
                                         <i class="bi bi-link-45deg"></i> {{ event.linked_loan.name }}
@@ -121,6 +126,12 @@
                                             <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                 <i class="bi bi-pencil-square text-primary"></i>
                                                 <span>{% trans "Edit" %}</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'income-create' %}?refund_for={{ event.uuid }}&next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-arrow-return-left text-success"></i>
+                                                <span>{% trans "Add refund" %}</span>
                                             </a>
                                         </li>
                                         <li>
@@ -199,6 +210,9 @@
                                         <div class="fw-bold amount-capital_event signed-amount">
                                             -{{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
                                         </div>
+                                        {% if event.refunded_total %}
+                                            <div class="small text-muted text-nowrap tmr-ic" style="font-size: 0.72rem;"><i class="bi bi-arrow-return-left" aria-hidden="true"></i>{% trans "Net" %} {{ user.profile.currency }}{{ event.net_total|ind_comma:user.profile.currency|translate_digits }}</div>
+                                        {% endif %}
                                         <div class="d-flex flex-column align-items-end gap-1">
                                             {% if event.exclude_from_averages %}
                                                 <span class="badge-soft badge-soft-info" style="font-size: 0.55rem; padding: 2px 4px;" title="{% trans 'Excluded from averages & trends' %}">{% trans "excl. avg" %}</span>
@@ -219,6 +233,12 @@
                                                 <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'capital-event-edit' event.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                     <i class="bi bi-pencil-square text-primary"></i>
                                                     <span>{% trans "Edit" %}</span>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'income-create' %}?refund_for={{ event.uuid }}&next={{ request.get_full_path|urlencode }}">
+                                                    <i class="bi bi-arrow-return-left text-success"></i>
+                                                    <span>{% trans "Add refund" %}</span>
                                                 </a>
                                             </li>
                                             <li>

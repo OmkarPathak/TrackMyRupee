@@ -10,7 +10,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_recaptcha.fields import ReCaptchaField
@@ -250,8 +250,8 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
 class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Income
-        fields = ['date', 'amount', 'currency', 'account', 'source_type', 'refund_for_capital_event', 'description',
-                  'client_dedup_key']
+        fields = ['date', 'amount', 'currency', 'account', 'source_type', 'refund_for_capital_event',
+                  'refund_for_expense', 'description', 'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             # (keep-col: the amount stays half width, with the source type beside it)
@@ -259,7 +259,9 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'source_type': forms.Select(attrs={'class': 'form-select'}),
-            'refund_for_capital_event': forms.Select(attrs={'class': 'form-select searchable-select'}),
+            # (both links are chosen with the one search box on the page, which fills these in)
+            'refund_for_capital_event': forms.HiddenInput(),
+            'refund_for_expense': forms.HiddenInput(),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': _('e.g. Salary from company, Freelance project details')}),
             'client_dedup_key': forms.HiddenInput(),
         }
@@ -285,15 +287,17 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
         self.fields['source_type'].label = _("Source Type")
         self.fields['description'].required = False
         self.fields['description'].label = _("Description")
-        # Which of the user's own capital events this money pays back (only for "Refund / Reimbursement").
+        # Which of the user's own capital events this money pays back (only for "Refund / Reimbursement"). Chosen with the
+        # page's search box, which fills in this hidden field; the queryset is what makes it the user's own, live events.
         refund_field = self.fields['refund_for_capital_event']
         refund_field.required = False
-        refund_field.label = _("Refund for")
-        refund_field.empty_label = _("Not linked: counts as income")
-        refund_field.help_text = _("Pick the capital event this pays back, so it reduces that event instead of adding to your income.")
-        refund_field.queryset = (CapitalEvent.objects.filter(user=self.user, is_deleted=False).order_by('-date', '-id')
+        refund_field.queryset = (CapitalEvent.objects.filter(user=self.user, is_deleted=False)
                                  if self.user else CapitalEvent.objects.none())
-        refund_field.label_from_instance = self._capital_event_label
+        # ...or one of their own expenses (a repaid group dinner), found with the search box. Own, not deleted.
+        expense_field = self.fields['refund_for_expense']
+        expense_field.required = False
+        expense_field.queryset = (Expense.objects.filter(user=self.user, is_deleted=False)
+                                  if self.user else Expense.objects.none())
         if self.user:
             self.fields['currency'].initial = self.user.profile.currency
             
@@ -312,17 +316,45 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
         else:
             self.fields['account'].queryset = Account.objects.none()
         
-    @staticmethod
-    def _capital_event_label(event):
-        label = f"{event.date:%d %b %Y} · {event.report_category} · {event.currency}{event.amount:,.2f}"
-        return f"{label} · {event.note[:40]}" if event.note else label
-
     def clean_refund_for_capital_event(self):
         event = self.cleaned_data.get('refund_for_capital_event')
         # A page or client that does not send the field leaves an existing link alone.
         if 'refund_for_capital_event' not in self.data and self.instance.pk:
             return self.instance.refund_for_capital_event
         return event
+
+    def clean_refund_for_expense(self):
+        expense = self.cleaned_data.get('refund_for_expense')
+        # A page or client that does not send the field leaves an existing link alone.
+        if 'refund_for_expense' not in self.data and self.instance.pk:
+            return self.instance.refund_for_expense
+        return expense
+
+    @property
+    def refund_choice(self):
+        """What this refund is linked to, as the picker shows it: a row for the expense or the capital event (or None
+        when it is not linked to either)."""
+        from .refund_targets import event_row, expense_row
+
+        if not self.user:
+            return None
+
+        def current(field, attr):
+            if self.is_bound:
+                return self.data.get(field)
+            return self.initial.get(field) or (getattr(self.instance, attr) if self.instance.pk else None)
+
+        expense_id = current('refund_for_expense', 'refund_for_expense_id')
+        if expense_id:
+            expense = Expense.objects.filter(pk=expense_id, user=self.user, is_deleted=False).select_related('user__profile').first()
+            if expense is not None:
+                return expense_row(expense)
+        event_id = current('refund_for_capital_event', 'refund_for_capital_event_id')
+        if event_id:
+            event = CapitalEvent.objects.filter(pk=event_id, user=self.user, is_deleted=False).select_related('user__profile').first()
+            if event is not None:
+                return event_row(event)
+        return None
 
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
@@ -341,10 +373,29 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
         cleaned = super().clean()
         if cleaned.get('add_to_recurring') and not cleaned.get('frequency'):
             self.add_error('frequency', _('Choose how often this income repeats.'))
-        # Only a refund can pay back a capital event: any other type drops the link rather than hiding it.
+        # Only a refund can pay back a capital event or an expense: any other type drops the links rather than hiding them.
         if cleaned.get('source_type') != 'Refund / Reimbursement':
             cleaned['refund_for_capital_event'] = None
+            cleaned['refund_for_expense'] = None
+        if cleaned.get('refund_for_capital_event') and cleaned.get('refund_for_expense'):
+            self.add_error('refund_for_expense', _('A refund pays back either a capital event or an expense, not both.'))
+        self._check_refund_not_above_expense(cleaned)
         return cleaned
+
+    def _check_refund_not_above_expense(self, cleaned):
+        """The refunds against one expense cannot add up to more than the expense cost. Checked when this entry is in
+        the user's own currency (otherwise the comparison needs an exchange rate, which saving applies)."""
+        expense, amount = cleaned.get('refund_for_expense'), cleaned.get('amount')
+        if not expense or amount is None or not self.user:
+            return
+        if cleaned.get('currency') != self.user.profile.currency:
+            return
+        others = (Income.objects.filter(refund_for_expense=expense, is_deleted=False)
+                  .exclude(pk=self.instance.pk).aggregate(t=Sum('base_amount'))['t'] or Decimal('0'))
+        if others + amount > expense.base_amount:
+            left = max(expense.base_amount - others, Decimal('0'))
+            self.add_error('amount', _('Refunds cannot add up to more than the expense cost. At most %(left)s can still be '
+                                       'refunded against it.') % {'left': f'{expense.currency}{left:,.2f}'})
 
     def _post_clean(self):
         super()._post_clean()

@@ -23738,3 +23738,116 @@ msgstr "शेअरिंग थांबवल्यावर किंवा 
 #: expenses/family
 msgid "Last updated: November 2026"
 msgstr "शेवटचे अपडेट: नोव्हेंबर 2026"
+
+#: expenses/forms.py:291 expenses/models.py:1257
+msgid "Refund for"
+msgstr "रिफंड कशासाठी"
+
+#: expenses/forms.py:292
+msgid "Not linked: counts as income"
+msgstr "जोडलेले नाही: उत्पन्न म्हणून मोजले जाईल"
+
+#: expenses/forms.py:293
+msgid "Pick the capital event this pays back, so it reduces that event instead of adding to your income."
+msgstr "हे ज्या कॅपिटल इव्हेंटची परतफेड करते तो निवडा, म्हणजे ते तुमच्या उत्पन्नात भर घालण्याऐवजी त्या इव्हेंटची रक्कम कमी करेल."
+
+#: templates/expenses/capital_event_form.html:166
+msgid "Refunds"
+msgstr "रिफंड"
+
+#: templates/expenses/capital_event_form.html:168
+#: templates/expenses/partials/_capital_event_list.html:133
+#: templates/expenses/partials/_capital_event_list.html:139
+msgid "Add refund"
+msgstr "रिफंड जोडा"
+
+#: templates/expenses/capital_event_form.html:181
+msgid "Refunded so far"
+msgstr "आतापर्यंत रिफंड"
+
+#: templates/expenses/capital_event_form.html:182
+msgid "Net cost"
+msgstr "निव्वळ खर्च"
+
+#: templates/expenses/capital_event_form.html:185
+msgid "Nothing has been paid back against this event yet. If someone repays you for part of it, add it as a refund and only your own share stays counted."
+msgstr "या इव्हेंटसाठी अद्याप काहीही परत मिळालेले नाही. कोणी त्याचा काही भाग परत केल्यास तो रिफंड म्हणून जोडा, म्हणजे फक्त तुमचा स्वतःचा वाटा मोजला जाईल."
+
+#: templates/expenses/partials/_capital_event_list.html:86
+msgid "Paid back to you against this event"
+msgstr "या इव्हेंटपोटी तुम्हाला परत केलेली रक्कम"
+
+#: templates/expenses/partials/_capital_event_list.html:86
+msgid "refunded"
+msgstr "रिफंड"
+
+#: templates/expenses/partials/_capital_event_list.html:87
+#: templates/expenses/partials/_capital_event_list.html:219
+msgid "Net"
+msgstr "निव्वळ"
+
+#: templates/expenses/partials/_income_list.html:165
+msgid "Pays back a capital event: reduces it instead of counting as income"
+msgstr "कॅपिटल इव्हेंटची परतफेड: उत्पन्नात मोजण्याऐवजी तो कमी करते"
+
+#: templates/expenses/partials/_income_list.html:165
+#: templates/expenses/partials/_income_list.html:245
+msgid "Pays back"
+msgstr "परतफेड"
+
+#: expenses/models.py:1284
+msgid "Refund for expense"
+msgstr "खर्चासाठी रिफंड"
+
+#: expenses/models.py:835
+msgid "Refunded (base currency)"
+msgstr "रिफंड (मूळ चलन)"
+
+#: expenses/forms.py:381
+msgid "A refund pays back either a capital event or an expense, not both."
+msgstr "एक रिफंड एकतर कॅपिटल इव्हेंटची किंवा खर्चाची परतफेड करतो, दोन्हींची नाही."
+
+#: expenses/forms.py:397
+msgid "Refunds cannot add up to more than the expense cost. At most %(left)s can still be refunded against it."
+msgstr "रिफंडची एकूण रक्कम खर्चाच्या किमतीपेक्षा जास्त असू शकत नाही. त्याविरुद्ध जास्तीत जास्त %(left)s अजून रिफंड करता येईल."
+
+#: templates/expenses/income_form.html:83
+msgid "Recent"
+msgstr "अलीकडील"
+
+#: templates/expenses/income_form.html:83
+msgid "Matches"
+msgstr "जुळणारे"
+
+#: templates/expenses/income_form.html:84
+msgid "No matching expenses or capital events"
+msgstr "जुळणारा खर्च किंवा कॅपिटल इव्हेंट नाही"
+
+#: templates/expenses/income_form.html:85
+#: templates/expenses/income_form.html:100
+msgid "Not linked to anything"
+msgstr "कशाशीही जोडलेले नाही"
+
+#: templates/expenses/income_form.html:85
+msgid "Counts as income"
+msgstr "उत्पन्न म्हणून मोजले जाईल"
+
+#: templates/expenses/income_form.html:94
+msgid "Unlink this refund"
+msgstr "या रिफंडची जोडणी काढा"
+
+#: templates/expenses/income_form.html:105
+msgid "Search your expenses and capital events to link this refund to one. It is then taken off that expense or event, so its month, category and budget show what it really cost, instead of counting as income."
+msgstr "हा रिफंड जोडण्यासाठी तुमचे खर्च आणि कॅपिटल इव्हेंट शोधा. मग तो त्या खर्चातून किंवा इव्हेंटमधून वजा केला जातो, त्यामुळे त्याचा महिना, श्रेणी आणि बजेट त्याची खरी किंमत दाखवतात, आणि तो उत्पन्न म्हणून मोजला जात नाही."
+
+#: templates/expenses/partials/_expense_list.html:454
+msgid "Paid back to you against this expense"
+msgstr "या खर्चापोटी तुम्हाला परत केलेली रक्कम"
+
+#: templates/expenses/expense_form.html:136
+msgid "Nothing has been paid back against this expense yet. If someone repays you for part of it, add it as a refund and only your own share stays counted."
+msgstr "या खर्चासाठी अद्याप काहीही परत मिळालेले नाही. कोणी त्याचा काही भाग परत केल्यास तो रिफंड म्हणून जोडा, म्हणजे फक्त तुमचा स्वतःचा वाटा मोजला जाईल."
+
+#: templates/expenses/expense_form.html
+msgid "Changing the currency re-converts this expense at the current exchange rate and updates the account balance."
+msgstr "चलन बदलल्यास हा खर्च सध्याच्या विनिमय दराने पुन्हा रूपांतरित होईल आणि खात्यातील शिल्लक अद्ययावत होईल."

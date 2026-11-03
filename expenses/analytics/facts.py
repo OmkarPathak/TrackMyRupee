@@ -18,7 +18,8 @@ from django.db.models import Count, F, Q, Sum
 
 from ..account_types import investment_codes
 from ..budgets import capital_report_name, normalize_category
-from ..savings import CASHBACK_REFUND_TYPES, LINKED_REFUND, SavingsResult, calculate_savings
+from ..refunds import NET_EXPENSE, net_sum
+from ..savings import CASHBACK_REFUND_TYPES, LINKED_REFUND, LINKED_TO_EVENT, SavingsResult, calculate_savings
 
 ZERO = Decimal('0')
 
@@ -39,8 +40,10 @@ def load_expense_rows(user, first: date, last: date) -> list[ExpenseRow]:
     """The user's expenses between two dates, oldest first, in one query and without building model objects."""
     from ..models import Expense
 
-    rows = Expense.objects.filter(user=user, date__range=(first, last)).order_by('date', 'id').values_list(
-        'id', 'date', 'category', 'base_amount', 'account_id', 'created_at', 'description', 'import_batch_id')
+    # (what each expense really cost: the amount less anything refunded against it)
+    rows = Expense.objects.filter(user=user, date__range=(first, last)).annotate(
+        net_amount=NET_EXPENSE).order_by('date', 'id').values_list(
+        'id', 'date', 'category', 'net_amount', 'account_id', 'created_at', 'description', 'import_batch_id')
     return [ExpenseRow(i, d, c or '', a or ZERO, acc, made, x.decode('utf-8', 'replace') if isinstance(x, bytes) else (x or ''),
                        batch is not None)
             for i, d, c, a, acc, made, x, batch in rows]
@@ -76,7 +79,7 @@ def load_category_cycles(user, ranges, *, categories: Iterable[str] = (), accoun
         rows = rows.filter(category__in=categories)
     if account_ids:
         rows = rows.filter(account_id__in=account_ids)
-    sums = {f'c{i}': Sum('base_amount', filter=Q(date__range=span)) for i, span in enumerate(ranges)}
+    sums = {f'c{i}': net_sum(filter=Q(date__range=span)) for i, span in enumerate(ranges)}
     return {row['category']: [row[f'c{i}'] or ZERO for i in range(len(ranges))]
             for row in rows.values('category').annotate(**sums)}
 
@@ -276,7 +279,7 @@ def load_facts(user, first: date, last: date, *, categories: Iterable[str] = (),
         expenses = expenses.filter(category__in=categories)
     if account_ids:
         expenses = expenses.filter(account_id__in=account_ids)
-    for row in expenses.values('date', 'category').annotate(total=Sum('base_amount')):
+    for row in expenses.values('date', 'category').annotate(total=net_sum()):
         key = normalize_category(row['category'])
         facts.names.setdefault(key, row['category'])
         facts._add(facts.expense_cats, facts.index(row['date']), key, row['total'] or ZERO)
@@ -307,7 +310,7 @@ def load_facts(user, first: date, last: date, *, categories: Iterable[str] = (),
             facts._add(facts.capital_cats_counted, i, key, amount)
 
     # Income that pays back a capital event comes off that event, on the day the money arrived.
-    refunds = incomes.filter(LINKED_REFUND)
+    refunds = incomes.filter(LINKED_TO_EVENT)       # (expense refunds are already in the expenses' own net cost)
     if categories:
         refunds = refunds.filter(refund_for_capital_event__category__in=categories)
     for row in refunds.values(

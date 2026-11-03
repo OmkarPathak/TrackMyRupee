@@ -19,7 +19,8 @@ from django.views.generic import ListView
 
 from ..ledger_read_service import LedgerReadService
 from ..models import Account, CapitalEvent, Expense, Income, LoanRepayment, Transfer
-from ..savings import savings_from_querysets
+from ..refunds import net_sum
+from ..savings import LINKED_REFUND, savings_from_querysets
 from ..utils import get_exchange_rate
 from ..filters.definitions import ALL_TRANSACTIONS_FILTERS
 from ..periods import get_cycle_context, resolve_period
@@ -295,8 +296,12 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         capital_events = filtered_qs['capital_events']
         from django.db.models import Count
 
-        exp_stats = expenses.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
-        inc_stats = incomes.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
+        # (spent is net of refunds; income leaves out the entries that pay back an expense or a capital event: the
+        # same definition the savings figure below uses)
+        exp_stats = expenses.aggregate(cnt=Count('uuid'), total=net_sum())
+        inc_stats = incomes.aggregate(cnt=Count('uuid'), total=Sum('base_amount'),
+                                      linked=Sum('base_amount', filter=LINKED_REFUND))
+        inc_stats['total'] = (inc_stats['total'] or 0) - (inc_stats['linked'] or 0)
         trf_stats = transfers.aggregate(cnt=Count('uuid'), total=Sum('converted_amount'))
         loan_stats = loan_repayments.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))
         cap_stats = capital_events.aggregate(cnt=Count('uuid'), total=Sum('base_amount'))

@@ -396,7 +396,17 @@ class UploadViewTest(TestCase):
         # one, take it, release it), looking for an unfinished import of the same file, and reading back what the
         # import has written so the counts are right however many attempts it took. Still constant however many
         # rows the file has.)
-        with self.assertNumQueries(39):
+        # (The 50 rows go in with one INSERT, or several where the database caps the bound parameters of one statement
+        # as SQLite does (999): rows per statement = 999 // columns, so a new column on Expense can add a statement.
+        # That is not a per-row cost, so it is worked out here rather than hard-coded.)
+        from math import ceil
+
+        from django.db import connection
+
+        from expenses.models import Expense
+        columns = [f for f in Expense._meta.concrete_fields if not f.primary_key]
+        insert_statements = ceil(50 / connection.ops.bulk_batch_size(columns, range(50)))
+        with self.assertNumQueries(38 + insert_statements):
             response = self.client.post(reverse('upload'), {
                 'account': self.account.id,
                 'currency': '₹',

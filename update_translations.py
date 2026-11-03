@@ -93,6 +93,36 @@ def update_po_file(filepath, translations, complex_replacements=None):
 
 # Common translations
 COMMON_HI = {
+    # Refund link on expenses (the refund search box)
+    "Refund for expense": "खर्च के लिए रिफंड",
+    "Refunded (base currency)": "रिफंड (मूल मुद्रा)",
+    "A refund pays back either a capital event or an expense, not both.": "एक रिफंड या तो कैपिटल इवेंट की भरपाई करता है या किसी खर्च की, दोनों की नहीं।",
+    "Refunds cannot add up to more than the expense cost. At most %(left)s can still be refunded against it.": "रिफंड की कुल राशि खर्च की लागत से अधिक नहीं हो सकती। इसके विरुद्ध अधिकतम %(left)s और रिफंड किया जा सकता है।",
+    "Recent": "हाल के",
+    "Matches": "मिलान",
+    "No matching expenses or capital events": "कोई मेल खाता खर्च या कैपिटल इवेंट नहीं",
+    "Not linked to anything": "किसी से जुड़ा नहीं",
+    "Counts as income": "आय में गिना जाएगा",
+    "Unlink this refund": "इस रिफंड का लिंक हटाएँ",
+    "Search your expenses and capital events to link this refund to one. It is then taken off that expense or event, so its month, category and budget show what it really cost, instead of counting as income.": "इस रिफंड को जोड़ने के लिए अपने खर्च और कैपिटल इवेंट खोजें। फिर इसे उस खर्च या इवेंट में से घटाया जाता है, इसलिए उसका महीना, श्रेणी और बजट उसकी असली लागत दिखाते हैं, और यह आय में नहीं गिना जाता।",
+    "Paid back to you against this expense": "इस खर्च के बदले आपको लौटाई गई राशि",
+    "Nothing has been paid back against this expense yet. If someone repays you for part of it, add it as a refund and only your own share stays counted.": "इस खर्च के लिए अभी तक कोई राशि वापस नहीं मिली है। अगर कोई इसके एक हिस्से का भुगतान लौटाता है, तो उसे रिफंड के रूप में जोड़ें और केवल आपका अपना हिस्सा गिना जाएगा।",
+
+    # Refund link on income / capital events
+    "Refund for": "रिफंड किसके लिए",
+    "Not linked: counts as income": "जुड़ा नहीं: आय में गिना जाएगा",
+    "Pick the capital event this pays back, so it reduces that event instead of adding to your income.": "वह कैपिटल इवेंट चुनें जिसका यह भुगतान लौटाता है, ताकि यह आपकी आय में जुड़ने के बजाय उस इवेंट की राशि घटाए।",
+    "Refunds": "रिफंड",
+    "Add refund": "रिफंड जोड़ें",
+    "Refunded so far": "अब तक रिफंड",
+    "Net cost": "शुद्ध लागत",
+    "Nothing has been paid back against this event yet. If someone repays you for part of it, add it as a refund and only your own share stays counted.": "इस इवेंट के लिए अभी तक कोई राशि वापस नहीं मिली है। अगर कोई इसके एक हिस्से का भुगतान लौटाता है, तो उसे रिफंड के रूप में जोड़ें और केवल आपका अपना हिस्सा गिना जाएगा।",
+    "Paid back to you against this event": "इस इवेंट के बदले आपको लौटाई गई राशि",
+    "refunded": "रिफंड",
+    "Net": "शुद्ध",
+    "Pays back a capital event: reduces it instead of counting as income": "कैपिटल इवेंट की भरपाई: आय में गिनने के बजाय उसे घटाता है",
+    "Pays back": "भरपाई",
+
     "Subscriptions": "सदस्यताएँ",
     "Manage": "प्रबंधित करें",
     "Add": "जोड़ें",
@@ -412,6 +442,36 @@ COMMON_HI = {
 }
 
 COMMON_MR = {
+    # Refund link on expenses (the refund search box)
+    "Refund for expense": "खर्चासाठी रिफंड",
+    "Refunded (base currency)": "रिफंड (मूळ चलन)",
+    "A refund pays back either a capital event or an expense, not both.": "एक रिफंड एकतर कॅपिटल इव्हेंटची किंवा खर्चाची परतफेड करतो, दोन्हींची नाही.",
+    "Refunds cannot add up to more than the expense cost. At most %(left)s can still be refunded against it.": "रिफंडची एकूण रक्कम खर्चाच्या किमतीपेक्षा जास्त असू शकत नाही. त्याविरुद्ध जास्तीत जास्त %(left)s अजून रिफंड करता येईल.",
+    "Recent": "अलीकडील",
+    "Matches": "जुळणारे",
+    "No matching expenses or capital events": "जुळणारा खर्च किंवा कॅपिटल इव्हेंट नाही",
+    "Not linked to anything": "कशाशीही जोडलेले नाही",
+    "Counts as income": "उत्पन्न म्हणून मोजले जाईल",
+    "Unlink this refund": "या रिफंडची जोडणी काढा",
+    "Search your expenses and capital events to link this refund to one. It is then taken off that expense or event, so its month, category and budget show what it really cost, instead of counting as income.": "हा रिफंड जोडण्यासाठी तुमचे खर्च आणि कॅपिटल इव्हेंट शोधा. मग तो त्या खर्चातून किंवा इव्हेंटमधून वजा केला जातो, त्यामुळे त्याचा महिना, श्रेणी आणि बजेट त्याची खरी किंमत दाखवतात, आणि तो उत्पन्न म्हणून मोजला जात नाही.",
+    "Paid back to you against this expense": "या खर्चापोटी तुम्हाला परत केलेली रक्कम",
+    "Nothing has been paid back against this expense yet. If someone repays you for part of it, add it as a refund and only your own share stays counted.": "या खर्चासाठी अद्याप काहीही परत मिळालेले नाही. कोणी त्याचा काही भाग परत केल्यास तो रिफंड म्हणून जोडा, म्हणजे फक्त तुमचा स्वतःचा वाटा मोजला जाईल.",
+
+    # Refund link on income / capital events
+    "Refund for": "रिफंड कशासाठी",
+    "Not linked: counts as income": "जोडलेले नाही: उत्पन्न म्हणून मोजले जाईल",
+    "Pick the capital event this pays back, so it reduces that event instead of adding to your income.": "हे ज्या कॅपिटल इव्हेंटची परतफेड करते तो निवडा, म्हणजे ते तुमच्या उत्पन्नात भर घालण्याऐवजी त्या इव्हेंटची रक्कम कमी करेल.",
+    "Refunds": "रिफंड",
+    "Add refund": "रिफंड जोडा",
+    "Refunded so far": "आतापर्यंत रिफंड",
+    "Net cost": "निव्वळ खर्च",
+    "Nothing has been paid back against this event yet. If someone repays you for part of it, add it as a refund and only your own share stays counted.": "या इव्हेंटसाठी अद्याप काहीही परत मिळालेले नाही. कोणी त्याचा काही भाग परत केल्यास तो रिफंड म्हणून जोडा, म्हणजे फक्त तुमचा स्वतःचा वाटा मोजला जाईल.",
+    "Paid back to you against this event": "या इव्हेंटपोटी तुम्हाला परत केलेली रक्कम",
+    "refunded": "रिफंड",
+    "Net": "निव्वळ",
+    "Pays back a capital event: reduces it instead of counting as income": "कॅपिटल इव्हेंटची परतफेड: उत्पन्नात मोजण्याऐवजी तो कमी करते",
+    "Pays back": "परतफेड",
+
     "Calendar": "कॅलेंडर",
     "Subscriptions": "सदस्यता",
     "Manage": "व्यवस्थापित करा",

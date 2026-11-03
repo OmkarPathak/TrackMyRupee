@@ -76,6 +76,10 @@ Yes. Go to **Settings → Import** and choose an `.xlsx` or `.csv` file, the **c
 
 A row with no category gets a match from your own categories or past entries, otherwise **Other**; a column called *Transaction Type* is never used as the category. A date written without a year (such as *15 Dec*) means the most recent such date, never one in the future. Dates such as 03/04/2026 are read day first, unless another date in the same file (such as 04/25/2026) shows the file is month first. Amounts can include ₹, Rs. or INR. Only one import can run at a time. On the Free plan the monthly expense limit also applies to imports: rows dated in the current month beyond the limit are skipped and the upload summary tells you how many.
 
+### I paid for a group trip or dinner and my friends paid me back. How do I record it?
+
+Log your payment as usual (an expense, or a capital event if it is big). When the money comes back, add it as income with Source Type **Refund / Reimbursement** and, in the **Refund for** box, search for and pick the expense or capital event it paid back. The refund then stops counting as income, and that expense shows only your own share, in its own month, category and budget, while your account balance still goes up by what you received. The shortcut is **Add refund** in the expense's (or capital event's) menu. See [Refunds and Reimbursements](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back).
+
 ### What is a Capital Event and when should I use it?
 
 A Capital Event is a large, one-off payment such as a car down-payment, home renovation advance, or lump-sum medical bill that you do not want distorting your monthly average charts. It still appears in your cash flow and net worth but is excluded from budget calculations. As a rule of thumb: if the amount is large enough to make your average monthly expense chart look abnormal for months, log it as a Capital Event. See [Capital Events](../09-capital-events/index.md).
@@ -119,11 +123,11 @@ Expand the **Health Breakdown** section on the Analytics page to see four compon
 
 ### How is my savings rate calculated?
 
-Savings rate = (Income − Expenses − Loan interest − Capital Events that count towards averages) ÷ (Income − Cashback and Refund income) × 100. The same formula is used on the Dashboard, Analytics, Month on Month, the Transactions page, and the monthly email. See [How the Savings Rate Is Calculated](../11-analytics-and-health/index.md#3-how-the-savings-rate-is-calculated) for the rules and a worked example.
+Savings rate = (Income − Expenses − Loan interest − Capital Events that count towards averages) ÷ (Income − Cashback and Refund income) × 100. Refunds you linked to an expense or capital event are not income, and each expense counts for its amount less those refunds. The same formula is used on the Dashboard, Analytics, Month on Month, the Transactions page, and the monthly email. See [How the Savings Rate Is Calculated](../11-analytics-and-health/index.md#3-how-the-savings-rate-is-calculated) for the rules and a worked example.
 
 ### Why is my savings rate different from what I expected?
 
-The usual reasons are: loan **principal** is not counted as spending (only the interest is), Capital Events are left out unless you turned off their **Exclude from Averages & Trends** setting, and Cashback and Refund income is not part of the base your rate is measured against. Also check that the pages you compare are looking at the same period and filters.
+The usual reasons are: loan **principal** is not counted as spending (only the interest is), Capital Events are left out unless you turned off their **Exclude from Averages & Trends** setting, and Cashback and Refund income is not part of the base your rate is measured against (and a refund linked to an expense or capital event is not income at all). Also check that the pages you compare are looking at the same period and filters.
 
 ---
 

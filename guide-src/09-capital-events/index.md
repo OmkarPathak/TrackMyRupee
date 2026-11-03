@@ -108,9 +108,24 @@ A diamond never changes the height of the spending line or bars. It is a marker,
 
 ---
 
-## 7. The Capital Events Page, Editing, and Deleting
+## 7. When Someone Pays You Back for Part of It
 
-The **Capital Events** page opens on the current period and shows the number of events and their total (in your own currency). You can search the note, filter by event type, account, or amount, and sort by date or amount. See [Search and Filters](../14-filters-and-search/index.md).
+If you paid for something that others share, such as a group trip or a gift you split, only your own part should count. Log what you received as income with Source Type **Refund / Reimbursement** and link it to the capital event, instead of leaving it as plain income.
+
+- On the Capital Events page, open the event's menu and choose **Add refund**. The income form opens with the event already chosen. Or add the income yourself and pick the event in the **Refund for** search box (type to search expenses and capital events together). See [Refunds and Reimbursements](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back).
+- The list then shows **refunded** and **Net** under the event's amount, and opening the event shows each refund, what has been refunded so far, and the net cost.
+- The refund is **not counted as income**.
+- If the event counts in your averages (you turned **Exclude from Averages & Trends** off), it counts for its **net** cost, in the month the refund arrived. If it is excluded, as most are, your savings and charts simply do not count the refund as income.
+- Your account balance still goes up by what you received.
+
+!!! example "Real-world use case"
+    Rohan pays a Rs. 86,000 laptop for the whole team and logs it as a capital event. His company reimburses Rs. 60,000. He adds the reimbursement as a refund linked to the laptop. The list shows the laptop as Rs. 86,000 with Rs. 60,000 refunded and **Net Rs. 26,000**, and his savings do not include Rs. 60,000 of income that was never really his.
+
+---
+
+## 8. The Capital Events Page, Editing, and Deleting
+
+The **Capital Events** page opens on the current period and shows the number of events and their total (in your own currency). You can search the note, filter by event type, account, or amount, and sort by date or amount. See [Search and Filters](../14-filters-and-search/index.md). On a narrower screen the **Linked Loan** column is hidden to make room, and the loan's name shows under the note instead.
 
 Open an event to edit any field. To delete one, confirm the prompt. The account gets its money back.
 
@@ -128,3 +143,4 @@ Open an event to edit any field. To delete one, confirm the prompt. The account 
 - [Loans](../08-loans/index.md)
 - [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)
 - [Budgets](../07-budgets/index.md)
+- [Adding Income](../04-transactions-income/index.md)

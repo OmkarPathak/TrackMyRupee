@@ -180,8 +180,8 @@ def build_wrapped(user, year: int, review: dict) -> dict:
     prev_rows = Expense.objects.filter(user=user, date__year=year - 1)
     if prev_rows.exists():
         previous: dict[str, Decimal] = defaultdict(lambda: ZERO)
-        from django.db.models import Sum
-        for name, amount in prev_rows.values_list('category').annotate(t=Sum('base_amount')):
+        from .refunds import net_sum
+        for name, amount in prev_rows.values_list('category').annotate(t=net_sum()):
             previous[name or ''] = amount or ZERO
         for name, amount in ranked[:8]:
             before = previous.get(name, ZERO)
