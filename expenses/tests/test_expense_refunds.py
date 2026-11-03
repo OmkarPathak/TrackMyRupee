@@ -407,6 +407,24 @@ class TestScreens(Base):
         self.assertContains(page, 'Net')
         self.assertContains(page, f'refund_for_expense={e.uuid}', count=2)      # desktop menu and mobile menu
 
+    def test_the_days_total_on_the_list_is_net_like_the_page_total(self):
+        from expenses.templatetags.expense_extras import sum_base_amounts
+        e = self.expense(20000)
+        self.refund(e, 15000)
+        other = self.expense(1000, description='Taxi')
+        self.assertEqual(sum_base_amounts([Expense.objects.get(pk=e.pk), other]), D('6000'))
+
+    def test_the_mobile_card_shows_net_in_its_meta_line_not_under_the_amount(self):
+        # the card keeps the height of the others: Net sits at the end of the category / account line
+        e = self.expense(20000)
+        self.refund(e, 15000)
+        html = self.client.get(reverse('expense-list'), {'time_period': 'all'}).content.decode()
+        mobile = html[html.index('id="mobileGridView"'):]
+        import re
+        self.assertEqual(len(re.findall(r'Net\s+₹', mobile)), 1)
+        meta = mobile[mobile.index('class="text-truncate"'):]
+        self.assertLess(re.search(r'Net\s+₹', meta).start(), meta.index('payment-badge'))      # before the amount column
+
     def test_an_expense_with_no_refund_looks_as_before(self):
         self.expense(20000)
         page = self.client.get(reverse('expense-list'), {'time_period': 'all'})

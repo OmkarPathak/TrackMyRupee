@@ -529,6 +529,7 @@
                                     <div class="fw-semibold text-body-emphasis line-clamp-2 mb-1" style="font-size: 0.93rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ expense.description }}">{{ expense.description }}</div>
                                     <div class="text-body-secondary d-flex align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
                                         <span class="text-truncate">{{ expense.category|truncatechars:18 }}{% if expense.account.name is not null %} • {{ expense.account.name|truncatechars:18 }}{% endif %}</span>
+                                        {% if expense.refunded_base %}<span class="flex-shrink-0 fw-semibold text-success text-nowrap" style="line-height: 1;" title="{% trans 'Paid back to you against this expense' %}"><i class="bi bi-arrow-return-left" style="line-height: 1;" aria-hidden="true"></i> {% trans "Net" %} {{ user.profile.currency }}{{ expense.net_base_amount|compact_amount:user.profile.currency|translate_digits }}</span>{% endif %}
                                     </div>
                                 </div>
                                 <div class="flex-shrink-0 text-end d-flex flex-column align-items-end gap-1">
@@ -536,9 +537,6 @@
                                         –{{ user.profile.currency }}{{ expense.base_amount|compact_amount:user.profile.currency|translate_digits }}
                                         {% if expense.currency != user.profile.currency %}
                                         <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})</div>
-                                        {% endif %}
-                                        {% if expense.refunded_base %}
-                                        <div class="text-body-secondary fw-normal text-nowrap" style="font-size: 0.68rem;"><i class="bi bi-arrow-return-left" aria-hidden="true"></i> {% trans "Net" %} {{ user.profile.currency }}{{ expense.net_base_amount|compact_amount:user.profile.currency|translate_digits }}</div>
                                         {% endif %}
                                     </div>
                                     <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
