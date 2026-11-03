@@ -84,9 +84,29 @@
     return sel;
   }
 
+  /* A select that fixes the currency without being one the person picks from here: a transfer is written in the
+     currency of its From account, so data-money-currency-from points at that select, whose data-currencies holds
+     {option value: currency}. */
+  function currencySource(el) {
+    if (el._moneySource !== undefined) return el._moneySource;
+    var ref = el.getAttribute('data-money-currency-from');
+    el._moneySource = ref ? document.querySelector(ref) : null;
+    return el._moneySource;
+  }
+
+  function sourceCurrency(el) {
+    var src = currencySource(el);
+    if (!src) return '';
+    try {
+      var map = JSON.parse(src.getAttribute('data-currencies') || '{}');
+      return map[selectValueProp.get.call(src)] || '';
+    } catch (e) { return ''; }
+  }
+
   function currencyOf(el) {
     var sel = currencySelect(el);
-    return (sel && selectValueProp.get.call(sel)) || profileCurrency();
+    if (sel) return selectValueProp.get.call(sel) || profileCurrency();
+    return sourceCurrency(el) || profileCurrency();
   }
 
   // ── Display ──────────────────────────────────────────────────────────────
@@ -116,6 +136,16 @@
   }
 
   // ── Combined [currency ▾][ amount ] control ──────────────────────────────
+  // The list reads "₹ INR", "$ USD": the symbol and the code, which is what people search for.
+  var CODES = { '₹': 'INR', '$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', 'A$': 'AUD', 'C$': 'CAD', 'CHF': 'CHF', '元': 'CNY', '₩': 'KRW' };
+
+  function relabelOptions(select) {
+    for (var i = 0; i < select.options.length; i++) {
+      var o = select.options[i];
+      if (CODES[o.value]) o.textContent = o.value === CODES[o.value] ? o.value : o.value + ' ' + CODES[o.value];
+    }
+  }
+
   function symbolOf(select) {
     var opt = select.options[select.selectedIndex];
     if (!opt) return '';
@@ -146,6 +176,7 @@
     for (var j = 0; j < labels.length; j++) labels[j].style.setProperty('display', 'none', 'important');
     if (controls.length !== 0) return;
     slot.style.setProperty('display', 'none', 'important');
+    if (amountEl.hasAttribute('data-money-keep-col')) return;      // the form keeps the amount's own width
     var row = slot.parentElement;
     if (!row || !/(^|\s)row(\s|$)/.test(row.className)) return;
     var mine = amountEl;
@@ -171,16 +202,13 @@
     select._moneyCombined = true;
     el.setAttribute('data-money-grouped', '');
 
-    // Every select is turned into a searchable dropdown at load (app_base.js). The currency select is a short list
-    // shown as just its symbol, so it stays a plain select: undo that if it already happened, and mark it so the
-    // dropdown script leaves it alone otherwise.
-    select.setAttribute('data-searchable-init', '1');
-    var widget = select.closest('.searchable-select-wrapper');
-    if (widget) widget.parentNode.replaceChild(select, widget);
-    select.style.display = '';
-
-    var oldSlot = slotOf(select);
+    // Every select becomes the app's searchable dropdown at load (app_base.js), with a search box over the list.
+    // The currency keeps it: whichever of the select or its dropdown wrapper exists now is what moves into the
+    // control (a wrapper that is made later lands inside it), and CSS dresses the dropdown's button as the segment.
+    var unit = select.closest('.searchable-select-wrapper') || select;
+    var oldSlot = slotOf(unit);
     var label = oldSlot && oldSlot.querySelector('label[for="' + select.id + '"]');
+    relabelOptions(select);
     if (!select.getAttribute('aria-label') && label) select.setAttribute('aria-label', label.textContent.trim());
 
     var group = el.parentElement;
@@ -203,7 +231,7 @@
     var sym = document.createElement('span');
     sym.className = 'tmr-money-sym';
     sym.setAttribute('aria-hidden', 'true');
-    holder.appendChild(select);
+    holder.appendChild(unit);
     holder.appendChild(sym);
     group.insertBefore(holder, group.firstChild);
 
@@ -220,6 +248,38 @@
     select.addEventListener('change', function () { paintSymbol(); repaintAll(form); });
     paintSymbol();
     tidyOldSlot(oldSlot, select, group, el);
+  }
+
+  /* The same segment for an amount whose currency is not chosen here (a transfer): it shows the currency of the
+     account the money leaves, and follows that account when it changes. */
+  function combineStatic(el) {
+    var src = currencySource(el);
+    if (!src || el.hasAttribute('data-money-single') || !el.hasAttribute('data-money-primary')) return;
+    var form = el.form;
+    if (form && form.querySelector('input[data-money-primary][data-money-grouped]')) return;
+    el.setAttribute('data-money-grouped', '');
+
+    var group = el.parentElement;
+    if (!group || !group.classList.contains('input-group')) {
+      group = document.createElement('div');
+      el.parentNode.insertBefore(group, el);
+      group.appendChild(el);
+      group.className = 'input-group';
+    }
+    group.classList.add('tmr-money-group');
+    if (el.classList.contains('form-control-lg')) group.classList.add('input-group-lg');
+
+    var holder = document.createElement('div');
+    holder.className = 'tmr-money-cur is-static';
+    var sym = document.createElement('span');
+    sym.className = 'tmr-money-sym';
+    holder.appendChild(sym);
+    group.insertBefore(holder, group.firstChild);
+
+    var paintSymbol = function () { sym.textContent = currencyOf(el); };
+    // The page's own dropdown widget updates the select and announces it, so a change is all there is to follow.
+    src.addEventListener('change', function () { paintSymbol(); repaintAll(form); });
+    paintSymbol();
   }
 
   // ── One input ────────────────────────────────────────────────────────────
@@ -271,6 +331,7 @@
     }
 
     combine(el);
+    combineStatic(el);
     valueProp.set.call(el, format(sanitize(startValue, decimalsFor(el), allowsNegative(el)), currencyOf(el)));
   }
 

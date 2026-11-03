@@ -1,3 +1,4 @@
+import json
 import re
 import uuid
 from datetime import date, timedelta
@@ -253,7 +254,8 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
                   'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            # (keep-col: the amount stays half width, with the source type beside it)
+            'amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01', 'data-money-keep-col': ''}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'source_type': forms.Select(attrs={'class': 'form-select'}),
@@ -1591,7 +1593,9 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
         fields = ['date', 'amount', 'from_account', 'to_account', 'description', 'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            # (a transfer is in the currency of its From account, so the currency segment follows that account)
+            'amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01',
+                                               'data-money-currency-from': '#id_from_account'}),
             'from_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'to_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
@@ -1622,6 +1626,9 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
 
             self.fields['from_account'].queryset = accounts_qs
             self.fields['to_account'].queryset = accounts_qs
+            # {account id: currency}, for the currency segment next to the amount
+            self.fields['from_account'].widget.attrs['data-currencies'] = json.dumps(
+                {str(pk): cur for pk, cur in accounts_qs.values_list('pk', 'currency')})
 
     def clean(self):
         cleaned_data = super().clean()

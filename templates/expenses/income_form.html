@@ -44,8 +44,8 @@
                             {% endif %}
                         </div>
 
-                        <!-- Row 2: Amount and Currency -->
-                        <div class="col-6 mb-3">
+                        <!-- Row 2: Amount (the currency joins it) -->
+                        <div class="col-12 col-md-6 mb-3">
                             <label for="{{ form.amount.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.amount.label }}</label>
                             {{ form.amount }}
                             {% if form.amount.errors %}
@@ -54,23 +54,23 @@
                                 </div>
                             {% endif %}
                         </div>
-                        <div class="col-6 mb-3">
-                            <label for="{{ form.currency.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.currency.label }}</label>
-                            {{ form.currency }}
-                            {% if form.currency.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.currency.errors.0 }}
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Row 3: Source Type -->
-                        <div class="col-12 mb-3">
+                        <!-- Row 2: Source Type, beside the amount -->
+                        <div class="col-12 col-md-6 mb-3">
                             <label for="{{ form.source_type.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.source_type.label }}</label>
                             {{ form.source_type }}
                             {% if form.source_type.errors %}
                                 <div class="text-danger small mt-1">
                                     {{ form.source_type.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6 mb-3">
+                            <label for="{{ form.currency.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.currency.label }}</label>
+                            {{ form.currency }}
+                            {% if form.currency.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.currency.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>

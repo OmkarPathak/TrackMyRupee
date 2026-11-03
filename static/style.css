@@ -4340,15 +4340,22 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
 .tmr-money-group { --tmr-money-box: calc(1.5rem + .75rem + 2px); --tmr-money-fill: var(--bs-primary, #0F7657); --tmr-money-ink: #fff; flex-wrap: nowrap; }
 .tmr-money-group.input-group-lg { --tmr-money-box: calc(1.875rem + 1rem + 2px); }
 .tmr-money-group.input-group-sm { --tmr-money-box: calc(1.5rem + .5rem + 2px); }
-.tmr-money-cur { position: relative; flex: 0 0 var(--tmr-money-box); width: var(--tmr-money-box); height: var(--tmr-money-box); display: flex; overflow: hidden; background: var(--tmr-money-fill); border: 1px solid var(--tmr-money-fill); border-radius: var(--bs-border-radius, .375rem) 0 0 var(--bs-border-radius, .375rem); transition: filter .15s ease, box-shadow .15s ease; }
+.tmr-money-cur { position: relative; flex: 0 0 var(--tmr-money-box); width: var(--tmr-money-box); height: var(--tmr-money-box); display: flex; background: var(--tmr-money-fill); border: 1px solid var(--tmr-money-fill); border-radius: var(--bs-border-radius, .375rem) 0 0 var(--bs-border-radius, .375rem); transition: filter .15s ease, box-shadow .15s ease; }
 .input-group-lg > .tmr-money-cur { border-radius: var(--bs-border-radius-lg, .5rem) 0 0 var(--bs-border-radius-lg, .5rem); }
-.tmr-money-cur:hover { filter: brightness(.93); }
+.tmr-money-cur:not(.is-static):hover { filter: brightness(.93); }
+.tmr-money-cur.is-static { cursor: default; }
 .tmr-money-cur:focus-within { z-index: 3; box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb, 15, 118, 87), .25); }
-.tmr-money-cur > select { width: 100%; min-width: 0; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; outline: 0; color: transparent; background: transparent; text-align: center; text-align-last: center; -webkit-appearance: none; appearance: none; background-image: none; cursor: pointer; }
+.tmr-money-group .tmr-money-cur > select.form-select, .tmr-money-group .tmr-money-cur > select { width: 100%; min-width: 0; height: 100%; padding: 0 !important; margin: 0; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; outline: 0; color: transparent !important; background: transparent !important; text-align: center; text-align-last: center; -webkit-appearance: none; appearance: none; background-image: none !important; cursor: pointer; }
 .tmr-money-cur > select option { color: var(--bs-body-color); background: var(--bs-body-bg); }
 .tmr-money-cur .tmr-money-sym { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; line-height: 1; pointer-events: none; color: var(--tmr-money-ink); }
 .tmr-money-cur.is-disabled { background: var(--bs-secondary-bg, #e9ecef); border-color: var(--bs-border-color, #dee2e6); filter: none; }
 .tmr-money-cur.is-disabled > select { cursor: not-allowed; }
 .tmr-money-cur.is-disabled .tmr-money-sym { color: var(--bs-secondary-color, #6c757d); }
-.tmr-money-group > .form-control { height: var(--tmr-money-box); border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-width: 0; min-width: 0; font-variant-numeric: tabular-nums; }
+.tmr-money-group > .form-control, .form-card .tmr-money-group > .form-control { height: var(--tmr-money-box); border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-width: 0; min-width: 0; font-variant-numeric: tabular-nums; }
 input[data-money-ready] { font-variant-numeric: tabular-nums; }
+/* The currency list is the app's searchable dropdown (search box and rows): its button is dressed as the segment and
+   its panel opens under it, wider than the segment. */
+.tmr-money-cur > .searchable-select-wrapper { width: 100%; height: 100%; }
+.tmr-money-group .tmr-money-cur .searchable-select-btn { width: 100%; height: 100%; padding: 0 !important; margin: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; background-image: none !important; box-shadow: none !important; color: transparent !important; font-size: 0; cursor: pointer; }
+.tmr-money-group .tmr-money-cur .searchable-select-btn:disabled { cursor: not-allowed; }
+.tmr-money-cur .searchable-select-dropdown { min-width: 13rem; text-align: left; font-size: 1rem; font-weight: 400; color: var(--bs-body-color); }
