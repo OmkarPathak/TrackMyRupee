@@ -23847,3 +23847,7 @@ msgstr "या खर्चापोटी तुम्हाला परत �
 #: templates/expenses/expense_form.html:136
 msgid "Nothing has been paid back against this expense yet. If someone repays you for part of it, add it as a refund and only your own share stays counted."
 msgstr "या खर्चासाठी अद्याप काहीही परत मिळालेले नाही. कोणी त्याचा काही भाग परत केल्यास तो रिफंड म्हणून जोडा, म्हणजे फक्त तुमचा स्वतःचा वाटा मोजला जाईल."
+
+#: templates/expenses/expense_form.html
+msgid "Changing the currency re-converts this expense at the current exchange rate and updates the account balance."
+msgstr "चलन बदलल्यास हा खर्च सध्याच्या विनिमय दराने पुन्हा रूपांतरित होईल आणि खात्यातील शिल्लक अद्ययावत होईल."

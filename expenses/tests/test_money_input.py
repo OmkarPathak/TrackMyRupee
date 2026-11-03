@@ -80,3 +80,13 @@ class TestFormsAcceptGroupedAmounts(TestCase):
         self.assertContains(page, 'js/money_input.js')
         self.assertContains(page, 'window.TMR_CURRENCY = "₹"')
         self.assertContains(page, 'data-money-primary')
+
+    def test_edit_expense_warns_that_changing_the_currency_reconverts(self):
+        from expenses.models import Expense
+        expense = Expense.objects.create(user=self.user, date=date.today(), amount=Decimal('100'), currency='₹',
+                                         account=self.account, description='Lunch', category='Food')
+        self.client.force_login(self.user)
+        page = self.client.get(reverse('expense-edit', args=[expense.pk]))
+        self.assertContains(page, 'id="currency-change-hint"')
+        self.assertContains(page, 'data-initial="₹"')
+        self.assertContains(page, 'Changing the currency re-converts this expense')

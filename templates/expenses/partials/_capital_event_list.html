@@ -83,7 +83,7 @@
                             <td class="fw-bold tmr-amount">
                                 {{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
                                 {% if event.refunded_total %}
-                                    <div class="small fw-normal text-muted" title="{% trans 'Paid back to you against this event' %}"><i class="bi bi-arrow-return-left" aria-hidden="true"></i> {{ user.profile.currency }}{{ event.refunded_total|ind_comma:user.profile.currency|translate_digits }} {% trans "refunded" %}</div>
+                                    <div class="small fw-normal text-muted tmr-ic" title="{% trans 'Paid back to you against this event' %}"><i class="bi bi-arrow-return-left" aria-hidden="true"></i>{{ user.profile.currency }}{{ event.refunded_total|ind_comma:user.profile.currency|translate_digits }} {% trans "refunded" %}</div>
                                     <div class="small fw-semibold text-success text-nowrap">{% trans "Net" %} {{ user.profile.currency }}{{ event.net_total|ind_comma:user.profile.currency|translate_digits }}</div>
                                 {% endif %}
                             </td>
@@ -211,7 +211,7 @@
                                             -{{ event.currency }}{{ event.amount|ind_comma:event.currency|translate_digits }}
                                         </div>
                                         {% if event.refunded_total %}
-                                            <div class="small text-muted text-nowrap" style="font-size: 0.72rem;"><i class="bi bi-arrow-return-left" aria-hidden="true"></i> {% trans "Net" %} {{ user.profile.currency }}{{ event.net_total|ind_comma:user.profile.currency|translate_digits }}</div>
+                                            <div class="small text-muted text-nowrap tmr-ic" style="font-size: 0.72rem;"><i class="bi bi-arrow-return-left" aria-hidden="true"></i>{% trans "Net" %} {{ user.profile.currency }}{{ event.net_total|ind_comma:user.profile.currency|translate_digits }}</div>
                                         {% endif %}
                                         <div class="d-flex flex-column align-items-end gap-1">
                                             {% if event.exclude_from_averages %}

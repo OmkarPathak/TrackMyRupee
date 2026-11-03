@@ -4440,7 +4440,6 @@ input[data-money-ready] { font-variant-numeric: tabular-nums; }
 /* Edit/Add forms (.form-card): the segment takes the same 10px corners and 1.5px edge as the inputs beside it, and sits
    flush against the amount box, so the pair reads as one control with no seam. */
 .form-card .tmr-money-group > .tmr-money-cur { border-width: 1.5px !important; border-radius: 10px 0 0 10px; }
-.form-card .tmr-money-group > .tmr-money-cur > .searchable-select-wrapper { border-radius: 8.5px 0 0 8.5px; overflow: hidden; }
 .form-card .tmr-money-group > .form-control, .form-card .tmr-money-group > .form-control:not(:first-child) { margin-left: 0 !important; border-radius: 0 10px 10px 0 !important; border-left: 0 !important; }
 .form-card .tmr-money-group > .form-control:focus { box-shadow: none; border-color: var(--tmr-money-fill); }
 .form-card .tmr-money-group:focus-within { border-radius: 10px; box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb, 15, 118, 87), .2); }
@@ -4462,3 +4461,11 @@ input:not(.border-0):focus-visible, select:not(.border-0):focus-visible, textare
 .form-card .tmr-money-group > .form-control:focus { box-shadow: none; border-color: var(--bs-border-color); }
 .form-card .tmr-money-group:focus-within, .tmr-money-cur:focus-within { box-shadow: 0 0 0 .2rem var(--tmr-focus-glow); }
 .form-card .tmr-money-cur:focus-within { box-shadow: none; }
+
+/* An icon beside its text, centred on the text's line: the container lines both up (flex), with a small gap. */
+.tmr-ic { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; }
+div.tmr-ic, h2.tmr-ic { display: flex; justify-content: flex-start; }
+.tmr-ic > .bi { line-height: 1; flex: 0 0 auto; }
+p.tmr-ic { display: flex; justify-content: flex-start; }
+.tmr-ic > .text-truncate { min-width: 0; }
+.tmr-ic[hidden] { display: none !important; }

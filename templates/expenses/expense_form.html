@@ -41,6 +41,11 @@
                                 {{ form.category }}
                                 {% if form.category.errors %}<div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>{% endif %}
                             </div>
+                            <div class="col-12">
+                                <div id="currency-change-hint" class="form-text text-warning-emphasis small mt-0 tmr-ic" data-initial="{{ object.currency }}" hidden>
+                                    <i class="bi bi-info-circle"></i>{% trans "Changing the currency re-converts this expense at the current exchange rate and updates the account balance." %}
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -114,9 +119,9 @@
                 <!-- Money that has come back against this expense (income entries linked to it) -->
                 <div class="form-card mt-3" id="expense-refunds">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h2 class="h6 fw-bold mb-0"><i class="bi bi-arrow-return-left text-success me-1" aria-hidden="true"></i>{% trans "Refunds" %}</h2>
-                        <a class="btn btn-sm btn-outline-success rounded-pill" href="{% url 'income-create' %}?refund_for_expense={{ form.instance.uuid }}&next={{ request.get_full_path|urlencode }}">
-                            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% trans "Add refund" %}
+                        <h2 class="h6 fw-bold mb-0 tmr-ic"><i class="bi bi-arrow-return-left text-success" aria-hidden="true"></i>{% trans "Refunds" %}</h2>
+                        <a class="btn btn-sm btn-outline-success rounded-pill tmr-ic" href="{% url 'income-create' %}?refund_for_expense={{ form.instance.uuid }}&next={{ request.get_full_path|urlencode }}">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i>{% trans "Add refund" %}
                         </a>
                     </div>
                     {% if refunds %}
@@ -314,6 +319,17 @@
         }
 
         document.querySelectorAll('.expense-amount-input').forEach(attachToInput);
+
+        // Warn when the currency of an existing expense is changed: the amount is converted again at today's rate.
+        (function () {
+            const hint = document.getElementById('currency-change-hint');
+            const select = document.querySelector('select[name="currency"]');
+            if (!hint || !select) return;
+            const initial = hint.getAttribute('data-initial');
+            const sync = () => { hint.hidden = !initial || select.value === initial; };
+            select.addEventListener('change', sync);
+            sync();
+        })();
 
         // Also watch for dynamically added rows in bulk-add forms
         const observer = new MutationObserver(mutations => {
