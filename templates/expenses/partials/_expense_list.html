@@ -450,6 +450,10 @@
                                         {% if expense.currency != user.profile.currency %}
                                         <div class="text-muted small fw-normal" style="font-size: 0.75rem;">({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})</div>
                                         {% endif %}
+                                        {% if expense.refunded_base %}
+                                        <div class="small fw-normal text-muted" title="{% trans 'Paid back to you against this expense' %}"><i class="bi bi-arrow-return-left" aria-hidden="true"></i> {{ user.profile.currency }}{{ expense.refunded_base|compact_amount:user.profile.currency|translate_digits }} {% trans "refunded" %}</div>
+                                        <div class="small fw-semibold text-success text-nowrap">{% trans "Net" %} {{ user.profile.currency }}{{ expense.net_base_amount|compact_amount:user.profile.currency|translate_digits }}</div>
+                                        {% endif %}
                                     </td>
                                     <td class="text-end pe-4 text-nowrap">
                                         <div class="dropdown hstack gap-3 justify-content-end">
@@ -462,6 +466,12 @@
                                                     <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                         <i class="bi bi-pencil-square text-primary"></i>
                                                         <span>{% trans "Edit" %}</span>
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'income-create' %}?refund_for_expense={{ expense.uuid }}&next={{ request.get_full_path|urlencode }}">
+                                                        <i class="bi bi-arrow-return-left text-success"></i>
+                                                        <span>{% trans "Add refund" %}</span>
                                                     </a>
                                                 </li>
                                                 <li>
@@ -527,6 +537,9 @@
                                         {% if expense.currency != user.profile.currency %}
                                         <div class="text-body-secondary fw-normal" style="font-size: 0.68rem;">({{ expense.currency }}{{ expense.amount|compact_amount:expense.currency|translate_digits }})</div>
                                         {% endif %}
+                                        {% if expense.refunded_base %}
+                                        <div class="text-body-secondary fw-normal text-nowrap" style="font-size: 0.68rem;"><i class="bi bi-arrow-return-left" aria-hidden="true"></i> {% trans "Net" %} {{ user.profile.currency }}{{ expense.net_base_amount|compact_amount:user.profile.currency|translate_digits }}</div>
+                                        {% endif %}
                                     </div>
                                     <span class="payment-badge pay-{{ expense.payment_method|lower|slugify }}">{{ expense.payment_method }}</span>
                                 </div>
@@ -540,6 +553,12 @@
                                             <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'expense-edit' expense.uuid %}?next={{ request.get_full_path|urlencode }}">
                                                 <i class="bi bi-pencil-square text-primary"></i>
                                                 <span>{% trans "Edit" %}</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'income-create' %}?refund_for_expense={{ expense.uuid }}&next={{ request.get_full_path|urlencode }}">
+                                                <i class="bi bi-arrow-return-left text-success"></i>
+                                                <span>{% trans "Add refund" %}</span>
                                             </a>
                                         </li>
                                         <li>

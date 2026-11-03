@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 from ..account_types import ACCOUNT_TYPES
 from ..insights.types import Tone
 from ..models import Expense
+from ..refunds import net_sum
 from ..utils import translate_digits
 from .common import Page
 from .links import EXPENSE
@@ -89,7 +90,7 @@ def _legacy_rising(page: Page) -> list[dict]:
         index = first_of_month.year * 12 + first_of_month.month - 1 - back
         months.append(date(index // 12, index % 12 + 1, 1))
     rows = (Expense.objects.filter(user=page.user, date__gte=months[0], date__lt=first_of_month)
-            .annotate(m=TruncMonth('date')).values('m', 'category').annotate(total=Sum('base_amount')))
+            .annotate(m=TruncMonth('date')).values('m', 'category').annotate(total=net_sum()))
     by_category = {}
     for row in rows:
         m = row['m'].date() if hasattr(row['m'], 'date') else row['m']

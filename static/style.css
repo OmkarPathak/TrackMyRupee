@@ -4407,3 +4407,28 @@ input[data-money-ready] { font-variant-numeric: tabular-nums; }
 .tmr-money-group .tmr-money-cur .searchable-select-btn { width: 100%; height: 100%; padding: 0 !important; margin: 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; background-image: none !important; box-shadow: none !important; color: transparent !important; font-size: 0; cursor: pointer; }
 .tmr-money-group .tmr-money-cur .searchable-select-btn:disabled { cursor: not-allowed; }
 .tmr-money-cur .searchable-select-dropdown { min-width: 13rem; text-align: left; font-size: 1rem; font-weight: 400; color: var(--bs-body-color); }
+
+/* ── Refund picker (static/js/refund_picker.js): search for the expense a refund pays back ── */
+.tmr-picker { position: relative; }
+.tmr-picker-results { position: absolute; left: 0; right: 0; top: 100%; z-index: 1055; margin-top: 4px; padding: 0.35rem; max-height: 21rem; overflow-y: auto; background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 0.5rem; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12); }
+.tmr-picker-head { padding: 0.25rem 0.55rem 0.35rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--bs-secondary-color); }
+.tmr-picker-empty { padding: 0.75rem 0.55rem; color: var(--bs-secondary-color); font-size: 0.9rem; }
+.tmr-picker-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; width: 100%; padding: 0.45rem 0.55rem; text-align: left; color: var(--bs-body-color); background: transparent; border: 0; border-radius: 0.4rem; }
+.tmr-picker-row:hover, .tmr-picker-row.is-active { background: rgba(var(--bs-primary-rgb), 0.09); }
+.tmr-picker-main, .tmr-picker-side { display: flex; flex-direction: column; min-width: 0; }
+.tmr-picker-side { align-items: flex-end; flex: 0 0 auto; }
+.tmr-picker-desc { font-size: 0.93rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tmr-picker-meta { font-size: 0.78rem; color: var(--bs-secondary-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tmr-picker-amount { font-size: 0.93rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tmr-picker-refunded { font-size: 0.72rem; color: var(--bs-success); white-space: nowrap; }
+.tmr-picker-chosen { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.5rem 0.75rem; background: rgba(var(--bs-primary-rgb), 0.07); border: 1px solid rgba(var(--bs-primary-rgb), 0.35); border-radius: 0.5rem; }
+.tmr-picker-chosen-text { display: flex; flex-direction: column; min-width: 0; }
+.tmr-picker-chosen-main { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tmr-picker-chosen-meta { font-size: 0.8rem; color: var(--bs-secondary-color); }
+@media (max-width: 575.98px) { .tmr-picker-results { max-height: 15rem; } }
+
+/* the rows of the unified refund list: a kind tag, and the "Not linked" row that comes first */
+.tmr-picker-kind { display: inline-block; margin-right: 0.35rem; padding: 0 0.45rem; border-radius: 999px; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.02em; line-height: 1.5; background: var(--bs-tertiary-bg); color: var(--bs-secondary-color); border: 1px solid var(--bs-border-color); vertical-align: 1px; }
+.tmr-picker-kind--event { background: rgba(var(--bs-primary-rgb), 0.1); color: var(--bs-primary); border-color: rgba(var(--bs-primary-rgb), 0.3); }
+.tmr-picker-row--none { border-bottom: 1px solid var(--bs-border-color); border-radius: 0.4rem 0.4rem 0 0; margin-bottom: 0.25rem; }
+.tmr-picker-row--none .tmr-picker-side { justify-content: center; color: var(--bs-primary); }

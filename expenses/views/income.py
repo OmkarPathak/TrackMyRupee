@@ -275,6 +275,20 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
                                 'currency': event.currency, 'account': event.account_id})
                 if event.note:
                     initial['description'] = event.note[:200]
+        # ...and "Add refund" on an expense links with ?refund_for_expense=<expense>
+        raw_expense = self.request.GET.get('refund_for_expense')
+        if raw_expense and 'refund_for_capital_event' not in initial:
+            from ..models import Expense
+            from .utils import get_object_by_uuid_or_pk
+            try:
+                expense = get_object_by_uuid_or_pk(Expense, raw_expense, user=self.request.user)
+            except (Http404, ValueError, ValidationError):
+                expense = None
+            if expense is not None and not expense.is_deleted:
+                initial.update({'source_type': 'Refund / Reimbursement', 'refund_for_expense': expense.pk,
+                                'currency': expense.currency, 'account': expense.account_id})
+                if expense.description:
+                    initial['description'] = expense.description[:200]
         return initial
 
     def form_valid(self, form):

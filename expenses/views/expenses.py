@@ -15,6 +15,7 @@ from expenses.views.utils import get_safe_redirect_url
 from ..forms import ExpenseForm
 from ..models import Account, CapitalEvent, Category, Expense
 from ..posthog_utils import ph_capture
+from ..refunds import net_sum
 from .mixins import (
     HtmxPartialTemplateMixin,
     RecurringTransactionMixin,
@@ -43,7 +44,7 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
         
         # Calculate stats for the filtered queryset in a single DB query
         filtered_queryset = self.object_list
-        stats = filtered_queryset.aggregate(count=Count('id'), total=Sum('base_amount'))
+        stats = filtered_queryset.aggregate(count=Count('id'), total=net_sum())
         context['filtered_count'] = stats['count']
         context['filtered_amount'] = stats['total'] or 0
 
@@ -159,6 +160,12 @@ class ExpenseUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['next_url'] = self.request.POST.get('next') or self.request.GET.get('next') or ''
+        # The refunds paid back against this expense, with what they add up to
+        from ..models import Income
+        context['refunds'] = list(Income.objects.filter(refund_for_expense=self.object, is_deleted=False)
+                                  .select_related('account').order_by('-date', '-id'))
+        context['refunded_total'] = self.object.refunded_base
+        context['net_total'] = self.object.net_base_amount
         return context
 
 class ExpenseDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteView):
@@ -306,3 +313,17 @@ class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
         next_url = request.GET.get('next') or request.POST.get('next')
         return redirect(get_safe_redirect_url(request, next_url, reverse('capital-event-list')))
 
+
+# ── Picking what a refund pays back ───────────────────────────────────────────────────────────────────────────────────
+
+def refund_target_search(request):
+    """JSON for the income form's refund search box: GET ?q=<words>. Expenses and capital events together, newest
+    first: the latest few without a query, the matches (in both kinds) with one."""
+    from django.http import JsonResponse
+
+    from ..refund_targets import search_refund_targets
+
+    if not request.user.is_authenticated:
+        return JsonResponse({'results': []}, status=401)
+    query = (request.GET.get('q') or '').strip()[:80]
+    return JsonResponse({'query': query, 'recent': not query, 'results': search_refund_targets(request.user, query)})

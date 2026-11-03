@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block content %}
 <div class="row justify-content-center fade-in">
@@ -75,16 +75,37 @@
                             {% endif %}
                         </div>
 
-                        <!-- Refund link: only for "Refund / Reimbursement" -->
-                        <div class="col-12 mb-3" id="refund-for-container" style="display: none;">
-                            <label for="{{ form.refund_for_capital_event.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.refund_for_capital_event.label }}</label>
-                            {{ form.refund_for_capital_event }}
-                            <div class="form-text small">{{ form.refund_for_capital_event.help_text }}</div>
-                            {% if form.refund_for_capital_event.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ form.refund_for_capital_event.errors.0 }}
+                        <!-- Refund link: only for "Refund / Reimbursement". One search box over the expenses and capital events;
+                             "Not linked" (the default) counts the money as income. static/js/refund_picker.js drives it, the
+                             hidden refund_for_expense / refund_for_capital_event inputs are rendered with the other hidden fields. -->
+                        <div class="col-12 mb-3" id="refund-for-container" style="display: none;"
+                             data-search-url="{% url 'refund-target-search' %}"
+                             data-label-recent="{% trans 'Recent' %}" data-label-matches="{% trans 'Matches' %}"
+                             data-label-none="{% trans 'No matching expenses or capital events' %}"
+                             data-label-not-linked="{% trans 'Not linked to anything' %}" data-label-not-linked-meta="{% trans 'Counts as income' %}"
+                             data-label-expense="{% trans 'Expense' %}" data-label-event="{% trans 'Capital event' %}"
+                             data-label-refunded="{% trans 'refunded' %}" data-label-refund-prefix="{% trans 'Refund' %}">
+                            <label class="form-label small text-muted fw-bold" for="refund-search">{% trans "Refund for" %}</label>
+                            <div class="tmr-picker-chosen" id="refund-chosen" hidden>
+                                <span class="tmr-picker-chosen-text">
+                                    <span class="tmr-picker-chosen-main"></span>
+                                    <span class="tmr-picker-chosen-meta"></span>
+                                </span>
+                                <button type="button" class="btn-close tmr-picker-clear" aria-label="{% trans 'Unlink this refund' %}"></button>
+                            </div>
+                            <div class="tmr-picker" id="refund-picker">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent"><i class="bi bi-search" aria-hidden="true"></i></span>
+                                    <input type="text" id="refund-search" class="form-control" autocomplete="off"
+                                           placeholder="{% trans 'Not linked to anything' %}"
+                                           role="combobox" aria-expanded="false" aria-controls="refund-results" aria-autocomplete="list">
                                 </div>
-                            {% endif %}
+                                <div class="tmr-picker-results" id="refund-results" role="listbox" hidden></div>
+                            </div>
+                            <div class="form-text small">{% trans "Search your expenses and capital events to link this refund to one. It is then taken off that expense or event, so its month, category and budget show what it really cost, instead of counting as income." %}</div>
+                            {% if form.refund_for_expense.errors %}<div class="text-danger small mt-1">{{ form.refund_for_expense.errors.0 }}</div>{% endif %}
+                            {% if form.refund_for_capital_event.errors %}<div class="text-danger small mt-1">{{ form.refund_for_capital_event.errors.0 }}</div>{% endif %}
+                            {{ form.refund_choice|json_script:"refund-initial" }}
                         </div>
 
                         <!-- Row 3: Description -->
@@ -138,6 +159,7 @@
                             }
                         });
                     </script>
+                    <script src="{% static 'js/refund_picker.js' %}?v=1.0"></script>
 
                     <!-- Row 4: Cancel and Save (Right Aligned) -->
                     <div class="d-flex justify-content-end gap-2 mt-4">

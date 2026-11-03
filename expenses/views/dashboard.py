@@ -47,6 +47,7 @@ from ..budgets import (
     capital_report_name,
     normalize_category,
 )
+from ..refunds import net_sum
 from ..savings import (
     LINKED_REFUND,
     LINKED_TO_COUNTED,
@@ -451,7 +452,7 @@ def home_view(request):
     # We need to fetch raw values and merge them in Python to handle whitespace duplicates
     # One grouped query feeds the category chart, the payment-method split and the totals below.
     expense_groups = list(expenses.order_by().values('category', 'payment_method')
-                          .annotate(total=Sum('base_amount'), n=Count('id')))
+                          .annotate(total=net_sum(), n=Count('id')))
     raw_category_data = expense_groups
     
     # Process and merge duplicates
@@ -645,7 +646,7 @@ def home_view(request):
         date_fmt = '%b %Y'
 
     # Aggregate by Period for Total Spend
-    total_data = trend_qs.values('period').annotate(total=Sum('base_amount')).order_by('period')
+    total_data = trend_qs.values('period').annotate(total=net_sum()).order_by('period')
     
     # Process into Chart.js Datasets
     periods = [item['period'] for item in total_data]
@@ -873,7 +874,7 @@ def home_view(request):
 
             # TREND DATA FOR PREVIOUS MONTH
             prev_trend_qs = prev_expenses_all.annotate(period=TruncDay('date'))
-            prev_day_data = prev_trend_qs.values('period').annotate(total=Sum('base_amount')).order_by('period')
+            prev_day_data = prev_trend_qs.values('period').annotate(total=net_sum()).order_by('period')
             if salary_cycle_active and salary_cycle_start and salary_cycle_end:
                 prev_day_map = {
                     ((item['period'].date() if hasattr(item['period'], 'date') else item['period']) - prev_cycle_start).days + 1: float(item['total'])
@@ -1248,7 +1249,7 @@ def home_view(request):
                 user=request.user, 
                 category__iexact=top_cat,
                 date__gte=now.replace(day=1) - timedelta(days=100)
-            ).annotate(m=TruncMonth('date')).values('m').annotate(total=Sum('base_amount'))
+            ).annotate(m=TruncMonth('date')).values('m').annotate(total=net_sum())
             cat_3m_map = {(item['m'].year, item['m'].month): float(item['total']) for item in cat_3m_history}
 
             cat_3_month_total = 0
@@ -1404,8 +1405,8 @@ def home_view(request):
 
             # DB-side aggregation — no Python iteration over expense rows
             agg = period_expenses_qs.aggregate(
-                planned_total=Sum('base_amount', filter=planned_q),
-                impulse_total=Sum('base_amount', filter=~planned_q),
+                planned_total=net_sum(filter=planned_q),
+                impulse_total=net_sum(filter=~planned_q),
             )
             planned_total = agg['planned_total'] or Decimal('0.00')
             impulse_total = agg['impulse_total'] or Decimal('0.00')
@@ -1441,8 +1442,8 @@ def home_view(request):
                     if prev_exp_qs is not None:
                         # DB-side aggregation for previous period impulse too
                         prev_agg = prev_exp_qs.aggregate(
-                            prev_total=Sum('base_amount'),
-                            prev_planned=Sum('base_amount', filter=planned_q),
+                            prev_total=net_sum(),
+                            prev_planned=net_sum(filter=planned_q),
                         )
                         prev_period_total = prev_agg['prev_total'] or Decimal('0.00')
                         prev_planned_total = prev_agg['prev_planned'] or Decimal('0.00')
@@ -1537,7 +1538,7 @@ def home_view(request):
             shadow_legacy['cashflow.savings_momentum'] = False
         # Calculate Category Savings (Cause of the win)
         # We need prev month category breakdown
-        prev_cat_qs = Expense.objects.filter(user=request.user, **prev_window).values('category').annotate(total=Sum('base_amount'))
+        prev_cat_qs = Expense.objects.filter(user=request.user, **prev_window).values('category').annotate(total=net_sum())
         prev_cat_map = {item['category'].strip(): float(item['total']) for item in prev_cat_qs}
         
         # Add micro trend indicators to category_limits
@@ -1994,7 +1995,7 @@ def home_view(request):
                 user=request.user, 
                 date__year=prev_year, 
                 date__month=prev_month
-            ).values('category').annotate(total=Sum('base_amount'))
+            ).values('category').annotate(total=net_sum())
             prev_cat_map = {item['category'].strip(): float(item['total']) for item in prev_cat_qs}
         
         spikes = []

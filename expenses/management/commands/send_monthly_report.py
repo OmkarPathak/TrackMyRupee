@@ -14,6 +14,7 @@ from django.utils.translation import gettext as _
 from expenses.account_types import resolve_category_selector
 from expenses.ledger_read_service import LedgerReadService
 from expenses.models import Account, CapitalEvent, EmailLog, Expense, Income, LoanRepayment
+from expenses.refunds import net_sum
 from expenses.savings import expense_total, income_totals, savings_for_period
 from expenses.templatetags.digit_filters import compact_amount
 from expenses.utils import get_exchange_rate
@@ -146,7 +147,7 @@ class Command(BaseCommand):
 
         # 2. Top 4 Categories with percentage
         top_cats_raw = list(exp_qs.values('category').annotate(
-            total=Sum('base_amount')
+            total=net_sum()
         ).order_by('-total')[:4])
         top_cat_total = sum(c['total'] for c in top_cats_raw) or Decimal('1')
         top_categories = [

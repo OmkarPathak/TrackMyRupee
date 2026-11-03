@@ -25,15 +25,21 @@ from decimal import ROUND_HALF_UP, Decimal
 from django.db.models import Count, DecimalField, F, IntegerField, Q, Sum, Value
 from django.db.models.functions import TruncMonth
 
+from .refunds import net_sum
+
 CASHBACK_REFUND_TYPES = ('Cashback & Rewards', 'Refund / Reimbursement')
 
 ZERO = Decimal('0')
 
 # An income entry that pays back a capital event (Income.refund_for_capital_event) is not income: it is taken off the
 # event instead. A link to an event that was deleted is ignored, so that money counts as income again, as before.
-LINKED_REFUND = Q(refund_for_capital_event__isnull=False, refund_for_capital_event__is_deleted=False)
-# ...and it only changes the spending figures when the event it pays back is itself counted in them.
-LINKED_TO_COUNTED = LINKED_REFUND & Q(refund_for_capital_event__exclude_from_averages=False)
+LINKED_TO_EVENT = Q(refund_for_capital_event__isnull=False, refund_for_capital_event__is_deleted=False)
+# The same goes for income that pays back an expense (Income.refund_for_expense): it is not income, and the expense
+# shows what it really cost instead (expenses/refunds.py: spending sums use NET_EXPENSE).
+LINKED_TO_EXPENSE = Q(refund_for_expense__isnull=False, refund_for_expense__is_deleted=False)
+LINKED_REFUND = LINKED_TO_EVENT | LINKED_TO_EXPENSE
+# ...a refund for a capital event only changes the spending figures when that event is itself counted in them.
+LINKED_TO_COUNTED = LINKED_TO_EVENT & Q(refund_for_capital_event__exclude_from_averages=False)
 
 
 def _dec(value) -> Decimal:
@@ -108,7 +114,7 @@ def counted_capital_refund_total(income_qs) -> Decimal:
 
 
 def expense_total(expense_qs) -> Decimal:
-    return _dec(expense_qs.aggregate(total=Sum('base_amount'))['total'])
+    return _dec(expense_qs.aggregate(total=net_sum())['total'])
 
 
 def loan_interest_total(repayment_qs) -> Decimal:
@@ -161,7 +167,7 @@ def period_totals(income_qs, expense_qs, repayment_qs, capital_qs) -> dict:
                  extra=(Sum('base_amount', filter=LINKED_REFUND),
                         Sum('base_amount', filter=LINKED_REFUND & Q(source_type__in=CASHBACK_REFUND_TYPES)),
                         Sum('base_amount', filter=LINKED_TO_COUNTED))),
-        _one_row(expense_qs, 1, Sum('base_amount')),
+        _one_row(expense_qs, 1, net_sum()),
         _one_row(repayment_qs, 2, Sum(F('interest_portion') * F('exchange_rate')), Sum('base_amount'), Count('id')),
         _one_row(capital_qs.filter(exclude_from_averages=False), 3, Sum('base_amount')),
     ])
@@ -246,7 +252,7 @@ def monthly_parts(user, start: date, end: date | None = None) -> dict:
                  linked=(Sum('base_amount', filter=LINKED_REFUND),
                          Sum('base_amount', filter=LINKED_REFUND & Q(source_type__in=CASHBACK_REFUND_TYPES)),
                          Sum('base_amount', filter=LINKED_TO_COUNTED))),
-        by_month(Expense.objects.filter(user=user, **window), 1, Sum('base_amount')),
+        by_month(Expense.objects.filter(user=user, **window), 1, net_sum()),
         by_month(LoanRepayment.objects.filter(loan__user=user, **window), 2, Sum(F('interest_portion') * F('exchange_rate'))),
         by_month(CapitalEvent.objects.filter(user=user, exclude_from_averages=False, **window), 3, Sum('base_amount')),
     ]):
