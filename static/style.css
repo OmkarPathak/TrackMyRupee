@@ -4469,3 +4469,5 @@ div.tmr-ic, h2.tmr-ic { display: flex; justify-content: flex-start; }
 p.tmr-ic { display: flex; justify-content: flex-start; }
 .tmr-ic > .text-truncate { min-width: 0; }
 .tmr-ic[hidden] { display: none !important; }
+/* Inside a right-aligned amount cell the icon line hugs the right edge, like the amount and Net lines around it. */
+.tmr-table td.tmr-amount .tmr-ic, .tmr-table td.text-end .tmr-ic { justify-content: flex-end; }
