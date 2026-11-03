@@ -4333,3 +4333,22 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
 [data-bs-theme="dark"] .btn-sidebar-add {
   color: var(--color-success-text, #5DCAA5) !important;
 }
+
+/* ── Currency-aware amount input: [₹|  1,00,000 ] (static/js/money_input.js) ──
+   One joined control: the currency is a filled square segment (as wide as the input is tall) with its symbol
+   centred, flush against the input, so the two read as a single field. Light and dark themes share the brand fill. */
+.tmr-money-group { --tmr-money-box: calc(1.5rem + .75rem + 2px); --tmr-money-fill: var(--bs-primary, #0F7657); --tmr-money-ink: #fff; flex-wrap: nowrap; }
+.tmr-money-group.input-group-lg { --tmr-money-box: calc(1.875rem + 1rem + 2px); }
+.tmr-money-group.input-group-sm { --tmr-money-box: calc(1.5rem + .5rem + 2px); }
+.tmr-money-cur { position: relative; flex: 0 0 var(--tmr-money-box); width: var(--tmr-money-box); height: var(--tmr-money-box); display: flex; overflow: hidden; background: var(--tmr-money-fill); border: 1px solid var(--tmr-money-fill); border-radius: var(--bs-border-radius, .375rem) 0 0 var(--bs-border-radius, .375rem); transition: filter .15s ease, box-shadow .15s ease; }
+.input-group-lg > .tmr-money-cur { border-radius: var(--bs-border-radius-lg, .5rem) 0 0 var(--bs-border-radius-lg, .5rem); }
+.tmr-money-cur:hover { filter: brightness(.93); }
+.tmr-money-cur:focus-within { z-index: 3; box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb, 15, 118, 87), .25); }
+.tmr-money-cur > select { width: 100%; min-width: 0; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 0; box-shadow: none; outline: 0; color: transparent; background: transparent; text-align: center; text-align-last: center; -webkit-appearance: none; appearance: none; background-image: none; cursor: pointer; }
+.tmr-money-cur > select option { color: var(--bs-body-color); background: var(--bs-body-bg); }
+.tmr-money-cur .tmr-money-sym { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; line-height: 1; pointer-events: none; color: var(--tmr-money-ink); }
+.tmr-money-cur.is-disabled { background: var(--bs-secondary-bg, #e9ecef); border-color: var(--bs-border-color, #dee2e6); filter: none; }
+.tmr-money-cur.is-disabled > select { cursor: not-allowed; }
+.tmr-money-cur.is-disabled .tmr-money-sym { color: var(--bs-secondary-color, #6c757d); }
+.tmr-money-group > .form-control { height: var(--tmr-money-box); border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-width: 0; min-width: 0; font-variant-numeric: tabular-nums; }
+input[data-money-ready] { font-variant-numeric: tabular-nums; }

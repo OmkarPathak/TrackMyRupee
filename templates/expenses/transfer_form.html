@@ -164,7 +164,7 @@
                             <label class="form-label text-muted small text-uppercase fw-bold" for="quick_initial_balance">{% trans "Initial Balance" %}</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent"><i class="bi bi-wallet2"></i></span>
-                                <input type="number" name="balance" id="quick_initial_balance" class="form-control" step="0.01" value="0.00">
+                                <input type="number" data-money name="balance" id="quick_initial_balance" class="form-control" step="0.01" value="0.00">
                             </div>
                         </div>
                     </form>
@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function() {
             '<select class="form-select form-select-sm" data-f="holding">' + opts + '<option value="' + NEW + '">{% trans "New fund…" %}</option></select>' +
             '<input type="text" class="form-control form-control-sm mt-1 d-none" data-f="name" placeholder="{% trans "Fund or stock name" %}" maxlength="255"></div>' +
             '<div class="col-5 col-md-3"><label class="form-label small text-muted fw-bold mb-1">{% trans "Amount" %}</label>' +
-            '<input type="number" class="form-control form-control-sm" data-f="amount" step="0.01" min="0"></div>' +
+            '<input type="number" data-money class="form-control form-control-sm" data-f="amount" step="0.01" min="0"></div>' +
             '<div class="col-5 col-md-3"><label class="form-label small text-muted fw-bold mb-1">{% trans "Units" %}</label>' +
             '<input type="number" class="form-control form-control-sm" data-f="units" step="0.000001" min="0" placeholder="{% trans "from NAV" %}"></div>' +
             '<div class="col-2 col-md-1 text-end"><button type="button" class="btn btn-link text-danger p-0" data-f="remove" aria-label="{% trans "Remove" %}"><i class="bi bi-x-lg"></i></button></div>';

@@ -65,6 +65,30 @@ class CachedModelChoiceField(forms.ModelChoiceField):
         return super().to_python(value)
 
 
+class MoneyInput(forms.NumberInput):
+    """An amount field. static/js/money_input.js shows it grouped for its currency (1,00,000 for the rupee,
+    100,000 for the rest) and posts the plain number; commas that still arrive are dropped here so an amount
+    typed with them is never refused."""
+    input_type = 'number'
+    primary = False
+
+    def __init__(self, attrs=None):
+        attrs = dict(attrs or {})
+        attrs['data-money'] = ''
+        if self.primary:
+            attrs['data-money-primary'] = ''
+        super().__init__(attrs)
+
+    def value_from_datadict(self, data, files, name):
+        value = super().value_from_datadict(data, files, name)
+        return value.replace(',', '').strip() if isinstance(value, str) else value
+
+
+class PrimaryMoneyInput(MoneyInput):
+    """The main amount of a form: the script joins it with the form's currency select into one control."""
+    primary = True
+
+
 class SearchableSelectFormMixin:
     """Mixin to automatically ensure all single-select fields have the 'searchable-select' CSS class."""
     def __init__(self, *args, **kwargs):
@@ -125,7 +149,7 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
         fields = ['date', 'amount', 'currency', 'account', 'description', 'category', 'payment_method', 'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'description': forms.TextInput(attrs={'class': 'form-control'}),
@@ -229,7 +253,7 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
                   'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'source_type': forms.Select(attrs={'class': 'form-select'}),
@@ -350,7 +374,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
                   'capital_subtype', 'exclude_from_averages', 'exclude_from_budget', 'include_in_net_worth']
         widgets = {
             'transaction_type': forms.Select(attrs={'class': 'form-select', 'onchange': 'toggleFields()'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'loan': forms.Select(attrs={'class': 'form-select'}),
@@ -806,7 +830,7 @@ class SavingsGoalForm(SearchableSelectFormMixin, forms.ModelForm):
         fields = ['name', 'target_amount', 'currency', 'target_date', 'icon', 'color']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Dream Vacation')}),
-            'target_amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'target_amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'target_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'icon': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. ✈️')}),
@@ -867,7 +891,7 @@ class GoalContributionForm(AccountRequiredMixin, SearchableSelectFormMixin, form
         fields = ['account', 'amount', 'date']
         widgets = {
             'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': _('Amount')}),
+            'amount': MoneyInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': _('Amount')}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
     
@@ -908,7 +932,7 @@ class CategoryForm(SearchableSelectFormMixin, forms.ModelForm):
         fields = ['name', 'icon', 'limit']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Category Name')}),
-            'limit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'limit': MoneyInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -963,7 +987,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         max_digits=15,
         decimal_places=2,
         label=_('Deposit Principal'),
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
     )
     deposit_rate = forms.DecimalField(
         required=False,
@@ -1010,7 +1034,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         max_digits=15,
         decimal_places=2,
         label=_('RD Installment Amount'),
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
     )
     rd_installment_day = forms.IntegerField(
         required=False,
@@ -1024,7 +1048,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         max_digits=15,
         decimal_places=2,
         label=_('Credit Limit'),
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
     )
     credit_card_billing_day = forms.IntegerField(
         required=False,
@@ -1053,7 +1077,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         max_digits=15,
         decimal_places=2,
         label=_('Acquisition Cost / Purchase Price'),
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
     )
     acquisition_date = forms.DateField(
         required=False,
@@ -1071,7 +1095,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         max_digits=15,
         decimal_places=2,
         label=_('Premium Amount'),
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
     )
     premium_frequency = forms.ChoiceField(
         choices=[
@@ -1095,7 +1119,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         max_digits=15,
         decimal_places=2,
         label=_('Sum Assured (Display Only)'),
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
     )
 
     premium_payment_account = forms.ModelChoiceField(
@@ -1136,13 +1160,13 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('Account Name (e.g. HDFC Bank)')}),
             'account_type': forms.Select(attrs={'class': 'form-select searchable-select'}),
-            'balance': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'balance': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'is_pinned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'record_maturity_income': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'credit_limit': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'credit_limit': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'credit_card_billing_day': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '31'}),
         }
 
@@ -1567,7 +1591,7 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
         fields = ['date', 'amount', 'from_account', 'to_account', 'description', 'client_dedup_key']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'from_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'to_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
@@ -1643,7 +1667,7 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g. Home Loan')}),
             'loan_type': forms.Select(attrs={'class': 'form-select'}),
-            'initial_principal': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'initial_principal': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'duration_months': forms.NumberInput(attrs={'class': 'form-control'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
@@ -1723,9 +1747,9 @@ class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.M
         fields = ['from_account', 'amount', 'principal_portion', 'interest_portion', 'date']
         widgets = {
             'from_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'onchange': 'recalculatePortions()'}),
-            'principal_portion': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'interest_portion': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'amount': MoneyInput(attrs={'class': 'form-control', 'step': '0.01', 'onchange': 'recalculatePortions()'}),
+            'principal_portion': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'interest_portion': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
@@ -1874,7 +1898,7 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
         ]
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
+            'amount': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'account': forms.Select(attrs={'class': 'form-select'}),
             'subtype': forms.Select(attrs={'class': 'form-select', 'id': 'id_subtype'}),
@@ -1944,7 +1968,7 @@ class HoldingForm(forms.ModelForm):
             'instrument_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. HDFC Top 100 Fund'}),
             'instrument_type': forms.Select(attrs={'class': 'form-select'}),
             'units': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.000001', 'placeholder': '0.00'}),
-            'avg_cost': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
+            'avg_cost': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': '0.00'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'scheme_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 101234'}),
             'isin': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional ISIN'}),
@@ -1983,7 +2007,7 @@ class AccountReconcileForm(forms.Form):
         label=_('Balance on the statement'),
         max_digits=15,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
         help_text=_('Enter it the way this app shows the account: money you owe on a credit card is negative.'),
     )
     note = forms.CharField(

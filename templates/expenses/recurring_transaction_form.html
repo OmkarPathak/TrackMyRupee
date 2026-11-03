@@ -709,7 +709,7 @@
                 '<input type="hidden" data-f="code">' +
                 '<div class="dropdown-menu shadow w-100 mt-1 overflow-auto" data-f="suggest" style="max-height: 220px; display: none; z-index: 1070;"></div></div>' +
                 '<div class="col-8 col-md-4"><label class="form-label small text-muted fw-bold mb-1">{% trans "Amount" %}</label>' +
-                '<input type="number" class="form-control form-control-sm" data-f="amount" step="0.01" min="0"></div>' +
+                '<input type="number" data-money class="form-control form-control-sm" data-f="amount" step="0.01" min="0"></div>' +
                 '<div class="col-4 col-md-1 text-end"><button type="button" class="btn btn-link text-danger p-0" data-f="remove" aria-label="{% trans "Remove" %}"><i class="bi bi-x-lg"></i></button></div>';
             rowsBox.appendChild(row);
             const q = (k) => row.querySelector('[data-f=' + k + ']');
