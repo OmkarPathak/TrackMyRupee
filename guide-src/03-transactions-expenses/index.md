@@ -128,7 +128,7 @@ The Free plan has a monthly cap on the number of expenses. If you reach it, the 
 
 If you prefer the classic way, use **Enter details manually**, then fill in:
 
-1. **Amount** (required): The amount you spent.
+1. **Amount** (required): The amount you spent. The box on its left shows the currency; click it to pick another (type to search). Digits are grouped as you type, the way that currency is written (`100000` shows as **1,00,000** for the rupee and **100,000** for others), and the plain number is what is saved.
 2. **Category** (required): The spending category, such as Food, Transport, or Bills.
 3. **Description** (optional): A short note about what you spent on.
 4. **Account**: The account the money came from. **Required.** It is pre-selected for you (the one you used last, or your first account). If you clear it, the form shows "Select the account this was paid from" under the field and nothing is saved, so every expense is always taken out of an account. If you have no account yet, add one first from **Accounts**. Expenses saved before this rule that have no account keep working; pick an account when you next edit one and its balance is charged then.
@@ -201,6 +201,15 @@ Tick the expenses you want, then use the edit or delete icon at the top.
 - **Bulk delete** removes them and gives every amount back to its account.
 
 You can only pick from your own categories and the five payment methods.
+
+### When someone pays you back for part of an expense
+
+If you paid for a group dinner and friends send their share, the expense should show what it really cost you, not the full bill. Open the expense's menu and choose **Add refund**: the income form opens with this expense already chosen and the Source Type set to **Refund / Reimbursement**. Type what you received and save. You can also add the refund from the income form and pick the expense with the search box. See [Refunds and Reimbursements](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back).
+
+- The expense stays on its date, but counts for **its amount less the refunds**: in the Expenses total, your category totals, the budget, the Dashboard, and Analytics.
+- On the Expenses list, an expense with refunds shows **refunded** and **Net** under its amount. Open it for editing to see each refund, what has been refunded so far, and the net cost.
+- The refund is **not income**, so your savings are not inflated.
+- Your account balances are untouched by the netting: the account was charged the full amount and credited what you received.
 
 ### Turn an expense into a Capital Event
 

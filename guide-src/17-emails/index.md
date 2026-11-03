@@ -61,7 +61,7 @@ How each figure is worked out:
 
 | Figure | How |
 |--------|-----|
-| **Income** | Income in the month, excluding cashback and refunds |
+| **Income** | Income in the month, excluding cashback and refunds, and refunds linked to an expense or capital event |
 | **Total Expenses (Outflow)** | Regular expenses + every loan repayment + capital events. This is a cash-out figure, so it is larger than what the savings rate counts. |
 | **Savings** and **Savings rate** | The same definition as the dashboard: income − expenses − loan interest − capital events that count in averages, divided by income without cashback and refunds. Loan principal is repaying borrowed money, so it is not spending. |
 | **Investments** | Balances of your investment accounts at the end of the month |
