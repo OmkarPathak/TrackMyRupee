@@ -36,7 +36,7 @@
 | Lighting | — |
 | Movement | Colour fills sweep tile-by-tile at 45ms. |
 | On-screen text | Rent ₹15,000 · EMI ₹5,000 · Bills ₹3,000 · Fixed. You saw this coming. |
-| Voiceover | Rent, fifteen thousand. EMI, five. Bills, three. You saw those coming. |
+| Voiceover | Rent. EMI. Bills. You saw those coming. |
 | Transition | Direct continuation |
 
 ## Scene 4 — Lifestyle (10.2–14.2s)
@@ -49,7 +49,7 @@
 | Lighting | — |
 | Movement | Same sweep, faster rhythm. |
 | On-screen text | Food ₹9,000 · Travel ₹4,000 · Subscriptions ₹1,000 · Life happens. |
-| Voiceover | Food, travel, one OTT plan. Fourteen thousand more. Life happens. |
+| Voiceover | Food, travel, one OTT plan. Life happens. |
 | Transition | Direct continuation |
 
 ## Scene 5 — The good bit (14.2–17.4s)
@@ -62,7 +62,7 @@
 | Lighting | — |
 | Movement | Sweep; a riser begins under the last tiles. |
 | On-screen text | SIP ₹5,000 · Future you says thanks. |
-| Voiceover | A five-thousand rupee SIP. Future you says thanks. |
+| Voiceover | A SIP. Future you says thanks. |
 | Transition | Riser peaks into the reveal |
 
 ## Scene 6 — The reveal (17.4–22.0s)
@@ -75,7 +75,7 @@
 | Lighting | Coral glow on tiles. |
 | Movement | Slow 1.1Hz pulse; counter breathes ±4%. |
 | On-screen text | …and then, this. · NO NAME · NO CATEGORY · ₹8,000 · 16% of your salary |
-| Voiceover | And then… eight thousand rupees. Sixteen percent of your salary. No name. No category. |
+| Voiceover | And then… eight thousand. Sixteen percent. No name. No category. |
 | Transition | Header changes; chips arrive |
 
 ## Scene 7 — The leaks (22.0–26.4s)
@@ -88,7 +88,7 @@
 | Lighting | — |
 | Movement | Chips rise 40px with ease-out, 0.45s stagger. |
 | On-screen text | It's never one big thing. · four chips · …and many more like these. |
-| Voiceover | It's never one big thing. A chai. A late-night order. A renewal you forgot. A UPI tap. |
+| Voiceover | Never one big thing. Chai. A late-night order. A forgotten renewal. |
 | Transition | Whoosh; tiles slide out, phone rises |
 
 ## Scene 8 — The fix (real UI) (26.6–31.0s)
@@ -101,7 +101,7 @@
 | Lighting | — |
 | Movement | Typewriter at 12 chars/s; phone slides 900px. |
 | On-screen text | Type it like a message. · “swiggy 320” · Every rupee gets a name. · DEMO DATA · FROM THE REAL APP |
-| Voiceover | Type it like a message — 'swiggy 320' — and every rupee gets a name. |
+| Voiceover | Just type it — swiggy 320 — and every rupee gets a name. |
 | Transition | Whoosh into end card |
 
 ## Scene 9 — End card + CTA (31.0–35.0s)
