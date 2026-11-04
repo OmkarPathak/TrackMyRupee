@@ -22,7 +22,8 @@ Ideas → **Generate content** → review/edit (hooks, script, storyboard, capti
 | Dashboard, ideas CRUD/filter, calendar, status workflow, asset upload, ZIP export, QC, performance maths | Working, tested |
 | Reel 001 motion-graphics video (1080×1920, H.264/AAC) + cover | Rendered by `render/reel_001.py` (Pillow + FFmpeg) |
 | Synthesised SFX bed | Generated in code (`render/sfx.py`) |
-| Voiceover / music | **Not generated** — no TTS reachable in the build environment; record VO, add licensed music |
+| Voiceover | Generated offline with Kokoro (`render/tts_kokoro.py`, model not committed: `assets/models/`). Clips in `assets/vo/<en|en_hf|hi>/`; `render/mix.py` places/ducks them. **Not human-grade — review by ear before publishing** |
+| Music | Not included — add a licensed track |
 | OpenAI / Gemini image + OpenAI TTS adapters (`core/providers.py`) | Written to public API docs, **not live-tested** (no keys) |
 | AI video generation | Not integrated; image-to-video prompts are exported for manual use |
 | Instagram analytics | **No integration**; you type the numbers in |

@@ -1,17 +1,17 @@
 # Storyboard — Where does your ₹50,000 salary disappear?
 
-## Scene 1 — Hook (0.0–3.4s)
+## Scene 1 — Hook (v2 — punchier) (0.0–3.4s)
 | Field | Detail |
 |---|---|
-| Visual | Deep-teal gradient. 'SALARY CREDITED' pill slides down; ₹50,000 counts up in large Instrument Serif. Then 'By the 20th…' and, in teal, 'where did it go?' |
-| Camera | Locked-off, centred. Number gets a slight upward drift as it settles. |
+| Visual | Frame 0 already shows ₹50,000 and a 'SALARY CREDITED · 1ST' pill. The Rupee Minis piggy pops in (squash-and-stretch) and a coin drops into its slot. At 1.0s the number drains to ₹0 in 0.9s (turning coral) while the piggy's eye goes wide and it shakes its head. 1.95s: slam 'Gone by the 20th.' with screen shake. 2.6s: bigger slam 'Where?' in coral. At 3.1s the piggy hops to the corner as the tiles pop in. |
+| Camera | Locked-off; 16px decaying screen-shake on each slam. |
 | Character | None on screen (motion graphics) |
-| Background | TrackMyRupee night gradient (#06302A → #0B1311) with a soft teal glow top-left. |
-| Lighting | Flat graphic; glow gives depth. |
-| Movement | Count-up 0→50,000 in 0.9s, ease-out. |
-| On-screen text | SALARY CREDITED · ₹50,000 · By the 20th… · where did it go? |
-| Voiceover | Fifty thousand rupees, credited. By the twentieth… where did it go? |
-| Transition | Number lifts away; tiles pop in (stagger) |
+| Background | TrackMyRupee night gradient with soft teal glow. |
+| Lighting | Flat graphic; mascot has built-in soft shine/blush from the supplied artwork. |
+| Movement | Number drain (ease-in squared), mascot pop-in 0.45s, slam text scales 1.35–1.45× → 1× in 0.22–0.25s. |
+| On-screen text | SALARY CREDITED · 1ST · ₹50,000 → ₹0 · Gone by the 20th. · Where? |
+| Voiceover | Fifty thousand, credited. By the twentieth… gone. Where? |
+| Transition | Piggy hops to bottom-left; tiles pop in (stagger) |
 
 ## Scene 2 — Setup (3.4–7.0s)
 | Field | Detail |

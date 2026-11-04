@@ -44,7 +44,11 @@ def init():
             spec = importlib.util.spec_from_file_location(f.stem, f)
             m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
             pid = m.PACKAGE["id"]
-            if read(f"packages/{pid}") is None:
+            cur = read(f"packages/{pid}")
+            if cur is not None and cur.get("version", 1) < m.PACKAGE.get("version", 1):
+                write(f"packages/{pid}.v{cur.get('version', 1)}-backup", cur)  # keep your edits
+                cur = None
+            if cur is None:
                 write(f"packages/{pid}", {**m.PACKAGE, "slug": m.SLUG})
                 ideas = read("ideas")
                 for i in ideas:

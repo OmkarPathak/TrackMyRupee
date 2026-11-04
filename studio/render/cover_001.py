@@ -2,6 +2,7 @@
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from render import mascot
 from render.brand import C, Canvas, rgb
 
 W, H = 1080, 1920
@@ -28,6 +29,7 @@ def build():
             col = C["blue200"] if i < 23 else C["amber200"] if i < 37 else C["teal200"]
             c.rrect(x, y, TILE, TILE, 14, fill=rgb(col, 0.9))
     c.text(90, 1520, "ILLUSTRATIVE EXAMPLE  ·  ₹8,000 UNACCOUNTED", "sansb", 26, rgb(C["cream"], 0.65), "l", 3)
+    mascot.draw(c, 870, 1625, 230, t=0.8, mood="wide")
     return c.done()
 
 

@@ -13,13 +13,14 @@
 - **Why First:** It is the broadest relatable hook in the library, needs no product explanation before delivering value, and the tile-grid device becomes a reusable brand visual for the Salary Diaries series.
 
 ## Hooks
-1. ₹50,000 came in. Can you name where it went?
-2. Your salary doesn't vanish. It leaks — ₹200 at a time.  ← selected
+1. ₹50,000 in. Gone by the 20th. Where?  ← selected
+2. Your salary doesn't vanish. It leaks — ₹200 at a time.
 3. Be honest: can you account for last month's ₹50,000?
-4. Salary on the 1st. Balance-check panic on the 20th.
+4. Salary on the 1st. Panic on the 20th.
 5. A ₹50,000 salary. ₹8,000 nobody can explain.
+6. ₹50,000 came in. Can you name where it went?
 
-_The shipped cut combines hook 1's question with a 'salary credited' beat so the first frame is a number every viewer recognises._
+_v2: the number is on screen from frame 0, drains to ₹0 in 0.9s, then two hard slams ('Gone by the 20th.' / 'Where?') with screen shake. Previous v1 hook (slow count-up) kept as option 6._
 
 ## Illustrative budget (labelled on screen)
 - Rent: ₹15,000
@@ -33,11 +34,11 @@ _The shipped cut combines hook 1's question with a 'salary credited' beat so the
 
 ## Scene script
 
-### Scene 1 · 0.0–3.4s · Hook
-- **On-screen:** SALARY CREDITED · ₹50,000 · By the 20th… · where did it go?
-- **VO (EN):** Fifty thousand rupees, credited. By the twentieth… where did it go?
-- **SFX:** Soft notification 'ding' at 0.25s; gentle whoosh at 3.0s
-- **Transition:** Number lifts away; tiles pop in (stagger)
+### Scene 1 · 0.0–3.4s · Hook (v2 — punchier)
+- **On-screen:** SALARY CREDITED · 1ST · ₹50,000 → ₹0 · Gone by the 20th. · Where?
+- **VO (EN):** Fifty thousand, credited. By the twentieth… gone. Where?
+- **SFX:** Ding at 0.0; boing 0.05; coin clink 0.62; falling sweep 1.0–1.9; slam 1.95; bigger slam 2.6; whoosh 3.1
+- **Transition:** Piggy hops to bottom-left; tiles pop in (stagger)
 
 ### Scene 2 · 3.4–7.0s · Setup
 - **On-screen:** Let's follow one salary. · ILLUSTRATIVE EXAMPLE
@@ -95,4 +96,4 @@ Minimal, warm, modern-Indian-urban lo-fi pulse, 96–104 BPM, no vocals. Soft ta
 _Use a track licensed for commercial/business use (Instagram's business-licensed audio library or a licensed royalty-free library). Do not use trending pop tracks on a brand account._
 
 ## CTA
-Explore the demo with sample data — no registration.
+Try the free demo — link in bio

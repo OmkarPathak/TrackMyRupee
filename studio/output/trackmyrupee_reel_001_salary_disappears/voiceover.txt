@@ -2,7 +2,7 @@ DIRECTION
 Warm, slightly amused, conversational — like a friend who's done the maths, never a lecturer. Brief pause after 'where did it go?' and after '…and then.' Drop the pace and energy for 'No name. No category.'
 
 === ENGLISH (Indian) ===
-Fifty thousand rupees, credited. By the twentieth… where did it go?
+Fifty thousand, credited. By the twentieth… gone. Where?
 
 Let's follow one salary.
 
@@ -21,7 +21,7 @@ Type it like a message — 'swiggy 320' — and every rupee gets a name.
 Try the free demo. Link in bio.
 
 === HINGLISH ===
-Pachaas hazaar credit hue. Beeswi tareekh tak… gaye kahaan?
+Pachaas hazaar credit hue. Beeswi tak… gayab. Kahaan?
 
 Chalo, ek salary ko follow karte hain.
 
@@ -40,7 +40,7 @@ Message ki tarah type karo — 'swiggy 320' — aur har rupaye ko mil jaata hai 
 Free demo try karo. Link bio mein hai.
 
 === HINDI ===
-पचास हज़ार रुपये आए। बीस तारीख़ तक… गए कहाँ?
+पचास हज़ार आए। बीस तारीख़ तक… ग़ायब। कहाँ?
 
 चलिए, एक सैलरी का पीछा करते हैं।
 
@@ -58,4 +58,4 @@ Free demo try karo. Link bio mein hai.
 
 फ़्री डेमो आज़माइए। लिंक बायो में है।
 
-STATUS: NOT generated. No text-to-speech provider was reachable from the build environment. Record it yourself (best) or configure a TTS provider — see studio/README.md.
+STATUS: PENDING — see chat. Drop per-scene clips in studio/assets/vo/<lang>/scene_01…09 (or one vo.wav) and run build_reel_001.py; the mixer ducks SFX and flags overruns.

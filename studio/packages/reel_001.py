@@ -6,7 +6,7 @@ SLUG = "trackmyrupee_reel_001_salary_disappears"
 
 PACKAGE = {
     "id": "reel-001",
-    "version": 1,
+    "version": 2,
     "status": "review",  # awaiting the creative director's feedback
     "title": "Where does your ₹50,000 salary disappear?",
     "strategy": {
@@ -22,16 +22,17 @@ PACKAGE = {
         "why_first": "It is the broadest relatable hook in the library, needs no product explanation before delivering value, and the tile-grid device becomes a reusable brand visual for the Salary Diaries series.",
     },
     "hooks": {
-        "selected": 1,
+        "selected": 0,
         "options": [
-            "₹50,000 came in. Can you name where it went?",
+            "₹50,000 in. Gone by the 20th. Where?",
             "Your salary doesn't vanish. It leaks — ₹200 at a time.",
             "Be honest: can you account for last month's ₹50,000?",
-            "Salary on the 1st. Balance-check panic on the 20th.",
+            "Salary on the 1st. Panic on the 20th.",
             "A ₹50,000 salary. ₹8,000 nobody can explain.",
+            "₹50,000 came in. Can you name where it went?",
         ],
-        "on_screen_used": "₹50,000 credited. By the 20th… where did it go?",
-        "note": "The shipped cut combines hook 1's question with a 'salary credited' beat so the first frame is a number every viewer recognises.",
+        "on_screen_used": "₹50,000 → ₹0 · Gone by the 20th. · Where?",
+        "note": "v2: the number is on screen from frame 0, drains to ₹0 in 0.9s, then two hard slams ('Gone by the 20th.' / 'Where?') with screen shake. Previous v1 hook (slow count-up) kept as option 6.",
     },
     "illustrative_budget": {
         "label": "Illustrative example — not real user data, not advice",
@@ -49,16 +50,16 @@ PACKAGE = {
         "unaccounted_share": "8,000 / 50,000 = 16%",
     },
     "scenes": [
-        {"n": 1, "t": "0.0–3.4", "name": "Hook",
-         "visual": "Deep-teal gradient. 'SALARY CREDITED' pill slides down; ₹50,000 counts up in large Instrument Serif. Then 'By the 20th…' and, in teal, 'where did it go?'",
-         "camera": "Locked-off, centred. Number gets a slight upward drift as it settles.",
-         "background": "TrackMyRupee night gradient (#06302A → #0B1311) with a soft teal glow top-left.",
-         "lighting": "Flat graphic; glow gives depth.", "movement": "Count-up 0→50,000 in 0.9s, ease-out.",
-         "on_screen": "SALARY CREDITED · ₹50,000 · By the 20th… · where did it go?",
-         "vo_en": "Fifty thousand rupees, credited. By the twentieth… where did it go?",
-         "vo_hinglish": "Pachaas hazaar credit hue. Beeswi tareekh tak… gaye kahaan?",
-         "vo_hi": "पचास हज़ार रुपये आए। बीस तारीख़ तक… गए कहाँ?",
-         "sfx": "Soft notification 'ding' at 0.25s; gentle whoosh at 3.0s", "transition": "Number lifts away; tiles pop in (stagger)"},
+        {"n": 1, "t": "0.0–3.4", "name": "Hook (v2 — punchier)",
+         "visual": "Frame 0 already shows ₹50,000 and a 'SALARY CREDITED · 1ST' pill. The Rupee Minis piggy pops in (squash-and-stretch) and a coin drops into its slot. At 1.0s the number drains to ₹0 in 0.9s (turning coral) while the piggy's eye goes wide and it shakes its head. 1.95s: slam 'Gone by the 20th.' with screen shake. 2.6s: bigger slam 'Where?' in coral. At 3.1s the piggy hops to the corner as the tiles pop in.",
+         "camera": "Locked-off; 16px decaying screen-shake on each slam.",
+         "background": "TrackMyRupee night gradient with soft teal glow.",
+         "lighting": "Flat graphic; mascot has built-in soft shine/blush from the supplied artwork.", "movement": "Number drain (ease-in squared), mascot pop-in 0.45s, slam text scales 1.35–1.45× → 1× in 0.22–0.25s.",
+         "on_screen": "SALARY CREDITED · 1ST · ₹50,000 → ₹0 · Gone by the 20th. · Where?",
+         "vo_en": "Fifty thousand, credited. By the twentieth… gone. Where?",
+         "vo_hinglish": "Pachaas hazaar credit hue. Beeswi tak… gayab. Kahaan?",
+         "vo_hi": "पचास हज़ार आए। बीस तारीख़ तक… ग़ायब। कहाँ?",
+         "sfx": "Ding at 0.0; boing 0.05; coin clink 0.62; falling sweep 1.0–1.9; slam 1.95; bigger slam 2.6; whoosh 3.1", "transition": "Piggy hops to bottom-left; tiles pop in (stagger)"},
         {"n": 2, "t": "3.4–7.0", "name": "Setup",
          "visual": "50 cream tiles pop into a 10×5 grid. Header '₹50,000 salary'. 'Let's follow one salary.' An 'ILLUSTRATIVE EXAMPLE' pill appears and stays on screen.",
          "camera": "Locked-off.", "background": "Night gradient.", "lighting": "—",
@@ -129,18 +130,24 @@ PACKAGE = {
     ],
     "voiceover": {
         "direction": "Warm, slightly amused, conversational — like a friend who's done the maths, never a lecturer. Brief pause after 'where did it go?' and after '…and then.' Drop the pace and energy for 'No name. No category.'",
-        "en": "Fifty thousand rupees, credited. By the twentieth… where did it go?\n\nLet's follow one salary.\n\nRent, fifteen thousand. EMI, five. Bills, three. You saw those coming.\n\nFood, travel, one OTT plan. Fourteen thousand more. Life happens.\n\nA five-thousand rupee SIP. Future you says thanks.\n\nAnd then… eight thousand rupees. Sixteen percent of your salary. No name. No category.\n\nIt's never one big thing. A chai. A late-night order. A renewal you forgot. A UPI tap.\n\nType it like a message — 'swiggy 320' — and every rupee gets a name.\n\nTry the free demo. Link in bio.",
-        "hinglish": "Pachaas hazaar credit hue. Beeswi tareekh tak… gaye kahaan?\n\nChalo, ek salary ko follow karte hain.\n\nRent, pandrah hazaar. EMI, paanch. Bills, teen. Yeh toh pata tha.\n\nKhana, travel, ek OTT plan. Chaudah hazaar aur. Zindagi hai.\n\nPaanch hazaar ki SIP. Future you bolega thanks.\n\nAur phir… aath hazaar rupaye. Salary ka solah percent. Na naam, na category.\n\nYeh kabhi ek bada kharcha nahi hota. Chai. Raat ka order. Bhooli hui renewal. Ek UPI tap.\n\nMessage ki tarah type karo — 'swiggy 320' — aur har rupaye ko mil jaata hai ek naam.\n\nFree demo try karo. Link bio mein hai.",
-        "hindi": "पचास हज़ार रुपये आए। बीस तारीख़ तक… गए कहाँ?\n\nचलिए, एक सैलरी का पीछा करते हैं।\n\nकिराया, पंद्रह हज़ार। EMI, पाँच। बिल, तीन। ये तो पता था।\n\nखाना, सफ़र, एक OTT प्लान। चौदह हज़ार और। ज़िंदगी है।\n\nपाँच हज़ार की SIP। भविष्य वाला आप कहेगा — शुक्रिया।\n\nऔर फिर… आठ हज़ार रुपये। सैलरी का सोलह प्रतिशत। न नाम, न कैटेगरी।\n\nये कभी एक बड़ा खर्च नहीं होता। चाय। रात का ऑर्डर। भूली हुई रिन्यूअल। एक UPI टैप।\n\nमैसेज की तरह टाइप करिए — 'swiggy 320' — और हर रुपये को नाम मिल जाता है।\n\nफ़्री डेमो आज़माइए। लिंक बायो में है।",
-        "tts_status": "NOT generated. No text-to-speech provider was reachable from the build environment. Record it yourself (best) or configure a TTS provider — see studio/README.md.",
+        "en": "Fifty thousand, credited. By the twentieth… gone. Where?\n\nLet's follow one salary.\n\nRent, fifteen thousand. EMI, five. Bills, three. You saw those coming.\n\nFood, travel, one OTT plan. Fourteen thousand more. Life happens.\n\nA five-thousand rupee SIP. Future you says thanks.\n\nAnd then… eight thousand rupees. Sixteen percent of your salary. No name. No category.\n\nIt's never one big thing. A chai. A late-night order. A renewal you forgot. A UPI tap.\n\nType it like a message — 'swiggy 320' — and every rupee gets a name.\n\nTry the free demo. Link in bio.",
+        "hinglish": "Pachaas hazaar credit hue. Beeswi tak… gayab. Kahaan?\n\nChalo, ek salary ko follow karte hain.\n\nRent, pandrah hazaar. EMI, paanch. Bills, teen. Yeh toh pata tha.\n\nKhana, travel, ek OTT plan. Chaudah hazaar aur. Zindagi hai.\n\nPaanch hazaar ki SIP. Future you bolega thanks.\n\nAur phir… aath hazaar rupaye. Salary ka solah percent. Na naam, na category.\n\nYeh kabhi ek bada kharcha nahi hota. Chai. Raat ka order. Bhooli hui renewal. Ek UPI tap.\n\nMessage ki tarah type karo — 'swiggy 320' — aur har rupaye ko mil jaata hai ek naam.\n\nFree demo try karo. Link bio mein hai.",
+        "hindi": "पचास हज़ार आए। बीस तारीख़ तक… ग़ायब। कहाँ?\n\nचलिए, एक सैलरी का पीछा करते हैं।\n\nकिराया, पंद्रह हज़ार। EMI, पाँच। बिल, तीन। ये तो पता था।\n\nखाना, सफ़र, एक OTT प्लान। चौदह हज़ार और। ज़िंदगी है।\n\nपाँच हज़ार की SIP। भविष्य वाला आप कहेगा — शुक्रिया।\n\nऔर फिर… आठ हज़ार रुपये। सैलरी का सोलह प्रतिशत। न नाम, न कैटेगरी।\n\nये कभी एक बड़ा खर्च नहीं होता। चाय। रात का ऑर्डर। भूली हुई रिन्यूअल। एक UPI टैप।\n\nमैसेज की तरह टाइप करिए — 'swiggy 320' — और हर रुपये को नाम मिल जाता है।\n\nफ़्री डेमो आज़माइए। लिंक बायो में है।",
+        "tts_status": "PENDING — see chat. Drop per-scene clips in studio/assets/vo/<lang>/scene_01…09 (or one vo.wav) and run build_reel_001.py; the mixer ducks SFX and flags overruns.",
     },
     "music": {
         "direction": "Minimal, warm, modern-Indian-urban lo-fi pulse, 96–104 BPM, no vocals. Soft tabla-style or muted-pluck texture is welcome but keep it understated. Low under the VO (-22 LUFS-ish bed), lift by ~3dB in the end card.",
         "structure": "0–3s: just a pad and the notification ding. 3–17s: add a steady light pulse that follows the tile ticks. 15–17.6s: riser then drop out. 17.6–22s: near-silent (single low note). 22–31s: pulse returns, brighter. 31–35s: resolve on a major chord with the chime.",
         "licensing": "Use a track licensed for commercial/business use (Instagram's business-licensed audio library or a licensed royalty-free library). Do not use trending pop tracks on a brand account.",
     },
+    "mascot": {
+        "name": "Rupee Minis — calm piggy bank (supplied brand artwork: assets/mascot/*.svg)",
+        "usage": "Redrawn 1:1 in code from the supplied SVG (same geometry and 'on-teal' colourway) so its parts can animate. Roles: hook (receives the salary coin, reacts as it drains), corner 'watcher' through the tile story (calm → wide-eyed with a '?' bubble at the reveal → looking around during the leaks), swallows a coin when an expense is 'logged', hero on the end card.",
+        "moods": "happy (closed smiling eye, from the SVG) · wide (open eye + raised brow, derived — flag if you'd rather keep the SVG eye only)",
+        "rules": ["Never alter colours, proportions or the ₹ coin.", "Do not give it a mouth or limbs beyond the SVG.", "Always on dark teal or cream backgrounds."],
+    },
     "character": {
-        "note": "The shipped cut is motion-graphics and has no on-screen person. These descriptions are for the OPTIONAL live-action/AI inserts below, so any generated person stays identical across shots.",
+        "note": "Optional live-action/AI inserts only; the Reel itself now uses the mascot, not people. These descriptions keep any generated person identical across shots.",
         "name": "Rohan Kulkarni (working name)",
         "bible": "27-year-old software engineer in Pune. Medium-brown skin tone, short neatly-cut black hair, light stubble, slim build. Wears a navy half-sleeve casual shirt over a white tee, black-framed rectangular glasses, a simple steel wristwatch on the left wrist, lanyard with a company ID tucked into the pocket. Expression range: easy-going → mildly puzzled. Realistic proportions, natural skin texture, no beauty-retouch look.",
         "consistency_rules": [
@@ -202,9 +209,10 @@ PACKAGE = {
         "alt_text": "Animated grid of 50 tiles representing a ₹50,000 salary; rent, EMI, bills, food, travel and SIP are coloured, and 8 tiles marked '?' remain unexplained.",
     },
     "asset_checklist": [
-        {"item": "Draft video (motion graphics, with SFX bed)", "status": "done", "file": "trackmyrupee_reel_001_draft.mp4"},
+        {"item": "Mascot artwork (Rupee Minis SVGs)", "status": "done", "file": "assets/mascot/*.svg"},
+        {"item": "Draft video v2 (motion graphics + mascot, with SFX bed)", "status": "done", "file": "trackmyrupee_reel_001_draft.mp4"},
         {"item": "Silent video (for your own audio)", "status": "done", "file": "trackmyrupee_reel_001_silent.mp4"},
-        {"item": "Reel cover 1080×1920", "status": "done", "file": "cover_1080x1920.png"},
+        {"item": "Reel cover 1080×1920 (with mascot)", "status": "done", "file": "cover_1080x1920.png"},
         {"item": "Profile-grid crop preview 1080×1350", "status": "done", "file": "cover_grid_crop_1080x1350.png"},
         {"item": "English subtitles (SRT)", "status": "done", "file": "subtitles_en.srt"},
         {"item": "Voiceover recording (EN / Hinglish / Hindi)", "status": "pending", "file": "—", "note": "No TTS available in the build environment. Record or configure a TTS provider."},
@@ -216,3 +224,19 @@ PACKAGE = {
     "fact_check_flags": [],
     "learning_log": {"approved": False, "notes": []},
 }
+
+
+# --- v2: voiceover tightened so every line fits its scene at a natural pace --
+_VO = {
+    3: ("Rent. EMI. Bills. You saw those coming.", "Rent. EMI. Bills. Yeh toh pata tha.", "किराया। EMI। बिल। ये तो पता था।"),
+    4: ("Food, travel, one OTT plan. Life happens.", "Khana, travel, ek OTT plan. Zindagi hai.", "खाना, सफ़र, एक OTT प्लान। ज़िंदगी है।"),
+    5: ("A SIP. Future you says thanks.", "Ek SIP. Future you bolega thanks.", "एक SIP। आने वाला कल कहेगा — शुक्रिया।"),
+    6: ("And then… eight thousand. Sixteen percent. No name. No category.", "Aur phir… aath hazaar. Solah percent. Na naam, na category.", "और फिर… आठ हज़ार। सोलह प्रतिशत। न नाम, न कैटेगरी।"),
+    7: ("Never one big thing. Chai. A late-night order. A forgotten renewal.", "Kabhi ek bada kharcha nahi. Chai. Raat ka order. Bhooli hui renewal.", "कभी एक बड़ा खर्च नहीं। चाय। रात का ऑर्डर। भूली हुई रिन्यूअल।"),
+    8: ("Just type it — swiggy 320 — and every rupee gets a name.", "Bas type karo — swiggy 320 — aur har rupaye ko naam mil jaata hai.", "बस टाइप करिए — स्विगी तीन सौ बीस — हर रुपये को नाम।"),
+}
+for _n, (_en, _hg, _hi) in _VO.items():
+    _s = PACKAGE["scenes"][_n - 1]; _s["vo_en"], _s["vo_hinglish"], _s["vo_hi"] = _en, _hg, _hi
+PACKAGE["scenes"][1]["vo_hi"] = "चलिए, एक सैलरी का पीछा करते हैं।"
+for _k, _f in (("en", "vo_en"), ("hinglish", "vo_hinglish"), ("hindi", "vo_hi")):
+    PACKAGE["voiceover"][_k] = "\n\n".join(sc[_f] for sc in PACKAGE["scenes"])

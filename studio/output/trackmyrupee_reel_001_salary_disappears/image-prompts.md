@@ -1,6 +1,6 @@
 # Image prompts (optional inserts)
 
-_The shipped cut is motion-graphics and has no on-screen person. These descriptions are for the OPTIONAL live-action/AI inserts below, so any generated person stays identical across shots._
+_Optional live-action/AI inserts only; the Reel itself now uses the mascot, not people. These descriptions keep any generated person identical across shots._
 
 ## Character bible — paste verbatim in every prompt
 **Rohan Kulkarni (working name)** — 27-year-old software engineer in Pune. Medium-brown skin tone, short neatly-cut black hair, light stubble, slim build. Wears a navy half-sleeve casual shirt over a white tee, black-framed rectangular glasses, a simple steel wristwatch on the left wrist, lanyard with a company ID tucked into the pocket. Expression range: easy-going → mildly puzzled. Realistic proportions, natural skin texture, no beauty-retouch look.

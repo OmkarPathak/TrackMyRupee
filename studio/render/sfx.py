@@ -30,6 +30,13 @@ def thud():
     t = t_(0.8); f = 90*np.exp(-t*3)+45; return np.sin(2*np.pi*np.cumsum(f)/SR) * np.exp(-t*5) * .9
 def type_click():
     t = t_(0.03); return np.random.RandomState(2).randn(len(t)) * np.exp(-t*140) * .25
+def fall(d=0.9):
+    t = t_(d); f = 1100 * np.exp(-t * 3.2) + 90; return np.sin(2*np.pi*np.cumsum(f)/SR) * np.minimum(1, t*30) * (1 - t/d) * .45
+def slam():
+    t = t_(0.5); n = np.random.RandomState(3).randn(len(t)) * np.exp(-t*30) * .5
+    return n + np.sin(2*np.pi*np.cumsum(120*np.exp(-t*6)+40)/SR) * np.exp(-t*7) * .9
+def clink():
+    t = t_(0.5); return (np.sin(2*np.pi*2400*t) + .5*np.sin(2*np.pi*3600*t)) * np.exp(-t*14) * .35
 def chime():
     t = t_(1.4); return sum(np.sin(2*np.pi*f*t)*a for f, a in ((880,.4),(1318,.3),(1760,.2))) * np.exp(-t*3) * .5
 
@@ -37,8 +44,10 @@ def build():
     out = np.zeros(int(SR * DUR) + SR)
     def put(x, at, g=1.0):
         i = int(at * SR); out[i:i+len(x)] += x[:len(out)-i] * g
-    put(ding(), 0.25, .9)
-    put(whoosh(.6), 3.0, .6)
+    put(ding(), 0.0, .9); put(pop(300), 0.05, .5); put(clink(), 0.62, .9)
+    put(fall(.9), 1.0, .8); put(slam(), 1.95, .9); put(slam(), 2.6, 1.0)
+    put(whoosh(.6), 3.1, .5); put(pop(700), 3.8, .3)
+    put(clink(), 29.0, .8)
     for i in range(0, 50, 2): put(pop(480 + (i % 7) * 20), 3.55 + i*0.022, .18)
     for g, at in ((15,7.0),(5,8.1),(3,9.0),(9,10.6),(4,11.7),(1,12.6),(5,14.4)):
         for j in range(g): put(tick(700 + 40*(j % 5)), at + j*0.045, .4)
@@ -47,7 +56,6 @@ def build():
     put(whoosh(.7), 25.9, .5)
     put(whoosh(.7, False), 26.7, .5)
     for i in range(10): put(type_click(), 27.8 + i*0.08, 1)
-    put(ding(1760), 28.8, .5)
     put(whoosh(.5), 30.9, .5); put(chime(), 31.4, .8)
     out = np.tanh(out * 1.1)
     return out[:int(SR * DUR)]
