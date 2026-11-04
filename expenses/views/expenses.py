@@ -111,17 +111,45 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
 
         return context
 
+PREFILL_MAX_LENGTH = 300       # the quick-add box takes no more than this
+
+
+def _prefill_text(request):
+    """What to put in the quick-add box from a link or a share: ``text``, else ``title``, as one short line.
+
+    A shared message can run to several lines and carry a link; only the words are wanted. Nothing is added from
+    this alone: the person still checks the details and taps Add."""
+    raw = request.GET.get('text') or request.GET.get('title') or ''
+    return ' '.join(raw.split())[:PREFILL_MAX_LENGTH]
+
+
 class ExpenseCreateView(LoginRequiredMixin, View):
     """Deep link (/expenses/add/, PWA shortcut, old bookmarks) to the New Expense composer.
 
     The composer itself lives in ``components/expense_composer.html`` and is mounted on every
     page; this page just asks it to open and to send the user back to ``next`` when closed.
+    ``?text=swiggy 320`` opens it with that line already typed and read.
     """
     template_name = 'expenses/expense_add.html'
 
+    def entry(self, request):
+        return request.GET.get('source', '')
+
     def get(self, request, *args, **kwargs):
         next_url = get_safe_redirect_url(request, request.GET.get('next', ''), reverse('expense-list'))
-        return render(request, self.template_name, {'next_url': next_url})
+        return render(request, self.template_name, {
+            'next_url': next_url, 'prefill_text': _prefill_text(request), 'entry': self.entry(request)})
+
+
+class ExpenseShareTargetView(ExpenseCreateView):
+    """Where "Share" from another app lands (the manifest's share target, Android). Same page, own entry name.
+
+    A separate address because a share target's own query string is replaced by what is shared, so it cannot carry
+    ``source=share``."""
+
+    def entry(self, request):
+        return 'share'
+
 
 class ExpenseUpdateView(LoginRequiredMixin, UUIDOrIntLookupMixin, UpdateView):
     model = Expense

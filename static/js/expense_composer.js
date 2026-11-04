@@ -51,7 +51,7 @@
 
   // ── Elements ──────────────────────────────────────────────────────────────
   var el = {
-    quick: $('tmr-quick-input'), go: $('tmr-go'), mic: $('tmr-mic'),
+    quick: $('tmr-quick-input'), go: $('tmr-go'), mic: $('tmr-mic'), paste: $('tmr-paste'),
     dateNote: $('tmr-datenote'), dateNoteText: $('tmr-datenote-text'), dateNoteReset: $('tmr-datenote-reset'),
     voiceMsg: $('tmr-voice-msg'),
     stateA: $('tmr-state-a'), stateB: $('tmr-state-b'), usual: $('tmr-usual'), manual: $('tmr-manual'),
@@ -902,6 +902,28 @@
     } catch (e) { stopListening(); }
   });
 
+  // ── Paste ─────────────────────────────────────────────────────────────────
+  // Reads the clipboard only when the button is tapped (the browser asks first where it must). Shown only where the
+  // browser can read it: Firefox cannot, and an app view may not.
+  if (el.paste && window.isSecureContext && navigator.clipboard && navigator.clipboard.readText) {
+    el.paste.hidden = false;
+    el.paste.addEventListener('click', function () {
+      show(el.voiceMsg, false);
+      navigator.clipboard.readText().then(function (raw) {
+        var text = cleanLine(raw);
+        if (!text) { el.voiceMsg.textContent = t('pasteEmpty'); show(el.voiceMsg, true); el.quick.focus(); return; }
+        el.quick.value = text;
+        sendEvent('paste_used', {});
+        parse();
+      }).catch(function () {
+        el.voiceMsg.textContent = t('pasteBlocked'); show(el.voiceMsg, true); el.quick.focus();
+      });
+    });
+  }
+
+  // One short line, as the box takes: a copied message can run to several lines.
+  function cleanLine(raw) { return String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 300); }
+
   // ── Analytics (allow-listed on the server; never amounts, text or names) ─
   function sendEvent(name, props) {
     try {
@@ -922,10 +944,22 @@
       populateSelects(); paint();
     }
   };
-  S.entry = { pwa: 'pwa_shortcut' }[root.dataset.entry] || 'deep_link';
+  var prefill = cleanLine(root.dataset.prefill);
+  S.entry = { pwa: 'pwa_shortcut', share: 'share_target' }[root.dataset.entry] || (prefill ? 'prefill_link' : 'deep_link');
   S.openedAt = Date.now();
   resetCard(false);
   el.quick.focus();
   ensureData().catch(function () { showLoadError(); });
   sendEvent('expense_form_opened', { entry: S.entry });
+  if (prefill) {
+    // Typed and read for them, never saved: they check the details and tap Add. The text is taken out of the
+    // address so a refresh, or the back button, does not bring it back (and it stays out of the history).
+    el.quick.value = prefill;
+    try {
+      var url = new URL(window.location.href);
+      ['text', 'title', 'url'].forEach(function (k) { url.searchParams.delete(k); });
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+    } catch (e) { /* noop */ }
+    parse();
+  }
 })();

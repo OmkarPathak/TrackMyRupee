@@ -23790,5 +23790,21 @@ msgid "Changing the currency re-converts this expense at the current exchange ra
 msgstr "मुद्रा बदलने पर यह खर्च वर्तमान विनिमय दर पर दोबारा परिवर्तित होगा और खाते का शेष अपडेट होगा।"
 
 #: expenses/family
+msgid "Paste from clipboard"
+msgstr "क्लिपबोर्ड से चिपकाएँ"
+
+#: expenses/family
+msgid "The clipboard is empty. Copy a message such as “swiggy 320” first."
+msgstr "क्लिपबोर्ड खाली है। पहले “swiggy 320” जैसा कोई संदेश कॉपी करें।"
+
+#: expenses/family
+msgid "We couldn't read the clipboard. Press and hold in the box and choose Paste instead."
+msgstr "हम क्लिपबोर्ड नहीं पढ़ सके। इसके बजाय बॉक्स में देर तक दबाएँ और चिपकाएँ चुनें।"
+
+#: expenses/family
+msgid "Record money you received"
+msgstr "प्राप्त हुआ पैसा दर्ज करें"
+
+#: expenses/family
 msgid "Guide"
 msgstr "गाइड"

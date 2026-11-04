@@ -35,6 +35,11 @@ SHARED_STRINGS = [
     ('', 'Last updated: November 2026'),
     # the Guide link in the public navbar
     ('', 'Guide'),
+    # quicker logging: the paste button on the new-expense page, and the install shortcuts
+    ('', 'Paste from clipboard'),
+    ('', 'The clipboard is empty. Copy a message such as \u201cswiggy 320\u201d first.'),
+    ('', "We couldn't read the clipboard. Press and hold in the box and choose Paste instead."),
+    ('', 'Record money you received'),
 ]
 
 # (context, msgid): (msgid_plural or None, hindi, marathi)   for a plural: ((hi1, hi2), (mr1, mr2))
@@ -314,6 +319,15 @@ ENTRIES = {
         'शेवटचे अपडेट: नोव्हेंबर 2026'),
 
     ('', 'Guide'): (None, 'गाइड', 'मार्गदर्शिका'),
+    # ---- quicker logging ----
+    ('', 'Paste from clipboard'): (None, 'क्लिपबोर्ड से चिपकाएँ', 'क्लिपबोर्डवरून पेस्ट करा'),
+    ('', 'The clipboard is empty. Copy a message such as \u201cswiggy 320\u201d first.'): (
+        None, 'क्लिपबोर्ड खाली है। पहले \u201cswiggy 320\u201d जैसा कोई संदेश कॉपी करें।',
+        'क्लिपबोर्ड रिकामा आहे. आधी \u201cswiggy 320\u201d सारखा संदेश कॉपी करा.'),
+    ('', "We couldn't read the clipboard. Press and hold in the box and choose Paste instead."): (
+        None, 'हम क्लिपबोर्ड नहीं पढ़ सके। इसके बजाय बॉक्स में देर तक दबाएँ और चिपकाएँ चुनें।',
+        'आम्हाला क्लिपबोर्ड वाचता आला नाही. त्याऐवजी बॉक्समध्ये दाबून धरा आणि पेस्ट करा निवडा.'),
+    ('', 'Record money you received'): (None, 'प्राप्त हुआ पैसा दर्ज करें', 'मिळालेले पैसे नोंदवा'),
 
     # ---- the invitation page ----
     ('', '%(name)s invited you to join a family'): (

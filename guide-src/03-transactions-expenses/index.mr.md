@@ -70,6 +70,7 @@ Expenses यादीमध्ये खर्च शोधा आणि तो 
 ---
 
 ## संबंधित लिंक्स
+- [फोनवरून क्विक ॲड](quick-add.mr.md)
 - [उत्पन्न जोडणे](../04-transactions-income/index.mr.md)
 - [बजेट](../07-budgets/index.mr.md)
 - [कॅलेंडर](../10-calendar/index.mr.md)

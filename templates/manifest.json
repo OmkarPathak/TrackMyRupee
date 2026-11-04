@@ -4,6 +4,7 @@
   "short_name": "TrackMyRupee",
   "description": "Precision rupee tracking and budgeting dashboard.",
   "start_url": "/dashboard/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#111315",
   "theme_color": "#0F7657",
@@ -21,8 +22,30 @@
           "type": "image/png"
         }
       ]
+    },
+    {
+      "name": "{% trans 'Add income' %}",
+      "short_name": "{% trans 'Add income' %}",
+      "description": "{% trans 'Record money you received' %}",
+      "url": "{% url 'income-create' %}?source=pwa",
+      "icons": [
+        {
+          "src": "{% static 'img/pwa-icon-512.png' %}",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
     }
   ],
+  "share_target": {
+    "action": "{% url 'expense-share' %}",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "icons": [
     {
       "src": "{% static 'img/pwa-icon-512.png' %}",

@@ -35,6 +35,7 @@ COMPOSER_FIELDS = {'amount', 'currency', 'date', 'description', 'category', 'acc
 COMPOSER_ENTRIES = {
     'fab', 'shortcut_key', 'sidebar', 'navbar', 'mobile_sheet',
     'deep_link', 'pwa_shortcut', 'empty_state', 'other',
+    'share_target', 'prefill_link',
 }
 COMPOSER_LANGS = {'en', 'hi', 'mr'}
 
@@ -242,6 +243,8 @@ def expense_composer_event(request):
     elif name == 'voice_used':
         props['lang'] = raw.get('lang') if raw.get('lang') in COMPOSER_LANGS else 'en'
     elif name == 'your_usual_chip_used':
+        pass
+    elif name == 'paste_used':
         pass
     else:
         return JsonResponse({'success': False}, status=400)

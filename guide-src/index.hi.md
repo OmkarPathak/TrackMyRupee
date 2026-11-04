@@ -70,6 +70,7 @@
 | [शुरुआत करें](01-getting-started/index.md) | पहला लॉगिन, वेतन चक्र, पहला खाता |
 | [खाते और निवल संपत्ति](02-accounts/index.md) | खाते के प्रकार, शुरुआती शेष, निवल संपत्ति |
 | [व्यय](03-transactions-expenses/index.md) | व्यय जोड़ना, संपादित करना और श्रेणीबद्ध करना |
+| [फ़ोन से क्विक ऐड](03-transactions-expenses/quick-add.md) | लिंक, Share मेन्यू, पेस्ट, और iPhone या Android के shortcut जो भरा हुआ फ़ॉर्म खोलते हैं |
 | [आय](04-transactions-income/index.md) | आय के स्रोत, आवर्ती आय |
 | [आवर्ती बिल](05-transactions-recurring/index.md) | ऑटो-पोस्टिंग, जल्द देय बिल |
 | [हस्तांतरण](06-transfers/index.md) | खाते के बीच धन स्थानांतरण |
