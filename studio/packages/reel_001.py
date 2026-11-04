@@ -6,7 +6,7 @@ SLUG = "trackmyrupee_reel_001_salary_disappears"
 
 PACKAGE = {
     "id": "reel-001",
-    "version": 2,
+    "version": 3,
     "status": "review",  # awaiting the creative director's feedback
     "title": "Where does your ₹50,000 salary disappear?",
     "strategy": {
@@ -14,7 +14,7 @@ PACKAGE = {
         "audience": "Salaried professionals 22–35, IT professionals, young working professionals",
         "objective": "Shares and saves first (relatability), profile visits and demo taps second. Establish the TrackMyRupee look.",
         "duration": "35 seconds (30–35s sweet spot; every beat earns its place)",
-        "format": "Kinetic data motion-graphic: one salary drawn as 50 tiles (1 tile = ₹1,000) that get named group by group. Real app screenshot only in the solution beat.",
+        "format": "Calm paper-style motion graphic (modelled on the director's reference animation): warm off-white background, bold rounded type with coral accents, white cards with soft shadows, Rupee Minis mascot in the corner, dark subtitle pills, slow fade-through transitions, 60 fps. One salary drawn as 50 tiles (1 tile = ₹1,000) named group by group; a crop of the real app screenshot in the solution beat.",
         "emotional_angle": "Recognition → mild shock ('₹8,000 with no name') → relief ('there is a simple fix')",
         "viewer_reaction": "'This is literally me' → send to a friend / save for salary day",
         "feature": "Quick-add: type an expense like a message (documented example: “swiggy 320”) + the Top Categories dashboard (real screenshot)",
@@ -32,7 +32,7 @@ PACKAGE = {
             "₹50,000 came in. Can you name where it went?",
         ],
         "on_screen_used": "₹50,000 → ₹0 · Gone by the 20th. · Where?",
-        "note": "v2: the number is on screen from frame 0, drains to ₹0 in 0.9s, then two hard slams ('Gone by the 20th.' / 'Where?') with screen shake. Previous v1 hook (slow count-up) kept as option 6.",
+        "note": "v3: three-line headline reveals line by line (₹50,000 in. / Gone by the 20th. / Where?) while a white 'Salary credited' card drains from ₹50,000 to ₹0 — punchy through copy and rhythm, no screen-shake. Previous v1 hook (slow count-up) kept as option 6.",
     },
     "illustrative_budget": {
         "label": "Illustrative example — not real user data, not advice",
@@ -240,3 +240,38 @@ for _n, (_en, _hg, _hi) in _VO.items():
 PACKAGE["scenes"][1]["vo_hi"] = "चलिए, एक सैलरी का पीछा करते हैं।"
 for _k, _f in (("en", "vo_en"), ("hinglish", "vo_hinglish"), ("hindi", "vo_hi")):
     PACKAGE["voiceover"][_k] = "\n\n".join(sc[_f] for sc in PACKAGE["scenes"])
+
+
+# --- v3: calm paper style (storyboard text updated to match the render) -----------
+_BG = "Warm off-white paper (#FAF8F6), flat — no gradients or glows."
+_V3 = {
+    1: ("Three-line headline rises in one line at a time: '₹50,000 in.' (ink) → 'Gone by the 20th.' (coral) → 'Where?' (ink). A white 'Salary credited ✓ ₹50,000' card slides up and the amount drains smoothly to ₹0 as the label becomes 'Left on the 20th'. The Rupee Minis piggy pops in at right, swallows the salary coin, goes wide-eyed and shakes its head.",
+        "Headline lines 0.6s ease-out rise (0.15 / 1.45 / 2.45s); amount drain 1.0–2.0s ease-in-out; everything fades out 3.1–3.55s."),
+    2: ("Header 'One ₹50,000 salary' / coral 'How much can you name?'. 50 soft-grey tiles (1 tile = ₹1,000) fade-scale in with a 20ms stagger; big ink counter '₹50,000 left to name'. 'ILLUSTRATIVE EXAMPLE' pill stays on screen. Mascot glides to the top-right corner.",
+        "Tiles 0.5s ease-out stagger from 4.0s; counter fades in 5.2s."),
+    3: ("Tiles colour blue in order (Rent 15, EMI 5, Bills 3). A white card with a ✓ badge swaps per group ('Rent ₹15,000' …) while the counter eases down to ₹27,000.", "Per-tile colour 0.45s ease-in-out at 50ms stagger; card swap 0.45s."),
+    4: ("Amber tiles: Food 9, Travel 4, Subscriptions 1; card swaps; counter eases to ₹13,000.", "Same rhythm."),
+    5: ("Teal tiles: SIP 5; counter reaches ₹8,000.", "Same rhythm."),
+    6: ("Remaining 8 tiles turn coral with '?' and a slow pulse (2.6 rad/s). Counter turns coral: '₹8,000 · no name · no category' then '16% of your salary'. Mascot goes wide-eyed with a '?' bubble.", "Colour shift 0.9s; pulse amplitude 20%."),
+    7: ("Four white cards rise in like a paid-UPI list: Chai ₹180 · Late-night order ₹349 · Forgotten renewal ₹99 · UPI to a friend ₹250, then '…and many more like these.' Mascot looks around (gentle ±5° sway).", "Cards 0.6s ease-out at 0.45s stagger."),
+    8: ("Headline 'Type it like a message. / One line.' with a grey input field typing 'swiggy 320' (mono). Chips: ₹320 · Swiggy · category suggested; 'You check it, then add it.' The mascot swallows a coin as it's logged. Then, sequentially (no overlap): headline → 'Every rupee gets a name.' and a crop of the REAL app screenshot (Top Categories, demo data) slides up.", "Typing 1.0s; out 29.6–30.05, in 30.15–30.75."),
+    9: ("Mascot centre, TrackMyRupee mark + wordmark, coral tagline 'Know where every rupee went.', teal 'Try the free demo' button, trackmyrupee.com/demo, 'No bank login · No SMS access'.", "Staggered fade-up 0.6s."),
+}
+for _n, (_vis, _mv) in _V3.items():
+    _s = PACKAGE["scenes"][_n - 1]; _s["visual"] = _vis; _s["movement"] = _mv; _s["background"] = _BG
+    _s["camera"] = "Locked-off. No screen-shake, no hard cuts: scenes fade through."; _s["lighting"] = "Flat graphic; soft card shadows only."
+    _s["transition"] = "Fade-through (≈0.4s out / 0.5s in)"
+PACKAGE["scenes"][0]["name"] = "Hook (v3 — punchy copy, calm motion)"
+PACKAGE["scenes"][0]["sfx"] = "Soft ding at 0.0; boing 0.05; coin clink 0.62; falling sweep 1.0–1.9; soft thuds on 'Gone…' and 'Where?'; whoosh 3.1"
+PACKAGE["editing"]["canvas"] = "9:16, 1080×1920, 60 fps (30 fps also fine)"
+PACKAGE["editing"]["timeline"][4] = "Captions: already burned in as a dark rounded pill (#2B2B2B, white PJS SemiBold 40px, y≈1370–1500). Use the 'clean_nocaptions' export if you prefer CapCut auto-captions or another language (subtitles_en.srt provided)."
+PACKAGE["editing"]["text_placement"] = "Headline left-aligned at x=72; mascot top-right; captions pill y≈1370–1500; nothing important below y=1640 (Instagram UI)."
+PACKAGE["editing"]["export"] = "1080×1920 · 60 fps (or 30) · H.264 High · CRF≈17 (~3 Mbps for this flat-colour content is fine) · AAC 192 kbps · MP4 faststart"
+PACKAGE["cover"]["design"] = "1080×1920 calm paper background; three-line headline '₹50,000 in. / Gone by the 20th. / Where?' (coral middle line); the 50-tile grid with 8 coral '?' tiles; mascot (wide-eyed) bottom-right; logo top-left. Everything important sits inside the central 1080×1350 crop."
+PACKAGE["cover"]["title"] = "₹50,000 in. Gone by the 20th. Where?"
+PACKAGE["music"]["direction"] = "Calm, minimal, warm — soft plucks/keys, very low in the mix (about −24 LUFS bed under the voice), no drops. The visual style is gentle, so keep the music gentle."
+for _a in PACKAGE["asset_checklist"]:
+    if "Draft video" in _a["item"]:
+        _a["item"] = "Draft videos v3 (60fps, captioned: EN / EN-via-Hindi-voice / Hindi) + clean no-caption versions"; _a["file"] = "trackmyrupee_reel_001_draft_vo_*.mp4"
+    if "Silent video" in _a["item"]:
+        _a["item"] = "Base video (no audio, no captions)"

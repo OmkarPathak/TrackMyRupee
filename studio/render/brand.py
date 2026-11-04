@@ -35,7 +35,10 @@ FONTS = {
     "sansm": "DMSans-Medium.ttf",
     "sansb": "DMSans-Bold.ttf",
     "deva": "NotoSansDevanagari-SemiBold.ttf",
+    "pj": "PlusJakartaSans-Medium.ttf", "pjsb": "PlusJakartaSans-SemiBold.ttf", "pjxb": "PlusJakartaSans-ExtraBold.ttf",
+    "mono": "DMMono-Medium.ttf",
 }
+C.update({"paper": "#FAF8F6", "tile": "#E9E6E1", "grey": "#8A8A86", "pill": "#2B2B2B", "input": "#ECEAE6"})
 
 
 def rgb(h: str, a: float | None = None):
@@ -131,21 +134,49 @@ class Canvas:
         return w / self.s + tracking * max(0, len(text) - 1)
 
     def text(self, x, y, text, key="sans", size=48, fill="#FFFFFF", anchor="l", tracking=0):
-        """anchor: l / m / r horizontally; y is the text baseline."""
+        """anchor: l / m / r horizontally; y is the baseline. Alpha in `fill` is honoured
+        (drawn through an L mask — PIL ignores RGBA ink alpha for text on RGB images)."""
         s = self._s
         fill = rgb(fill) if isinstance(fill, str) else fill
+        alpha = fill[3] if len(fill) > 3 else 255
+        if alpha <= 0:
+            return 0
         total = self.text_width(text, key, size, tracking)
-        cx = x - (total / 2 if anchor == "m" else total if anchor == "r" else 0)
+        x0 = x - (total / 2 if anchor == "m" else total if anchor == "r" else 0)
+        pad = int(size * 0.6 * self.s)
+        Wm, Hm = int(total * self.s) + 2 * pad, int(size * 2.2 * self.s)
+        mask = Image.new("L", (Wm, Hm), 0); md = ImageDraw.Draw(mask)
+        base = int(size * 1.4 * self.s); cx = pad
         for run, k in self._runs(text, key):
             f = font(k, s(size * (0.78 if (k == "sansm" and key == "serif") else 1)))
             if tracking:
                 for ch in run:
-                    self.d.text((s(cx), s(y)), ch, font=f, fill=fill, anchor="ls")
-                    cx += f.getlength(ch) / self.s + tracking
+                    md.text((cx, base), ch, font=f, fill=255, anchor="ls"); cx += f.getlength(ch) + tracking * self.s
             else:
-                self.d.text((s(cx), s(y)), run, font=f, fill=fill, anchor="ls")
-                cx += f.getlength(run) / self.s
+                md.text((cx, base), run, font=f, fill=255, anchor="ls"); cx += f.getlength(run)
+        if alpha < 255:
+            mask = mask.point(lambda v: v * alpha // 255)
+        self.img.paste(Image.new("RGB", mask.size, tuple(fill[:3])), (s(x0) - pad, s(y) - base), mask)
         return total
+
+    def shadow(self, x, y, w, h, r, blur=20, dy=10, alpha=0.10):
+        s = self._s; pad = blur * 3
+        layer = Image.new("RGBA", (s(w + 2 * pad), s(h + 2 * pad)), (0, 0, 0, 0))
+        ImageDraw.Draw(layer).rounded_rectangle([s(pad), s(pad), s(pad + w), s(pad + h)], radius=s(r), fill=(26, 26, 25, int(255 * alpha)))
+        layer = layer.filter(ImageFilter.GaussianBlur(s(blur)))
+        self.img.paste(layer, (s(x - pad), s(y - pad + dy)), layer)
+
+    def card(self, x, y, w, h, r=28, fill="#FFFFFF", alpha=1.0, shadow=True):
+        if alpha <= 0:
+            return
+        if shadow:
+            self.shadow(x, y, w, h, r, alpha=0.10 * alpha)
+        self.rrect(x, y, w, h, r, fill=rgb(fill, alpha))
+
+    def check(self, cx, cy, r, color, alpha=1.0):
+        self.ellipse(cx, cy, r, fill=rgb(color, alpha))
+        k = r / 15
+        self.line([(cx - 7 * k, cy + 0.5 * k), (cx - 2 * k, cy + 6 * k), (cx + 8 * k, cy - 6 * k)], (255, 255, 255, int(255 * alpha)), 3.4 * k)
 
     def paste(self, im: Image.Image, x, y, alpha=1.0):
         s = self._s

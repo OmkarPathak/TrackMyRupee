@@ -7,6 +7,9 @@ from PIL import Image, ImageDraw, ImageFilter
 
 BODY, LEG, EAR1, EAR2, SNOUT = "#E1F5EE", "#9FE1CB", "#9FE1CB", "#B5EAD6", "#9FE1CB"
 DARK, AMBER, AMBER_RING, AMBER_INK = "#085041", "#F4B44E", "#FAD9A0", "#8F4E00"
+# colourway for LIGHT backgrounds (assets/mascot/ec0c8889-rupee-minis-mascot.svg)
+LIGHT = {"BODY": "#9FE1CB", "LEG": "#5DCAA5", "EAR1": "#5DCAA5", "EAR2": "#78D4B4", "SNOUT": "#5DCAA5", "SHADOW": (26, 26, 25, 18), "SLOT": 102}
+NIGHT = {"BODY": BODY, "LEG": LEG, "EAR1": EAR1, "EAR2": EAR2, "SNOUT": SNOUT, "SHADOW": (0, 0, 0, 90), "SLOT": 100}
 
 
 def _h(c, a=255):
@@ -47,14 +50,15 @@ def _ell(d, cx, cy, rx, ry, fill, u):
     d.ellipse([(cx - rx) * u, (cy - ry) * u, (cx + rx) * u, (cy + ry) * u], fill=fill)
 
 
-def sprite(unit=4.0, mood="happy", ear=0.0, tail=0.0, coin_y=32.0, coin_front=True, coin_rot=0.0, blink=0.0):
+def sprite(unit=4.0, pal=None, mood="happy", ear=0.0, tail=0.0, coin_y=32.0, coin_front=True, coin_rot=0.0, blink=0.0):
     """Render the mascot to an RGBA sprite of 200*unit square.
     mood: 'happy' (closed smiling eye) | 'wide' (open, worried eye)."""
+    pal = pal or NIGHT
     S = int(200 * unit)
     im = Image.new("RGBA", (S, S), (0, 0, 0, 0)); d = ImageDraw.Draw(im, "RGBA")
     u = unit
     # shadow
-    sh = Image.new("RGBA", (S, S), (0, 0, 0, 0)); _ell(ImageDraw.Draw(sh), 96, 177, 64, 7, (0, 0, 0, 90), u)
+    sh = Image.new("RGBA", (S, S), (0, 0, 0, 0)); _ell(ImageDraw.Draw(sh), 96, 177, 64, 7, pal["SHADOW"], u)
     im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(3 * u / 4)))
     d = ImageDraw.Draw(im, "RGBA")
 
@@ -69,20 +73,20 @@ def sprite(unit=4.0, mood="happy", ear=0.0, tail=0.0, coin_y=32.0, coin_front=Tr
         coin()
     # legs
     for x in (54, 112):
-        d.rounded_rectangle([x * u, 128 * u, (x + 24) * u, 172 * u], radius=12 * u, fill=_h(LEG))
-    _stroke(d, _rot(TAIL, tail, (33, 102)), 7, _h(LEG), u)
+        d.rounded_rectangle([x * u, 128 * u, (x + 24) * u, 172 * u], radius=12 * u, fill=_h(pal["LEG"]))
+    _stroke(d, _rot(TAIL, tail, (33, 102)), 7, _h(pal["LEG"]), u)
     e1 = _rot(EAR1_P, ear, (120, 62)); e2 = _rot(EAR2_P, -ear * .8, (146, 84))
-    for pts, col in ((e1, EAR1), (e2, EAR2)):
+    for pts, col in ((e1, pal["EAR1"]), (e2, pal["EAR2"])):
         d.polygon([(x * u, y * u) for x, y in pts], fill=_h(col)); _stroke(d, pts + [pts[0]], 4, _h(col), u)
-    _ell(d, 96, 104, 68, 54, _h(BODY), u)
+    _ell(d, 96, 104, 68, 54, _h(pal["BODY"]), u)
     # shine (soft white) — blur the alpha mask only, so no grey fringe
     m = Image.new("L", (int(110 * u), int(70 * u)), 0); ImageDraw.Draw(m).ellipse([int(26 * u), int(23 * u), int(84 * u), int(47 * u)], fill=150)
     m = m.filter(ImageFilter.GaussianBlur(5 * u)).rotate(16, expand=True, resample=Image.BICUBIC)
     lay = Image.new("RGBA", m.size, (255, 255, 255, 0)); lay.putalpha(m)
     im.alpha_composite(lay, (int(72 * u - lay.width / 2), int(80 * u - lay.height / 2)))
     d = ImageDraw.Draw(im, "RGBA")
-    _ell(d, 158, 112, 21, 16, _h(SNOUT), u)
-    _stroke(d, SLOT, 6, _h(DARK, 100), u)
+    _ell(d, 158, 112, 21, 16, _h(pal["SNOUT"]), u)
+    _stroke(d, SLOT, 6, _h(DARK, pal["SLOT"]), u)
     # blush
     m = Image.new("L", (int(60 * u), int(60 * u)), 0); ImageDraw.Draw(m).ellipse([int(17 * u), int(17 * u), int(43 * u), int(43 * u)], fill=190)
     m = m.filter(ImageFilter.GaussianBlur(5 * u))
@@ -101,12 +105,12 @@ def sprite(unit=4.0, mood="happy", ear=0.0, tail=0.0, coin_y=32.0, coin_front=Tr
     return im
 
 
-def draw(c, cx, ybottom, size, t=0.0, mood="happy", rot=0.0, squash=0.0, alpha=1.0, coin_y=None, coin_front=True, wiggle=1.0, flip=False):
+def draw(c, cx, ybottom, size, t=0.0, mood="happy", rot=0.0, squash=0.0, alpha=1.0, coin_y=None, coin_front=True, wiggle=1.0, flip=False, pal=None):
     """Draw onto a brand Canvas. cx = horizontal centre, ybottom = feet baseline.
     size = sprite width in design px. Idle bob / ear / tail motion included."""
     s = c.s; unit = size * s / 200
     bob = math.sin(t * 3.2) * 0.012 * size * wiggle
-    sp = sprite(unit, mood, ear=math.sin(t * 5.1) * 7 * wiggle, tail=math.sin(t * 4.3) * 14 * wiggle,
+    sp = sprite(unit, pal, mood, ear=math.sin(t * 5.1) * 7 * wiggle, tail=math.sin(t * 4.3) * 14 * wiggle,
                 coin_y=32 + math.sin(t * 3.6) * 1.6 if coin_y is None else coin_y, coin_front=coin_front)
     if flip:
         sp = sp.transpose(Image.FLIP_LEFT_RIGHT)

@@ -1,357 +1,326 @@
-"""Reel 001 — "Where does your ₹50,000 salary disappear?"
+"""Reel 001 — v3 "calm paper" style (modelled on the creative director's reference
+animation: warm off-white background, bold rounded-geometric type with coral
+accents, white cards with soft shadows, Rupee Minis mascot in the corner, slow
+fade-through transitions). 60 fps for smooth motion.
 
-Motion-graphics renderer. Every number is illustrative and labelled as such on
-screen. The only product UI shown is the real app screenshot from
-static/img/mobile-2.png (never a generated or faked interface).
+All money figures are illustrative and labelled on screen. The only product UI is a
+crop of the real app screenshot (static/img/mobile-2.png, demo data).
+Captions are NOT baked in here (see captions.py) so the base video stays reusable.
 
-Usage:  python studio/render/reel_001.py [out.mp4] [--preview N]
+Usage:  python studio/render/reel_001.py out.mp4 [--preview 0,120,...]   (frame numbers @60fps)
 """
 from __future__ import annotations
 
+import math
 import subprocess
 import sys
 from multiprocessing import Pool
 from pathlib import Path
 
-import math
-from PIL import Image, ImageChops
+from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from render import mascot  # noqa: E402
-from render.brand import (C, REPO, Canvas, clamp, ease_back, ease_in_out, ease_out,  # noqa: E402
-                          fmt_inr, prog, rgb)
+from render.brand import C, REPO, Canvas, clamp, ease_back, ease_in_out, ease_out, fmt_inr, prog, rgb  # noqa: E402
 
-W, H, FPS = 1080, 1920, 30
-DUR = 35.0
+W, H, FPS, DUR = 1080, 1920, 60, 35.0
+LM = 72  # left margin
 
-# --- the illustrative salary (sums to exactly 50,000; asserted below) -------
-GROUPS = [  # key, label, rupees, colour, start-time
-    ("rent", "Rent", 15000, "blue200", 7.0),
-    ("emi", "EMI", 5000, "blue200", 8.1),
-    ("bills", "Bills", 3000, "blue200", 9.0),
-    ("food", "Food", 9000, "amber200", 10.6),
-    ("travel", "Travel", 4000, "amber200", 11.7),
-    ("subs", "Subscriptions", 1000, "amber200", 12.6),
+GROUPS = [  # key, label, rupees, colour, start
+    ("rent", "Rent", 15000, "blue200", 7.0), ("emi", "EMI", 5000, "blue200", 8.2), ("bills", "Bills", 3000, "blue200", 9.2),
+    ("food", "Food", 9000, "amber200", 10.6), ("travel", "Travel", 4000, "amber200", 11.8), ("subs", "Subscriptions", 1000, "amber200", 12.8),
     ("sip", "SIP", 5000, "teal200", 14.4),
 ]
-MYSTERY = 8000
-SALARY = 50000
+MYSTERY, SALARY = 8000, 50000
 assert sum(g[2] for g in GROUPS) + MYSTERY == SALARY
-
-# tile grid: 10 x 5, one tile = ₹1,000
 COLS, ROWS, TILE, GAP = 10, 5, 80, 12
-GX = (W - (COLS * TILE + (COLS - 1) * GAP)) // 2
-GY = 700
-
-_tile_group = []
+GX, GY = (W - (COLS * TILE + (COLS - 1) * GAP)) // 2, 440
+_tg = []
 for g in GROUPS:
-    _tile_group += [g] * (g[2] // 1000)
-_tile_group += [None] * (MYSTERY // 1000)
-
-_phone = None
-
-
-def phone():
-    global _phone
-    if _phone is None:
-        im = Image.open(REPO / "static/img/mobile-2.png").convert("RGBA")
-        h = 900
-        im = im.resize((int(im.width * h / im.height), h), Image.LANCZOS)
-        # render at canvas scale (2x) so it stays crisp
-        _phone = im.resize((im.width * 2, im.height * 2), Image.LANCZOS), im.width, im.height
-    return _phone
-
-
-def tile_xy(i):
-    r, c = divmod(i, COLS)
-    return GX + c * (TILE + GAP), GY + r * (TILE + GAP)
-
-
-def remaining(t):
-    spent = sum(g[2] for g in GROUPS if t >= g[4] + 0.35)
-    return SALARY - spent
-
-
-def center(c, y, text, key, size, fill, alpha=1.0, tracking=0):
-    if alpha <= 0:
-        return
-    col = rgb(fill) if isinstance(fill, str) else fill
-    c.text(W / 2, y, text, key, size, col[:3] + (int(255 * alpha),), "m", tracking)
-
-
-def pill(c, cx, cy, text, fg, bg, size=30, alpha=1.0, dot=None):
-    tw = c.text_width(text, "sansb", size, 2)
-    pad = 28 + (26 if dot else 0)
-    w = tw + pad * 2
-    c.rrect(cx - w / 2, cy - 36, w, 72, 36, fill=rgb(bg, 0.85 * alpha))
-    x = cx - w / 2 + pad
-    if dot:
-        c.ellipse(x - 4, cy, 8, fill=rgb(dot, alpha)); x += 22
-    c.text(x, cy + size * 0.36, text, "sansb", size, rgb(fg, alpha), "l", 2)
-
-
-def draw_grid(c, t, scene):
-    """scene controls tile appearance; returns nothing."""
-    appear0 = 3.5
-    for i in range(COLS * ROWS):
-        x, y = tile_xy(i)
-        a = ease_back(prog(t, appear0 + i * 0.022, 0.45))
-        if a <= 0:
-            continue
-        sz = TILE * clamp(a, 0, 1.12)
-        ox, oy = x + (TILE - sz) / 2, y + (TILE - sz) / 2
-        g = _tile_group[i]
-        col, alpha = C["cream"], 0.92
-        if g:
-            k = prog(t, g[4] + (i - _first_index(g)) * 0.045, 0.3)
-            if k > 0:
-                mix = ease_out(k)
-                col = _mix(C["cream"], C[g[3]], mix)
-        else:
-            # mystery tiles: stay blank cream, then turn coral-outlined + pulse
-            m = prog(t, 17.6, 0.6)
-            if m > 0:
-                pulse = 0.5 + 0.5 * __import__("math").sin((t - 17.6) * 5.2)
-                col = _mix(C["cream"], C["coral200"], ease_out(m) * (0.55 + 0.45 * pulse))
-                c.glow(ox, oy, sz, sz, 14, C["coral200"], blur=18, alpha=0.5 * pulse * m)
-        c.rrect(ox, oy, sz, sz, 14, fill=rgb(col, alpha))
-        if g is None and t >= 17.8 and a >= 1:
-            c.text(ox + sz / 2, oy + sz / 2 + 16, "?", "serif", 52, rgb(C["coral400"]), "m")
-
-
+    _tg += [g] * (g[2] // 1000)
+_tg += [None] * (MYSTERY // 1000)
 _first = {}
+for i, g in enumerate(_tg):
+    if g and g[0] not in _first:
+        _first[g[0]] = i
 
 
-def _first_index(g):
-    if not _first:
-        for i, gg in enumerate(_tile_group):
-            if gg and gg[0] not in _first:
-                _first[gg[0]] = i
-    return _first[g[0]]
+# ---- helpers ----------------------------------------------------------------
+def env(t, a, b, fi=0.5, fo=0.4):
+    return ease_out(prog(t, a, fi)) * (1 - ease_in_out(prog(t, b - fo, fo)))
 
 
-def _mix(a, b, k):
-    ra, rb_ = rgb(a), rgb(b)
-    return "#%02x%02x%02x" % tuple(int(ra[i] + (rb_[i] - ra[i]) * k) for i in range(3))
+def rise(t, a, dur=0.6, dist=28):
+    p = ease_out(prog(t, a, dur)); return p, (1 - p) * dist
 
 
-
-def _lerp(a, b, k):
+def lerp(a, b, k):
     return a + (b - a) * k
 
 
-def draw_mascot(c, t):
-    """Rupee Minis choreography. Feet baseline `yb`, centre `cx`, width `size`."""
-    # position keyframes: hook centre -> corner watcher -> end-card centre
-    if t < 3.1:
-        cx, yb, size = 540, 1650, 290
-    elif t < 31.0:
-        k = ease_in_out(prog(t, 3.1, 0.8)); cx, yb, size = _lerp(540, 175, k), _lerp(1650, 1630, k), _lerp(290, 200, k)
-    else:
-        k = ease_in_out(prog(t, 31.0, 0.9)); cx, yb, size = _lerp(175, 540, k), _lerp(1630, 640, k), _lerp(200, 300, k)
-    squash, rot, mood, coin_y, coin_front = 0.0, 0.0, "happy", None, True
+def mix(a, b, k):
+    ra, rb = rgb(a), rgb(b); return "#%02x%02x%02x" % tuple(int(ra[i] + (rb[i] - ra[i]) * k) for i in range(3))
 
-    if t < 0.5:                                   # pop-in with overshoot
-        size *= max(0.01, ease_back(prog(t, 0.0, 0.45)))
-        squash = 0.10 * (1 - prog(t, 0.3, 0.2))
-    # hook: coin dropped in the slot (salary credited), then shock as it drains
-    if t < 3.6:
-        if t < 0.3:
-            coin_y = 32 + math.sin(t * 3.6) * 1.6
-        else:
-            coin_y = 32 + 30 * ease_in(prog(t, 0.3, 0.35)); coin_front = coin_y < 40
-            if t >= 0.65:
-                coin_y, coin_front = 70, False
-        if t >= 1.1:
+
+def txt(c, x, y, s, key, size, fill, a=1.0, anchor="l", tr=0):
+    if a <= 0.01:
+        return
+    col = rgb(fill) if isinstance(fill, str) else fill
+    c.text(x, y, s, key, size, col[:3] + (int(255 * clamp(a)),), anchor, tr)
+
+
+def pill(c, cx, cy, s, fg, bg, size=26, a=1.0):
+    w = c.text_width(s, "pjsb", size, 2) + 56
+    c.rrect(cx - w / 2, cy - 30, w, 60, 30, fill=rgb(bg, a)); txt(c, cx, cy + size * .36, s, "pjsb", size, fg, a, "m", 2)
+
+
+_ui = None
+
+
+def ui_crop():
+    global _ui
+    if _ui is None:
+        im = Image.open(REPO / "static/img/mobile-2.png").convert("RGBA").crop((150, 1545, 1270, 2125))
+        w = 880; h = int(im.height * w / im.width); im = im.resize((w * 2, h * 2), Image.LANCZOS)
+        from PIL import ImageDraw
+        m = Image.new("L", im.size, 0); ImageDraw.Draw(m).rounded_rectangle([0, 0, im.width - 1, im.height - 1], radius=56, fill=255)
+        im.putalpha(Image.composite(im.getchannel("A"), Image.new("L", im.size, 0), m)); _ui = im, w, h
+    return _ui
+
+
+def spent(t):
+    return sum(g[2] * ease_in_out(prog(t, g[4] + 0.3, 0.7)) for g in GROUPS)
+
+
+# ---- mascot choreography -----------------------------------------------------
+def mascot_pose(t):
+    if t < 3.4:
+        cx, yb, sz = 905, 590, 175
+    elif t < 26.6:
+        k = ease_in_out(prog(t, 3.4, 0.9)); cx, yb, sz = lerp(905, 925, k), lerp(590, 335, k), lerp(175, 150, k)
+    elif t < 31.4:
+        k = ease_in_out(prog(t, 26.6, 0.8)); cx, yb, sz = lerp(925, 905, k), lerp(335, 600, k), lerp(150, 170, k)
+    else:
+        k = ease_in_out(prog(t, 31.4, 0.9)); cx, yb, sz = lerp(905, 540, k), lerp(600, 690, k), lerp(170, 290, k)
+    return cx, yb, sz
+
+
+def draw_mascot(c, t):
+    cx, yb, sz = mascot_pose(t)
+    mood, rot, squash, coin_y, front = "happy", 0.0, 0.0, None, True
+    if t < 0.7:
+        sz *= max(0.01, ease_back(prog(t, 0.15, 0.55))); squash = 0.08 * (1 - prog(t, 0.55, 0.3))
+    if t < 3.9:                                     # salary coin goes in, then pops back
+        if 0.6 <= t < 1.1:
+            coin_y = 32 + 30 * ease_in_out(prog(t, 0.6, 0.5)); front = coin_y < 40
+        elif 1.1 <= t < 3.6:
+            coin_y, front = 70, False
+        elif t >= 3.6:
+            coin_y = 60 - 28 * ease_out(prog(t, 3.6, 0.6)); front = coin_y < 42
+        if t >= 1.15:
             mood = "wide"
-        if 1.4 <= t < 2.2:
-            rot = math.sin(t * 24) * 5 * (1 - prog(t, 1.4, 0.8))
-    elif t < 4.2:                                  # coin pops back out
-        coin_y = 60 - 28 * ease_out(prog(t, 3.6, 0.5)); coin_front = coin_y < 42
+        if 1.2 <= t < 2.0:
+            rot = math.sin((t - 1.2) * 14) * 4 * (1 - prog(t, 1.2, 0.8))
+    if 4.6 <= t < 17.4:
+        mood = "happy"
     if 17.4 <= t < 26.6:
         mood = "wide"
         if t >= 22.0:
-            rot = math.sin(t * 6) * 6
-    if 28.8 <= t < 29.9:                           # "logged" -> coin into the slot, pops back
-        if t < 29.2:
-            coin_y = 32 + 30 * ease_in(prog(t, 28.8, 0.4)); coin_front = coin_y < 40
+            rot = math.sin(t * 3.2) * 5
+    if 29.2 <= t < 30.4:                            # logged → coin into slot
+        if t < 29.6:
+            coin_y = 32 + 30 * ease_in_out(prog(t, 29.2, 0.4)); front = coin_y < 40
         else:
-            coin_y = 62 - 30 * ease_out(prog(t, 29.2, 0.6)); coin_front = coin_y < 42
-        squash = 0.08 * math.sin(math.pi * prog(t, 29.1, 0.4))
-    if 31.0 <= t < 31.9:
-        squash = 0.10 * math.sin(math.pi * prog(t, 31.5, 0.4))
-    if 4.2 <= t < 5.4:
-        coin_y = None
-    mascot.draw(c, cx, yb, size, t=t, mood=mood, rot=rot, squash=squash, coin_y=coin_y, coin_front=coin_front)
-    # thought bubble in the reveal
-    if 17.8 <= t < 22.0 and size >= 190 and prog(t, 17.8, 0.35) > 0.08:
-        a = ease_back(prog(t, 17.8, 0.35))
-        bx, by = cx + 95, yb - 205
-        c.ellipse(bx, by, 34 * a, fill=rgb(C["coral200"])); 
-        c.text(bx, by + 17 * a, "?", "serif", int(52 * a), rgb(C["coral400"]), "m")
+            coin_y = 62 - 30 * ease_out(prog(t, 29.6, 0.7)); front = coin_y < 42
+        squash = 0.07 * math.sin(math.pi * prog(t, 29.5, 0.4))
+    if 31.9 <= t < 32.5:
+        squash = 0.08 * math.sin(math.pi * prog(t, 31.9, 0.6))
+    mascot.draw(c, cx, yb, sz, t=t, mood=mood, rot=rot, squash=squash, coin_y=coin_y, coin_front=front, pal=mascot.LIGHT, wiggle=0.8)
+    if 17.9 <= t < 22.0 and prog(t, 17.9, 0.4) > 0.1:        # thought bubble in the reveal
+        a = ease_back(prog(t, 17.9, 0.4)) * (1 - prog(t, 21.6, 0.4))
+        bx, by = cx - 105, yb - 150
+        c.ellipse(bx, by, 30 * a, fill=rgb(C["coral200"])); txt(c, bx, by + 14 * a, "?", "pjxb", int(40 * a) + 1, C["coral400"], 1, "m")
 
 
-def ease_in(p):
-    return p * p
+# ---- scenes -----------------------------------------------------------------
+def scene_hook(c, t):
+    if t >= 3.6:
+        return
+    out = 1 - ease_in_out(prog(t, 3.1, 0.45))
+    for s, y, col, a0 in (("₹50,000 in.", 330, C["ink900"], 0.15), ("Gone by the 20th.", 440, C["coral400"], 1.45), ("Where?", 550, C["ink900"], 2.45)):
+        a, dy = rise(t, a0); txt(c, LM, y + dy, s, "pjxb", 94, col, a * out)
+    a, dy = rise(t, 0.35, 0.7, 36); a *= out
+    y0 = 720 + dy
+    c.card(LM, y0, W - 2 * LM, 132, 30, alpha=a)
+    c.check(LM + 62, y0 + 66, 24, C["amber200"], a)
+    drain = ease_in_out(prog(t, 1.0, 1.0))
+    sw = ease_in_out(prog(t, 1.9, 0.5))
+    txt(c, LM + 112, y0 + 82, "Salary credited", "pjsb", 40, C["ink900"], a * (1 - sw))
+    txt(c, LM + 112, y0 + 82, "Left on the 20th", "pjsb", 40, C["ink900"], a * sw)
+    val = int(round(SALARY * (1 - drain), -2))
+    txt(c, W - LM - 40, y0 + 84, fmt_inr(val), "pjxb", 46, mix(C["ink900"], C["coral400"], drain), a, "r")
+
+
+def grid_visible(t):
+    return env(t, 3.7, 26.5, 0.6, 0.5)
+
+
+def draw_grid(c, t, vis):
+    for i in range(COLS * ROWS):
+        r, k = divmod(i, COLS); x, y = GX + k * (TILE + GAP), GY + r * (TILE + GAP)
+        a = ease_out(prog(t, 4.0 + i * 0.02, 0.5)) * vis
+        if a <= 0.01:
+            continue
+        sz = TILE * (0.9 + 0.1 * a); ox, oy = x + (TILE - sz) / 2, y + (TILE - sz) / 2
+        g = _tg[i]; col = C["tile"]
+        if g:
+            col = mix(C["tile"], C[g[3]], ease_in_out(prog(t, g[4] + (i - _first[g[0]]) * 0.05, 0.45)))
+            c.rrect(ox, oy, sz, sz, 16, fill=rgb(col, a))
+        else:
+            m = ease_in_out(prog(t, 17.6, 0.9)); pulse = 0.5 + 0.5 * math.sin((t - 17.6) * 2.6)
+            col = mix(C["tile"], C["coral200"], m * (0.8 + 0.2 * pulse))
+            c.rrect(ox, oy, sz, sz, 16, fill=rgb(col, a))
+            if m > 0.5:
+                txt(c, ox + sz / 2, oy + sz / 2 + 17, "?", "pjxb", 52, C["coral400"], a * (m - .5) * 2, "m")
+
+
+def scene_story(c, t):
+    vis = grid_visible(t)
+    if vis <= 0.01:
+        return
+    # header
+    a, dy = rise(t, 3.8); a *= vis
+    txt(c, LM, 305 + dy, "One ₹50,000 salary", "pjxb", 58, C["ink900"], a)
+    sub = "How much can you name?" if t < 17.4 else "Who took the rest?"
+    swap = ease_in_out(prog(t, 17.0, 0.5))
+    txt(c, LM, 360 + dy, "How much can you name?", "pjsb", 30, C["coral400"], a * (1 - swap))
+    txt(c, LM, 360 + dy, "Who took the rest?", "pjsb", 30, C["coral400"], a * swap)
+    draw_grid(c, t, vis)
+
+    # group card (swaps per group)
+    for g in GROUPS:
+        a0, a1 = g[4] + 0.15, g[4] + (1.1 if g is not GROUPS[-1] else 2.4)
+        e = env(t, a0, a1, 0.45, 0.4) * vis
+        if e <= 0.01:
+            continue
+        dy = (1 - ease_out(prog(t, a0, 0.5))) * 24
+        y0 = 935 + dy
+        c.card(LM, y0, W - 2 * LM, 104, 28, alpha=e)
+        c.check(LM + 58, y0 + 52, 22, C[g[3]], e)
+        txt(c, LM + 104, y0 + 66, g[1], "pjxb", 38, C["ink900"], e)
+        txt(c, W - LM - 40, y0 + 68, fmt_inr(g[2]), "pjxb", 42, C["coral400"], e, "r")
+
+    # counter
+    if t < 22.0:
+        ca = ease_out(prog(t, 5.2, 0.6)) * vis * (1 - ease_in_out(prog(t, 21.5, 0.5)))
+        rem = SALARY - spent(t)
+        col = mix(C["ink900"], C["coral400"], ease_in_out(prog(t, 17.4, 0.8)))
+        sc = 1 + 0.025 * math.sin((t - 17.6) * 2.6) if t > 17.6 else 1
+        txt(c, W / 2, 1210, fmt_inr(int(round(rem, -1))), "pjxb", int(132 * sc), col, ca, "m")
+        lab = "left to name" if t < 17.4 else "no name · no category"
+        swap = ease_in_out(prog(t, 17.2, 0.5))
+        txt(c, W / 2, 1264, "left to name", "pjsb", 32, C["grey"], ca * (1 - swap), "m")
+        txt(c, W / 2, 1264, "no name · no category", "pjsb", 32, C["grey"], ca * swap, "m")
+        if t >= 19.2:
+            txt(c, W / 2, 1316, "16% of your salary", "pjxb", 34, C["coral400"], ease_out(prog(t, 19.2, 0.6)) * ca, "m")
+
+    # leaks: stack of cards (like paid-UPI list)
+    if 22.0 <= t < 26.6:
+        items = [("Chai", "₹180"), ("Late-night order", "₹349"), ("Forgotten renewal", "₹99"), ("UPI to a friend", "₹250")]
+        for j, (lab, amt) in enumerate(items):
+            a0 = 22.2 + j * 0.45; e = env(t, a0, 26.5, 0.55, 0.5) * vis
+            if e <= 0.01:
+                continue
+            y0 = 935 + j * 88 + (1 - ease_out(prog(t, a0, 0.6))) * 30
+            c.card(LM, y0, W - 2 * LM, 74, 22, alpha=e)
+            c.check(LM + 44, y0 + 37, 16, C["coral200"], e)
+            txt(c, LM + 80, y0 + 48, lab, "pjsb", 32, C["ink900"], e)
+            txt(c, W - LM - 36, y0 + 49, amt, "pjxb", 36, C["coral400"], e, "r")
+        txt(c, W / 2, 1318, "…and many more like these.", "pj", 30, C["grey"], env(t, 24.2, 26.5, 0.6, 0.5) * vis, "m")
+    # label
+    if t >= 4.6:
+        pill(c, W / 2, 1590, "ILLUSTRATIVE EXAMPLE", C["teal800"], C["teal50"], 24, ease_out(prog(t, 4.6, 0.6)) * vis)
+
+
+def scene_solution(c, t):
+    e = env(t, 26.9, 31.5, 0.6, 0.5)
+    if e <= 0.01:
+        return
+    old = 1 - ease_in_out(prog(t, 29.6, 0.45)); new = ease_out(prog(t, 30.15, 0.6))
+    a, dy = rise(t, 27.0)
+    txt(c, LM, 330 + dy, "Type it like", "pjxb", 94, C["ink900"], a * e * old); txt(c, LM, 430 + dy, "a message.", "pjxb", 94, C["ink900"], a * e * old)
+    txt(c, LM, 500 + dy, "One line.", "pjsb", 34, C["coral400"], a * e * old)
+    txt(c, LM, 330 + (1 - new) * 24, "Every rupee", "pjxb", 94, C["ink900"], e * new); txt(c, LM, 430 + (1 - new) * 24, "gets a name.", "pjxb", 94, C["ink900"], e * new)
+    ia = ease_out(prog(t, 27.5, 0.6)) * e * old; y0 = 660 + (1 - ease_out(prog(t, 27.5, 0.6))) * 30
+    if ia > 0.01:
+        c.card(LM, y0, W - 2 * LM, 104, 36, fill=C["input"], alpha=ia)
+        s = "swiggy 320"; n = int(len(s) * ease_in_out(prog(t, 27.9, 1.0)))
+        if n == 0:
+            txt(c, LM + 36, y0 + 66, "kya kharcha hua?", "mono", 34, C["grey"], ia)
+        else:
+            txt(c, LM + 36, y0 + 66, s[:n] + ("|" if int(t * 2.4) % 2 == 0 and n < len(s) else ""), "mono", 36, C["ink900"], ia)
+        ca = ease_out(prog(t, 29.0, 0.5)) * e * old
+        if ca > 0.01:
+            txt(c, LM, y0 + 170, "It picks out:", "pjsb", 28, C["grey"], ca)
+            x = LM
+            for lab in ("₹320", "Swiggy", "category suggested"):
+                w = c.text_width(lab, "pjsb", 30) + 44
+                c.rrect(x, y0 + 190, w, 58, 29, fill=rgb(C["amber50"], ca)); txt(c, x + 22, y0 + 228, lab, "pjsb", 30, C["amber400"], ca); x += w + 14
+            txt(c, LM, y0 + 310, "You check it, then add it.", "pj", 30, C["grey"], ca)
+    ua = new * e
+    if ua > 0.01:
+        im, w, h = ui_crop(); y0 = 600 + (1 - new) * 40
+        c.card(LM + 40, y0, w, h, 28, alpha=ua)
+        im2 = im.copy(); im2.putalpha(im2.getchannel("A").point(lambda v: int(v * ua)))
+        c.img.paste(im2, (c._s(LM + 40), c._s(y0)), im2)
+        txt(c, W / 2, y0 + h + 52, "DEMO DATA · FROM THE REAL APP", "pjsb", 22, C["grey"], ua, "m", 3)
+
+
+def scene_end(c, t):
+    if t < 31.4:
+        return
+    a = ease_out(prog(t, 31.7, 0.7)); b = ease_out(prog(t, 32.2, 0.6)); d = ease_out(prog(t, 32.8, 0.6)); f = ease_out(prog(t, 33.4, 0.6))
+    c.logo(W / 2 - 40, 790 - (1 - a) * 20, 80, False)
+    if a > 0.01:
+        c.img.paste(Image.new("RGBA", (1, 1), (0, 0, 0, 0)), (0, 0))
+    txt(c, W / 2, 960, "TrackMyRupee", "pjxb", 92, C["ink900"], a, "m")
+    txt(c, W / 2, 1030, "Know where every rupee went.", "pjsb", 36, C["coral400"], b, "m")
+    c.card(W / 2 - 320, 1110, 640, 118, 59, fill=C["teal400"], alpha=d)
+    txt(c, W / 2, 1186, "Try the free demo", "pjxb", 48, "#FFFFFF", d, "m")
+    txt(c, W / 2, 1290, "trackmyrupee.com/demo", "pjsb", 38, C["ink900"], f, "m")
+    txt(c, W / 2, 1356, "No bank login  ·  No SMS access", "pj", 30, C["grey"], f, "m")
 
 
 def frame(n: int) -> bytes:
     t = n / FPS
-    c = Canvas(W, H)
-    # slow background drift so the frame never feels static
-    drift = int(40 * (t / DUR))
-    c.glow(-200, 300 + drift, 700, 700, 350, C["teal800"], blur=120, alpha=0.35)
-
-    # persistent brand bug (top-left, inside safe area)
+    c = Canvas(W, H, bg=C["paper"])
     if t < 31.0:
-        c.logo(64, 150, 54, True, word_size=30)
-
-    # ---------------- S1 HOOK 0 – 3.4 : "₹50,000 in. Gone by the 20th. Where?" ----------
-    # Frame 0 already shows the number; it drains to ₹0, then two hard slams.
-    if t < 3.9:
-        fade = 1 - prog(t, 3.2, 0.5)
-        drain = prog(t, 1.0, 0.9)
-        pill(c, W / 2, 520, "SALARY CREDITED · 1ST", C["teal900"], C["teal200"], 30, fade, dot=C["teal900"])
-        val = int(50000 * (1 - drain ** 2))
-        center(c, 800, fmt_inr(val), "serif", 250, _mix(C["cream"], C["coral200"], drain), fade)
-        if t >= 1.95:
-            k = 1 + 0.35 * (1 - ease_out(prog(t, 1.95, 0.22)))
-            center(c, 965, "Gone by the 20th.", "serif", int(104 * k), C["cream"], fade)
-        if t >= 2.6:
-            k = 1 + 0.45 * (1 - ease_out(prog(t, 2.6, 0.25)))
-            center(c, 1235, "Where?", "serif", int(240 * k), C["coral200"], fade)
-
-    # ---------------- S2..S7 tile story 3.5 – 26.2 ----------------------
-    if 3.4 <= t < 26.6:
-        out = 1 - prog(t, 25.9, 0.7)
-        zoom_in = ease_in_out(prog(t, 17.4, 1.2)) * (1 - ease_in_out(prog(t, 22.0, 1.0)))
-        # header: salary → label of the active group
-        ha = ease_out(prog(t, 3.9, 0.5)) * out
-        center(c, 470, "₹50,000 salary", "sansb", 40, C["teal200"], ha, 1)
-        active = None
-        for g in GROUPS:
-            if g[4] <= t < g[4] + 1.05 or (g is GROUPS[-1] and g[4] <= t < g[4] + 2.2):
-                active = g
-        if t < 7.0:
-            center(c, 590, "Let's follow one salary.", "serif", 92, C["cream"], ease_out(prog(t, 4.2, 0.5)) * (1 - prog(t, 6.7, 0.3)) * out)
-        elif active:
-            k = ease_out(prog(t, active[4], 0.35))
-            center(c, 590, f"{active[1]}  {fmt_inr(active[2])}", "serif", 96, C["cream"], k * out)
-        elif 17.4 <= t < 22.1:
-            center(c, 590, "…and then, this.", "serif", 96, C["cream"], ease_out(prog(t, 17.4, 0.5)) * out)
-        elif 22.1 <= t < 26.6:
-            center(c, 590, "It's never one big thing.", "serif", 92, C["cream"], ease_out(prog(t, 22.2, 0.5)) * out)
-
-        # group captions under the active tiles
-        sub = {"rent": "Fixed. You saw this coming.", "emi": "", "bills": "",
-               "food": "Life happens.", "travel": "", "subs": "", "sip": "Future you says thanks."}
-        if active and sub.get(active[0]):
-            center(c, 660, sub[active[0]], "sansm", 36, C["cream"], 0.75 * ease_out(prog(t, active[4] + 0.1, 0.4)) * out)
-
-        # grid (with a gentle push-in during the reveal)
-        if zoom_in > 0:
-            c2 = c  # draw grid then scale region? keep simple: shift grid slightly
-        draw_grid(c, t, None)
-
-        # remaining counter
-        rem = remaining(t)
-        cy = GY + ROWS * (TILE + GAP) + 110
-        ra = ease_out(prog(t, 5.2, 0.5)) * out
-        if t < 17.4:
-            center(c, cy, "NOT YET NAMED", "sansb", 30, C["cream"], 0.6 * ra, 4)
-            center(c, cy + 120, fmt_inr(rem), "serif", 130, C["cream"], ra)
-        elif t < 22.0:
-            center(c, cy, "NO NAME · NO CATEGORY", "sansb", 30, C["coral200"], 0.95 * ra, 4)
-            sc = 1 + 0.04 * (0.5 + 0.5 * __import__("math").sin((t - 17.6) * 5.2))
-            center(c, cy + 120, fmt_inr(MYSTERY), "serif", int(130 * sc), C["coral200"], ra)
-            if t >= 19.4:
-                center(c, cy + 200, "16% of your salary", "sansb", 42, C["cream"], ease_out(prog(t, 19.4, 0.5)) * out)
-
-        # illustrative tag
-        if t >= 4.6:
-            pill(c, W / 2, 1650, "ILLUSTRATIVE EXAMPLE", C["cream"], C["teal800"], 26, ease_out(prog(t, 4.6, 0.5)) * out * 0.9)
-
-        # S7 leak chips
-        if 22.2 <= t < 26.6:
-            chips = [("₹180 chai", 0.0), ("₹349 late-night order", 0.45),
-                     ("₹99 forgotten renewal", 0.9), ("₹250 UPI to a friend", 1.35)]
-            pos = [(300, 1310), (770, 1310), (300, 1425), (770, 1425)]
-            for j, (txt, dl) in enumerate(chips):
-                k = ease_out(prog(t, 22.3 + dl, 0.55))
-                if k <= 0:
-                    continue
-                cxx, cyy = pos[j][0], pos[j][1] + (1 - k) * 40
-                tw = c.text_width(txt, "sansm", 34)
-                c.rrect(cxx - tw / 2 - 28, cyy - 38, tw + 56, 76, 38, fill=rgb(C["coral50"], 0.95 * k * out))
-                c.text(cxx, cyy + 12, txt, "sansm", 34, rgb(C["coral400"], k * out), "m")
-            center(c, 1540, "…and many more like these.", "sansm", 34, C["cream"], 0.7 * ease_out(prog(t, 24.2, 0.5)) * out)
-
-    # ---------------- S8 solution 26 – 31.2 ----------------------------
-    if 26.6 <= t < 31.6:
-        out = 1 - prog(t, 30.9, 0.6)
-        k = ease_out(prog(t, 26.8, 0.9))
-        center(c, 330, "Type it like a message.", "serif", 104, C["cream"], ease_out(prog(t, 27.0, 0.5)) * out)
-        # typed chip (typographic quote of a real, documented input example)
-        txt = "swiggy 320"
-        n_ch = int(len(txt) * prog(t, 27.8, 0.8))
-        shown = txt[:n_ch] + ("▍" if int(t * 3) % 2 == 0 and n_ch < len(txt) else "")
-        shown = txt[:n_ch]
-        c.rrect(W / 2 - 250, 390, 500, 96, 48, fill=rgb(C["cream"], 0.1 * out), outline=rgb(C["teal200"], 0.8 * out), width=2)
-        c.text(W / 2 - 200, 455, "“" + shown + ("”" if n_ch == len(txt) else ""), "sansm", 50, rgb(C["teal200"], out))
-        center(c, 570, "Every rupee gets a name.", "sansm", 44, C["cream"], 0.85 * ease_out(prog(t, 28.5, 0.5)) * out)
-        im, w1, h1 = phone()
-        y = 620 + (1 - k) * 900
-        c.paste(im, W / 2 - w1 / 2, y, alpha=out)
-        if k > 0.9:
-            center(c, 1575, "DEMO DATA · FROM THE REAL APP", "sansb", 24, C["cream"], 0.55 * out, 3)
-
-    # ---------------- S9 end card 31 – 35 ------------------------------
-    if t >= 31.0:
-        a = ease_out(prog(t, 31.4, 0.6))
-        c.logo(W / 2 - 45, 690, 90, False)
-        center(c, 900, "TrackMyRupee", "serif", 124, C["cream"], a)
-        center(c, 995, "Know where every rupee went.", "sansm", 44, C["teal200"], ease_out(prog(t, 31.8, 0.5)))
-        k = ease_out(prog(t, 32.3, 0.6))
-        c.rrect(W / 2 - 330, 1080, 660, 120, 60, fill=rgb(C["teal400"], k))
-        center(c, 1158, "Try the free demo", "sansb", 52, C["white"], k)
-        center(c, 1270, "trackmyrupee.com/demo", "sansm", 40, C["cream"], 0.9 * ease_out(prog(t, 32.8, 0.5)))
-        center(c, 1360, "No bank login  ·  No SMS access", "sansm", 32, C["cream"], 0.6 * ease_out(prog(t, 33.3, 0.5)), 1)
-
+        c.logo(LM, 110, 46, True, word_color=C["ink900"], word_size=26)
+    scene_hook(c, t); scene_story(c, t); scene_solution(c, t); scene_end(c, t)
     draw_mascot(c, t)
-
-    img = c.done()
-    amp = 0.0
-    for t0 in (1.95, 2.6):
-        if t0 <= t < t0 + 0.3:
-            amp = max(amp, 16 * (1 - (t - t0) / 0.3))
-    if amp:
-        img = ImageChops.offset(img, int(amp * math.sin(t * 90)), int(amp * math.cos(t * 70)))
-    return img.tobytes()
+    return c.done().tobytes()
 
 
 def render(out: Path, preview=None):
     out.parent.mkdir(parents=True, exist_ok=True)
-    total = int(DUR * FPS)
-    frames = preview if preview else range(total)
     if preview:
         for n in preview:
-            Image.frombytes("RGB", (W, H), frame(n)).save(out.parent / f"preview_{n:04d}.png")
+            Image.frombytes("RGB", (W, H), frame(n)).save(out.parent / f"preview_{n:05d}.png")
         return
-    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-           "-r", str(FPS), "-i", "-", "-an", "-c:v", "libx264", "-preset", "medium", "-crf", "16",
-           "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out)]
+    total = int(DUR * FPS)
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-an",
+           "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out)]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     with Pool(4) as pool:
-        for i, buf in enumerate(pool.imap(frame, frames, chunksize=6)):
+        for i, buf in enumerate(pool.imap(frame, range(total), chunksize=8)):
             p.stdin.write(buf)
-            if i % 150 == 0:
+            if i % 300 == 0:
                 print(f"  frame {i}/{total}", flush=True)
     p.stdin.close(); p.wait()
 
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
-    prev = None
+    args = sys.argv[1:]; prev = None
     if "--preview" in args:
         i = args.index("--preview"); prev = [int(x) for x in args[i + 1].split(",")]; args = args[:i]
-    render(Path(args[0] if args else "video_silent.mp4"), prev)
+    render(Path(args[0]), prev)
