@@ -23804,3 +23804,7 @@ msgstr "हम क्लिपबोर्ड नहीं पढ़ सके�
 #: expenses/family
 msgid "Record money you received"
 msgstr "प्राप्त हुआ पैसा दर्ज करें"
+
+#: expenses/family
+msgid "Guide"
+msgstr "गाइड"

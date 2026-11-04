@@ -1,4 +1,5 @@
 {% load i18n static %}
+{% get_current_language as LANGUAGE_CODE %}
 <header class="landing-nav">
     <div class="container d-flex align-items-center justify-content-between py-3">
         <a class="nav-logo" href="{% url 'landing' %}">
@@ -15,6 +16,7 @@
                 <li><a href="{% url 'landing' %}#pricing" class="text-decoration-none">{% trans "Pricing" %}</a></li>
                 {% endif %}
                 <li><a href="{% url 'demo_login' %}" class="text-decoration-none">{% trans "Live Demo" %}</a></li>
+                <li><a href="https://docs.trackmyrupee.com/{% if LANGUAGE_CODE == 'hi' or LANGUAGE_CODE == 'mr' %}{{ LANGUAGE_CODE }}/{% endif %}" target="_blank" rel="noopener" class="text-decoration-none">{% trans "Guide" %}</a></li>
                 <li><a href="{% url 'blog_list' %}" class="text-decoration-none">{% trans "Blog" %}</a></li>
                 <li><a href="{% url 'account_login' %}" class="text-decoration-none">{% trans "Login" %}</a></li>
                 <li><a class="nav-cta text-decoration-none" href="{% url 'account_signup' %}">{% trans "Start Free" %}</a></li>
@@ -46,6 +48,7 @@
     <a href="{% url 'landing' %}#features" onclick="toggleMenu()">{% trans "Features" %}</a>
     <a href="{% url 'landing' %}#pricing" onclick="toggleMenu()">{% trans "Pricing" %}</a>
     {% endif %}
+    <a href="https://docs.trackmyrupee.com/{% if LANGUAGE_CODE == 'hi' or LANGUAGE_CODE == 'mr' %}{{ LANGUAGE_CODE }}/{% endif %}" target="_blank" rel="noopener">{% trans "Guide" %}</a>
     <a href="{% url 'blog_list' %}">{% trans "Blog" %}</a>
     <a href="{% url 'demo_login' %}">{% trans "Live Demo" %}</a>
     <a href="{% url 'account_signup' %}" class="nav-cta">{% trans "Start Free" %}</a>

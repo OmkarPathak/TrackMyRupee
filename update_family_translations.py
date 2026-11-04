@@ -33,6 +33,8 @@ SHARED_STRINGS = [
     ('', 'Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away. The owner can remove a member, hand the family to another member, or delete it, and everyone affected is told.'),
     # the privacy policy
     ('', 'Last updated: November 2026'),
+    # the Guide link in the public navbar
+    ('', 'Guide'),
     # quicker logging: the paste button on the new-expense page, and the install shortcuts
     ('', 'Paste from clipboard'),
     ('', 'The clipboard is empty. Copy a message such as \u201cswiggy 320\u201d first.'),
@@ -316,6 +318,7 @@ ENTRIES = {
         None, 'अंतिम अपडेट: नवंबर 2026',
         'शेवटचे अपडेट: नोव्हेंबर 2026'),
 
+    ('', 'Guide'): (None, 'गाइड', 'मार्गदर्शिका'),
     # ---- quicker logging ----
     ('', 'Paste from clipboard'): (None, 'क्लिपबोर्ड से चिपकाएँ', 'क्लिपबोर्डवरून पेस्ट करा'),
     ('', 'The clipboard is empty. Copy a message such as \u201cswiggy 320\u201d first.'): (

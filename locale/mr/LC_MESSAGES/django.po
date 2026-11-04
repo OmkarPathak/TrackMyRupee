@@ -23867,3 +23867,7 @@ msgstr "आम्हाला क्लिपबोर्ड वाचता आ
 #: expenses/family
 msgid "Record money you received"
 msgstr "मिळालेले पैसे नोंदवा"
+
+#: expenses/family
+msgid "Guide"
+msgstr "मार्गदर्शिका"
