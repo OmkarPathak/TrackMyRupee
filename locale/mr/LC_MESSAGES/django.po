@@ -23851,3 +23851,7 @@ msgstr "या खर्चासाठी अद्याप काहीही
 #: templates/expenses/expense_form.html
 msgid "Changing the currency re-converts this expense at the current exchange rate and updates the account balance."
 msgstr "चलन बदलल्यास हा खर्च सध्याच्या विनिमय दराने पुन्हा रूपांतरित होईल आणि खात्यातील शिल्लक अद्ययावत होईल."
+
+#: expenses/family
+msgid "Guide"
+msgstr "मार्गदर्शिका"

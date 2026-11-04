@@ -33,6 +33,8 @@ SHARED_STRINGS = [
     ('', 'Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away. The owner can remove a member, hand the family to another member, or delete it, and everyone affected is told.'),
     # the privacy policy
     ('', 'Last updated: November 2026'),
+    # the Guide link in the public navbar
+    ('', 'Guide'),
 ]
 
 # (context, msgid): (msgid_plural or None, hindi, marathi)   for a plural: ((hi1, hi2), (mr1, mr2))
@@ -310,6 +312,8 @@ ENTRIES = {
     ('', 'Last updated: November 2026'): (
         None, 'अंतिम अपडेट: नवंबर 2026',
         'शेवटचे अपडेट: नोव्हेंबर 2026'),
+
+    ('', 'Guide'): (None, 'गाइड', 'मार्गदर्शिका'),
 
     # ---- the invitation page ----
     ('', '%(name)s invited you to join a family'): (

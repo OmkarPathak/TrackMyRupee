@@ -23788,3 +23788,7 @@ msgstr "इस खर्च के लिए अभी तक कोई रा�
 #: templates/expenses/expense_form.html
 msgid "Changing the currency re-converts this expense at the current exchange rate and updates the account balance."
 msgstr "मुद्रा बदलने पर यह खर्च वर्तमान विनिमय दर पर दोबारा परिवर्तित होगा और खाते का शेष अपडेट होगा।"
+
+#: expenses/family
+msgid "Guide"
+msgstr "गाइड"
