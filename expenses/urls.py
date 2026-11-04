@@ -47,6 +47,7 @@ urlpatterns = [
     path('expenses/', views.ExpenseListView.as_view(), name='expense-list'),
     path('api/refunds/search/', views.refund_target_search, name='refund-target-search'),
     path('expenses/add/', views.ExpenseCreateView.as_view(), name='expense-create'),
+    path('expenses/share/', views.ExpenseShareTargetView.as_view(), name='expense-share'),
     path('expenses/<uuid_or_int:pk>/edit/', views.ExpenseUpdateView.as_view(), name='expense-edit'),
     path('expenses/bulk-delete/', views.ExpenseBulkDeleteView.as_view(), name='expense-bulk-delete'),
     path('expenses/bulk-edit/', views.ExpenseBulkUpdateView.as_view(), name='expense-bulk-edit'),

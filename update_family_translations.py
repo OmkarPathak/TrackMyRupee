@@ -33,6 +33,11 @@ SHARED_STRINGS = [
     ('', 'Each person keeps their own TrackMyRupee account. Family view needs everyone on Pro, with up to 5 people. If a plan lapses, family view pauses and nothing is deleted. Leaving ends all sharing straight away. The owner can remove a member, hand the family to another member, or delete it, and everyone affected is told.'),
     # the privacy policy
     ('', 'Last updated: November 2026'),
+    # quicker logging: the paste button on the new-expense page, and the install shortcuts
+    ('', 'Paste from clipboard'),
+    ('', 'The clipboard is empty. Copy a message such as \u201cswiggy 320\u201d first.'),
+    ('', "We couldn't read the clipboard. Press and hold in the box and choose Paste instead."),
+    ('', 'Record money you received'),
 ]
 
 # (context, msgid): (msgid_plural or None, hindi, marathi)   for a plural: ((hi1, hi2), (mr1, mr2))
@@ -310,6 +315,16 @@ ENTRIES = {
     ('', 'Last updated: November 2026'): (
         None, 'अंतिम अपडेट: नवंबर 2026',
         'शेवटचे अपडेट: नोव्हेंबर 2026'),
+
+    # ---- quicker logging ----
+    ('', 'Paste from clipboard'): (None, 'क्लिपबोर्ड से चिपकाएँ', 'क्लिपबोर्डवरून पेस्ट करा'),
+    ('', 'The clipboard is empty. Copy a message such as \u201cswiggy 320\u201d first.'): (
+        None, 'क्लिपबोर्ड खाली है। पहले \u201cswiggy 320\u201d जैसा कोई संदेश कॉपी करें।',
+        'क्लिपबोर्ड रिकामा आहे. आधी \u201cswiggy 320\u201d सारखा संदेश कॉपी करा.'),
+    ('', "We couldn't read the clipboard. Press and hold in the box and choose Paste instead."): (
+        None, 'हम क्लिपबोर्ड नहीं पढ़ सके। इसके बजाय बॉक्स में देर तक दबाएँ और चिपकाएँ चुनें।',
+        'आम्हाला क्लिपबोर्ड वाचता आला नाही. त्याऐवजी बॉक्समध्ये दाबून धरा आणि पेस्ट करा निवडा.'),
+    ('', 'Record money you received'): (None, 'प्राप्त हुआ पैसा दर्ज करें', 'मिळालेले पैसे नोंदवा'),
 
     # ---- the invitation page ----
     ('', '%(name)s invited you to join a family'): (

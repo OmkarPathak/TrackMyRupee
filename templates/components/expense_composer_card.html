@@ -35,6 +35,8 @@
   <span data-k="micBlocked">{% trans "Microphone access is blocked. Allow it in your browser settings to use voice." %}</span>
   <span data-k="micUnsupported">{% trans "Voice input isn't available in this app view. Use the microphone on your keyboard to dictate." %}</span>
   <span data-k="listening">{% trans "Listening… speak now" %}</span>
+  <span data-k="pasteEmpty">{% trans "The clipboard is empty. Copy a message such as “swiggy 320” first." %}</span>
+  <span data-k="pasteBlocked">{% trans "We couldn't read the clipboard. Press and hold in the box and choose Paste instead." %}</span>
   <span data-k="createCategory">{% trans "+ Create category" %}</span>
   <span data-k="createNamed">{% trans 'Create category "{name}"' %}</span>
   <span data-k="selectCategory">{% trans "Select category" %}</span>
@@ -57,7 +59,7 @@
   <span data-k="ex3">{% trans "swiggy 320" %}</span>
   <span data-k="ex4">{% trans "uber 150" %}</span>
 </div>
-<div id="tmr-composer" class="tmr-c" data-next="{{ next_url }}" data-entry="{{ request.GET.source }}">
+<div id="tmr-composer" class="tmr-c" data-next="{{ next_url }}" data-entry="{{ entry }}" data-prefill="{{ prefill_text }}">
   <header class="tmr-c__head">
     <div>
       <h1 class="tmr-c__title fw-bold" id="tmr-c-title">{% trans "Add a new expense" %}</h1>
@@ -75,6 +77,9 @@
                data-placeholder-long="{% trans 'What did you spend on? e.g. swiggy 320' %}"
                data-placeholder-short="{% trans 'e.g. swiggy 320' %}"
                placeholder="{% trans 'What did you spend on? e.g. swiggy 320' %}">
+        <button type="button" class="tmr-mic" id="tmr-paste" aria-label="{% trans 'Paste from clipboard' %}" title="{% trans 'Paste from clipboard' %}" hidden>
+          <i class="bi bi-clipboard" aria-hidden="true"></i>
+        </button>
         <button type="button" class="tmr-mic" id="tmr-mic" aria-label="{% trans 'Speak expense' %}">
           <i class="bi bi-mic-fill" aria-hidden="true"></i>
         </button>
