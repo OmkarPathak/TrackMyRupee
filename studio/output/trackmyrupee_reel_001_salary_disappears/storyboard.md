@@ -1,118 +1,144 @@
 # Storyboard — Where does your ₹50,000 salary disappear?
 
-## Scene 1 — Hook (v2 — punchier) (0.0–3.4s)
+## Scene 1 — Hook (v3 — punchy copy, calm motion) (0.0–3.4s)
 | Field | Detail |
 |---|---|
-| Visual | Frame 0 already shows ₹50,000 and a 'SALARY CREDITED · 1ST' pill. The Rupee Minis piggy pops in (squash-and-stretch) and a coin drops into its slot. At 1.0s the number drains to ₹0 in 0.9s (turning coral) while the piggy's eye goes wide and it shakes its head. 1.95s: slam 'Gone by the 20th.' with screen shake. 2.6s: bigger slam 'Where?' in coral. At 3.1s the piggy hops to the corner as the tiles pop in. |
-| Camera | Locked-off; 16px decaying screen-shake on each slam. |
+| Visual | Three-line headline rises in one line at a time: '₹50,000 in.' (ink) → 'Gone by the 20th.' (coral) → 'Where?' (ink). A white 'Salary credited ✓ ₹50,000' card slides up and the amount drains smoothly to ₹0 as the label becomes 'Left on the 20th'. The Rupee Minis piggy pops in at right, swallows the salary coin, goes wide-eyed and shakes its head. |
+| Camera | Locked-off. No screen-shake, no hard cuts: scenes fade through. |
 | Character | None on screen (motion graphics) |
-| Background | TrackMyRupee night gradient with soft teal glow. |
-| Lighting | Flat graphic; mascot has built-in soft shine/blush from the supplied artwork. |
-| Movement | Number drain (ease-in squared), mascot pop-in 0.45s, slam text scales 1.35–1.45× → 1× in 0.22–0.25s. |
+| Background | Warm off-white paper (#FAF8F6), flat — no gradients or glows. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Headline lines 0.6s ease-out rise (0.15 / 1.45 / 2.45s); amount drain 1.0–2.0s ease-in-out; everything fades out 3.1–3.55s. |
 | On-screen text | SALARY CREDITED · 1ST · ₹50,000 → ₹0 · Gone by the 20th. · Where? |
 | Voiceover | Fifty thousand, credited. By the twentieth… gone. Where? |
-| Transition | Piggy hops to bottom-left; tiles pop in (stagger) |
+| Transition | Crisp fade-through (≈0.2s out / 0.3s in) |
 
-## Scene 2 — Setup (3.4–7.0s)
+## Scene 2 — Setup (3.4–6.0s)
 | Field | Detail |
 |---|---|
-| Visual | 50 cream tiles pop into a 10×5 grid. Header '₹50,000 salary'. 'Let's follow one salary.' An 'ILLUSTRATIVE EXAMPLE' pill appears and stays on screen. |
-| Camera | Locked-off. |
+| Visual | Header 'One ₹50,000 salary' / coral 'How much can you name?'. 50 soft-grey tiles (1 tile = ₹1,000) fade-scale in with a 20ms stagger; big ink counter '₹50,000 left to name'. 'ILLUSTRATIVE EXAMPLE' pill stays on screen. Mascot glides to the top-right corner. |
+| Camera | Locked-off. No screen-shake, no hard cuts: scenes fade through. |
 | Character | None on screen (motion graphics) |
-| Background | Night gradient. |
-| Lighting | — |
-| Movement | Tiles spring in with a 22ms stagger (ease-back). |
+| Background | Warm off-white paper (#FAF8F6), flat — no gradients or glows. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Tiles 0.5s ease-out stagger from 4.0s; counter fades in 5.2s. |
 | On-screen text | Let's follow one salary. · ILLUSTRATIVE EXAMPLE |
 | Voiceover | Let's follow one salary. |
-| Transition | Cut-on-action into the first group |
+| Transition | Crisp fade-through (≈0.2s out / 0.3s in) |
 
-## Scene 3 — The fixed costs (7.0–10.2s)
+## Scene 3 — The fixed costs (6.0–9.0s)
 | Field | Detail |
 |---|---|
-| Visual | Tiles turn blue in order: Rent (15 tiles), EMI (5), Bills (3). Label swaps each time. 'Not yet named' counter ticks 50,000 → 27,000. |
-| Camera | Locked-off. |
+| Visual | Tiles colour blue in order (Rent 15, EMI 5, Bills 3). A white card with a ✓ badge swaps per group ('Rent ₹15,000' …) while the counter eases down to ₹27,000. |
+| Camera | Locked-off. No screen-shake, no hard cuts: scenes fade through. |
 | Character | None on screen (motion graphics) |
-| Background | Night gradient. |
-| Lighting | — |
-| Movement | Colour fills sweep tile-by-tile at 45ms. |
+| Background | Warm off-white paper (#FAF8F6), flat — no gradients or glows. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Per-tile colour 0.45s ease-in-out at 50ms stagger; card swap 0.45s. |
 | On-screen text | Rent ₹15,000 · EMI ₹5,000 · Bills ₹3,000 · Fixed. You saw this coming. |
 | Voiceover | Rent. EMI. Bills. You saw those coming. |
-| Transition | Direct continuation |
+| Transition | Crisp fade-through (≈0.2s out / 0.3s in) |
 
-## Scene 4 — Lifestyle (10.2–14.2s)
+## Scene 4 — Lifestyle (9.0–12.4s)
 | Field | Detail |
 |---|---|
-| Visual | Amber tiles: Food (9), Travel (4), Subscriptions (1). Caption 'Life happens.' Counter ticks down to ₹13,000. |
-| Camera | Locked-off. |
+| Visual | Amber tiles: Food 9, Travel 4, Subscriptions 1; card swaps; counter eases to ₹13,000. |
+| Camera | Locked-off. No screen-shake, no hard cuts: scenes fade through. |
 | Character | None on screen (motion graphics) |
-| Background | Night gradient. |
-| Lighting | — |
-| Movement | Same sweep, faster rhythm. |
+| Background | Warm off-white paper (#FAF8F6), flat — no gradients or glows. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Same rhythm. |
 | On-screen text | Food ₹9,000 · Travel ₹4,000 · Subscriptions ₹1,000 · Life happens. |
 | Voiceover | Food, travel, one OTT plan. Life happens. |
-| Transition | Direct continuation |
+| Transition | Crisp fade-through (≈0.2s out / 0.3s in) |
 
-## Scene 5 — The good bit (14.2–17.4s)
+## Scene 5 — The good bit (12.4–15.0s)
 | Field | Detail |
 |---|---|
-| Visual | Green tiles: SIP (5). Caption 'Future you says thanks.' Counter reaches ₹8,000 (13,000 − 5,000). |
-| Camera | Locked-off. |
+| Visual | Teal tiles: SIP 5; counter reaches ₹8,000. |
+| Camera | Locked-off. No screen-shake, no hard cuts: scenes fade through. |
 | Character | None on screen (motion graphics) |
-| Background | Night gradient. |
-| Lighting | — |
-| Movement | Sweep; a riser begins under the last tiles. |
+| Background | Warm off-white paper (#FAF8F6), flat — no gradients or glows. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Same rhythm. |
 | On-screen text | SIP ₹5,000 · Future you says thanks. |
 | Voiceover | A SIP. Future you says thanks. |
-| Transition | Riser peaks into the reveal |
+| Transition | Crisp fade-through (≈0.2s out / 0.3s in) |
 
-## Scene 6 — The reveal (17.4–22.0s)
+## Scene 6 — The reveal (15.0–19.1s)
 | Field | Detail |
 |---|---|
-| Visual | The 8 uncoloured tiles turn coral, pulse with a glow and show '?'. Counter flips to coral ₹8,000 with 'NO NAME · NO CATEGORY', then '16% of your salary'. |
-| Camera | Locked-off (all attention on the pulse). |
+| Visual | Remaining 8 tiles turn coral with '?' and a slow pulse (2.6 rad/s). Counter turns coral: '₹8,000 · no name · no category' then '16% of your salary'. Mascot goes wide-eyed with a '?' bubble. |
+| Camera | Locked-off. No screen-shake, no hard cuts: scenes fade through. |
 | Character | None on screen (motion graphics) |
-| Background | Night gradient. |
-| Lighting | Coral glow on tiles. |
-| Movement | Slow 1.1Hz pulse; counter breathes ±4%. |
+| Background | Warm off-white paper (#FAF8F6), flat — no gradients or glows. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Colour shift 0.9s; pulse amplitude 20%. |
 | On-screen text | …and then, this. · NO NAME · NO CATEGORY · ₹8,000 · 16% of your salary |
 | Voiceover | And then… eight thousand. Sixteen percent. No name. No category. |
-| Transition | Header changes; chips arrive |
+| Transition | Crisp fade-through (≈0.2s out / 0.3s in) |
 
-## Scene 7 — The leaks (22.0–26.4s)
+## Scene 7 — The leaks (19.1–23.1s)
 | Field | Detail |
 |---|---|
-| Visual | Four coral chips rise in: ₹180 chai · ₹349 late-night order · ₹99 forgotten renewal · ₹250 UPI to a friend. Then '…and many more like these.' Headline: 'It's never one big thing.' |
-| Camera | Locked-off. |
+| Visual | Four white cards rise in like a paid-UPI list: Chai ₹180 · Late-night order ₹349 · Forgotten renewal ₹99 · UPI to a friend ₹250, then '…and many more like these.' Mascot looks around (gentle ±5° sway). |
+| Camera | Locked-off. No screen-shake, no hard cuts: scenes fade through. |
 | Character | None on screen (motion graphics) |
-| Background | Night gradient. |
-| Lighting | — |
-| Movement | Chips rise 40px with ease-out, 0.45s stagger. |
+| Background | Warm off-white paper (#FAF8F6), flat — no gradients or glows. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Cards 0.6s ease-out at 0.45s stagger. |
 | On-screen text | It's never one big thing. · four chips · …and many more like these. |
 | Voiceover | Never one big thing. Chai. A late-night order. A forgotten renewal. |
-| Transition | Whoosh; tiles slide out, phone rises |
+| Transition | Crisp fade-through (≈0.2s out / 0.3s in) |
 
-## Scene 8 — The fix (real UI) (26.6–31.0s)
+## Scene 8 — Why a habit (new) (23.1–30.3s)
 | Field | Detail |
 |---|---|
-| Visual | 'Type it like a message.' A typed quote chip 'swiggy 320' (typographic, not a fake interface). 'Every rupee gets a name.' The REAL app screenshot (demo data) rises from the bottom, tagged 'DEMO DATA · FROM THE REAL APP'. |
-| Camera | Phone screenshot rises with ease-out; no zoom on the data. |
+| Visual | Headline 'Not a budget problem.' → coral 'A habit problem.' Then three white cards rise in turn: ① 'Memory fades — by month-end, small spends are forgotten' ② 'Tiny habits stick — a few seconds a day beats a big monthly clean-up' ③ 'Patterns appear — log daily and your habits show up. Then you decide.' A 14-day tick strip fills beneath. Mascot nods. |
+| Camera | Locked-off. No screen-shake. |
 | Character | None on screen (motion graphics) |
-| Background | Night gradient. |
-| Lighting | — |
-| Movement | Typewriter at 12 chars/s; phone slides 900px. |
-| On-screen text | Type it like a message. · “swiggy 320” · Every rupee gets a name. · DEMO DATA · FROM THE REAL APP |
-| Voiceover | Just type it — swiggy 320 — and every rupee gets a name. |
-| Transition | Whoosh into end card |
+| Background | Warm off-white paper (#FAF8F6), flat. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Cards 0.4s ease-out-quart at 0.9s stagger; tick strip 70ms per day. |
+| On-screen text | Not a budget problem. A habit problem. · Memory fades · Tiny habits stick · Patterns appear |
+| Voiceover | Not a budget problem. A habit problem. By month-end, memory fades. A few seconds a day sticks. |
+| Transition | Crisp fade-through |
 
-## Scene 9 — End card + CTA (31.0–35.0s)
+## Scene 9 — Real app: type it (new) (30.3–37.3s)
 | Field | Detail |
 |---|---|
-| Visual | Real TrackMyRupee mark, wordmark in Instrument Serif, tagline, a teal 'Try the free demo' button, trackmyrupee.com/demo, 'No bank login · No SMS access'. |
-| Camera | Locked-off. |
+| Visual | Headline 'Type it like a message.' REAL captures of the app's Add-expense screen (demo account, iPhone-size viewport): the input types 's-w-i-g-g-y- -3-2-0' character by character, Enter fills Amount ₹320, Description Swiggy, Category Dining Out and UPI automatically ('Filled 3 details from what you typed.'), then the Add button is tapped as the piggy swallows a coin. 'Filled from your one line' annotation. |
+| Camera | Locked-off. No screen-shake. |
 | Character | None on screen (motion graphics) |
-| Background | Night gradient. |
-| Lighting | — |
-| Movement | Staggered fade-up. |
+| Background | Warm off-white paper (#FAF8F6), flat. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Typing 120ms per character from 31.6s; parse at 33.5s; Add tap 35.7s. |
+| On-screen text | Type it like a message. · swiggy 320 · Filled from your one line · You check it, then add it. |
+| Voiceover | TrackMyRupee keeps it tiny. Type it — swiggy 320. It fills in the details. You check, then add. |
+| Transition | Crisp fade-through |
+
+## Scene 10 — Real app: names + nudge (new) (37.3–43.3s)
+| Field | Detail |
+|---|---|
+| Visual | 'Every rupee gets a name.' Real expense list (named entries, categories, payment method) slides up; then 'Forget a day?' with the REAL Daily Expense Reminder setting ('Get a push notification at 9 pm on days you haven't logged any expense'). Labelled 'DEMO DATA · FROM THE REAL APP'. |
+| Camera | Locked-off. No screen-shake. |
+| Character | None on screen (motion graphics) |
+| Background | Warm off-white paper (#FAF8F6), flat. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | List slides up 0.4s; crossfade to reminder at 40.4s. |
+| On-screen text | Every rupee gets a name. · Forget a day? An optional 9 pm nudge. · DEMO DATA · FROM THE REAL APP |
+| Voiceover | Every rupee gets a name. Forget a day? An optional 9 pm nudge. |
+| Transition | Crisp fade-through |
+
+## Scene 11 — End card + CTA (43.3–47.5s)
+| Field | Detail |
+|---|---|
+| Visual | Mascot centre, TrackMyRupee mark + wordmark, coral tagline 'Know where every rupee went.', teal 'Try the free demo' button, trackmyrupee.com/demo, 'No bank login · No SMS access'. |
+| Camera | Locked-off. No screen-shake, no hard cuts: scenes fade through. |
+| Character | None on screen (motion graphics) |
+| Background | Warm off-white paper (#FAF8F6), flat — no gradients or glows. |
+| Lighting | Flat graphic; soft card shadows only. |
+| Movement | Staggered fade-up 0.6s. |
 | On-screen text | TrackMyRupee · Know where every rupee went. · Try the free demo · trackmyrupee.com/demo · No bank login · No SMS access |
 | Voiceover | Try the free demo. Link in bio. |
-| Transition | End (hold 3s, loop-friendly) |
+| Transition | Fade-through (≈0.4s out / 0.5s in) |

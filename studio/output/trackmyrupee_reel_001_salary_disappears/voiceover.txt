@@ -1,5 +1,5 @@
 DIRECTION
-Warm, slightly amused, conversational — like a friend who's done the maths, never a lecturer. Brief pause after 'where did it go?' and after '…and then.' Drop the pace and energy for 'No name. No category.'
+Warm, slightly amused, conversational — like a friend who's done the maths, never a lecturer. Brief pause after 'where did it go?' and after '…and then.' Drop the pace and energy for 'No name. No category.' Pronunciation: spell initialisms as letters — 'E M I', 'S I P', 'O T T', 'U P I' (the TTS otherwise reads EMI as the name 'Emmy'; handled in render/tts_kokoro.py `spoken()`).
 
 === ENGLISH (Indian) ===
 Fifty thousand, credited. By the twentieth… gone. Where?
@@ -16,46 +16,18 @@ And then… eight thousand. Sixteen percent. No name. No category.
 
 Never one big thing. Chai. A late-night order. A forgotten renewal.
 
-Just type it — swiggy 320 — and every rupee gets a name.
+Not a budget problem. A habit problem. By month-end, memory fades. A few seconds a day sticks.
+
+TrackMyRupee keeps it tiny. Type it — swiggy 320. It fills in the details. You check, then add.
+
+Every rupee gets a name. Forget a day? An optional 9 pm nudge.
 
 Try the free demo. Link in bio.
 
 === HINGLISH ===
-Pachaas hazaar credit hue. Beeswi tak… gayab. Kahaan?
-
-Chalo, ek salary ko follow karte hain.
-
-Rent. EMI. Bills. Yeh toh pata tha.
-
-Khana, travel, ek OTT plan. Zindagi hai.
-
-Ek SIP. Future you bolega thanks.
-
-Aur phir… aath hazaar. Solah percent. Na naam, na category.
-
-Kabhi ek bada kharcha nahi. Chai. Raat ka order. Bhooli hui renewal.
-
-Bas type karo — swiggy 320 — aur har rupaye ko naam mil jaata hai.
-
-Free demo try karo. Link bio mein hai.
+(English-only for now — Hinglish/Hindi will be re-written for this v4 script when requested.)
 
 === HINDI ===
-पचास हज़ार आए। बीस तारीख़ तक… ग़ायब। कहाँ?
-
-चलिए, एक सैलरी का पीछा करते हैं।
-
-किराया। EMI। बिल। ये तो पता था।
-
-खाना, सफ़र, एक OTT प्लान। ज़िंदगी है।
-
-एक SIP। आने वाला कल कहेगा — शुक्रिया।
-
-और फिर… आठ हज़ार। सोलह प्रतिशत। न नाम, न कैटेगरी।
-
-कभी एक बड़ा खर्च नहीं। चाय। रात का ऑर्डर। भूली हुई रिन्यूअल।
-
-बस टाइप करिए — स्विगी तीन सौ बीस — हर रुपये को नाम।
-
-फ़्री डेमो आज़माइए। लिंक बायो में है।
+(English-only for now — Hinglish/Hindi will be re-written for this v4 script when requested.)
 
 STATUS: PENDING — see chat. Drop per-scene clips in studio/assets/vo/<lang>/scene_01…09 (or one vo.wav) and run build_reel_001.py; the mixer ducks SFX and flags overruns.

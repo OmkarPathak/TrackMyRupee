@@ -2,17 +2,17 @@
 
 **Tool:** CapCut (mobile or desktop). Simplest path: import draft video from the export folder, replace the SFX bed with your own if desired, add your VO and music.
 
-**Canvas:** 9:16, 1080×1920, 30 fps
+**Canvas:** 9:16, 1080×1920, 60 fps (30 fps also fine)
 
 ## Timeline
-- Track 1 (video): trackmyrupee_reel_001_draft.mp4 — use as-is; do not re-time scenes (all animations are baked to the 35.0s timeline).
-- Track 2 (VO): record/import VO; align line starts to: 0.4s, 3.5s, 7.0s, 10.4s, 14.4s, 17.9s, 22.3s, 26.9s, 31.6s.
+- Track 1 (video): trackmyrupee_reel_001_silent.mp4 (47.5s, 60 fps) — all motion is baked in; do not re-time.
+- Track 2 (VO): per-scene clips are placed at scene start + 0.1s (see render/timeline.py): 0.1s, 3.5s, 6.1s, 9.1s, 12.5s, 15.1s, 19.2s, 23.2s, 30.4s, 37.4s, 43.4s
 - Track 3 (music): licensed track, volume ~12–18% under VO; duck an extra 4dB during 17.6–19s.
 - Track 4 (SFX): the draft already contains a synthesised SFX bed. Mute the draft's audio if you replace it with your own.
-- Captions: import subtitles_en.srt (auto-captions style: DM Sans Bold, 56px, cream #F2F0EB, 3px teal #0F7657 outline, centred at y≈1540px).
+- Captions: already burned in as a dark rounded pill (#2B2B2B, white PJS SemiBold 40px, y≈1370–1500). Use the 'clean_nocaptions' export if you prefer CapCut auto-captions or another language (subtitles_en.srt provided).
 
 ## Text placement
-All key text sits inside Instagram's safe zone: 150px from the top, 280px from the bottom, 90px sides. Nothing important below y=1640.
+Headline left-aligned at x=72; mascot top-right; captions pill y≈1370–1500; nothing important below y=1640 (Instagram UI).
 
 ## Zoom & movement
 None needed — motion is baked in. If you want extra energy add a 3% slow zoom-in on scene 6 only.
@@ -24,4 +24,4 @@ Hard cuts between scenes; the riser→thud at 17.6s is the only 'big' transition
 See subtitles_en.srt (timed to the scene VO).
 
 ## Export
-1080×1920 · 30 fps · H.264 · High profile · 12–16 Mbps (CRF≈16) · AAC 192 kbps 44.1kHz · MP4 · faststart
+1080×1920 · 60 fps (or 30) · H.264 High · CRF≈17 (~3 Mbps for this flat-colour content is fine) · AAC 192 kbps · MP4 faststart
