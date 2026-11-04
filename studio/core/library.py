@@ -167,7 +167,7 @@ BRAND = {
   "Rule-based insights computed inside the app — no outside AI service", "Free demo at trackmyrupee.com/demo", "Open source (AGPL), self-hostable"],
  "never_claim": ["automatic bank sync", "automatic transaction import", "automatic investment sync (note: MF NAVs update daily from AMFI, stocks/gold are user-priced)",
                  "AI-powered insights", "guaranteed savings or returns", "competitor comparisons"],
- "approved_style": None,
+ "approved_style": {"source": "reel-001", "guide": "studio/STYLE_GUIDE.md", "summary": "Calm paper background, Plus Jakarta Sans, coral emphasis, white shadow cards, crisp fade-through at 60fps, conversational English VO, real app captures only, Rupee Minis mascot, 45-48s story+education+proof+CTA"},
 }
 
 # 30-day calendar: reel no. per day; carousels on days 2,4,6 of each week

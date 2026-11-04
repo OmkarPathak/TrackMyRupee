@@ -325,3 +325,17 @@ PACKAGE["asset_checklist"].append({"item": "Real app captures (Playwright, demo 
                                    "note": "Demo data only; the demo can't save an expense, so the Add tap is shown but the saved result is not."})
 PACKAGE["hooks"]["note"] += " v4 adds a habit beat (why a tiny daily log beats a monthly clean-up) and real app captures; motion is crisper (0.2–0.3s fades, quart ease-out)."
 PACKAGE["fact_check_flags"] = []
+
+
+# ======================= APPROVED by the creative director =======================
+PACKAGE["version"] = 5
+PACKAGE["status"] = "approved"
+PACKAGE["learning_log"] = {"approved": True, "notes": [
+    "Calm paper background (#FAF8F6); white cards with soft shadows; coral emphasis (reference: director's Diwali-bingo animation)",
+    "Plus Jakarta Sans ExtraBold headlines; DM Mono for typed input",
+    "Hook: number -> consequence -> question, line by line, drain animation; no screen-shake",
+    "English voiceover, conversational; spell initialisms (E M I, S I P, O T T, U P I)",
+    "Crisp 0.2-0.3s fade-through, 60fps, sentence-split caption pills, SFX bed, music later",
+    "47.5s story + habit education + real app proof + free-demo CTA",
+    "Real app captures only (demo account); mascot in corner",
+    "Full detail: studio/STYLE_GUIDE.md"]}
