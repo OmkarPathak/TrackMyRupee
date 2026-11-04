@@ -50,7 +50,7 @@ def _ell(d, cx, cy, rx, ry, fill, u):
     d.ellipse([(cx - rx) * u, (cy - ry) * u, (cx + rx) * u, (cy + ry) * u], fill=fill)
 
 
-def sprite(unit=4.0, pal=None, mood="happy", ear=0.0, tail=0.0, coin_y=32.0, coin_front=True, coin_rot=0.0, blink=0.0):
+def sprite(unit=4.0, pal=None, mood="happy", mouth=("X", 0.0), mstyle=0, blink=0.0, ear=0.0, tail=0.0, coin_y=32.0, coin_front=True, coin_rot=0.0):
     """Render the mascot to an RGBA sprite of 200*unit square.
     mood: 'happy' (closed smiling eye) | 'wide' (open, worried eye)."""
     pal = pal or NIGHT
@@ -85,7 +85,19 @@ def sprite(unit=4.0, pal=None, mood="happy", ear=0.0, tail=0.0, coin_y=32.0, coi
     lay = Image.new("RGBA", m.size, (255, 255, 255, 0)); lay.putalpha(m)
     im.alpha_composite(lay, (int(72 * u - lay.width / 2), int(80 * u - lay.height / 2)))
     d = ImageDraw.Draw(im, "RGBA")
-    _ell(d, 158, 112, 21, 16, _h(pal["SNOUT"]), u)
+    shape, o = mouth
+    w = {"X": 1.0, "B": 1.25, "C": 1.0, "D": 1.05, "E": 0.7, "F": 0.55, "G": 1.1}.get(shape, 1.0)
+    MOUTH = _h(DARK)
+    if mstyle == 2 and o > 0.02:                       # JAW: the lower snout drops, revealing the mouth
+        drop = 9 * o
+        _ell(d, 158, 114 + drop * 0.55, 17 * min(w, 1.1), 2 + 7.5 * o, MOUTH, u)
+        sn = Image.new("RGBA", (S, S), (0, 0, 0, 0)); _ell(ImageDraw.Draw(sn), 158, 112, 21, 16, _h(pal["SNOUT"]), u)
+        cut = int(113 * u)
+        up = sn.crop((0, 0, S, cut)); lo = sn.crop((0, cut, S, S))
+        im.alpha_composite(up, (0, 0)); im.alpha_composite(lo, (0, cut + int(drop * u)))
+        d = ImageDraw.Draw(im, "RGBA")
+    else:
+        _ell(d, 158, 112, 21, 16, _h(pal["SNOUT"]), u)
     _stroke(d, SLOT, 6, _h(DARK, pal["SLOT"]), u)
     # blush
     m = Image.new("L", (int(60 * u), int(60 * u)), 0); ImageDraw.Draw(m).ellipse([int(17 * u), int(17 * u), int(43 * u), int(43 * u)], fill=190)
@@ -98,19 +110,32 @@ def sprite(unit=4.0, pal=None, mood="happy", ear=0.0, tail=0.0, coin_y=32.0, coi
         _stroke(d, EYE, 4.5, _h(DARK), u)
     else:
         _ell(d, 134, 96, 5.6, 7, _h(DARK), u); _ell(d, 135.8, 93.6, 1.7, 1.7, (255, 255, 255, 235), u)
-        _stroke(d, [(124, 83), (134, 80), (143, 85)] if mood == "wide" else [(125, 85), (143, 82)], 3.2, _h(DARK), u)
+        if mood in ("wide", "worried"):
+            _stroke(d, [(124, 83), (134, 80), (143, 85)] if mood == "wide" else [(125, 85), (143, 82)], 3.2, _h(DARK), u)
+        elif mood == "talk":                         # attentive: slightly raised brow
+            _stroke(d, [(126, 84), (134, 81.5), (142, 84)], 2.8, _h(DARK, 150), u)
     _ell(d, 152, 110, 2.6, 4.2, _h(DARK), u); _ell(d, 164, 110, 2.6, 4.2, _h(DARK), u)
+    if mstyle == 1:                                  # LINE: a small mouth under the snout on the face
+        if o < 0.03:
+            _stroke(d, _qbez((141, 127.5), (150, 132.5), (160, 128.5)), 2.6, MOUTH, u)
+        else:
+            _ell(d, 150, 129 + 2.6 * o, 9.5 * w, 1.6 + 5.2 * o, MOUTH, u)
+    elif mstyle == 3:                                # SNOUT OVAL: mouth sits on the snout, under the nostrils
+        if o < 0.03:
+            _stroke(d, _qbez((152, 119.5), (158, 123), (164, 119.5)), 2.2, MOUTH, u)
+        else:
+            _ell(d, 158, 120.5 + 1.4 * o, 5.5 * w, 1.2 + 4.4 * o, MOUTH, u)
     if coin_front:
         coin()
     return im
 
 
-def draw(c, cx, ybottom, size, t=0.0, mood="happy", rot=0.0, squash=0.0, alpha=1.0, coin_y=None, coin_front=True, wiggle=1.0, flip=False, pal=None):
+def draw(c, cx, ybottom, size, t=0.0, mood="happy", rot=0.0, squash=0.0, alpha=1.0, coin_y=None, coin_front=True, wiggle=1.0, flip=False, pal=None, mouth=("X", 0.0), mstyle=0, blink=0.0):
     """Draw onto a brand Canvas. cx = horizontal centre, ybottom = feet baseline.
     size = sprite width in design px. Idle bob / ear / tail motion included."""
     s = c.s; unit = size * s / 200
     bob = math.sin(t * 3.2) * 0.012 * size * wiggle
-    sp = sprite(unit, pal, mood, ear=math.sin(t * 5.1) * 7 * wiggle, tail=math.sin(t * 4.3) * 14 * wiggle,
+    sp = sprite(unit, pal, mood, mouth=mouth, mstyle=mstyle, blink=blink, ear=math.sin(t * 5.1) * 7 * wiggle, tail=math.sin(t * 4.3) * 14 * wiggle,
                 coin_y=32 + math.sin(t * 3.6) * 1.6 if coin_y is None else coin_y, coin_front=coin_front)
     if flip:
         sp = sp.transpose(Image.FLIP_LEFT_RIGHT)
