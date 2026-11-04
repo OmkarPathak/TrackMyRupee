@@ -36,20 +36,43 @@ def pill_png(text, key, path, size=40):
     c.img.resize((W, H), __import__("PIL").Image.LANCZOS).save(path)
 
 
+def chunks(text, key, size=40):
+    """Split a caption into pill-sized chunks (<=2 lines), breaking only at sentence ends."""
+    import re
+    c = Canvas(W, H, scale=1)
+    sents = [x.strip() for x in re.split(r"(?<=[.!?…])\s+", text) if x.strip()]
+    out, cur = [], ""
+    for sn in sents:
+        trial = (cur + " " + sn).strip()
+        if cur and len(_wrap(c, trial, key, size, 780)) > 2:
+            out.append(cur); cur = sn
+        else:
+            cur = trial
+    if cur:
+        out.append(cur)
+    return out
+
+
 def compose(video, audio, scenes, lang, out, workdir):
     key, field = KEY[lang]; workdir = Path(workdir); workdir.mkdir(parents=True, exist_ok=True)
-    pngs = []
+    items = []   # (png, start, end)
     for i, s in enumerate(scenes):
-        p = workdir / f"cap_{lang}_{i+1:02d}.png"; pill_png(s[field], key, p); pngs.append(p)
+        parts = chunks(s[field], key)
+        a, b = STARTS[i], ENDS[i]
+        tot = sum(len(p) for p in parts) or 1
+        t = a
+        for j, part in enumerate(parts):
+            d = (b - a) * len(part) / tot
+            p = workdir / f"cap_{lang}_{i+1:02d}_{j+1}.png"; pill_png(part, key, p)
+            items.append((p, t, t + d)); t += d
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(video)]
-    for p in pngs:
+    for p, _, _ in items:
         cmd += ["-loop", "1", "-framerate", "60", "-t", str(DUR), "-i", str(p)]
     cmd += ["-i", str(audio)]
     fc, last = [], "0:v"
-    for i in range(len(pngs)):
-        a, b = STARTS[i], ENDS[i]
-        fc.append(f"[{i+1}:v]format=rgba,fade=t=in:st={a}:d=0.3:alpha=1,fade=t=out:st={b-0.3}:d=0.3:alpha=1[c{i}]")
-        fc.append(f"[{last}][c{i}]overlay=0:{Y}:enable='between(t,{a},{b})'[v{i}]"); last = f"v{i}"
-    cmd += ["-filter_complex", ";".join(fc), "-map", f"[{last}]", "-map", f"{len(pngs)+1}:a", "-c:v", "libx264", "-preset", "medium", "-crf", "17",
+    for i, (_, a, b) in enumerate(items):
+        fc.append(f"[{i+1}:v]format=rgba,fade=t=in:st={a:.2f}:d=0.15:alpha=1,fade=t=out:st={b-0.15:.2f}:d=0.15:alpha=1[c{i}]")
+        fc.append(f"[{last}][c{i}]overlay=0:{Y}:enable='between(t,{a:.2f},{b:.2f})'[v{i}]"); last = f"v{i}"
+    cmd += ["-filter_complex", ";".join(fc), "-map", f"[{last}]", "-map", f"{len(items)+1}:a", "-c:v", "libx264", "-preset", "medium", "-crf", "17",
             "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-ar", "44100", "-shortest", "-movflags", "+faststart", str(out)]
     subprocess.check_call(cmd)

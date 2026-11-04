@@ -286,7 +286,7 @@ def scene_app_type(c, t):
     a, dy = rise(t, a0 + 0.1); txt(c, LM, 330 + dy, "Type it like", "pjxb", 94, C["ink900"], a * e); txt(c, LM, 430 + dy, "a message.", "pjxb", 94, C["ink900"], a * e)
     subs = [("One line.", a0 + 0.3, T.PARSED + 0.1), ("Filled from your one line.", T.PARSED + 0.2, T.ADD_TAP - 0.5), ("You check it, then add it.", T.ADD_TAP - 0.4, b0)]
     for s, sa, sb in subs:
-        txt(c, LM, 500, s, "pjsb", 34, C["coral400"], env(t, sa, sb, 0.2, 0.15) * e)
+        txt(c, LM, 495, s, "pjsb", 34, C["coral400"], env(t, sa, sb, 0.2, 0.15) * e)
     # real capture
     if t >= T.PARSED:
         name = "add_parsed"
@@ -297,7 +297,7 @@ def scene_app_type(c, t):
     ca = q(prog(t, a0 + 0.55, 0.4)) * e
     W_CARD = 660; x = (W - W_CARD) / 2; y = 560 + (1 - q(prog(t, a0 + 0.55, 0.4))) * 28
     h = put_app(c, name, x, y, W_CARD, 105, 560, ca)
-    txt(c, W / 2, 560 + h + 46, "DEMO ACCOUNT · REAL APP", "pjsb", 22, C["grey"], ca * 0.9, "m", 3)
+    txt(c, W / 2, 545, "DEMO ACCOUNT · REAL APP", "pjsb", 22, C["grey"], ca * 0.9, "m", 3)
 
 
 def scene_app_result(c, t):
@@ -318,7 +318,7 @@ def scene_app_result(c, t):
     if two > 0.01:
         y = 600 + (1 - q(prog(t, T.REMINDER_IN + 0.2, 0.4))) * 30
         put_app(c, "reminder", 80, y, 920, 400, 508, two)
-    txt(c, W / 2, 1000 if two > 0.01 and one < 0.01 else 1345, "DEMO ACCOUNT · REAL APP", "pjsb", 22, C["grey"], max(one, two) * 0.9, "m", 3)
+    txt(c, W / 2, 1000 if two > 0.01 and one < 0.01 else 545, "DEMO ACCOUNT · REAL APP", "pjsb", 22, C["grey"], max(one, two) * 0.9, "m", 3)
 
 
 def scene_end(c, t):
