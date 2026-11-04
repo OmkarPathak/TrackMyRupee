@@ -1,0 +1,61 @@
+DIRECTION
+Warm, slightly amused, conversational — like a friend who's done the maths, never a lecturer. Brief pause after 'where did it go?' and after '…and then.' Drop the pace and energy for 'No name. No category.'
+
+=== ENGLISH (Indian) ===
+Fifty thousand rupees, credited. By the twentieth… where did it go?
+
+Let's follow one salary.
+
+Rent, fifteen thousand. EMI, five. Bills, three. You saw those coming.
+
+Food, travel, one OTT plan. Fourteen thousand more. Life happens.
+
+A five-thousand rupee SIP. Future you says thanks.
+
+And then… eight thousand rupees. Sixteen percent of your salary. No name. No category.
+
+It's never one big thing. A chai. A late-night order. A renewal you forgot. A UPI tap.
+
+Type it like a message — 'swiggy 320' — and every rupee gets a name.
+
+Try the free demo. Link in bio.
+
+=== HINGLISH ===
+Pachaas hazaar credit hue. Beeswi tareekh tak… gaye kahaan?
+
+Chalo, ek salary ko follow karte hain.
+
+Rent, pandrah hazaar. EMI, paanch. Bills, teen. Yeh toh pata tha.
+
+Khana, travel, ek OTT plan. Chaudah hazaar aur. Zindagi hai.
+
+Paanch hazaar ki SIP. Future you bolega thanks.
+
+Aur phir… aath hazaar rupaye. Salary ka solah percent. Na naam, na category.
+
+Yeh kabhi ek bada kharcha nahi hota. Chai. Raat ka order. Bhooli hui renewal. Ek UPI tap.
+
+Message ki tarah type karo — 'swiggy 320' — aur har rupaye ko mil jaata hai ek naam.
+
+Free demo try karo. Link bio mein hai.
+
+=== HINDI ===
+पचास हज़ार रुपये आए। बीस तारीख़ तक… गए कहाँ?
+
+चलिए, एक सैलरी का पीछा करते हैं।
+
+किराया, पंद्रह हज़ार। EMI, पाँच। बिल, तीन। ये तो पता था।
+
+खाना, सफ़र, एक OTT प्लान। चौदह हज़ार और। ज़िंदगी है।
+
+पाँच हज़ार की SIP। भविष्य वाला आप कहेगा — शुक्रिया।
+
+और फिर… आठ हज़ार रुपये। सैलरी का सोलह प्रतिशत। न नाम, न कैटेगरी।
+
+ये कभी एक बड़ा खर्च नहीं होता। चाय। रात का ऑर्डर। भूली हुई रिन्यूअल। एक UPI टैप।
+
+मैसेज की तरह टाइप करिए — 'swiggy 320' — और हर रुपये को नाम मिल जाता है।
+
+फ़्री डेमो आज़माइए। लिंक बायो में है।
+
+STATUS: NOT generated. No text-to-speech provider was reachable from the build environment. Record it yourself (best) or configure a TTS provider — see studio/README.md.

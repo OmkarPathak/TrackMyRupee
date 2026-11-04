@@ -1,0 +1,6 @@
+Django==5.2.18      # same pin as the main app
+Pillow>=10.0
+numpy>=1.24
+requests>=2.32
+python-dotenv>=1.0  # optional, for studio/.env
+# system: ffmpeg (H.264 + AAC) must be on PATH
