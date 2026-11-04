@@ -455,11 +455,11 @@ class TestTranslated(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super().setUpClass()
         from django.utils.translation import trans_real
 
         from expenses.tests.test_translations import compile_catalogues
-        compile_catalogues()
+        compile_catalogues()        # first: it skips when gettext is missing, and a skip after super().setUpClass()
+        super().setUpClass()        # leaves the class's transaction open for every test that follows in this process
         # gettext keeps what it loaded per process: another test may already have read the catalogue before this compile
         trans_real._translations = {}
         trans_real._default = None

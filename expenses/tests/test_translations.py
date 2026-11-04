@@ -74,8 +74,8 @@ def _append(cur, field, text):
 class CatalogueHealthTests(TestCase):
     @classmethod
     def setUpClass(cls):
-        super().setUpClass()
-        compile_catalogues()
+        compile_catalogues()        # first: it skips when gettext is missing, and a skip after super().setUpClass()
+        super().setUpClass()        # leaves the class's transaction open for every test that follows in this process
 
     def catalogue(self, lang, domain):
         return parse_po(LOCALE / lang / 'LC_MESSAGES' / f'{domain}.po')
@@ -117,8 +117,8 @@ class CatalogueHealthTests(TestCase):
 class TranslatedPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
-        super().setUpClass()
-        compile_catalogues()
+        compile_catalogues()        # first: it skips when gettext is missing, and a skip after super().setUpClass()
+        super().setUpClass()        # leaves the class's transaction open for every test that follows in this process
 
     def setUp(self):
         self.user = User.objects.create_user(username='polyglot', password='password')

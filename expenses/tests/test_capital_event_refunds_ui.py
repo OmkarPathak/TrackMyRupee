@@ -105,8 +105,8 @@ class RefundStringsAreTranslatedTests(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super().setUpClass()
-        compile_catalogues()
+        compile_catalogues()        # first: it skips when gettext is missing, and a skip after super().setUpClass()
+        super().setUpClass()        # leaves the class's transaction open for every test that follows in this process
 
     def test_every_string_is_translated_into_a_devanagari_text(self):
         import re
