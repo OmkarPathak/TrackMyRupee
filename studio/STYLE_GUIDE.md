@@ -11,3 +11,10 @@ Recorded on approval of **Reel 001 "Where does your ₹50,000 salary disappear?"
 8. **Storytelling format** — Relatable problem with illustrative numbers → the insight/"why" (e.g. habit) → real product proof → free-demo CTA. Value before selling: product first appears in the last quarter.
 9. **Quality bar** — Real app UI only from real captures (local app, demo account, 390×844 @3×; `assets/app_captures`) — never fake or generated UI. Label illustrative numbers ("ILLUSTRATIVE EXAMPLE") and real captures ("DEMO ACCOUNT · REAL APP"). Rupee Minis mascot (supplied SVG, light colourway) in the top-right corner; swallows a coin when something is "logged"; wide-eyed at the "?" moments; hero on the end card.
 10. **Other preferences** — Calm background; smooth but crisp pacing; show how the product *actually* works and *why* the behaviour matters (habit) rather than only describing features. Commit/push work as it's approved. One content piece at a time, wait for approval.
+
+## Narrating mascot (approved direction)
+- **Mouth design: "Line"** — a small dark mouth on the face just under the snout (closed = a gentle smile line; opens to a small oval on louder/wider sounds). Code: `render/mascot.py` `NARRATOR_MSTYLE = 1`; shapes X/B/C/D/F/G (closed/small/medium/wide/round/thin).
+- **Motion** — audio-driven (`render/lipsync.py`, no external tools): mouth from loudness + brightness + consonant noise; body bounce/sway from speech energy; blinks every ~3.3s; "talk" eye (open eye, slightly raised brow) while narrating.
+- **Languages** — English now; Hindi voice tested in the proof; Hinglish to be written in Devanagari with English terms in Latin. Funnel intent: Instagram is the customer-acquisition funnel; primary focus is personal-finance *education* with soft, specific CTAs (free demo / free resource).
+- Reel 001 (approved) stays mouthless; narrating Reels use the Line mouth.
+- Open items: free/open-source stack only for now; Rhubarb (external lip-sync binary) was not used; richer voice (non-Kokoro) is a later upgrade.

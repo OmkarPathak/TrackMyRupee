@@ -5,6 +5,9 @@ Geometry and colours are taken 1:1 from the SVG; only motion is added."""
 import math
 from PIL import Image, ImageDraw, ImageFilter
 
+# Approved narrator mouth: style 1 "Line" (small mouth under the snout). Reel 001 (approved) has no mouth (mstyle=0).
+NARRATOR_MSTYLE = 1
+
 BODY, LEG, EAR1, EAR2, SNOUT = "#E1F5EE", "#9FE1CB", "#9FE1CB", "#B5EAD6", "#9FE1CB"
 DARK, AMBER, AMBER_RING, AMBER_INK = "#085041", "#F4B44E", "#FAD9A0", "#8F4E00"
 # colourway for LIGHT backgrounds (assets/mascot/ec0c8889-rupee-minis-mascot.svg)
