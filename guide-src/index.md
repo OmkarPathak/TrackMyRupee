@@ -87,6 +87,7 @@ This guide walks you through every feature, step by step.
 | [TMR Flows](13-tmr-flows/index.md) | One-form setup for loans, salary, SIPs, FDs, cars, gold and more |
 | [Accounts & Net Worth](02-accounts/index.md) | Account types, opening balances, net worth roll-up |
 | [Expenses](03-transactions-expenses/index.md) | The one-line composer, undo, editing expenses |
+| [Quick Add from Your Phone](03-transactions-expenses/quick-add.md) | A link, the Share menu, paste, and iPhone or Android shortcuts that open the form filled in |
 | [Income](04-transactions-income/index.md) | Source types, recurring income |
 | [Recurring & Subscriptions](05-transactions-recurring/index.md) | Auto-posting, Renewing Soon |
 | [Transfers](06-transfers/index.md) | Moving money without double-counting |

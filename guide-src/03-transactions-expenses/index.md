@@ -229,6 +229,7 @@ To take **all** your data, use **Settings → Export Data**: expenses, income, t
 ---
 
 ## Related Links
+- [Quick Add from Your Phone](quick-add.md)
 - [Adding Income](../04-transactions-income/index.md)
 - [Budgets](../07-budgets/index.md)
 - [Calendar](../10-calendar/index.md)

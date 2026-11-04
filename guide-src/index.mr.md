@@ -70,6 +70,7 @@
 | [सुरुवात करा](01-getting-started/index.md) | पहिले लॉगिन, पगार चक्र, पहिले खाते |
 | [खाती आणि संपत्ती](02-accounts/index.md) | खात्यांचे प्रकार, सुरुवातीची शिल्लक, एकूण संपत्ती |
 | [खर्च](03-transactions-expenses/index.md) | खर्च जोडणे, संपादन आणि वर्गवारी |
+| [फोनवरून क्विक ॲड](03-transactions-expenses/quick-add.md) | लिंक, Share मेनू, पेस्ट, आणि iPhone किंवा Android चे shortcut जे भरलेला फॉर्म उघडतात |
 | [उत्पन्न](04-transactions-income/index.md) | उत्पन्नाचे स्रोत, आवर्ती उत्पन्न |
 | [आवर्ती बिले](05-transactions-recurring/index.md) | ऑटो-पोस्टिंग, येणारी बिले |
 | [हस्तांतरण](06-transfers/index.md) | खात्यांमधील अंतर्गत हस्तांतरण |
