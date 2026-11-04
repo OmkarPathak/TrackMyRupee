@@ -10,8 +10,7 @@ from render.brand import C, Canvas, rgb
 
 W, H = 1080, 260
 Y = 1370
-STARTS = [0.1, 3.5, 7.0, 10.4, 14.4, 17.9, 22.3, 26.9, 31.6]
-ENDS = [3.4, 7.0, 10.2, 14.2, 17.4, 22.0, 26.4, 31.2, 35.0]
+from render.timeline import STARTS, ENDS, DUR
 KEY = {"en": ("pjsb", "vo_en"), "hinglish": ("pjsb", "vo_hinglish"), "hi": ("deva", "vo_hi")}
 
 
@@ -44,7 +43,7 @@ def compose(video, audio, scenes, lang, out, workdir):
         p = workdir / f"cap_{lang}_{i+1:02d}.png"; pill_png(s[field], key, p); pngs.append(p)
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(video)]
     for p in pngs:
-        cmd += ["-loop", "1", "-framerate", "60", "-t", "35", "-i", str(p)]
+        cmd += ["-loop", "1", "-framerate", "60", "-t", str(DUR), "-i", str(p)]
     cmd += ["-i", str(audio)]
     fc, last = [], "0:v"
     for i in range(len(pngs)):

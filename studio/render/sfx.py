@@ -41,26 +41,33 @@ def chime():
     t = t_(1.4); return sum(np.sin(2*np.pi*f*t)*a for f, a in ((880,.4),(1318,.3),(1760,.2))) * np.exp(-t*3) * .5
 
 def build():
-    out = np.zeros(int(SR * DUR) + SR)
+    from render import timeline as T
+    out = np.zeros(int(SR * T.DUR) + SR)
     def put(x, at, g=1.0):
         i = int(at * SR); out[i:i+len(x)] += x[:len(out)-i] * g
     put(ding(), 0.0, .9); put(pop(300), 0.05, .5); put(clink(), 0.62, .9)
-    put(fall(.9), 1.0, .8); put(slam(), 1.95, .9); put(slam(), 2.6, 1.0)
-    put(whoosh(.6), 3.1, .5); put(pop(700), 3.8, .3)
-    put(clink(), 29.0, .8)
-    for i in range(0, 50, 2): put(pop(480 + (i % 7) * 20), 3.55 + i*0.022, .18)
-    for g, at in ((15,7.0),(5,8.1),(3,9.0),(9,10.6),(4,11.7),(1,12.6),(5,14.4)):
-        for j in range(g): put(tick(700 + 40*(j % 5)), at + j*0.045, .4)
-    put(riser(2.4), 15.2, .8); put(thud(), 17.6, .9)
-    for i, at in enumerate((22.3, 22.75, 23.2, 23.65)): put(pop(420 + i*60), at, .5)
-    put(whoosh(.7), 25.9, .5)
-    put(whoosh(.7, False), 26.7, .5)
-    for i in range(10): put(type_click(), 27.8 + i*0.08, 1)
-    put(whoosh(.5), 30.9, .5); put(chime(), 31.4, .8)
+    put(fall(.9), 0.9, .8); put(slam(), 1.2, .55); put(slam(), 2.2, .6)
+    put(whoosh(.5), 3.1, .5); put(pop(700), 3.8, .3)
+    for i in range(0, 50, 2): put(pop(480 + (i % 7) * 20), T.STORY_IN + 0.15 + i * 0.012, .12)
+    for k, n in (("rent", 15), ("emi", 5), ("bills", 3), ("food", 9), ("travel", 4), ("subs", 1), ("sip", 5)):
+        for j in range(n): put(tick(700 + 40 * (j % 5)), T.GROUP_START[k] + j * 0.028, .35)
+    put(riser(1.6), T.REVEAL - 1.5, .7); put(thud(), T.REVEAL, .9)
+    for i in range(4): put(pop(420 + i * 60), T.LEAKS + i * 0.4, .45)
+    put(whoosh(.5), T.STORY_OUT - 0.3, .45)
+    for i, d in enumerate((2.6, 4.4, 5.7)): put(pop(560 + i * 80), T.HABIT + d, .5)
+    for i in range(14): put(tick(900 + 30 * i), T.HABIT + 5.2 + i * 0.07, .3)
+    put(whoosh(.4), T.SCENES[8][0], .4)
+    for i in range(10): put(type_click(), T.TYPE0 + i * T.TYPE_STEP, 1)
+    put(ding(1760), T.PARSED, .4); put(clink(), T.ADD_TAP, .8)
+    put(whoosh(.4), T.SCENES[9][0], .4); put(pop(520), T.LIST_IN, .4)
+    put(ding(1320), T.REMINDER_IN + 0.15, .6); put(ding(1760), T.REMINDER_IN + 0.5, .4)
+    put(whoosh(.5), T.END_IN - 0.4, .45); put(chime(), T.END_IN + 0.5, .8)
     out = np.tanh(out * 1.1)
-    return out[:int(SR * DUR)]
+    return out[:int(SR * T.DUR)]
 
 if __name__ == "__main__":
+    import sys, wave
+    sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1]))
     y = build(); pcm = (np.stack([y, y], 1) * 32767 * .9).astype("<i2")
     with wave.open(sys.argv[1], "wb") as w:
         w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes(pcm.tobytes())

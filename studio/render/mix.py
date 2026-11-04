@@ -5,12 +5,13 @@ scene_09, or a single full-length 'vo.wav' (already timed to the 35s timeline).
 Per-scene clips are placed at the scene VO start times below; SFX is ducked
 under speech. Prints any clip that overruns its scene window."""
 import subprocess, sys, wave
+from pathlib import Path as _P
+sys.path.insert(0, str(_P(__file__).resolve().parents[1]))
 from pathlib import Path
 import numpy as np
 
 SR = 44100
-STARTS = [0.1, 3.5, 7.0, 10.4, 14.4, 17.9, 22.3, 26.9, 31.6]
-ENDS = [3.4, 7.0, 10.2, 14.2, 17.4, 22.0, 26.4, 31.0, 35.0]
+from render.timeline import STARTS, ENDS
 
 
 def load(path):
@@ -32,7 +33,7 @@ def mix(sfx_wav, vo_dir, out_wav):
     if full:
         x = load(full); vo[:min(n, len(x))] += x[:n]; used = True
     else:
-        for i in range(9):
+        for i in range(len(STARTS)):
             f = next(iter(sorted(vo_dir.glob(f"scene_{i+1:02d}.*"))), None)
             if not f:
                 continue

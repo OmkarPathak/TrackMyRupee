@@ -275,3 +275,53 @@ for _a in PACKAGE["asset_checklist"]:
         _a["item"] = "Draft videos v3 (60fps, captioned: EN / EN-via-Hindi-voice / Hindi) + clean no-caption versions"; _a["file"] = "trackmyrupee_reel_001_draft_vo_*.mp4"
     if "Silent video" in _a["item"]:
         _a["item"] = "Base video (no audio, no captions)"
+
+
+# ======================= v4: habit beat + real app footage + crisper motion =======================
+PACKAGE["version"] = 4
+PACKAGE["strategy"]["duration"] = "47.5 seconds (hook 3.4s · salary story 19.7s · habit 7.2s · real app 13s · CTA 4.2s)"
+PACKAGE["strategy"]["feature"] = "Quick-add (type a line, the form fills itself) · expense list with names/categories · optional 9 pm daily reminder — all from REAL app captures (demo data)"
+PACKAGE["strategy"]["objective"] = "Shares and saves first (relatability), then show why a tiny daily habit beats a monthly clean-up, then prove it with real app footage → demo taps."
+_old = PACKAGE["scenes"]
+_T = [(0.0, 3.4), (3.4, 6.0), (6.0, 9.0), (9.0, 12.4), (12.4, 15.0), (15.0, 19.1), (19.1, 23.1)]
+_VO4 = ["Fifty thousand, credited. By the twentieth… gone. Where?", "Let's follow one salary.", "Rent. EMI. Bills. You saw those coming.",
+        "Food, travel, one OTT plan. Life happens.", "A SIP. Future you says thanks.", "And then… eight thousand. Sixteen percent. No name. No category.",
+        "Never one big thing. Chai. A late-night order. A forgotten renewal."]
+_ON = [None, None, None, None, None, None, None]
+scenes = []
+for i in range(7):
+    s = dict(_old[i]); s["t"] = f"{_T[i][0]:.1f}–{_T[i][1]:.1f}"; s["vo_en"] = _VO4[i]; s["vo_hinglish"] = ""; s["vo_hi"] = ""
+    s["transition"] = "Crisp fade-through (≈0.2s out / 0.3s in)"; scenes.append(s)
+scenes[2]["on_screen"] = "Rent ₹15,000 · EMI ₹5,000 · Bills ₹3,000 · Fixed. You saw this coming."
+_common = {"camera": "Locked-off. No screen-shake.", "background": "Warm off-white paper (#FAF8F6), flat.", "lighting": "Flat graphic; soft card shadows only."}
+scenes.append({**_common, "n": 8, "t": "23.1–30.3", "name": "Why a habit (new)",
+    "visual": "Headline 'Not a budget problem.' → coral 'A habit problem.' Then three white cards rise in turn: ① 'Memory fades — by month-end, small spends are forgotten' ② 'Tiny habits stick — a few seconds a day beats a big monthly clean-up' ③ 'Patterns appear — log daily and your habits show up. Then you decide.' A 14-day tick strip fills beneath. Mascot nods.",
+    "movement": "Cards 0.4s ease-out-quart at 0.9s stagger; tick strip 70ms per day.",
+    "on_screen": "Not a budget problem. A habit problem. · Memory fades · Tiny habits stick · Patterns appear",
+    "vo_en": "Not a budget problem. A habit problem. By month-end, memory fades. A few seconds a day sticks.", "vo_hinglish": "", "vo_hi": "",
+    "sfx": "Soft pop per card, tick per day", "transition": "Crisp fade-through"})
+scenes.append({**_common, "n": 9, "t": "30.3–37.3", "name": "Real app: type it (new)",
+    "visual": "Headline 'Type it like a message.' REAL captures of the app's Add-expense screen (demo account, iPhone-size viewport): the input types 's-w-i-g-g-y- -3-2-0' character by character, Enter fills Amount ₹320, Description Swiggy, Category Dining Out and UPI automatically ('Filled 3 details from what you typed.'), then the Add button is tapped as the piggy swallows a coin. 'Filled from your one line' annotation.",
+    "movement": "Typing 120ms per character from 31.6s; parse at 33.5s; Add tap 35.7s.",
+    "on_screen": "Type it like a message. · swiggy 320 · Filled from your one line · You check it, then add it.",
+    "vo_en": "TrackMyRupee keeps it tiny. Type it — swiggy 320. It fills in the details. You check, then add.", "vo_hinglish": "", "vo_hi": "",
+    "sfx": "Key ticks per character, soft confirm on parse, coin clink on Add", "transition": "Crisp fade-through"})
+scenes.append({**_common, "n": 10, "t": "37.3–43.3", "name": "Real app: names + nudge (new)",
+    "visual": "'Every rupee gets a name.' Real expense list (named entries, categories, payment method) slides up; then 'Forget a day?' with the REAL Daily Expense Reminder setting ('Get a push notification at 9 pm on days you haven't logged any expense'). Labelled 'DEMO DATA · FROM THE REAL APP'.",
+    "movement": "List slides up 0.4s; crossfade to reminder at 40.4s.",
+    "on_screen": "Every rupee gets a name. · Forget a day? An optional 9 pm nudge. · DEMO DATA · FROM THE REAL APP",
+    "vo_en": "Every rupee gets a name. Forget a day? An optional 9 pm nudge.", "vo_hinglish": "", "vo_hi": "",
+    "sfx": "Soft whoosh, notification chime on the reminder", "transition": "Crisp fade-through"})
+e = dict(_old[8]); e["n"] = 11; e["t"] = "43.3–47.5"; e["vo_hinglish"] = ""; e["vo_hi"] = ""
+scenes.append(e)
+PACKAGE["scenes"] = scenes
+PACKAGE["voiceover"]["en"] = "\n\n".join(s["vo_en"] for s in scenes)
+PACKAGE["voiceover"]["hinglish"] = "(English-only for now — Hinglish/Hindi will be re-written for this v4 script when requested.)"
+PACKAGE["voiceover"]["hindi"] = PACKAGE["voiceover"]["hinglish"]
+PACKAGE["voiceover"]["direction"] += " Pronunciation: spell initialisms as letters — 'E M I', 'S I P', 'O T T', 'U P I' (the TTS otherwise reads EMI as the name 'Emmy'; handled in render/tts_kokoro.py `spoken()`)."
+PACKAGE["editing"]["timeline"][1] = "Track 2 (VO): per-scene clips are placed at scene start + 0.1s (see render/timeline.py): " + ", ".join(f"{a+0.1:.1f}s" for a, _ in [(0.0,0),(3.4,0),(6.0,0),(9.0,0),(12.4,0),(15.0,0),(19.1,0),(23.1,0),(30.3,0),(37.3,0),(43.3,0)])
+PACKAGE["editing"]["timeline"][0] = "Track 1 (video): trackmyrupee_reel_001_silent.mp4 (47.5s, 60 fps) — all motion is baked in; do not re-time."
+PACKAGE["asset_checklist"].append({"item": "Real app captures (Playwright, demo account, 390×844 @3x)", "status": "done", "file": "assets/app_captures/*.png",
+                                   "note": "Demo data only; the demo can't save an expense, so the Add tap is shown but the saved result is not."})
+PACKAGE["hooks"]["note"] += " v4 adds a habit beat (why a tiny daily log beats a monthly clean-up) and real app captures; motion is crisper (0.2–0.3s fades, quart ease-out)."
+PACKAGE["fact_check_flags"] = []
