@@ -70,6 +70,7 @@ Expenses सूची में व्यय खोजें और इसे �
 ---
 
 ## संबंधित लिंक
+- [फ़ोन से क्विक ऐड](quick-add.hi.md)
 - [आय जोड़ना](../04-transactions-income/index.hi.md)
 - [बजट](../07-budgets/index.hi.md)
 - [कैलेंडर](../10-calendar/index.hi.md)
