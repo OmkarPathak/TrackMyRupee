@@ -252,7 +252,6 @@
         </span>
     </div>
     <div class="acx-head-actions">
-        {% if FAMILY_ON %}{% family_toggle 'accounts' %}{% endif %}
         <a href="{% url 'transfer-list' %}" class="header-action-btn d-inline-flex align-items-center gap-1 text-nowrap">
             <i class="bi bi-clock-history" aria-hidden="true"></i>
             <span class="d-none d-sm-inline">{% trans "History" %}</span>

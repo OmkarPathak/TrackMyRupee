@@ -24,8 +24,8 @@ def get_item(mapping, key):
 
 @register.inclusion_tag('expenses/family/_toggle.html', takes_context=True)
 def family_toggle(context, page, current='me'):
-    """The Me / Family switch on Net worth and Accounts. Shown only to members of a family. ``page`` is
-    'networth' or 'accounts'; ``current`` is the side being shown."""
+    """The Me / Family switch on Net worth. Shown only to members of a family. ``page`` is
+    'networth'; ``current`` is the side being shown."""
     from django.urls import reverse
     request = context.get('request')
     user = getattr(request, 'user', None)

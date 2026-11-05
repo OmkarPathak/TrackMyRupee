@@ -246,11 +246,9 @@ class FamilyPagesTests(ViewFixture):
 
 
 class MeFamilyToggleTests(ViewFixture):
-    def test_members_get_the_switch_on_accounts_and_net_worth(self):
+    def test_members_get_the_switch_on_net_worth_but_not_on_the_accounts_list(self):
         self.client.force_login(self.partner)
-        accounts = self.client.get(reverse('account-list'))
-        self.assertContains(accounts, 'fam-seg')
-        self.assertContains(accounts, reverse('family-inventory'))
+        self.assertNotContains(self.client.get(reverse('account-list')), 'fam-seg')
         networth = self.client.get(reverse('analytics-networth'))
         self.assertContains(networth, reverse('family-networth'))
 
@@ -262,17 +260,17 @@ class MeFamilyToggleTests(ViewFixture):
     def test_people_outside_a_family_see_no_switch(self):
         loner = make_user('loner4')
         self.client.force_login(loner)
-        self.assertNotContains(self.client.get(reverse('account-list')), 'fam-seg')
+        self.assertNotContains(self.client.get(reverse('analytics-networth')), 'fam-seg')
 
     def test_no_switch_while_the_flag_is_off(self):
         self.client.force_login(self.partner)
         with override_settings(FAMILY_ENABLED=False):
-            self.assertNotContains(self.client.get(reverse('account-list')), 'fam-seg')
+            self.assertNotContains(self.client.get(reverse('analytics-networth')), 'fam-seg')
 
     def test_the_family_side_is_disabled_while_family_view_is_paused(self):
         end_pro(self.parent)
         self.client.force_login(self.partner)
-        page = self.client.get(reverse('account-list'))
+        page = self.client.get(reverse('analytics-networth'))
         self.assertContains(page, 'is-off')
 
 

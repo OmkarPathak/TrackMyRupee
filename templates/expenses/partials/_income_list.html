@@ -50,9 +50,9 @@
     {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=income&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
 
     <!-- Summary & Sparkline Widget -->
-    <div class="row g-2 mb-3">
+    <div class="row g-2 mb-3 tmr-income-summary">
         <!-- Summary Cards -->
-        <div class="col-7 col-md-8">
+        <div class="col-12 col-md-8">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-md-3 bg-body h-100">
                 <div class="row text-center text-md-start align-items-center h-100 g-0">
                     <div class="col-4 border-end">
@@ -78,7 +78,7 @@
         </div>
         
         <!-- Sparkline Card -->
-        <div class="col-5 col-md-4">
+        <div class="d-none d-md-block col-md-4">
             <div class="card border-0 shadow-sm rounded-4 p-2 p-md-3 bg-body h-100 d-flex flex-column justify-content-between">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem;">{% trans "Trend" %}</div>

@@ -138,7 +138,7 @@
   }
 
   [data-bs-theme="dark"] body.has-sidebar .skeleton-overlay {
-    background: #0b0f17;
+    background: #151513;
     border-top: 0.5px solid rgba(255, 255, 255, 0.08);
     border-left: 0.5px solid rgba(255, 255, 255, 0.08);
   }

@@ -50,7 +50,7 @@ If a link expires or was cancelled, the owner can cancel it or **renew** it, whi
 
 ## 3. Choosing what to share
 
-Open **Family > What I share** to see all your active accounts.
+Open **Family > What I share** to see all your active accounts. Accounts are grouped (bank and cash, credit cards, loans and property, investments). A group with more than four accounts starts folded: click its name to open it, or use **Expand all** and **Collapse all**. The same folding is on **If something happens to me**, and the app remembers what you opened.
 
 For each account, pick one of two levels:
 
@@ -88,7 +88,7 @@ Stop sharing any account at any time. **Sharing activity** lists what you shared
 
 ## 4. The family's pages
 
-Members see a **Me / Family** switch on Net worth and Accounts.
+Members see a **Me / Family** switch on Net worth. The family's accounts are on **Who holds what** in the Family section.
 
 ### Family net worth
 

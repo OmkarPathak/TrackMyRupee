@@ -34,8 +34,8 @@ body {
 [data-bs-theme="dark"] .form-control, 
 [data-bs-theme="dark"] .form-select, 
 [data-bs-theme="dark"] .input-group-text {
-  background-color: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--color-background);
+  border-color: var(--color-border);
 }
 
 [data-bs-theme="dark"] .bg-light {
@@ -415,7 +415,7 @@ body.demo-mode .sidebar {
 }
 
 [data-bs-theme="dark"] .sidebar {
-  background: #0b0f17 !important;
+  background: var(--color-background, #151513) !important;
   box-shadow: none !important;
 }
 
@@ -893,7 +893,7 @@ body.has-sidebar {
 
 [data-bs-theme="dark"] html,
 [data-bs-theme="dark"] body.has-sidebar {
-  background-color: #0b0f17 !important;
+  background-color: var(--color-background, #151513) !important;
 }
 
 /* Layout Adjustments for Desktop */
@@ -908,7 +908,7 @@ body.has-sidebar {
   }
 
   [data-bs-theme="dark"] body.has-sidebar {
-    background-color: #0b0f17 !important;
+    background-color: var(--color-background, #151513) !important;
   }
 
   body.has-sidebar.demo-mode {
@@ -986,7 +986,7 @@ body.has-sidebar {
   }
 
   [data-bs-theme="dark"] body.has-sidebar .navbar.sticky-top {
-    background: #0b0f17 !important;
+    background: var(--color-background, #151513) !important;
     border-bottom: none !important;
   }
 
@@ -1244,11 +1244,28 @@ body.has-sidebar {
 
 [data-bs-theme="dark"] {
   --color-primary: #5DCAA5; /* Accessible Light Forest Green for Dark Mode (Contrast >= 7.5:1) */
-  --color-background: #111315; /* Landing Page BG */
-  --color-surface: #1a1d21; /* Landing Page Surface */
-  --color-text: #faf9f6;
-  --bg-color: #111315;
-  --surface-color: #1a1d21;
+  /* Warm charcoal: the dark twin of the light theme's cream and ink. Three steps, page < card < sub-card, so depth
+     reads from lightness and a soft warm hairline rather than from cool greys or glowing white borders. */
+  --color-background: #151513;   /* page, sidebar, top bar */
+  --color-surface: #1E1E1B;      /* cards, panels, dialogs */
+  --color-surface-2: #272723;    /* rows and sub-cards inside a card */
+  --color-surface-3: #302F2B;    /* hover and raised states */
+  --color-border: #34342F;       /* hairlines */
+  --color-text: #ECEAE3;
+  --bg-color: #151513;
+  --surface-color: #1E1E1B;
+
+  /* Bootstrap's own dark variables, warmed to match */
+  --bs-body-bg: #151513; --bs-body-bg-rgb: 21, 21, 19;
+  --bs-body-color: #ECEAE3; --bs-body-color-rgb: 236, 234, 227;
+  --bs-emphasis-color: #F7F5EF; --bs-emphasis-color-rgb: 247, 245, 239;
+  --bs-secondary-color: rgba(236, 234, 227, 0.72); --bs-secondary-color-rgb: 236, 234, 227;
+  --bs-tertiary-color: rgba(236, 234, 227, 0.52); --bs-tertiary-color-rgb: 236, 234, 227;
+  --bs-secondary-bg: #302F2B; --bs-secondary-bg-rgb: 48, 47, 43;
+  --bs-tertiary-bg: #272723; --bs-tertiary-bg-rgb: 39, 39, 35;
+  --bs-border-color: #34342F;
+  --bs-border-color-translucent: rgba(236, 234, 227, 0.12);
+  --bs-card-bg: #1E1E1B;
   
   /* Semantic Colors for Dark Mode Contrast */
   --color-success: #5DCAA5;
@@ -1258,8 +1275,8 @@ body.has-sidebar {
   --color-warning: #F4B44E;
   --color-warning-text: #F4B44E;
   --color-info-text: #85B7EB;
-  --color-muted-text: #B0B5BD;
-  --color-secondary-text: #B0B5BD;
+  --color-muted-text: #A8A59B;
+  --color-secondary-text: #A8A59B;
   --bs-success-rgb: 93, 202, 165;
   --bs-danger-rgb: 244, 156, 140;
   --bs-warning-rgb: 244, 180, 78;
@@ -1400,7 +1417,31 @@ footer {
 
 [data-bs-theme="dark"] .card {
   background-color: var(--color-surface);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
+}
+
+/* Cards written with the body-background utility would sit hollow on the page in dark mode (same tone as the page):
+   they take the card tone like every other card. */
+[data-bs-theme="dark"] .card.bg-body { background-color: var(--color-surface) !important; border: 1px solid var(--color-border) !important; }
+
+/* Floating and list surfaces take the card tone, not the (darker) page tone */
+[data-bs-theme="dark"] .modal,
+[data-bs-theme="dark"] .dropdown-menu,
+[data-bs-theme="dark"] .offcanvas,
+[data-bs-theme="dark"] .popover,
+[data-bs-theme="dark"] .toast,
+[data-bs-theme="dark"] .list-group {
+  --bs-modal-bg: var(--color-surface);
+  --bs-dropdown-bg: var(--color-surface);
+  --bs-offcanvas-bg: var(--color-surface);
+  --bs-popover-bg: var(--color-surface);
+  --bs-toast-bg: var(--color-surface);
+  --bs-list-group-bg: var(--color-surface);
+  --bs-modal-border-color: var(--color-border);
+  --bs-dropdown-border-color: var(--color-border);
+  --bs-list-group-border-color: var(--color-border);
+  --bs-dropdown-link-hover-bg: var(--color-surface-3);
+  --bs-dropdown-link-color: var(--bs-body-color);
 }
 
 /* PWA Install Banner Dark Mode */
