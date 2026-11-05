@@ -240,15 +240,24 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-delete-form { max-width: 28rem; }
 
     /* The emergency checklist: what is still missing from the sheet */
-    .fam-check { display: flex; gap: .7rem; align-items: flex-start; padding: .65rem 0; border-top: 1px solid var(--fam-line); }
-    .fam-check:first-child { border-top: 0; }
-    .fam-check > i { font-size: 1.1rem; line-height: 1.35; flex-shrink: 0; }
+    /* The checklist: one calm row per check. Finished checks fade back, the ones still to do read first, and long
+       lists of names become small chips (a few, then "+N more") instead of a wall of bold text. */
+    .fam-ck-card { padding: 1.5rem 1.6rem; }
+    .fam-ck-title { font-size: 1.15rem; font-weight: 700; margin-bottom: .25rem; }
+    @media (max-width: 575.98px) { .fam-ck-card { padding: 1.15rem 1.1rem; } }
+    .fam-check { display: flex; gap: .85rem; align-items: flex-start; padding: 1rem 0; border-top: 1px solid var(--fam-line); }
+    .fam-check:first-child { border-top: 0; padding-top: .5rem; }
+    .fam-check:last-child { padding-bottom: .25rem; }
+    .fam-check > i { font-size: 1.15rem; line-height: 1.3; flex-shrink: 0; margin-top: .05rem; }
     .fam-check.is-done > i { color: var(--fam-green); }
     .fam-check.is-todo > i { color: var(--fam-amber); }
-    .fam-check-title { font-weight: 700; font-size: .92rem; line-height: 1.35; color: var(--bs-body-color); }
-    .fam-check-names { font-size: .85rem; font-weight: 600; line-height: 1.4; margin-top: .15rem; overflow-wrap: anywhere; color: var(--bs-body-color); }
-    .fam-check-detail { font-size: .82rem; color: var(--fam-muted); line-height: 1.4; margin-top: .1rem; overflow-wrap: anywhere; }
-    .fam-progress { height: .4rem; border-radius: 99px; background: var(--fam-soft); overflow: hidden; margin: .6rem 0 .3rem; }
+    .fam-check-title { font-weight: 600; font-size: .95rem; line-height: 1.4; color: var(--bs-body-color); }
+    .fam-check.is-done .fam-check-title { font-weight: 500; color: var(--fam-muted); }
+    .fam-check-names { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .55rem; }
+    .fam-chip { font-size: .8rem; line-height: 1.2; padding: .28rem .65rem; border-radius: 99px; background: var(--fam-soft); color: var(--bs-body-color); overflow-wrap: anywhere; }
+    .fam-chip--more { color: var(--fam-muted); background: transparent; border: 1px dashed var(--fam-line); }
+    .fam-check-detail { font-size: .85rem; color: var(--fam-muted); line-height: 1.45; margin-top: .5rem; overflow-wrap: anywhere; }
+    .fam-progress { height: .4rem; border-radius: 99px; background: var(--fam-soft); overflow: hidden; margin: .9rem 0 .75rem; }
     .fam-progress > span { display: block; height: 100%; background: var(--fam-green); border-radius: 99px; }
     @media print { .fam-tabs, .fam-noprint, .sidebar, .navbar, .fam-banner { display: none !important; } .fam-card { border: 0; box-shadow: none; } }
 </style>

@@ -16,8 +16,8 @@
     {% if sheet %}<div class="fam-actions"><a href="{% url 'family-emergency-sheet' request.user.household_membership.pk %}?print=1" class="btn btn-action-cancel" target="_blank" rel="noopener">{% trans "Print or save as PDF" %}</a></div>{% endif %}
 </div>
 
-<section class="card fam-card mb-3" aria-labelledby="fam-ck-h" id="fam-checklist">
-    <h2 id="fam-ck-h">{% trans "Is your sheet ready?" %}</h2>
+<section class="card fam-card fam-ck-card mb-3" aria-labelledby="fam-ck-h" id="fam-checklist">
+    <h2 id="fam-ck-h" class="fam-ck-title">{% trans "Is your sheet ready?" %}</h2>
     <p class="fam-note">{% blocktrans trimmed with done=checklist.done|translate_digits total=checklist.total|translate_digits %}{{ done }} of {{ total }} done. This checks the sheet as you last saved it.{% endblocktrans %}</p>
     <div class="fam-progress" role="progressbar" aria-valuemin="0" aria-valuemax="{{ checklist.total }}" aria-valuenow="{{ checklist.done }}" aria-label="{% trans 'Emergency sheet checklist' %}"><span style="width: {% widthratio checklist.done checklist.total 100 %}%"></span></div>
     <div>
@@ -26,7 +26,7 @@
             <i class="bi {% if item.done %}bi-check-circle-fill{% else %}bi-exclamation-circle-fill{% endif %}" aria-hidden="true"></i>
             <div>
                 <div class="fam-check-title">{{ item.title }}</div>
-                {% if item.names %}<div class="fam-check-names">{{ item.names|join:", " }}</div>{% endif %}
+                {% if item.names %}<div class="fam-check-names">{% for name in item.names|slice:":6" %}<span class="fam-chip">{{ name }}</span>{% endfor %}{% if item.names|length > 6 %}<span class="fam-chip fam-chip--more">{% blocktrans trimmed with n=item.names|length|add:"-6" %}+{{ n }} more{% endblocktrans %}</span>{% endif %}</div>{% endif %}
                 {% if item.detail %}<div class="fam-check-detail">{{ item.detail }}</div>{% endif %}
             </div>
         </div>
@@ -34,12 +34,15 @@
     </div>
 </section>
 
+<div class="mb-2">
+    <h2 id="fam-inc-h" class="fam-h2 mb-1">{% trans "What is on the sheet" %}</h2>
+    <p class="fam-note mb-0">{% trans "Built from what you already track. Switch off anything you want to keep off it." %}</p>
+</div>
+
 <div class="fam-split">
 <form method="post" action="{% url 'family-emergency-save' %}" class="fam-stack" id="fam-em-form">
     {% csrf_token %}
     <section aria-labelledby="fam-inc-h">
-        <h2 id="fam-inc-h" class="fam-h2 mb-1">{% trans "What is on the sheet" %}</h2>
-        <p class="fam-note mb-2">{% trans "Built from what you already track. Switch off anything you want to keep off it." %}</p>
         {% if not groups %}<p class="fam-note">{% trans "You have no accounts yet. Add one on the Accounts page, then come back." %}</p>{% endif %}
         {% for key, label, rows in groups %}
         <div class="card fam-card fam-gcard" data-fam-group>

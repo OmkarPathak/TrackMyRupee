@@ -366,8 +366,17 @@ class ChecklistTests(FamilyTestCase):
         self.assertContains(page, 'Is your sheet ready?')
         self.assertContains(page, 'data-check="policies"')
         self.assertContains(page, 'Some insurance policies are not on the sheet')
-        self.assertContains(page, '<div class="fam-check-names">Term Plan</div>', html=True)
+        self.assertContains(page, '<div class="fam-check-names"><span class="fam-chip">Term Plan</span></div>', html=True)
         self.assertContains(page, '0 of 5 done')
+
+    def test_a_long_list_of_names_shows_a_few_chips_and_a_count_of_the_rest(self):
+        for n in range(9):
+            add_account(self.owner, f'Fund {n}', 'MUTUAL_FUND')
+        self.client.force_login(self.owner)
+        page = self.client.get(reverse('family-emergency')).content.decode()
+        self.assertEqual(page.count('class="fam-chip"'), 6)
+        self.assertEqual(page.count('class="fam-chip fam-chip--more"'), 1)
+        self.assertIn('+3 more', page)
 
     def test_saving_the_sheet_updates_the_checklist_on_the_page(self):
         policy = add_account(self.owner, 'Term Plan', 'LIFE_INSURANCE')
