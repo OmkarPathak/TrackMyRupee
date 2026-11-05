@@ -28,11 +28,12 @@
     none: label('none', 'No matches'), notLinked: label('not-linked', 'Not linked to anything'),
     notLinkedMeta: label('not-linked-meta', 'Counts as income'),
     expense: label('expense', 'Expense'), event: label('event', 'Capital event'),
-    refunded: label('refunded', 'refunded'), refundPrefix: label('refund-prefix', 'Refund')
+    refunded: label('refunded', 'refunded'), refundPrefix: label('refund-prefix', 'Refund'),
+    failed: label('failed', 'Search is not available right now. Try again.')
   };
 
   var NOT_LINKED = { kind: 'none' };
-  var rows = [], active = -1, timer = null, controller = null, cache = {};
+  var rows = [], active = -1, timer = null, controller = null, cache = {}, seq = 0;
 
   function el(tag, cls, text) {
     var node = document.createElement(tag);
@@ -86,6 +87,7 @@
 
   // ── The list ────────────────────────────────────────────────────────────
   function closeResults() {
+    seq++;                                  // a search still on its way must not reopen the list
     results.hidden = true;
     search.setAttribute('aria-expanded', 'false');
     search.removeAttribute('aria-activedescendant');
@@ -143,17 +145,35 @@
     active = -1;
   }
 
+  function showFailure() {
+    rows = [NOT_LINKED];
+    results.textContent = '';
+    results.appendChild(rowButton(NOT_LINKED, 0));
+    results.appendChild(el('div', 'tmr-picker-empty', labels.failed));
+    results.hidden = false;
+    search.setAttribute('aria-expanded', 'true');
+    active = -1;
+  }
+
   function load(query) {
-    if (cache[query]) { render(cache[query]); return; }
+    var mine = ++seq;                       // only the newest request may draw; closing the list bumps this too
     if (controller) controller.abort();
+    if (cache[query]) { render(cache[query]); return; }
     controller = typeof AbortController === 'function' ? new AbortController() : null;
     fetch(url + '?q=' + encodeURIComponent(query), {
       credentials: 'same-origin',
       headers: { 'Accept': 'application/json' },
       signal: controller ? controller.signal : undefined
-    }).then(function (r) { return r.ok ? r.json() : { results: [] }; })
-      .then(function (data) { if (search.value.trim() === query) { cache[query] = data; render(data); } })
-      .catch(function () { /* aborted by a newer keystroke, or offline: leave what is shown */ });
+    }).then(function (r) { if (!r.ok) throw new Error('search failed'); return r.json(); })
+      .then(function (data) {
+        if (mine !== seq || search.value.trim() !== query) return;
+        cache[query] = data;                // only a good answer is kept: a failure is tried again next time
+        render(data);
+      })
+      .catch(function (err) {
+        if (err && err.name === 'AbortError') return;   // a newer keystroke took over
+        if (mine === seq) showFailure();
+      });
   }
 
   search.addEventListener('focus', function () { load(search.value.trim()); });

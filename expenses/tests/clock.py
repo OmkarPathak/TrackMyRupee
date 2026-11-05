@@ -3,8 +3,19 @@
 A test that builds data "two days ago" and then opens a page that shows "this month" breaks on the 1st and 2nd of
 every month, because those dates fall in last month. Pin "today" to a day in the middle of a month instead.
 
-``timezone.now()``, ``timezone.localtime()`` and ``timezone.localdate()`` all answer the pinned moment. Asking about
-a particular moment (``localtime(some_datetime)``) still converts that moment as usual.
+What is pinned: ``timezone.now()``, ``timezone.localtime()`` and ``timezone.localdate()`` all answer the pinned
+moment (``timezone.now`` etc. are looked up at call time, so every ``timezone.xxx()`` call in app code sees it, and so
+do ``auto_now`` / ``auto_now_add`` fields, which call ``timezone.now()`` when saved). Asking about a particular moment
+(``localtime(some_datetime)``) still converts that moment as usual.
+
+What is NOT pinned (so app code must not rely on it for "today"):
+  * ``date.today()``, ``datetime.now()``, ``datetime.today()`` and ``time.time()``. Production code under
+    ``expenses/`` reads the day through ``timezone.localdate()`` / ``timezone.localtime()`` for this reason; do not
+    reintroduce ``date.today()`` there. Left on the wall clock on purpose: the health-check timestamp
+    (views/misc.py), the export file-name stamp (views/export.py) and the ``setup_demo_user`` command.
+  * Field defaults bound at import: ``default=timezone.now`` on ``models.py`` fields (``posted_at``, ``joined_at``, ``created_at``, ``amounts_since``, ``last_used`` ...) hold a reference to the real
+    function, so they keep returning the real moment. Set such a field explicitly in a test that depends on it.
+  * Database ``NOW()`` and anything computed in SQL.
 """
 from datetime import date, datetime, time
 from unittest.mock import patch

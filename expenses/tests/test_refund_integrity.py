@@ -114,3 +114,16 @@ class TestConvertKeepsRefunds(Base):
         event = CapitalEvent.objects.get(user=self.user)
         self.assertEqual(r.refund_for_capital_event_id, event.pk)
         self.assertIsNone(r.refund_for_expense_id)
+
+
+class TestIncomeListShowsRefunds(Base):
+    def test_a_refund_against_an_expense_says_so_and_is_not_counted_as_income(self):
+        e = self.expense(8000, description='Goa trip')
+        self.refund(e, 4000)
+        self.income_row = Income.objects.create(user=self.user, date=today(), amount=D('1000'), source_type='Salary',
+                                                currency='₹', account=self.account)
+        response = self.client.get(reverse('income-list'), {'time_period': 'all'})
+        self.assertContains(response, 'Pays back')
+        self.assertContains(response, 'Goa trip')
+        self.assertEqual(response.context['filtered_amount'], D('1000'))
+        self.assertEqual(response.context['filtered_count'], 2)

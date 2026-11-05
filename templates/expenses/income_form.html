@@ -84,7 +84,7 @@
                              data-label-none="{% trans 'No matching expenses or capital events' %}"
                              data-label-not-linked="{% trans 'Not linked to anything' %}" data-label-not-linked-meta="{% trans 'Counts as income' %}"
                              data-label-expense="{% trans 'Expense' %}" data-label-event="{% trans 'Capital event' %}"
-                             data-label-refunded="{% trans 'refunded' %}" data-label-refund-prefix="{% trans 'Refund' %}">
+                             data-label-refunded="{% trans 'refunded' %}" data-label-refund-prefix="{% trans 'Refund' %}" data-label-failed="{% trans 'Search is not available right now. Try again.' %}">
                             <label class="form-label small text-muted fw-bold" for="refund-search">{% trans "Refund for" %}</label>
                             <div class="tmr-picker-chosen" id="refund-chosen" hidden>
                                 <span class="tmr-picker-chosen-text">
@@ -159,7 +159,7 @@
                             }
                         });
                     </script>
-                    <script src="{% static 'js/refund_picker.js' %}?v=1.0"></script>
+                    <script src="{% static 'js/refund_picker.js' %}?v=1.1"></script>
 
                     <!-- Row 4: Cancel and Save (Right Aligned) -->
                     <div class="d-flex justify-content-end gap-2 mt-4">

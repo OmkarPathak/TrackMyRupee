@@ -505,7 +505,7 @@ def demo_login(request):
         demo = User.objects.filter(username='demo').first()
         if demo is None:
             return True
-        today = date.today()
+        today = timezone.localdate()
         has_expense = Expense.objects.filter(user=demo, date__year=today.year, date__month=today.month).exists()
         has_income = Income.objects.filter(user=demo, date__year=today.year, date__month=today.month).exists()
         return not (has_expense and has_income)

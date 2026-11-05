@@ -23817,3 +23817,9 @@ msgstr "इस खर्च के विरुद्ध %(refunded)s वाप�
 
 msgid "Refund"
 msgstr "रिफंड"
+
+msgid "Search is not available right now. Try again."
+msgstr "अभी खोज उपलब्ध नहीं है। फिर कोशिश करें।"
+
+msgid "Pays back an expense: reduces its cost instead of counting as income"
+msgstr "खर्च का भुगतान वापस करता है: आय में गिने जाने के बजाय उसकी लागत घटाता है"

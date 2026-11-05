@@ -152,11 +152,11 @@ class DeleteWithNameCheckTests(FamilyTestCase):
         self.assertFalse(Household.objects.exists())
         self.assertEqual(FamilyShare.objects.count(), 0)
 
-    def test_the_delete_form_is_only_shown_to_the_owner_and_starts_disabled(self):
+    def test_the_delete_form_is_only_shown_to_the_owner_and_works_without_js(self):
         page = self.client.get(reverse('family-home'))
         self.assertContains(page, reverse('family-delete'))
         self.assertContains(page, 'data-expected="The Sharma Family"')
-        self.assertRegex(page.content.decode(), r'data-fam-delete-go\s+disabled')
+        self.assertNotRegex(page.content.decode(), r'data-fam-delete-go\s+disabled')   # JS disables it on load
         self.client.force_login(self.partner)
         self.assertNotContains(self.client.get(reverse('family-home')), reverse('family-delete'))
 

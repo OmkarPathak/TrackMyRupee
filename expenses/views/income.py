@@ -19,6 +19,7 @@ from expenses.views.utils import get_safe_redirect_url
 from ..forms import IncomeForm
 from ..models import INCOME_GROUP_TYPES, Income, RecurringTransaction
 from ..posthog_utils import ph_capture
+from ..savings import LINKED_REFUND
 from ..services_recurring import RecurringService
 from .mixins import (
     HtmxPartialTemplateMixin,
@@ -37,7 +38,7 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
     paginate_by = 20
 
     def get_queryset(self):
-        base_qs = Income.objects.filter(user=self.request.user).select_related('account', 'refund_for_capital_event')
+        base_qs = Income.objects.filter(user=self.request.user).select_related('account', 'refund_for_capital_event', 'refund_for_expense')
         queryset, self.applied_state = apply_filter_config(base_qs, self.request, INCOME_FILTERS)
         return queryset
 
@@ -67,12 +68,14 @@ class IncomeListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTran
         passive_types = INCOME_GROUP_TYPES['PASSIVE']
         one_off_types = INCOME_GROUP_TYPES['ONE_OFF']
 
+        # (money that pays back an expense or a capital event is not income: it is left out of these totals, as on the
+        # dashboard and the all-transactions page)
         stats = filtered_queryset.aggregate(
             count=Count('id'),
-            total=Sum('base_amount'),
-            earned=Sum(Case(When(source_type__in=earned_types, then=F('base_amount')), default=Value(Decimal('0.00')), output_field=DecimalField())),
-            passive=Sum(Case(When(source_type__in=passive_types, then=F('base_amount')), default=Value(Decimal('0.00')), output_field=DecimalField())),
-            one_off=Sum(Case(When(source_type__in=one_off_types, then=F('base_amount')), default=Value(Decimal('0.00')), output_field=DecimalField())),
+            total=Sum('base_amount', filter=~LINKED_REFUND),
+            earned=Sum(Case(When(source_type__in=earned_types, then=F('base_amount')), default=Value(Decimal('0.00')), output_field=DecimalField()), filter=~LINKED_REFUND),
+            passive=Sum(Case(When(source_type__in=passive_types, then=F('base_amount')), default=Value(Decimal('0.00')), output_field=DecimalField()), filter=~LINKED_REFUND),
+            one_off=Sum(Case(When(source_type__in=one_off_types, then=F('base_amount')), default=Value(Decimal('0.00')), output_field=DecimalField()), filter=~LINKED_REFUND),
         )
         context['filtered_count'] = stats['count']
         context['filtered_amount'] = stats['total'] or Decimal('0.00')

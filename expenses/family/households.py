@@ -197,6 +197,7 @@ def leave(user):
             raise FamilyError('not_member', _("You are not in a family."))
         FamilyShare.objects.filter(owner=user, household=household).delete()
         GentleNoteDismissal.objects.filter(user=user, household=household).delete()
+        _end_share_notices(household.pk, user)
         _end_emergency_links(user)
         membership.delete()
         ConsentEvent.objects.create(user=user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
@@ -215,6 +216,17 @@ def leave(user):
     if handed_to is not None:
         notices.ownership_handed_on(handed_to, user, household.name)
     return household
+
+
+def _end_share_notices(household_id, user=None):
+    """Remove the "shared something new" notices that would outlive the sharing: all of the household's, or only
+    those ``user`` received and those about ``user``'s shares."""
+    from . import shares
+    if user is None:
+        shares.delete_share_notices(household_id)
+    else:
+        shares.delete_share_notices(household_id, recipient=user)
+        shares.delete_share_notices(household_id, sharer=user)
 
 
 def _same_name(typed, actual):
@@ -243,6 +255,7 @@ def delete_household(owner, confirm_name):
             ConsentEvent.objects.create(user=member_user, action='WITHDRAWN', purpose=CONSENT_PURPOSE,
                                         consent_version=CONSENT_VERSION)
         household_id, household_name = household.id, household.name
+        _end_share_notices(household_id)
         # Members, shares, invitations and dismissed notes all go with the household (cascade)
         household.delete()
         _audit(owner, 'DELETE', 'Household', household_id, {'members': [u.id for u in member_users]})
@@ -279,9 +292,19 @@ def remove_member(owner, membership):
     if membership.user_id == owner.id:
         raise FamilyError('is_owner', _("You cannot remove yourself. Leave the family instead."))
     with transaction.atomic():
-        _lock_household(household.pk)
+        locked = _lock_household(household.pk)
+        if locked.owner_id != owner.id:         # ownership may have moved while we waited for the lock
+            raise FamilyError('not_owner', _("Only the person who started the family can remove someone."))
+        membership = HouseholdMember.objects.select_related('user__profile').filter(
+            pk=membership.pk, household=locked).first()
+        if membership is None:
+            raise FamilyError('not_member', _("That person is no longer in the family."))
+        if membership.user_id == owner.id:
+            raise FamilyError('is_owner', _("You cannot remove yourself. Leave the family instead."))
+        household = locked
         removed_user = membership.user
         membership_id = membership.id
+        _end_share_notices(household.pk, removed_user)
         FamilyShare.objects.filter(owner=removed_user, household=household).delete()
         GentleNoteDismissal.objects.filter(user=removed_user, household=household).delete()
         _end_emergency_links(removed_user)

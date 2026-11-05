@@ -23880,3 +23880,9 @@ msgstr "या खर्चाविरुद्ध %(refunded)s परत म�
 
 msgid "Refund"
 msgstr "रिफंड"
+
+msgid "Search is not available right now. Try again."
+msgstr "सध्या शोध उपलब्ध नाही. पुन्हा प्रयत्न करा."
+
+msgid "Pays back an expense: reduces its cost instead of counting as income"
+msgstr "खर्चाची परतफेड करतो: उत्पन्नात मोजण्याऐवजी त्याची किंमत कमी करतो"

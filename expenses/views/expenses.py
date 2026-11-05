@@ -1,4 +1,4 @@
-from datetime import datetime
+from django.utils import timezone
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -95,7 +95,7 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
 
 
         # Calculate days left in cycle
-        now = datetime.now()
+        now = timezone.localtime()
         is_current_month = False
         days_left = None
         

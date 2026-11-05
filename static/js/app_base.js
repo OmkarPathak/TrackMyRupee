@@ -330,8 +330,21 @@
                     } else if (current) {
                         btn.textContent = current.text;
                     }
+                    if (typeof nameBtn === 'function') nameBtn();
                 }
                 btn.textContent = sel.options[sel.selectedIndex]?.text || gettext('Select...');
+                btn.setAttribute('aria-haspopup', 'listbox');
+                btn.setAttribute('aria-expanded', 'false');
+                // The button's own text is only the chosen value: name it after the field too ("Currency: ₹ INR")
+                function fieldName() {
+                    if (sel.getAttribute('aria-label')) return sel.getAttribute('aria-label');
+                    const lab = sel.id && document.querySelector('label[for="' + sel.id + '"]');
+                    return lab ? lab.textContent.replace('*', '').trim() : '';
+                }
+                function nameBtn() {
+                    const name = fieldName();
+                    if (name) btn.setAttribute('aria-label', name + ': ' + btn.textContent);
+                }
                 wrapper.appendChild(btn);
                 if (placeholder) {
                     wrapper.appendChild(clearBtn);
@@ -359,10 +372,22 @@
                 // Options list
                 const list = document.createElement('div');
                 list.className = 'searchable-select-list';
+                list.setAttribute('role', 'listbox');
                 dropdown.appendChild(list);
+                search.setAttribute('aria-label', gettext('Search...'));
+                let kb = -1;                                    // the row the arrow keys are on
+                function kbItems() { return list.querySelectorAll('.searchable-select-item:not(.disabled)'); }
+                function kbMove(step) {
+                    const items = kbItems();
+                    if (!items.length) return;
+                    kb = (kb + step + items.length) % items.length;
+                    items.forEach(function(it, i) { it.classList.toggle('kb', i === kb); });
+                    items[kb].scrollIntoView({ block: 'nearest' });
+                }
 
                 function buildOptions(filter) {
                     list.innerHTML = '';
+                    kb = -1;
                     const term = (filter || '').toLowerCase();
                     let hasVisible = false;
 
@@ -385,6 +410,8 @@
                                 item.className = 'searchable-select-item' + (opt.value === sel.value ? ' active' : '') + (opt.disabled ? ' disabled' : '');
                                 item.style.paddingLeft = '1.5rem';
                                 item.textContent = text;
+                                item.setAttribute('role', 'option');
+                                item.setAttribute('aria-selected', opt.value === sel.value ? 'true' : 'false');
                                 item.dataset.value = opt.value;
                                 item.addEventListener('click', function() {
                                     if (opt.disabled) return;
@@ -415,6 +442,8 @@
                             const item = document.createElement('div');
                             item.className = 'searchable-select-item' + (opt.value === sel.value ? ' active' : '') + (opt.disabled ? ' disabled' : '');
                             item.textContent = text;
+                            item.setAttribute('role', 'option');
+                            item.setAttribute('aria-selected', opt.value === sel.value ? 'true' : 'false');
                             item.dataset.value = opt.value;
                             item.addEventListener('click', function() {
                                 if (opt.disabled) return;
@@ -438,6 +467,7 @@
                 function open() {
                     dropdown.classList.add('show');
                     wrapper.classList.add('open');
+                    btn.setAttribute('aria-expanded', 'true');
                     search.value = '';
                     buildOptions('');
                     if (window.innerWidth >= 768 && !('ontouchstart' in window)) {
@@ -448,6 +478,7 @@
                 function close() {
                     dropdown.classList.remove('show');
                     wrapper.classList.remove('open');
+                    btn.setAttribute('aria-expanded', 'false');
                 }
 
                 function toggle() {
@@ -472,12 +503,19 @@
                 });
 
                 search.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') close();
+                    if (e.key === 'Escape') { close(); btn.focus(); }
+                    if (e.key === 'ArrowDown') { e.preventDefault(); kbMove(1); }
+                    if (e.key === 'ArrowUp') { e.preventDefault(); kbMove(-1); }
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        const first = list.querySelector('.searchable-select-item:not(.disabled)');
-                        if (first) first.click();
+                        const items = kbItems();
+                        const pick = (kb >= 0 && items[kb]) || items[0];
+                        if (pick) pick.click();
                     }
+                });
+                // ArrowDown on the closed button opens it, like a native select
+                btn.addEventListener('keydown', function(e) {
+                    if (e.key === 'ArrowDown' && !dropdown.classList.contains('show')) { e.preventDefault(); open(); }
                 });
 
                 // Close on outside click

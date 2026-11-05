@@ -1,7 +1,7 @@
 import json
 import re
 import uuid
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 from allauth.socialaccount.models import SocialAccount
@@ -164,7 +164,7 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
         
         if not self.is_bound and not self.instance.pk:
             self.fields['client_dedup_key'].initial = str(uuid.uuid4())
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         
         # If user is provided, populate category choices
         if user:
@@ -299,7 +299,7 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
 
         if not self.is_bound and not self.instance.pk:
             self.fields['client_dedup_key'].initial = str(uuid.uuid4())
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         self.fields['source_type'].required = True
         self.fields['source_type'].label = _("Source Type")
         self.fields['description'].required = False
@@ -986,7 +986,7 @@ class GoalContributionForm(AccountRequiredMixin, SearchableSelectFormMixin, form
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         if user:
             # Enforce Tier Limits for Accounts
             all_accounts = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id')
@@ -1651,10 +1651,10 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             return
         maturity_or_closed_date = account.deposit_closed_date or account.deposit_maturity_date
         # Do not create Income entry immediately if the deposit matures in the future
-        if maturity_or_closed_date and maturity_or_closed_date > date.today():
+        if maturity_or_closed_date and maturity_or_closed_date > timezone.localdate():
             return
 
-        today_val = maturity_or_closed_date or date.today()
+        today_val = maturity_or_closed_date or timezone.localdate()
         current_val = get_current(account, today=today_val)
         baseline_val = get_baseline(account, today=today_val) or Decimal('0.00')
         interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
@@ -1699,7 +1699,7 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
 
         if not self.is_bound and not self.instance.pk:
             self.fields['client_dedup_key'].initial = str(uuid.uuid4())
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         if user:
             # Enforce Tier Limits for Accounts
             all_accounts = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id')
@@ -1792,7 +1792,7 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['start_date'].initial = date.today
+        self.fields['start_date'].initial = timezone.localdate
         if user:
             self.fields['currency'].initial = user.profile.currency
         
@@ -1818,7 +1818,7 @@ class LoanInterestRateForm(SearchableSelectFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['effective_date'].initial = date.today
+        self.fields['effective_date'].initial = timezone.localdate
 
 class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     required_account_fields = ('from_account',)
@@ -1853,7 +1853,7 @@ class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.M
         self.loan = loan
         if loan:
             self.instance.loan = loan
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         self.fields['date'].input_formats = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%y', '%d-%m-%y']
         
         if user:
@@ -1896,7 +1896,7 @@ class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.M
         annual_rate = float(LoanService.current_rate(loan))
 
         # EMI suggestion is useful for the initial preview only.
-        today = date.today()
+        today = timezone.localdate()
         months_passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
         remaining_months = max(1, loan.duration_months - months_passed)
 
@@ -2006,7 +2006,7 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         # Optional category: one of the user's own categories (the ones used in budgets and reports)
         names = []
         if user:

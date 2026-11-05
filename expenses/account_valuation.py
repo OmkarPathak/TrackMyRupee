@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.db.models import Sum
+from django.utils import timezone
 
 from .account_types import STRATEGY, strategy_for
 
@@ -74,7 +75,7 @@ def _calculate_fd_current(
     closed_date: date | None = None,
     today: date | None = None,
 ) -> Decimal:
-    today = today or date.today()
+    today = today or timezone.localdate()
     if start_date > today:
         return principal
 
@@ -200,7 +201,7 @@ def get_baseline_deposit(account: Account, ledger_balance: Decimal | None = None
     if account.account_type == 'RD':
         if not account.deposit_start_date:
             return ledger_balance
-        eval_today = today or date.today()
+        eval_today = today or timezone.localdate()
         end_date = eval_today
         if account.deposit_maturity_date and end_date > account.deposit_maturity_date:
             end_date = account.deposit_maturity_date
@@ -230,7 +231,7 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
     if account.deposit_rate is None or account.deposit_start_date is None:
         return ledger_balance
 
-    eval_today = today or date.today()
+    eval_today = today or timezone.localdate()
     end_date = eval_today
     if account.deposit_maturity_date and end_date > account.deposit_maturity_date:
         end_date = account.deposit_maturity_date
@@ -697,7 +698,7 @@ def get_interest_summary(user: User, start_date=None, end_date=None) -> dict[str
 def process_matured_deposit_incomes(user=None):
     """
     Checks active deposit accounts with `record_maturity_income=True`
-    whose maturity or closed date has arrived (<= date.today()), but no Income entry
+    whose maturity or closed date has arrived (<= timezone.localdate()), but no Income entry
     has been recorded under 'Investment Returns' yet.
     Automatically creates the Income record on the maturity/closed date.
     """
@@ -705,7 +706,7 @@ def process_matured_deposit_incomes(user=None):
 
     from .models import Account, Income
 
-    today = date.today()
+    today = timezone.localdate()
     qs = Account.objects.filter(record_maturity_income=True, is_active=True)
     if user:
         qs = qs.filter(user=user)

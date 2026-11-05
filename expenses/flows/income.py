@@ -6,6 +6,7 @@ from decimal import Decimal
 
 
 from django import forms
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from django.db.models import Q
@@ -90,7 +91,7 @@ class SalaryFlow(Flow):
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
         data['amount'] = Decimal(str(data.get('amount') or 0))
-        data['start_date'] = first_pay_date(data.get('start_date') or date.today(), data.get('salary_date'))
+        data['start_date'] = first_pay_date(data.get('start_date') or timezone.localdate(), data.get('salary_date'))
         user = data.get('user')
         data['currency'] = data.get('currency') or (data['account'].currency if data.get('account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
         data['frequency'] = 'MONTHLY'
