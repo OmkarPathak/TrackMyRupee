@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from ..family import family_enabled_for, households
-from ..models import FinancialFlow, FlowCreatedObject
+from ..models import FinancialFlow
 from .base import Flow, FlowResult, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
@@ -90,6 +90,11 @@ class FamilyFlow(Flow):
     def get_review_summary(self, user, cleaned_data) -> str:
         return str(_('You will be the owner. Nothing is shared until you choose it.'))
 
+    def _existing_flow_result(self, existing, idempotency_key) -> FlowResult:
+        household = households.household_for(existing.user)
+        return FlowResult(flow_id=existing.id, idempotency_key=idempotency_key,
+                          created=[household] if household is not None else [])
+
     def commit(self, user, cleaned_data, idempotency_key) -> FlowResult:
         existing = FinancialFlow.objects.filter(user=user, idempotency_key=idempotency_key).first()
         if existing:
@@ -107,5 +112,6 @@ class FamilyFlow(Flow):
                 raise ValidationError(error.message) from error
             flow = FinancialFlow.objects.create(
                 user=user, flow_key=self.key, spec={'name': household.name}, idempotency_key=idempotency_key)
-            FlowCreatedObject.objects.create(flow=flow, content_object=household, step_key='household')
+            # Deliberately NOT recorded as a FlowCreatedObject: FinancialFlow.delete() deletes everything it created,
+            # and a family may only be deleted by its owner typing its name (households.delete_household).
         return FlowResult(flow_id=flow.id, idempotency_key=idempotency_key, created=[household])

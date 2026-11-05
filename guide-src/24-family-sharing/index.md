@@ -154,7 +154,7 @@ Family view needs every member on **Pro**.
 
 ## 8. Leaving, removing, handing over and deleting
 
-* **Any member can leave** at any time from the Family page. Their shares end immediately in both directions.
+* **Any member can leave** at any time from the Family page. Their shares end immediately in both directions. The "X shared something new" notifications about those shares are removed too, so nothing about the family is left in anyone's notification list after they leave.
 * **Only the owner can remove** another member. Removal works the same way, and the person removed is told by a notification and an email.
 * **Handing the family over.** The owner can choose **Make owner** beside any member. That person becomes the owner and is told. You stay in the family as an ordinary member, and can no longer invite people, remove members or delete the family.
 * If the **owner leaves**, the longest-standing member becomes the owner and is told. If the last member leaves, the family ends.

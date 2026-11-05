@@ -1,6 +1,7 @@
 import uuid
 
 from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
 from django.urls import reverse
 
 
@@ -112,9 +113,8 @@ def parse_month_year(request, today=None):
     Clamps month to 1..12 and year to sensible bounds (2000..today.year + 5).
     Falls back to current month and year if values are missing or invalid.
     """
-    from datetime import date
     if today is None:
-        today = date.today()
+        today = timezone.localdate()
 
     month_val = request.GET.get('month')
     year_val = request.GET.get('year')

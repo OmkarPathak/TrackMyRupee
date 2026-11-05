@@ -46,6 +46,21 @@ def _log(user, kind, name, level=''):
     FamilyShareEvent.objects.create(owner=user, kind=kind, item_name=name[:NAME_MAX], level=level)
 
 
+SHARE_NOTICE_KEY = 'family_share_household'     # in Notification.metadata: which household the notice came from
+
+
+def delete_share_notices(household_id, *, recipient=None, sharer=None):
+    """Remove the "something new was shared" notices of one household so they stop naming anyone's accounts once
+    sharing ends. Narrow it to those ``recipient`` received and/or those about ``sharer``'s shares; with neither,
+    every share notice of the household goes."""
+    notices = Notification.objects.filter(**{f'metadata__{SHARE_NOTICE_KEY}': household_id})
+    if recipient is not None:
+        notices = notices.filter(user=recipient)
+    if sharer is not None:
+        notices = notices.filter(metadata__family_share_owner=sharer.pk)
+    notices.delete()
+
+
 def _notify_members(household, owner, name):
     """Tell the other members, but only if ``owner`` switched on "tell family when I share something new"."""
     if not household.members.filter(user=owner, notify_new_shares=True).exists():
@@ -53,6 +68,7 @@ def _notify_members(household, owner, name):
     for membership in household.members.exclude(user=owner).select_related('user'):
         Notification.objects.create(
             user=membership.user, notification_type='SYSTEM', link=reverse('family-home'),
+            metadata={SHARE_NOTICE_KEY: household.pk, 'family_share_owner': owner.pk},
             title=_("%(name)s shared something new") % {'name': display_name(owner)},
             message=_("%(name)s is now shared with the family.") % {'name': name})
 

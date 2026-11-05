@@ -637,6 +637,16 @@ def home_view(request):
         categories = [item['category'] for item in category_data]
         category_amounts = [float(item['total']) for item in category_data]
     
+    # Every category as a bar: width against the biggest one, share against the total (the donut keeps the top 5)
+    bars_total = sum(float(item['total']) for item in category_data)
+    bars_max = max((float(item['total']) for item in category_data), default=0.0)
+    category_bars = [{
+        'category': item['category'],
+        'total': float(item['total']),
+        'pct': round(float(item['total']) / bars_total * 100, 1) if bars_total else 0,
+        'width': round(float(item['total']) / bars_max * 100, 1) if bars_max else 0,
+    } for item in category_data if float(item['total']) > 0]
+
     # 2. Time Trend (Stacked) Data
     if trend_is_daily:
         trend_qs = expenses.annotate(period=TruncDay('date'))
@@ -2396,6 +2406,7 @@ def home_view(request):
         'remaining_savings': savings - total_investments,
         'categories': categories,
         'category_amounts': category_amounts,
+        'category_bars': category_bars,
         'category_data': category_data, # Passing full queryset for the summary table
         'category_limits': category_limits,
         'trend_labels': trend_labels,

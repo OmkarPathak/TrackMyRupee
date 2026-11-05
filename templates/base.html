@@ -1120,7 +1120,7 @@
     <!-- Skeleton Loader JS — deferred so it doesn't block first paint -->
     <script defer src="{% static 'js/skeleton-loader.js' %}?v=1.5"></script>
     <script>window.TMR_CURRENCY = "{% if user.is_authenticated %}{{ user.profile.currency|escapejs }}{% endif %}" || '₹';</script>
-    <script defer src="{% static 'js/money_input.js' %}?v=1.3"></script>
+    <script defer src="{% static 'js/money_input.js' %}?v=1.4"></script>
     {% if user.is_authenticated %}<script defer src="{% static 'js/expense_toast.js' %}?v=1.0"></script>{% endif %}
     <script defer src="{% static 'vendor/htmx/htmx-2.0.4.min.js' %}"></script>
     <script defer src="{% static 'vendor/alpine/alpine-3.14.9.min.js' %}"></script>
@@ -1308,6 +1308,7 @@
         font-size: 1rem;
         transition: background 0.12s;
     }
+    .searchable-select-item.kb,
     .searchable-select-item:hover,
     .multi-select-item:hover {
         background: var(--bs-primary-bg-subtle);
@@ -1423,7 +1424,7 @@
 
     {% block scripts %}{% endblock %}
     <script defer src="{% static 'js/sidebar.js' %}?v=1.3"></script>
-    <script defer src="{% static 'js/app_base.js' %}?v=1.5"></script>
+    <script defer src="{% static 'js/app_base.js' %}?v=1.6"></script>
     {% block extra_body %}{% endblock %}
 
     {% if user.is_authenticated %}

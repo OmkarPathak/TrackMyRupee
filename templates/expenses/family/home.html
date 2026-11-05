@@ -170,7 +170,7 @@
                     <label for="fam-delete-name" class="form-label fw-bold">{% blocktrans trimmed with name=household.name %}Type <b>{{ name }}</b> to confirm{% endblocktrans %}</label>
                     <input type="text" class="form-control" id="fam-delete-name" name="confirm_name" autocomplete="off" autocapitalize="off" spellcheck="false" data-expected="{{ household.name }}">
                     <div class="fam-actions mt-2">
-                        <button type="submit" class="btn btn-action-danger" data-fam-delete-go disabled>{% trans "Delete family for everyone" %}</button>
+                        <button type="submit" class="btn btn-action-danger" data-fam-delete-go>{% trans "Delete family for everyone" %}</button>
                     </div>
                 </form>
             </details>
@@ -190,6 +190,7 @@
         var input = form.querySelector('input[name="confirm_name"]');
         var go = form.querySelector('[data-fam-delete-go]');
         var norm = function (v) { return v.trim().replace(/\s+/g, ' ').toLowerCase(); };
+        // Enabled in the markup so the form still works without JavaScript (the server checks the name too)
         var sync = function () { go.disabled = norm(input.value) !== norm(input.dataset.expected); };
         input.addEventListener('input', sync);
         sync();

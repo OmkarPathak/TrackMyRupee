@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 import math
 
@@ -550,7 +550,7 @@ class FdFlow(Flow):
         data['principal'] = Decimal(str(data.get('principal') or 0))
         data['annual_rate'] = Decimal(str(data.get('annual_rate') or 0))
         data['name'] = data.get('name') or str(_('Fixed Deposit'))
-        data['deposit_start_date'] = data.get('deposit_start_date') or date.today()
+        data['deposit_start_date'] = data.get('deposit_start_date') or timezone.localdate()
         data['maturity_date'] = data.get('maturity_date') or (data['deposit_start_date'] + timedelta(days=365))
         data['deposit_compounding'] = data.get('deposit_compounding') or 'QUARTERLY'
         data['show_accrued_balance'] = bool(data.get('show_accrued_balance', True))

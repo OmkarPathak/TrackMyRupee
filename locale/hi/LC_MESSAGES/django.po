@@ -23808,3 +23808,24 @@ msgstr "प्राप्त हुआ पैसा दर्ज करें"
 #: expenses/family
 msgid "Guide"
 msgstr "गाइड"
+
+msgid "Refunds cannot add up to more than the capital event cost. At most %(left)s can still be refunded against it."
+msgstr "रिफंड की कुल राशि पूँजी घटना की लागत से अधिक नहीं हो सकती। इसके विरुद्ध अधिकतम %(left)s और रिफंड किया जा सकता है।"
+
+msgid "This expense has %(refunded)s paid back against it, so its cost cannot be less than that. Change or remove the refund first."
+msgstr "इस खर्च के विरुद्ध %(refunded)s वापस मिल चुका है, इसलिए इसकी लागत उससे कम नहीं हो सकती। पहले रिफंड बदलें या हटाएँ।"
+
+msgid "Refund"
+msgstr "रिफंड"
+
+msgid "Search is not available right now. Try again."
+msgstr "अभी खोज उपलब्ध नहीं है। फिर कोशिश करें।"
+
+msgid "Pays back an expense: reduces its cost instead of counting as income"
+msgstr "खर्च का भुगतान वापस करता है: आय में गिने जाने के बजाय उसकी लागत घटाता है"
+
+msgid "All categories"
+msgstr "सभी श्रेणियाँ"
+
+msgid "Breakdown"
+msgstr "विभाजन"

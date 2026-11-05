@@ -24,7 +24,7 @@ from django.db.models import Count, Q, Sum
 from .account_types import investment_codes
 from .models import CapitalEvent, Expense, Income, LoanRepayment, RecurringTransaction, Transfer
 from .refunds import net_sum
-from .savings import LINKED_REFUND
+from .savings import LINKED_REFUND, LINKED_TO_EVENT
 
 MIN_YEAR = 2000
 MAX_YEARS_AHEAD = 50
@@ -170,9 +170,13 @@ def build_month(user, year: int, month: int, today: date, search: str = '') -> l
     expense_map = _by_day(expenses.values('date').annotate(total=net_sum(), count=Count('id')))
     loan_map = _by_day(loans.values('date').annotate(**agg))
     capital_map = _by_day(capital.values('date').annotate(**agg))
-    out_map = _merge(expense_map, loan_map, capital_map)
+    # (a refund that pays back a capital event comes off the day it arrived, like the analytics do)
+    income_rows = list(incomes.values('date').annotate(
+        linked=Sum('base_amount', filter=LINKED_REFUND), event_linked=Sum('base_amount', filter=LINKED_TO_EVENT), **agg))
+    income_map = _by_day(income_rows)
+    capital_refund_map = {r['date'].day: {'total': -_dec(r['event_linked']), 'count': 0} for r in income_rows if r['event_linked']}
+    out_map = _merge(expense_map, loan_map, capital_map, capital_refund_map)
 
-    income_map = _by_day(incomes.values('date').annotate(linked=Sum('base_amount', filter=LINKED_REFUND), **agg))
     invest_map = _by_day(invest.values('date').annotate(total=Sum('converted_amount'), count=Count('id')))
 
     salary_days = {

@@ -296,6 +296,14 @@ def _renormalize_base_amounts(user, new_currency):
         if batch:
             model.objects.bulk_update(batch, [rate_field, base_field])
 
+    # An expense keeps how much came back against it in the user's currency (Expense.refunded_base): rebuild it from
+    # the refund entries just converted, otherwise it stays in the old currency and the net cost goes wrong.
+    from ..refunds import recompute_expense_refunds
+    stale = set(Expense.objects.filter(user=user).exclude(refunded_base=0).values_list('pk', flat=True))
+    stale |= set(Income.objects.filter(user=user, refund_for_expense__isnull=False)
+                 .values_list('refund_for_expense_id', flat=True))
+    recompute_expense_refunds(stale)
+
 
 def _convert_net_worth_snapshots(user, old_currency, new_currency):
     """The saved net-worth history is a set of plain numbers in whichever currency was the user's at the time,

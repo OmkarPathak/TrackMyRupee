@@ -7,7 +7,7 @@ from unittest.mock import patch
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import connection, IntegrityError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
@@ -2189,6 +2189,13 @@ class TestFlowLandingPageAndConfiguredStatus(TestCase):
         self.assertContains(response, 'Edit existing')
         # Request a flow card is still present in Section 1
         self.assertContains(response, "Don't see your situation?")
+
+    @override_settings(FAMILY_ENABLED=True)
+    def test_landing_page_has_the_family_flow_when_family_sharing_is_on(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('flow-landing'))
+        self.assertEqual(response.context['total_count'], 12)
+        self.assertEqual([c['key'] for c in response.context['categories']][-1], 'family')
 
     def test_landing_page_categories_and_metadata(self):
         self.client.force_login(self.user)

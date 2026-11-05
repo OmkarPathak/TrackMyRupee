@@ -23871,3 +23871,24 @@ msgstr "मिळालेले पैसे नोंदवा"
 #: expenses/family
 msgid "Guide"
 msgstr "मार्गदर्शिका"
+
+msgid "Refunds cannot add up to more than the capital event cost. At most %(left)s can still be refunded against it."
+msgstr "रिफंडची एकूण रक्कम भांडवली घटनेच्या किमतीपेक्षा जास्त असू शकत नाही. त्याविरुद्ध जास्तीत जास्त %(left)s अजून रिफंड करता येईल."
+
+msgid "This expense has %(refunded)s paid back against it, so its cost cannot be less than that. Change or remove the refund first."
+msgstr "या खर्चाविरुद्ध %(refunded)s परत मिळाले आहेत, त्यामुळे त्याची किंमत त्यापेक्षा कमी असू शकत नाही. आधी रिफंड बदला किंवा काढा."
+
+msgid "Refund"
+msgstr "रिफंड"
+
+msgid "Search is not available right now. Try again."
+msgstr "सध्या शोध उपलब्ध नाही. पुन्हा प्रयत्न करा."
+
+msgid "Pays back an expense: reduces its cost instead of counting as income"
+msgstr "खर्चाची परतफेड करतो: उत्पन्नात मोजण्याऐवजी त्याची किंमत कमी करतो"
+
+msgid "All categories"
+msgstr "सर्व श्रेणी"
+
+msgid "Breakdown"
+msgstr "विभागणी"

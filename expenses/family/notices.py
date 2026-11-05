@@ -27,6 +27,8 @@ def _tell(user, build):
     except Exception:
         logger.exception('Family notice failed for user %s', user.pk)
         return
+    # Sent straight away rather than on_commit: callers invoke this after their own transaction has closed, so the
+    # change is already committed, and Django's TestCase would never run on_commit callbacks.
     if user.email:
         try:
             send_mail(subject=title, message=f"{message}\n", from_email=settings.DEFAULT_FROM_EMAIL,

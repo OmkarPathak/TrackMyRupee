@@ -1,4 +1,4 @@
-from datetime import datetime
+from django.utils import timezone
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -13,7 +13,7 @@ from django.views.generic import DeleteView, ListView, UpdateView, View
 from expenses.views.utils import get_safe_redirect_url
 
 from ..forms import ExpenseForm
-from ..models import Account, CapitalEvent, Category, Expense
+from ..models import Account, CapitalEvent, Category, Expense, Income
 from ..posthog_utils import ph_capture
 from ..refunds import net_sum
 from .mixins import (
@@ -95,7 +95,7 @@ class ExpenseListView(HtmxPartialTemplateMixin, LoginRequiredMixin, RecurringTra
 
 
         # Calculate days left in cycle
-        now = datetime.now()
+        now = timezone.localtime()
         is_current_month = False
         days_left = None
         
@@ -334,6 +334,9 @@ class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
                 account=expense.account,
             )
             event.save()
+            # Money already paid back against the expense now pays back the event, instead of counting as income again
+            Income.objects.filter(user=request.user, refund_for_expense=expense, is_deleted=False).update(
+                refund_for_expense=None, refund_for_capital_event=event)
             expense.delete()
         ph_capture(request.user, 'expense_converted_to_capital_event', {})
         messages.success(request, _("Expense converted to a capital event."))

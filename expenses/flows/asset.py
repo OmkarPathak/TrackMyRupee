@@ -3,6 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from django import forms
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from django.urls import reverse
@@ -198,11 +199,10 @@ class CarFlow(Flow):
         return steps
 
     def derive(self, cleaned_data) -> dict:
-        from datetime import date
         data = dict(cleaned_data)
         data['purchase_price'] = Decimal(str(data.get('purchase_price') or 0))
         data['name'] = data.get('name') or str(_('Car'))
-        data['acquisition_date'] = data.get('acquisition_date') or date.today()
+        data['acquisition_date'] = data.get('acquisition_date') or timezone.localdate()
         user = data.get('user')
         data['currency'] = (
             data['from_account'].currency
@@ -347,12 +347,11 @@ class GoldFlow(Flow):
         return steps
 
     def derive(self, cleaned_data) -> dict:
-        from datetime import date
         data = dict(cleaned_data)
         data['amount'] = Decimal(str(data.get('amount') or 0))
         data['route'] = data.get('route') or 'physical'
         data['name'] = data.get('name') or str(_('Gold'))
-        data['acquisition_date'] = data.get('acquisition_date') or date.today()
+        data['acquisition_date'] = data.get('acquisition_date') or timezone.localdate()
         user = data.get('user')
         data['currency'] = (
             data['from_account'].currency

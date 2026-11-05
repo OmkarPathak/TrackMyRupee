@@ -1,7 +1,7 @@
 import json
 import re
 import uuid
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 from allauth.socialaccount.models import SocialAccount
@@ -37,7 +37,7 @@ from .models import (
     UserProfile,
 )
 from .services_recurring import RecurringService
-from .utils import BOOTSTRAP_ICONS
+from .utils import BOOTSTRAP_ICONS, get_exchange_rate
 
 
 class CachedModelChoiceField(forms.ModelChoiceField):
@@ -164,7 +164,7 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
         
         if not self.is_bound and not self.instance.pk:
             self.fields['client_dedup_key'].initial = str(uuid.uuid4())
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         
         # If user is provided, populate category choices
         if user:
@@ -247,6 +247,23 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
             raise forms.ValidationError(_('Expense date cannot be in the future.'))
         return value
 
+    def clean(self):
+        cleaned = super().clean()
+        self._check_not_below_refunds(cleaned)
+        return cleaned
+
+    def _check_not_below_refunds(self, cleaned):
+        """An expense that has had money paid back cannot be edited to cost less than what came back."""
+        refunded = getattr(self.instance, 'refunded_base', None)
+        amount, currency = cleaned.get('amount'), cleaned.get('currency')
+        if not self.instance.pk or not refunded or amount is None or not currency:
+            return
+        base = self.instance.user.profile.currency
+        cost = amount if currency == base else (amount * get_exchange_rate(currency, base)).quantize(Decimal('0.01'))
+        if cost < refunded:
+            self.add_error('amount', _('This expense has %(refunded)s paid back against it, so its cost cannot be '
+                                       'less than that. Change or remove the refund first.') % {'refunded': f'{base}{refunded:,.2f}'})
+
 class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Income
@@ -282,7 +299,7 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
 
         if not self.is_bound and not self.instance.pk:
             self.fields['client_dedup_key'].initial = str(uuid.uuid4())
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         self.fields['source_type'].required = True
         self.fields['source_type'].label = _("Source Type")
         self.fields['description'].required = False
@@ -382,20 +399,38 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
         self._check_refund_not_above_expense(cleaned)
         return cleaned
 
+    def _refund_in_base(self, cleaned):
+        """This entry's amount in the user's own currency, at the rate saving will apply (None if it cannot be told)."""
+        amount, currency = cleaned.get('amount'), cleaned.get('currency')
+        if amount is None or not currency or not self.user:
+            return None
+        base = self.user.profile.currency
+        if currency == base:
+            return amount
+        return (amount * get_exchange_rate(currency, base)).quantize(Decimal('0.01'))
+
     def _check_refund_not_above_expense(self, cleaned):
-        """The refunds against one expense cannot add up to more than the expense cost. Checked when this entry is in
-        the user's own currency (otherwise the comparison needs an exchange rate, which saving applies)."""
-        expense, amount = cleaned.get('refund_for_expense'), cleaned.get('amount')
-        if not expense or amount is None or not self.user:
+        """The refunds against one expense, or against one capital event, cannot add up to more than it cost."""
+        expense, event = cleaned.get('refund_for_expense'), cleaned.get('refund_for_capital_event')
+        target = expense or event
+        if not target:
             return
-        if cleaned.get('currency') != self.user.profile.currency:
+        mine = self._refund_in_base(cleaned)
+        if mine is None:
             return
-        others = (Income.objects.filter(refund_for_expense=expense, is_deleted=False)
-                  .exclude(pk=self.instance.pk).aggregate(t=Sum('base_amount'))['t'] or Decimal('0'))
-        if others + amount > expense.base_amount:
-            left = max(expense.base_amount - others, Decimal('0'))
-            self.add_error('amount', _('Refunds cannot add up to more than the expense cost. At most %(left)s can still be '
-                                       'refunded against it.') % {'left': f'{expense.currency}{left:,.2f}'})
+        linked = (Income.objects.filter(refund_for_expense=expense, is_deleted=False) if expense
+                  else Income.objects.filter(refund_for_capital_event=event, is_deleted=False))
+        others = linked.exclude(pk=self.instance.pk).aggregate(t=Sum('base_amount'))['t'] or Decimal('0')
+        cost = target.base_amount
+        if others + mine > cost:
+            left = max(cost - others, Decimal('0'))
+            left_text = f'{self.user.profile.currency}{left:,.2f}'
+            if expense:
+                self.add_error('amount', _('Refunds cannot add up to more than the expense cost. At most %(left)s can still be '
+                                           'refunded against it.') % {'left': left_text})
+            else:
+                self.add_error('amount', _('Refunds cannot add up to more than the capital event cost. At most %(left)s can '
+                                           'still be refunded against it.') % {'left': left_text})
 
     def _post_clean(self):
         super()._post_clean()
@@ -951,7 +986,7 @@ class GoalContributionForm(AccountRequiredMixin, SearchableSelectFormMixin, form
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         if user:
             # Enforce Tier Limits for Accounts
             all_accounts = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id')
@@ -1616,10 +1651,10 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             return
         maturity_or_closed_date = account.deposit_closed_date or account.deposit_maturity_date
         # Do not create Income entry immediately if the deposit matures in the future
-        if maturity_or_closed_date and maturity_or_closed_date > date.today():
+        if maturity_or_closed_date and maturity_or_closed_date > timezone.localdate():
             return
 
-        today_val = maturity_or_closed_date or date.today()
+        today_val = maturity_or_closed_date or timezone.localdate()
         current_val = get_current(account, today=today_val)
         baseline_val = get_baseline(account, today=today_val) or Decimal('0.00')
         interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
@@ -1664,7 +1699,7 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
 
         if not self.is_bound and not self.instance.pk:
             self.fields['client_dedup_key'].initial = str(uuid.uuid4())
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         if user:
             # Enforce Tier Limits for Accounts
             all_accounts = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id')
@@ -1757,7 +1792,7 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['start_date'].initial = date.today
+        self.fields['start_date'].initial = timezone.localdate
         if user:
             self.fields['currency'].initial = user.profile.currency
         
@@ -1783,7 +1818,7 @@ class LoanInterestRateForm(SearchableSelectFormMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['effective_date'].initial = date.today
+        self.fields['effective_date'].initial = timezone.localdate
 
 class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     required_account_fields = ('from_account',)
@@ -1818,7 +1853,7 @@ class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.M
         self.loan = loan
         if loan:
             self.instance.loan = loan
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         self.fields['date'].input_formats = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%y', '%d-%m-%y']
         
         if user:
@@ -1861,7 +1896,7 @@ class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.M
         annual_rate = float(LoanService.current_rate(loan))
 
         # EMI suggestion is useful for the initial preview only.
-        today = date.today()
+        today = timezone.localdate()
         months_passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
         remaining_months = max(1, loan.duration_months - months_passed)
 
@@ -1971,7 +2006,7 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['date'].initial = date.today
+        self.fields['date'].initial = timezone.localdate
         # Optional category: one of the user's own categories (the ones used in budgets and reports)
         names = []
         if user:

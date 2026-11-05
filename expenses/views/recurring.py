@@ -1,5 +1,7 @@
 from datetime import date
 
+from django.utils import timezone
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, transaction
@@ -57,7 +59,7 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_transactions = self.object_list
-        today = date.today()
+        today = timezone.localdate()
         
         # Split into Active and Cancelled
         # We sort active subs by creation date to determine which ones are locked

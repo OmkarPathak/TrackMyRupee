@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from datetime import date
 from decimal import Decimal
 
-
 from django import forms
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from ..models import Account, CURRENCY_CHOICES, RecurringTransaction
@@ -87,7 +86,7 @@ class RentBillFlow(Flow):
         data['category'] = data.get('category') or 'Rent'
         data['frequency'] = data.get('frequency') or 'MONTHLY'
         data['description'] = data.get('description') or str(_('Rent bill'))
-        data['start_date'] = data.get('start_date') or date.today()
+        data['start_date'] = data.get('start_date') or timezone.localdate()
         user = data.get('user')
         data['currency'] = data.get('currency') or (data['account'].currency if data.get('account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
         return data

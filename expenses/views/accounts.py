@@ -1,6 +1,6 @@
 import sys
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 from django.conf import settings
@@ -1682,7 +1682,7 @@ class AccountDetailView(LoginRequiredMixin, View):
 
     def get_trend_data(self, account, user):
         
-        today = date.today()
+        today = timezone.localdate()
         
         # Determine range and frequency
         first_tx = self.get_all_transactions(account, user).order_by('date').first()
@@ -1843,7 +1843,7 @@ class RecordMaturityIncomeView(LoginRequiredMixin, UUIDOrIntLookupMixin, View):
 
         with transaction.atomic():
             locked_account = Account.objects.select_for_update().get(pk=account.pk)
-            today_val = locked_account.deposit_closed_date or locked_account.deposit_maturity_date or date.today()
+            today_val = locked_account.deposit_closed_date or locked_account.deposit_maturity_date or timezone.localdate()
             current_val = get_current(locked_account, today=today_val)
             baseline_val = get_baseline(locked_account, today=today_val) or Decimal('0.00')
             interest_earned = (current_val - baseline_val).quantize(Decimal('0.01'))
