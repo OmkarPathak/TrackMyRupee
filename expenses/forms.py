@@ -37,7 +37,7 @@ from .models import (
     UserProfile,
 )
 from .services_recurring import RecurringService
-from .utils import BOOTSTRAP_ICONS
+from .utils import BOOTSTRAP_ICONS, get_exchange_rate
 
 
 class CachedModelChoiceField(forms.ModelChoiceField):
@@ -247,6 +247,23 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
             raise forms.ValidationError(_('Expense date cannot be in the future.'))
         return value
 
+    def clean(self):
+        cleaned = super().clean()
+        self._check_not_below_refunds(cleaned)
+        return cleaned
+
+    def _check_not_below_refunds(self, cleaned):
+        """An expense that has had money paid back cannot be edited to cost less than what came back."""
+        refunded = getattr(self.instance, 'refunded_base', None)
+        amount, currency = cleaned.get('amount'), cleaned.get('currency')
+        if not self.instance.pk or not refunded or amount is None or not currency:
+            return
+        base = self.instance.user.profile.currency
+        cost = amount if currency == base else (amount * get_exchange_rate(currency, base)).quantize(Decimal('0.01'))
+        if cost < refunded:
+            self.add_error('amount', _('This expense has %(refunded)s paid back against it, so its cost cannot be '
+                                       'less than that. Change or remove the refund first.') % {'refunded': f'{base}{refunded:,.2f}'})
+
 class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Income
@@ -382,20 +399,38 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
         self._check_refund_not_above_expense(cleaned)
         return cleaned
 
+    def _refund_in_base(self, cleaned):
+        """This entry's amount in the user's own currency, at the rate saving will apply (None if it cannot be told)."""
+        amount, currency = cleaned.get('amount'), cleaned.get('currency')
+        if amount is None or not currency or not self.user:
+            return None
+        base = self.user.profile.currency
+        if currency == base:
+            return amount
+        return (amount * get_exchange_rate(currency, base)).quantize(Decimal('0.01'))
+
     def _check_refund_not_above_expense(self, cleaned):
-        """The refunds against one expense cannot add up to more than the expense cost. Checked when this entry is in
-        the user's own currency (otherwise the comparison needs an exchange rate, which saving applies)."""
-        expense, amount = cleaned.get('refund_for_expense'), cleaned.get('amount')
-        if not expense or amount is None or not self.user:
+        """The refunds against one expense, or against one capital event, cannot add up to more than it cost."""
+        expense, event = cleaned.get('refund_for_expense'), cleaned.get('refund_for_capital_event')
+        target = expense or event
+        if not target:
             return
-        if cleaned.get('currency') != self.user.profile.currency:
+        mine = self._refund_in_base(cleaned)
+        if mine is None:
             return
-        others = (Income.objects.filter(refund_for_expense=expense, is_deleted=False)
-                  .exclude(pk=self.instance.pk).aggregate(t=Sum('base_amount'))['t'] or Decimal('0'))
-        if others + amount > expense.base_amount:
-            left = max(expense.base_amount - others, Decimal('0'))
-            self.add_error('amount', _('Refunds cannot add up to more than the expense cost. At most %(left)s can still be '
-                                       'refunded against it.') % {'left': f'{expense.currency}{left:,.2f}'})
+        linked = (Income.objects.filter(refund_for_expense=expense, is_deleted=False) if expense
+                  else Income.objects.filter(refund_for_capital_event=event, is_deleted=False))
+        others = linked.exclude(pk=self.instance.pk).aggregate(t=Sum('base_amount'))['t'] or Decimal('0')
+        cost = target.base_amount
+        if others + mine > cost:
+            left = max(cost - others, Decimal('0'))
+            left_text = f'{self.user.profile.currency}{left:,.2f}'
+            if expense:
+                self.add_error('amount', _('Refunds cannot add up to more than the expense cost. At most %(left)s can still be '
+                                           'refunded against it.') % {'left': left_text})
+            else:
+                self.add_error('amount', _('Refunds cannot add up to more than the capital event cost. At most %(left)s can '
+                                           'still be refunded against it.') % {'left': left_text})
 
     def _post_clean(self):
         super()._post_clean()

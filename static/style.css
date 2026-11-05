@@ -4447,8 +4447,8 @@ input[data-money-ready] { font-variant-numeric: tabular-nums; }
 
 /* Subtle focus for text fields, everywhere: a tinted border and a faint glow instead of a solid outline + dark border.
    Buttons and links keep their keyboard-focus outline. */
-:root { --tmr-focus-border: rgba(15, 118, 87, .45); --tmr-focus-glow: rgba(15, 118, 87, .10); }
-[data-bs-theme="dark"] { --tmr-focus-border: rgba(93, 202, 165, .50); --tmr-focus-glow: rgba(93, 202, 165, .12); }
+:root { --tmr-focus-border: #0F7657; --tmr-focus-glow: rgba(15, 118, 87, .22); }   /* a solid brand edge: 5.6:1 on white, so keyboard focus is clearly visible (WCAG 2.4.7, 1.4.11) */
+[data-bs-theme="dark"] { --tmr-focus-border: #5DCAA5; --tmr-focus-glow: rgba(93, 202, 165, .25); }
 input:not(.border-0):focus-visible, select:not(.border-0):focus-visible, textarea:not(.border-0):focus-visible,
 .form-control:not(.border-0):focus-visible, .form-select:not(.border-0):focus-visible,
 [data-bs-theme="dark"] input:not(.border-0):focus-visible, [data-bs-theme="dark"] select:not(.border-0):focus-visible,
@@ -4458,7 +4458,8 @@ input:not(.border-0):focus-visible, select:not(.border-0):focus-visible, textare
   border-color: var(--tmr-focus-border); box-shadow: 0 0 0 .2rem var(--tmr-focus-glow);
 }
 .search-input-group:focus-within { border-color: var(--tmr-focus-border) !important; box-shadow: 0 0 0 .2rem var(--tmr-focus-glow) !important; }
-.form-card .tmr-money-group > .form-control:focus { box-shadow: none; border-color: var(--bs-border-color); }
+.form-card .tmr-money-group > .form-control:focus { box-shadow: none; border-color: var(--tmr-focus-border); }
+.form-card .tmr-money-group:focus-within > .tmr-money-cur { border-color: var(--tmr-focus-border); }
 .form-card .tmr-money-group:focus-within, .tmr-money-cur:focus-within { box-shadow: 0 0 0 .2rem var(--tmr-focus-glow); }
 .form-card .tmr-money-cur:focus-within { box-shadow: none; }
 

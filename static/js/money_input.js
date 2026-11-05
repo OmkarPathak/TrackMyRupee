@@ -36,9 +36,28 @@
     return min === null || min === '' || parseFloat(min) < 0;
   }
 
+  /* Devanagari, Arabic-Indic and Persian digits, and the typographic minus, become the ASCII ones. */
+  function asciiDigits(str) {
+    return str.replace(/[\u0966-\u096F\u0660-\u0669\u06F0-\u06F9]/g, function (c) {
+      var n = c.charCodeAt(0);
+      return String(n >= 0x0966 ? n - 0x0966 : n >= 0x06F0 ? n - 0x06F0 : n - 0x0660);
+    }).replace(/[\u2212\u2013\u2014]/g, '-');
+  }
+
+  /* Text pasted from a comma-decimal country ("1.234,56", "12,5"): the last comma, when it has one or two digits
+     after it and no dot follows, is the decimal point and the dots were grouping. "1,250" stays a thousands group. */
+  function fromPaste(str, decimals) {
+    str = asciiDigits(String(str == null ? '' : str)).replace(/[\s\u00a0]/g, '');
+    var lc = str.lastIndexOf(',');
+    if (decimals < 1 || decimals > 2 || lc < 0 || str.lastIndexOf('.') > lc) return str;
+    var tail = str.slice(lc + 1);
+    if (!/^\d{1,2}$/.test(tail)) return str;
+    return str.slice(0, lc).replace(/[.,]/g, '') + '.' + tail;
+  }
+
   /* Keep digits and one decimal point (and one leading minus where allowed); cap the decimals. */
   function sanitize(str, decimals, negative) {
-    str = String(str == null ? '' : str);
+    str = asciiDigits(String(str == null ? '' : str));
     var neg = negative && /^\s*-/.test(str);
     var out = '', dot = false, dec = 0;
     for (var i = 0; i < str.length; i++) {
@@ -307,7 +326,17 @@
       get: function () { var n = parseFloat(rawOf(el)); return isNaN(n) ? NaN : n; }
     });
 
-    el.addEventListener('input', function () { paint(el, rawOf(el), true); });
+    el.addEventListener('input', function (e) {
+      // A comma typed on a comma-decimal keyboard is the decimal point (the grouping commas are inserted by us)
+      if (e && e.inputType === 'insertText' && e.data === ',' && decimalsFor(el) > 0) {
+        var text = valueProp.get.call(el), at = (el.selectionStart || 0) - 1;
+        if (at >= 0 && text.charAt(at) === ',' && text.indexOf('.') < 0) {
+          valueProp.set.call(el, text.slice(0, at) + '.' + text.slice(at + 1));
+          try { el.setSelectionRange(at + 1, at + 1); } catch (err) { /* not supported */ }
+        }
+      }
+      paint(el, rawOf(el), true);
+    });
     el.addEventListener('blur', function () { paint(el, rawOf(el), false); });
     // A form that starts at 0.00: typing replaces it instead of landing behind it.
     el.addEventListener('focus', function () {
@@ -315,7 +344,12 @@
       // (checked again when it runs: a key typed in between has already replaced the zero)
       if (isZero()) setTimeout(function () { if (isZero()) { try { el.select(); } catch (e) { /* not supported */ } } }, 0);
     });
-    el.addEventListener('paste', function () { setTimeout(function () { paint(el, rawOf(el), false); }, 0); });
+    el.addEventListener('paste', function () {
+      setTimeout(function () {
+        valueProp.set.call(el, fromPaste(valueProp.get.call(el), decimalsFor(el)));
+        paint(el, rawOf(el), false);
+      }, 0);
+    });
 
     var form = el.form;
     if (form && !form._moneyBound) {
@@ -354,7 +388,7 @@
     }).observe(document.documentElement, { childList: true, subtree: true });
   }
 
-  window.TMRMoney = { enhance: enhanceAll, format: format, sanitize: sanitize };
+  window.TMRMoney = { enhance: enhanceAll, format: format, sanitize: sanitize, fromPaste: fromPaste };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();

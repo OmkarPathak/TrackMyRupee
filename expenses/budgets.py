@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from django.db.models import Sum
+from django.db.models import F, Sum
 
 from .refunds import net_sum
 
@@ -25,6 +25,18 @@ NO_LIMIT, ON_TRACK, AT_LIMIT, OVER = 'nolimit', 'ontrack', 'limit', 'over'
 
 ZERO = Decimal('0')
 
+
+
+def _event_refund_rows(first, last, **scope):
+    """Income that pays back a budget-counted capital event, by the day the money arrived (the same rule as the
+    analytics: the refund comes off the spend in the month it came back). Rows of date, category, subtype, user, total."""
+    from .models import Income
+    from .savings import LINKED_TO_EVENT
+
+    return (Income.objects.filter(LINKED_TO_EVENT, date__gte=first, date__lte=last,
+                                  refund_for_capital_event__exclude_from_budget=False, **scope)
+            .order_by().values('user_id', 'date', 'refund_for_capital_event__category',
+                               'refund_for_capital_event__subtype').annotate(total=Sum('base_amount')))
 
 def normalize_category(name) -> str:
     return (name or '').strip().lower()
@@ -81,7 +93,8 @@ def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decima
     from django.db.models import Value
 
     from .budget_cycle import user_budget_range
-    from .models import CapitalEvent, Expense
+    from .models import CapitalEvent, Expense, Income
+    from .savings import LINKED_TO_EVENT
 
     first, last = user_budget_range(user, (year, month))   # a date range, not year/month lookups, so the date index applies
     expenses = (Expense.objects.filter(user=user, date__gte=first, date__lte=last).order_by()
@@ -93,7 +106,13 @@ def monthly_spend_by_category(user, year: int, month: int) -> tuple[dict, Decima
 
     names = None
     spend: dict = {}
-    for category, subtype, total in expenses.union(events, all=True):
+    # what came back against those events comes off the same sum (one more part of the same single query)
+    refunds = (Income.objects.filter(LINKED_TO_EVENT, date__gte=first, date__lte=last, user=user,
+                                     refund_for_capital_event__exclude_from_budget=False)
+               .order_by().values('refund_for_capital_event__category', 'refund_for_capital_event__subtype')
+               .annotate(total=Sum(F('base_amount') * -1))
+               .values_list('refund_for_capital_event__category', 'refund_for_capital_event__subtype', 'total'))
+    for category, subtype, total in expenses.union(events, refunds, all=True):
         if subtype:   # a capital event: reported under its chosen category, else its subtype's name
             names = names or _subtype_names()
             category = capital_report_name(category, subtype, names)
@@ -144,6 +163,9 @@ def monthly_spend_by_category_months(user, months) -> dict:
         add(row['date'], row['category'], '', row['total'])
     for row in events:
         add(row['date'], row['category'], row['subtype'], row['total'])
+    for row in _event_refund_rows(first, last, user=user):
+        add(row['date'], row['refund_for_capital_event__category'], row['refund_for_capital_event__subtype'],
+            -(row['total'] or ZERO))
     return out
 
 
@@ -170,6 +192,16 @@ def _bulk_spend(start, end, user_ids=None, except_ids=None) -> dict:
                 .values('user_id', 'category', 'subtype').annotate(total=Sum('base_amount'))):
         key = (row['user_id'], normalize_category(capital_report_name(row['category'], row['subtype'], names)))
         spend[key] = spend.get(key, ZERO) + (row['total'] or ZERO)
+
+    refunds = _event_refund_rows(start, end)
+    if user_ids is not None:
+        refunds = refunds.filter(user_id__in=user_ids)
+    if except_ids:
+        refunds = refunds.exclude(user_id__in=except_ids)
+    for row in refunds:
+        name = capital_report_name(row['refund_for_capital_event__category'], row['refund_for_capital_event__subtype'], names)
+        key = (row['user_id'], normalize_category(name))
+        spend[key] = spend.get(key, ZERO) - (row['total'] or ZERO)
     return spend
 
 
