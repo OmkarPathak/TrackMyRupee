@@ -23829,3 +23829,9 @@ msgstr "सभी श्रेणियाँ"
 
 msgid "Breakdown"
 msgstr "विभाजन"
+
+msgid "Expand all"
+msgstr "सभी खोलें"
+
+msgid "Collapse all"
+msgstr "सभी बंद करें"

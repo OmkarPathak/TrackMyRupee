@@ -28,11 +28,12 @@
         {% if not groups %}
             <p class="fam-note">{% trans "You have no accounts yet. Add one on the Accounts page, then come back to share it." %}</p>
         {% endif %}
+        {% if groups|length > 1 %}<div class="fam-gtools"><button type="button" class="btn btn-link btn-sm p-0" data-fam-expand-all>{% trans "Expand all" %}</button><span aria-hidden="true">·</span><button type="button" class="btn btn-link btn-sm p-0" data-fam-collapse-all>{% trans "Collapse all" %}</button></div>{% endif %}
         {% for key, label, rows, group in groups %}
-        <div class="card fam-card fam-gcard">
+        <div class="card fam-card fam-gcard" data-fam-collapsible="{{ key }}">
             <div class="fam-ghead">
                 <div>
-                    <h3 class="fam-gname">{{ label }}</h3>
+                    <h3 class="fam-gname"><button type="button" class="fam-gtoggle" aria-expanded="true"><i class="bi bi-chevron-down" aria-hidden="true"></i><span>{{ label }}</span></button></h3>
                     <div class="fam-gcount">{% blocktrans trimmed with on=group.on|translate_digits total=group.total|translate_digits %}{{ on }} of {{ total }} shared{% endblocktrans %}</div>
                 </div>
                 <form method="post" action="{% url 'family-share-group' key %}">
@@ -71,6 +72,7 @@
         </div>
         {% endfor %}
     </section>
+    {% include 'expenses/family/_collapse.html' %}
 
     <section class="card fam-card" aria-labelledby="fam-log-h">
         <h2 id="fam-log-h">{% trans "Sharing activity" %}</h2>

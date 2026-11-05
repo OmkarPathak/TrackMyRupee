@@ -23892,3 +23892,9 @@ msgstr "सर्व श्रेणी"
 
 msgid "Breakdown"
 msgstr "विभागणी"
+
+msgid "Expand all"
+msgstr "सर्व उघडा"
+
+msgid "Collapse all"
+msgstr "सर्व बंद करा"

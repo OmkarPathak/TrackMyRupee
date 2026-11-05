@@ -32,6 +32,7 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
 
     /* A list of people or items: the rows keep a one-line rhythm on a phone and use the full width on a desktop */
     .fam-rows { display: flex; flex-direction: column; margin-top: .6rem; }
+    .fam-rows[hidden] { display: none; }
     .fam-row { display: flex; align-items: center; gap: .85rem; padding: .8rem 0; border-top: 1px solid var(--fam-line); flex-wrap: wrap; }
     .fam-row:first-child { border-top: 0; }
     .fam-row-main { flex: 1 1 12rem; min-width: 0; }
@@ -99,6 +100,14 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-gcard { margin-bottom: 1rem; padding-top: .35rem; padding-bottom: .35rem; }
     .fam-ghead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 0 .7rem; }
     .fam-gname { margin: 0; font-size: 1.05rem; font-weight: 800; }
+    .fam-gtoggle { display: inline-flex; align-items: center; gap: .55rem; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+    .fam-gtoggle .bi { font-size: .85rem; color: var(--fam-muted); transition: transform .15s ease; }
+    .fam-gtoggle[aria-expanded="false"] .bi { transform: rotate(-90deg); }
+    .fam-gcard .fam-gcount { padding-left: 1.4rem; }
+    .fam-gcard.is-folded .fam-ghead { padding-bottom: .85rem; }
+    .fam-gtools { display: flex; justify-content: flex-end; align-items: center; gap: .5rem; margin: -.25rem 0 .6rem; font-size: .85rem; color: var(--fam-muted); }
+    .fam-gtools .btn-link { font-size: .85rem; text-decoration: none; }
+    @media (prefers-reduced-motion: reduce) { .fam-gtoggle .bi { transition: none; } }
     .fam-gcount { font-size: .8rem; color: var(--fam-muted); margin-top: .1rem; }
     .fam-gcard .fam-rows .fam-row:first-child { border-top: 1px solid var(--fam-line); }
     .fam-item .fam-switch { width: 36px; height: 20px; }

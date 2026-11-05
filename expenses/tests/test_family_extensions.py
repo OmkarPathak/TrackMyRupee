@@ -378,6 +378,16 @@ class ChecklistTests(FamilyTestCase):
         self.assertEqual(page.count('class="fam-chip fam-chip--more"'), 1)
         self.assertIn('+3 more', page)
 
+    def test_account_groups_can_be_folded_on_both_pages(self):
+        add_account(self.owner, 'Savings', 'SAVINGS_ACCOUNT')
+        add_account(self.owner, 'Term Plan', 'LIFE_INSURANCE')
+        self.client.force_login(self.owner)
+        for name in ('family-emergency', 'family-share'):
+            page = self.client.get(reverse(name)).content.decode()
+            self.assertIn('data-fam-collapsible="', page, name)
+            self.assertIn('class="fam-gtoggle"', page, name)
+            self.assertIn('data-fam-expand-all', page, name)         # two groups: the expand and collapse links show
+
     def test_saving_the_sheet_updates_the_checklist_on_the_page(self):
         policy = add_account(self.owner, 'Term Plan', 'LIFE_INSURANCE')
         self.client.force_login(self.owner)

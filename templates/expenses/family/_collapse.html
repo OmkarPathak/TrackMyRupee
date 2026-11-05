@@ -1,0 +1,31 @@
+{% load i18n %}{# Collapsible account groups: a card with data-fam-collapsible="<key>" folds its .fam-rows behind its title. Big groups start folded; what a person opens stays open (also after a switch reloads the page). #}
+<script>
+(function () {
+    var page = location.pathname;
+    function read(key) { try { return localStorage.getItem('fam-open:' + page + ':' + key); } catch (e) { return null; } }
+    function write(key, open) { try { localStorage.setItem('fam-open:' + page + ':' + key, open ? '1' : '0'); } catch (e) { /* fine without it */ } }
+    var cards = document.querySelectorAll('[data-fam-collapsible]');
+    function set(card, open, remember) {
+        var button = card.querySelector('.fam-gtoggle'), rows = card.querySelector('.fam-rows');
+        button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        rows.hidden = !open;
+        card.classList.toggle('is-folded', !open);
+        if (remember) write(card.getAttribute('data-fam-collapsible'), open);
+    }
+    cards.forEach(function (card) {
+        var rows = card.querySelector('.fam-rows'), button = card.querySelector('.fam-gtoggle');
+        rows.id = rows.id || 'fam-rows-' + card.getAttribute('data-fam-collapsible');
+        button.setAttribute('aria-controls', rows.id);
+        var saved = read(card.getAttribute('data-fam-collapsible'));
+        var big = rows.querySelectorAll('.fam-item').length > 4;
+        set(card, saved === null ? !big : saved === '1', false);
+        button.addEventListener('click', function () { set(card, button.getAttribute('aria-expanded') !== 'true', true); });
+    });
+    document.querySelectorAll('[data-fam-expand-all]').forEach(function (b) {
+        b.addEventListener('click', function () { cards.forEach(function (c) { set(c, true, true); }); });
+    });
+    document.querySelectorAll('[data-fam-collapse-all]').forEach(function (b) {
+        b.addEventListener('click', function () { cards.forEach(function (c) { set(c, false, true); }); });
+    });
+})();
+</script>
