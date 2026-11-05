@@ -41,7 +41,7 @@ When you look at exactly one month or cycle, each number shows how it changed ag
 
 ## 3. Where the money went
 
-- **Categories**: spending per category, largest first. The chart shows the top five and groups the rest as **Others**. Loan interest appears as its own line. Capital Events that you did not exclude from budget appear under their subtype name, the same way the [Budgets](../07-budgets/index.md) page counts them.
+- **Categories**: spending per category, largest first. The chart shows the top five and groups the rest as **Others**. Loan interest appears as its own line. Capital Events that you did not exclude from budget appear under their subtype name, the same way the [Budgets](../07-budgets/index.md) page counts them. The card has two tabs: **Breakdown** is the chart, and **All categories** lists every category as a bar, biggest first, with its amount and share of the total. Click a bar to see that category's expenses.
 - **Budget bars**: for each category that has a limit, how much of it you have used. The bar turns amber at 85 percent and red once you pass the limit. For a period longer than a month the limit is scaled up to match (a 3-month view compares against three months of budget). On the current month the Dashboard also shows where you are heading at your current pace.
 - **Payment methods**: the split of expenses by how you paid.
 - **Top expenses**: your five largest single expenses in the period.

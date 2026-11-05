@@ -23886,3 +23886,9 @@ msgstr "सध्या शोध उपलब्ध नाही. पुन्�
 
 msgid "Pays back an expense: reduces its cost instead of counting as income"
 msgstr "खर्चाची परतफेड करतो: उत्पन्नात मोजण्याऐवजी त्याची किंमत कमी करतो"
+
+msgid "All categories"
+msgstr "सर्व श्रेणी"
+
+msgid "Breakdown"
+msgstr "विभागणी"

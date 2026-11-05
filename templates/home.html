@@ -1538,6 +1538,16 @@ document.addEventListener('DOMContentLoaded', function() {
         color: var(--color-success-text, #0F7657);
         border-bottom-color: var(--color-success-text, #0F7657);
     }
+    /* Category spend bars: one row per category, the bar is its spend against the biggest category */
+    .cat-bar-row { display: flex; align-items: center; gap: 14px; padding: 12px 10px; border-radius: 12px; text-decoration: none; color: inherit; }
+    .cat-bar-row:hover { background: var(--bs-primary-bg-subtle); color: inherit; }
+    .cat-bar-icon { width: 38px; height: 38px; flex: 0 0 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--bs-primary-bg-subtle); color: var(--color-success-text, #0F7657); font-size: 1rem; }
+    .cat-bar-main { flex: 1 1 auto; min-width: 0; display: block; }
+    .cat-bar-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 0.9rem; line-height: 1.3; }
+    .cat-bar-name { font-weight: 600; min-width: 0; }
+    .cat-bar-amount { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .cat-bar-track { display: block; height: 6px; margin-top: 8px; border-radius: 99px; background: var(--bs-secondary-bg, rgba(0,0,0,.06)); overflow: hidden; }
+    .cat-bar-fill { display: block; height: 100%; min-width: 4px; border-radius: 99px; background: var(--color-success-text, #0F7657); }
     /* Hide the status badge when on the Impulse tab */
     #spendingPaceTabs .spending-pace-tab-btn[data-bs-target="#impulse-panel"].active ~ * #spending-pace-status-badge {
         display: none;
@@ -2357,10 +2367,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     </span>
                 </div>
             </div>
+            {% if categories %}
+            <div class="px-3 pt-2 pb-0" style="background: transparent; border-bottom: 1px solid var(--bs-border-color);">
+                <ul class="nav spending-pace-tabs mb-0" id="categoryViewTabs" role="tablist" style="gap: 2px;">
+                    <li class="nav-item" role="presentation">
+                        <button class="spending-pace-tab-btn active" id="cat-share-tab-btn" data-bs-toggle="tab" data-bs-target="#cat-share-panel" type="button" role="tab" aria-controls="cat-share-panel" aria-selected="true">{% trans "Breakdown" %}</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="spending-pace-tab-btn" id="cat-bars-tab-btn" data-bs-toggle="tab" data-bs-target="#cat-bars-panel" type="button" role="tab" aria-controls="cat-bars-panel" aria-selected="false">{% trans "All categories" %}</button>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
             <div class="card-body">
                 {% if categories %}
-                <div style="height: 320px; width: 100%;">
-                    <canvas id="categoryChart"></canvas>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="cat-share-panel" role="tabpanel" aria-labelledby="cat-share-tab-btn">
+                        <div style="height: 320px; width: 100%;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="cat-bars-panel" role="tabpanel" aria-labelledby="cat-bars-tab-btn">
+                        <div class="cat-bars" style="max-height: 360px; overflow-y: auto; padding: 4px 2px;">
+                            {% for row in category_bars %}
+                            <a href="#" class="cat-bar-row" data-category="{{ row.category }}" title="{{ row.category }}: {{ currency_symbol }}{{ row.total|humanize_currency:currency_symbol|translate_digits }} ({{ row.pct|floatformat:0|translate_digits }}%)">
+                                <span class="cat-bar-icon"><i class="bi {% category_icon row.category user %}"></i></span>
+                                <span class="cat-bar-main">
+                                    <span class="cat-bar-head">
+                                        <span class="cat-bar-name text-truncate">{{ row.category }}</span>
+                                        <span class="cat-bar-amount">{{ currency_symbol }}{{ row.total|humanize_currency:currency_symbol|translate_digits }} <small class="text-muted">{{ row.pct|floatformat:0|translate_digits }}%</small></span>
+                                    </span>
+                                    <span class="cat-bar-track"><span class="cat-bar-fill" style="width: {{ row.width }}%;"></span></span>
+                                </span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
                 {% else %}
                 <div class="empty-state-container" style="min-height: 320px;">
@@ -3591,6 +3633,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
+
+        // The "All categories" bars open that category's expenses, like a click on the donut
+        document.querySelectorAll('.cat-bar-row').forEach(function (row) {
+            row.addEventListener('click', function (e) {
+                e.preventDefault();
+                const queryParams = new URLSearchParams();
+                queryParams.append('category', row.getAttribute('data-category'));
+                appendExpensePeriodFilters(queryParams);
+                showLoader();
+                window.location.href = "{% url 'expense-list' %}?" + queryParams.toString();
+            });
+        });
 
         // --- 4. Budget vs Spent Chart ---
         const limitsData = JSON.parse(document.getElementById('category-limits-data').textContent);

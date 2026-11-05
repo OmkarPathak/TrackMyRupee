@@ -256,3 +256,36 @@ class TestYearToDateProjection(DashBase):
         expected = ytd + (ytd / month) * (12 - month)
         cache.clear()
         self.assertAlmostEqual(self.home()['projected_savings'], expected, places=2)
+
+
+class TestCategoryBars(DashBase):
+    """The Category Distribution card has an 'All categories' tab: every category as a bar, biggest first."""
+
+    def setUp(self):
+        super().setUp()
+        for n in range(1, 8):                       # seven categories: the donut folds the smallest into Others
+            Category.objects.get_or_create(user=self.user, name=f'C{n}')
+            self.expense(n * 100, category=f'C{n}')
+
+    def test_every_category_is_a_bar_even_when_the_donut_groups_the_small_ones(self):
+        ctx = self.home()
+        self.assertEqual(len(ctx['categories']), 6)                         # top 5 and Others
+        bars = ctx['category_bars']
+        self.assertEqual([b['category'] for b in bars], [f'C{n}' for n in range(7, 0, -1)])
+        self.assertEqual(bars[0]['total'], 700.0)
+        self.assertEqual(bars[0]['width'], 100.0)                           # the biggest fills the track
+        self.assertEqual(bars[-1]['width'], round(100 / 700 * 100, 1))
+        self.assertAlmostEqual(sum(b['pct'] for b in bars), 100.0, delta=0.5)
+
+    def test_the_card_renders_the_tab_and_a_row_per_category(self):
+        response = self.client.get(reverse('home'))
+        self.assertContains(response, 'id="cat-bars-tab-btn"')
+        self.assertEqual(response.content.decode().count('class="cat-bar-row"'), 7)
+        self.assertContains(response, 'data-category="C7"')
+
+    def test_a_refunded_category_is_shown_at_its_real_cost(self):
+        e = self.expense(1000, category='C1')
+        Income.objects.create(user=self.user, date=today(), amount=D('1000'), source_type='Refund / Reimbursement',
+                              currency='₹', account=self.cash, refund_for_expense=e)
+        bars = {b['category']: b['total'] for b in self.home()['category_bars']}
+        self.assertEqual(bars['C1'], 100.0)                                 # only the original 100 is left
