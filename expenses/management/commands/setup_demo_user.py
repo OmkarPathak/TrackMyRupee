@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Sum
 
+import expenses.demo_seed_extras as extras
 import expenses.models as exp_models
 from expenses.ledger_read_service import LedgerReadService
 from expenses.models import (
@@ -15,7 +16,6 @@ from expenses.models import (
     Category,
     Expense,
     GoalContribution,
-    Holding,
     Income,
     Loan,
     LoanInterestRate,
@@ -24,7 +24,6 @@ from expenses.models import (
     SavingsGoal,
     Transfer,
     UserProfile,
-    Valuation,
 )
 
 
@@ -58,36 +57,9 @@ class Command(BaseCommand):
             user = user_qs.first()
 
             with transaction.atomic():
-                # Manually delete all items in reverse dependency graph.
-                exp_models.GoalContribution.objects.filter(goal__user=user).delete()
-                exp_models.SavingsGoal.objects.filter(user=user).delete()
-                exp_models.Transfer.objects.filter(user=user).delete()
-                exp_models.Expense.objects.filter(user=user).delete()
-                exp_models.Income.objects.filter(user=user).delete()
-                exp_models.LoanRepayment.objects.filter(loan__user=user).delete()
-                exp_models.LoanInterestRate.objects.filter(loan__user=user).delete()
-                exp_models.CapitalEvent.objects.filter(user=user).delete()
-                exp_models.Loan.objects.filter(user=user).delete()
-                exp_models.RecurringTransaction.objects.filter(user=user).delete()
-                exp_models.Notification.objects.filter(user=user).delete()
-                exp_models.NetWorthSnapshot.objects.filter(user=user).delete()
-                exp_models.ConsentEvent.objects.filter(user=user).delete()
-                exp_models.FinancialAuditLog.objects.filter(user=user).delete()
-                exp_models.LedgerReconciliationReport.objects.filter(user=user).delete()
-
-                # Clear ledger data before touching ledger accounts (PROTECT on JournalLine.ledger_account).
-                # Delete by both journal owner and ledger-account owner to catch all demo-linked rows.
-                exp_models.JournalLine.objects.filter(journal_entry__user=user).delete()
-                exp_models.JournalLine.objects.filter(ledger_account__user=user).delete()
-                exp_models.JournalEntry.objects.filter(user=user).delete()
-                exp_models.LedgerAccount.objects.filter(user=user).delete()
-
-                exp_models.AssetValuation.objects.filter(asset__user=user).delete()
-                exp_models.PhysicalAsset.objects.filter(user=user).delete()
-                exp_models.Valuation.objects.filter(holding__account__user=user).delete()
-                exp_models.Holding.objects.filter(account__user=user).delete()
-                exp_models.Account.objects.filter(user=user).delete()
-                exp_models.Category.objects.filter(user=user).delete()
+                # Everything the demo user owns, in dependency order (the family first: a household needs its members).
+                extras.wipe_user_data(user)
+                extras.wipe_family_users()
 
             # Keep the same user row for stability in demo login flow.
             user.email = 'demo@example.com'
@@ -180,6 +152,13 @@ class Command(BaseCommand):
             show_accrued_balance=True,
             record_maturity_income=False,
         )
+
+        # The accounts the first seed did not have (mutual fund account, RD, PPF, EPF, NPS, a dollar account), and one
+        # namespace for the sections that follow
+        acc = extras.create_accounts(user, date.today())
+        acc.main, acc.savings, acc.cash, acc.demat = acc_main, acc_savings, acc_cash, acc_invest
+        acc.cc_regalia, acc.cc_amazon = acc_cc_regalia, acc_cc_amazon
+        acc.holdings = {}
 
         self.stdout.write(self.style.SUCCESS('Created Bank, Cash, Credit Card, and Fixed Deposit Accounts'))
         
@@ -281,6 +260,7 @@ class Command(BaseCommand):
             {'amount': 10000, 'freq': 'MONTHLY', 'desc': 'Nifty 50 Index Fund SIP'},
         ]
 
+        sip_transfers = []        # the SIP instalments so far: each buys units of the index fund
         curr_date = window_start
         while curr_date <= window_end:
             for pattern in expense_patterns:
@@ -323,14 +303,16 @@ class Command(BaseCommand):
                     
             for pattern in investment_patterns:
                 if pattern['freq'] == 'MONTHLY' and curr_date.day == 5:
-                    Transfer.objects.create(
+                    transfer = Transfer.objects.create(
                         user=user,
                         from_account=acc_main,
-                        to_account=acc_invest,
+                        to_account=acc.mf,
                         amount=pattern['amount'],
                         date=curr_date,
                         description=pattern['desc']
                     )
+                    if curr_date <= today:
+                        sip_transfers.append(transfer)
             
             curr_date += timedelta(days=1)
 
@@ -648,10 +630,10 @@ class Command(BaseCommand):
 
         # 9. Capital Events & Lump Sum Investments
         # Lump sum investment into Zerodha Demat from Main account
-        Transfer.objects.create(
+        lump_transfer = Transfer.objects.create(
             user=user,
             from_account=acc_main,
-            to_account=acc_invest,
+            to_account=acc.mf,
             amount=Decimal('150000.00'),
             date=today - timedelta(days=10),
             description='Lump Sum in Parag Parikh Flexi Cap'
@@ -709,7 +691,7 @@ class Command(BaseCommand):
             date=today - timedelta(days=30),
             subtype='investment_lump_sum',
             note='Lump sum into Parag Parikh Flexi Cap Fund',
-            account=acc_invest,
+            account=acc.mf,
             exclude_from_averages=True,
             exclude_from_budget=True,
             include_in_net_worth=True
@@ -726,121 +708,24 @@ class Command(BaseCommand):
             include_in_net_worth=False
         )
 
-        # ── Holdings & Valuations ──────────────────────────────────────────────
-        holdings_data = [
-            {
-                'instrument_name': 'Nifty 50 Index Fund - Direct Growth',
-                'instrument_type': 'MF',
-                'units': Decimal('1250.456'),
-                'avg_cost': Decimal('145.20'),
-                'current_nav': Decimal('178.65'),
-                'scheme_code': '120503',
-            },
-            {
-                'instrument_name': 'Parag Parikh Flexi Cap - Direct Growth',
-                'instrument_type': 'MF',
-                'units': Decimal('820.312'),
-                'avg_cost': Decimal('62.50'),
-                'current_nav': Decimal('79.80'),
-                'scheme_code': '122639',
-            },
-            {
-                'instrument_name': 'HDFC Mid-Cap Opportunities - Direct Growth',
-                'instrument_type': 'MF',
-                'units': Decimal('540.000'),
-                'avg_cost': Decimal('118.00'),
-                'current_nav': Decimal('142.30'),
-                'scheme_code': '119077',
-            },
-            {
-                'instrument_name': 'Reliance Industries Ltd',
-                'instrument_type': 'STOCK',
-                'units': Decimal('25.000000'),
-                'avg_cost': Decimal('2450.00'),
-                'current_nav': Decimal('2890.50'),
-                'isin': 'INE002A01018',
-            },
-            {
-                'instrument_name': 'Infosys Ltd',
-                'instrument_type': 'STOCK',
-                'units': Decimal('40.000000'),
-                'avg_cost': Decimal('1380.00'),
-                'current_nav': Decimal('1625.75'),
-                'isin': 'INE009A01021',
-            },
-            {
-                'instrument_name': 'Tata Consultancy Services',
-                'instrument_type': 'STOCK',
-                'units': Decimal('15.000000'),
-                'avg_cost': Decimal('3800.00'),
-                'current_nav': Decimal('4120.00'),
-                'isin': 'INE467B01029',
-            },
-            {
-                'instrument_name': 'NPS Tier-I (Equity)',
-                'instrument_type': 'NPS',
-                'units': Decimal('3200.000000'),
-                'avg_cost': Decimal('28.50'),
-                'current_nav': Decimal('34.20'),
-            },
-            {
-                'instrument_name': 'EPF (Employee Provident Fund)',
-                'instrument_type': 'EPF',
-                'units': None,
-                'avg_cost': None,
-                'current_nav': Decimal('185000.00'),  # total corpus — no unit tracking
-            },
-            {
-                'instrument_name': 'PPF (Public Provident Fund)',
-                'instrument_type': 'PPF',
-                'units': None,
-                'avg_cost': None,
-                'current_nav': Decimal('92000.00'),
-            },
-        ]
+        # ── The features added since the first seed ────────────────────────────────────────────────────────────────
+        # Each is a section of expenses/demo_seed_extras.py, run on its own: one failing never breaks the rest.
+        def run(label, fn, *args):
+            extras._run(self.stdout, self.style, label, fn, *args)
 
-        for hd in holdings_data:
-            holding = Holding.objects.create(
-                account=acc_invest,
-                instrument_name=hd['instrument_name'],
-                instrument_type=hd['instrument_type'],
-                units=hd.get('units'),
-                avg_cost=hd.get('avg_cost'),
-                currency='₹',
-                scheme_code=hd.get('scheme_code'),
-                isin=hd.get('isin'),
-                is_active=True,
-            )
-            # Current valuation
-            nav = hd['current_nav']
-            if hd.get('units'):
-                current_value = (hd['units'] * nav).quantize(Decimal('0.01'))
-            else:
-                current_value = nav  # corpus-based (EPF/PPF)
-
-            Valuation.objects.create(
-                holding=holding,
-                value=current_value,
-                as_of_date=today,
-                unit_nav=nav if hd.get('units') else None,
-                source='demo_seed',
-            )
-            # One historical valuation (1 month ago) for sparkline/chart
-            if hd.get('units'):
-                hist_nav = (nav * Decimal('0.94')).quantize(Decimal('0.000001'))
-                hist_value = (hd['units'] * hist_nav).quantize(Decimal('0.01'))
-            else:
-                hist_value = (current_value * Decimal('0.96')).quantize(Decimal('0.01'))
-                hist_nav = None
-            Valuation.objects.create(
-                holding=holding,
-                value=hist_value,
-                as_of_date=today - timedelta(days=30),
-                unit_nav=hist_nav,
-                source='demo_seed',
-            )
-
-        self.stdout.write(self.style.SUCCESS('Created Holdings and Valuations on Demat account'))
+        run('opening balances (RD, PPF, EPF, NPS, USD)', extras.fund_accounts, user, acc, window_start, today)
+        run('holdings through SIPs, a lump sum and a sale', extras.seed_holdings, user, acc, today, window_start,
+            sip_transfers, lump_transfer)
+        run('recurring SIP split across funds', extras.seed_sip_schedule, user, acc, today, window_start)
+        run('insurance policies and premiums', extras.seed_insurance, user, acc, cat_objs, today)
+        run('refunds', extras.seed_refunds, user, acc, today)
+        run('budget history', extras.seed_budgets, user, cat_objs, today, window_start)
+        run('subscriptions', extras.seed_subscriptions, user, acc, today, window_start)
+        run('car and car loan', extras.seed_car, user, acc, today)
+        run('foreign currency', extras.seed_foreign_currency, user, acc, today)
+        run('learned keywords', extras.seed_habits, user, acc)
+        run('TMR flows', extras.seed_flows, user, today)
+        run('family, shares and emergency sheet', extras.seed_family, user, acc, today, window_start)
         self.stdout.write(self.style.SUCCESS('Created Capital Events (6 types)'))
 
         # 10. Net worth & Account balance safeguards: guarantee strictly positive demo net worth and positive savings account balances.
@@ -878,5 +763,12 @@ class Command(BaseCommand):
                 account=acc_main,
             )
             self.stdout.write(self.style.SUCCESS(f'Applied net worth safeguard top-up: {profile.currency}{top_up}'))
+
+        run('reconciliations', extras.seed_reconciliations, user, acc, today)
+        run('net worth history', extras.seed_net_worth_history, user, today)
+        run('family history', extras.seed_family_history, user, today)
+        run('notifications', extras.seed_notifications, user)
+        run('insights', extras.refresh_insights, user)
+        extras.mark_seeded(user)
 
         self.stdout.write(self.style.SUCCESS('--- DEMO SETUP COMPLETE ---'))

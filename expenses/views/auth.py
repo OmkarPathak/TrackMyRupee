@@ -508,7 +508,11 @@ def demo_login(request):
         today = timezone.localdate()
         has_expense = Expense.objects.filter(user=demo, date__year=today.year, date__month=today.month).exists()
         has_income = Income.objects.filter(user=demo, date__year=today.year, date__month=today.month).exists()
-        return not (has_expense and has_income)
+        if not (has_expense and has_income):
+            return True
+        # the demo also reseeds when it was seeded before the newest data existed (family, insurance, refunds, ...)
+        from ..demo_seed_extras import marker_present
+        return not marker_present(demo)
 
     def setup_demo_user_serialized():
         """Serialize demo setup so visitors arriving together reseed once, not once each.

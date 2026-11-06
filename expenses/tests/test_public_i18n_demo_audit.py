@@ -60,6 +60,8 @@ class DemoLoginTest(TestCase):
             acc = Account.objects.create(user=user, name='A', account_type='CASH_WALLET', balance=0)
             Expense.objects.create(user=user, date=date.today(), amount=1, category='Food', account=acc)
             Income.objects.create(user=user, date=date.today(), amount=1, source='x', account=acc)
+            from expenses.demo_seed_extras import mark_seeded      # a seed leaves its marker, or the demo reseeds
+            mark_seeded(user)
 
         with patch('expenses.views.auth.call_command', side_effect=fake_setup):
             for _ in range(3):

@@ -100,7 +100,7 @@
    }};
 
   function ftabs(on){return '<div class="ftabs">'+[['graph-up-arrow','Net worth'],['wallet2','Who holds what'],['share','What I share'],['life-preserver','If something happens to me'],['people','Members']].map(function(t,i){return '<span class="'+(i==on?'on':'')+'">'+bi(t[0])+' '+t[1]+'</span>'}).join('')+'</div>'}
-  S.fam={demo:false,nav:'family',url:'/family/net-worth/',dur:9500,t:'One family. One true net worth.',d:'Each of you keeps your own account and shares only what you choose. The family sees the combined picture of what was shared, never a transaction.',
+  S.fam={demo:true,nav:'family',url:'/family/net-worth/',dur:9500,t:'One family. One true net worth.',d:'Each of you keeps your own account and shares only what you choose. The family sees the combined picture of what was shared, never a transaction.',
    h:function(){var pts=[[0,15.9],[1,16.1],[2,16.4],[3,16.35],[4,16.6]],x=function(i){return 40+i*(540/4)},y=function(v){return 14+(17-v)/1.4*120},sm=smooth(pts.map(function(p){return[x(p[0]),y(p[1])]}));
     return ftabs(0)+'<div class="pgt" style="margin-top:14px">Net worth</div><div class="pgs">Family view: the combined net worth of what your family has shared.</div>'+
     '<div class="note2">'+bi('info-circle-fill')+'<span><b>Based on what is shared.</b> The same for every member. Savings rate and the health check are not shown here.</span></div>'+
@@ -112,7 +112,7 @@
 
   function sw(on){return '<span class="sw'+(on?' on':'')+'"><i></i></span>'}
   function shr(n,t,amt,on,id){return '<div class="shr" '+(id?'id="'+id+'" ':'')+'>'+sw(on)+'<div class="shr-n"><b>'+n+'</b><small>'+t+'</small></div><span class="shr-b'+(on?'':' off')+'">'+(on?'Amount counts':'Not shared')+'</span><span class="shr-a">'+amt+'</span><span class="selb">Edit sharing</span></div>'}
-  S.priv={demo:false,nav:'family',url:'/family/share/',dur:11000,t:'Private by default. Shared by choice.',d:'No SMS reading, no bank login. In a family, nothing is shared until you switch it on, and you can preview exactly what they will see.',
+  S.priv={demo:true,nav:'family',url:'/family/share/',dur:11000,t:'Private by default. Shared by choice.',d:'No SMS reading, no bank login. In a family, nothing is shared until you switch it on, and you can preview exactly what they will see.',
    h:function(){return ftabs(2)+'<div class="p2h" style="margin-top:14px"><div><div class="pgt">What I share</div><div class="pgs">Switch on the accounts, cards, policies and loans your family should see. Everything else stays private.</div></div><span class="selb pv">Preview as a family member</span></div>'+
     '<div class="note2 grn">'+bi('lock-fill')+'<span><b id="tp-cnt">Sharing 8 of your 10 items.</b> Family sees names, types and amounts. They never see transactions, categories, notes or account numbers, and they cannot tell a private item exists.</span></div>'+
     '<div class="eyb" style="margin:12px 0 6px">Your accounts</div><div class="card shg"><div class="shg-h"><div><b>Bank and cash</b><small>2 of 2 shared</small></div><span class="selb">Stop sharing all</span></div>'+
@@ -170,12 +170,12 @@
     fcard('briefcase','I started a new job','Salary, pay day and the salary cycle for your month view.',['Income source','Monthly salary'],'About 1 min',.2)+fcard('car-front','I bought a car','Cash or financed, either way it lands in your net worth.',['Vehicle','Optional loan'],'About 2 min',.35)+fcard('shield-check','I bought insurance','Policy details and the premium that renews on its own.',['Policy','Premium reminder'],'About 1 min',.5)+
     '<div class="card" style="margin-top:4px"><div class="ring2"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="bgc"/><circle cx="18" cy="18" r="15" class="fgc" style="stroke-dasharray:'+(5/11*94.2).toFixed(1)+' 94.2"/></svg><b>5/11</b></div><b class="stt2">Your setup</b><div class="pgs" style="margin-bottom:6px">The more you add, the sharper your insights.</div>'+chk('Loan',1)+chk('Salary',0)+chk('SIP / RD',0)+chk('Rent / Bill',1)+'</div>'},
    run:function(ctx){ctx.after(3600,function(){ctx.scroll(380)})}};
-  P.fam={demo:false,url:'/family/net-worth/',nav:'menu',dur:10000,t:S.fam.t,d:S.fam.d,
+  P.fam={demo:true,url:'/family/net-worth/',nav:'menu',dur:10000,t:S.fam.t,d:S.fam.d,
    h:function(){return '<div class="ftabs">'+[['graph-up-arrow','Net worth',1],['wallet2','Who holds what'],['share','What I share'],['life-preserver','If something happens']].map(function(t){return '<span class="'+(t[2]?'on':'')+'">'+bi(t[0])+' '+t[1]+'</span>'}).join('')+'</div><div class="ph-t" style="margin-top:12px">Net worth</div><div class="pgs">Family view: the combined net worth of what your family has shared.</div><div class="note2" style="margin-top:10px">'+bi('info-circle-fill')+'<span><b>Based on what is shared.</b> The same for every member.</span></div>'+
     '<div class="card fnw"><div class="lbl">Family net worth</div><div class="big3">₹'+C(1660792)+'</div><div class="pgs">8 shared items from 2 members</div><div class="fnw-t" style="margin-top:12px"><div><small>What you own</small><b>₹17,25,109</b></div><div><small>What you owe</small><b class="dn">₹64,317</b></div></div></div>'+
     '<div class="card"><div class="ttl"><span class="tt">'+bi('people')+' Members</span></div>'+prow('person-circle','Riya (you)','Owner · Pro','5 items','',.4)+prow('person-circle','Asha','Member · Pro','3 items','',.6)+'</div>'},
    run:function(ctx){ctx.after(3600,function(){ctx.scroll(200)})}};
-  P.priv={demo:false,url:'/family/share/',nav:'menu',dur:11000,t:S.priv.t,d:S.priv.d,
+  P.priv={demo:true,url:'/family/share/',nav:'menu',dur:11000,t:S.priv.t,d:S.priv.d,
    h:function(){return '<div class="ph-t">What I share</div><div class="pgs" style="margin:2px 0 10px">Switch on the accounts your family should see. Everything else stays private.</div><div class="note2 grn">'+bi('lock-fill')+'<span><b id="tp-cnt">Sharing 8 of your 10 items.</b> They never see transactions, notes or account numbers.</span></div>'+
     '<div class="card shg" style="margin-top:12px"><div class="shg-h"><div><b>Bank and cash</b><small>3 of 3 shared</small></div></div>'+shr('Cash Wallet','Cash wallet','₹70,823',1)+shr('HDFC Bank (Main)','Savings account','₹2,78,057',1)+shr('SBI Fixed Deposit','Fixed deposit','₹2,00,000',1)+'</div>'+
     '<div class="card shg"><div class="shg-h"><div><b>Credit cards</b><small id="tp-gc">2 of 2 shared</small></div></div>'+shr('HDFC Regalia Credit Card','Credit card','−₹41,200',1,'tp-row1')+shr('Axis Credit Card','Credit card','−₹23,117',1)+'</div>'},
