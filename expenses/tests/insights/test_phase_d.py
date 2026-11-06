@@ -109,6 +109,13 @@ class IncomeRuleTests(SimpleTestCase):
         other = sampling.scenario(income_rows=[_income(date(2026, 8, 15), 9000, 'Business'), _income(date(2026, 9, 15), 9000, 'Business')])
         self.assertEqual(run('income.salary_late', other), [])
 
+    def test_pay_named_salary_but_left_on_another_type_counts_as_arrived(self):
+        rows = [_income(date(2026, 8, 15), 60000), _income(date(2026, 9, 15), 60000)]
+        named = IncomeRow(date(2026, 10, 15), 'Other', D(60000), True)       # "ClearWater Salary" typed Other
+        self.assertEqual(run('income.salary_late', sampling.scenario(income_rows=rows + [named])), [])
+        plain = IncomeRow(date(2026, 10, 15), 'Other', D(60000), False)
+        self.assertEqual(len(run('income.salary_late', sampling.scenario(income_rows=rows + [plain]))), 1)
+
     def test_a_set_salary_day_is_the_expected_day(self):
         rows = [_income(date(2026, 8, 5), 60000), _income(date(2026, 9, 5), 60000)]
         ctx = sampling.scenario(salary_day=5, today=date(2026, 10, 9), income_rows=rows)
@@ -414,8 +421,8 @@ class FactsAdditionsTests(InsightBase):
         self.income(5000, TODAY - timedelta(days=70), 'Business')
         with self.assertNumQueries(1):
             rows = load_income_rows(self.user, TODAY - timedelta(days=100), TODAY)
-        self.assertEqual(rows, [IncomeRow(TODAY - timedelta(days=70), 'Business', D('5000.00')),
-                                IncomeRow(TODAY - timedelta(days=40), 'Salary', D('60000.00'))])
+        self.assertEqual(rows, [IncomeRow(TODAY - timedelta(days=70), 'Business', D('5000.00'), False),
+                                IncomeRow(TODAY - timedelta(days=40), 'Salary', D('60000.00'), True)])   # the source says Salary
 
     def test_the_capital_switch_on_real_facts(self):
         CapitalEvent.objects.create(user=self.user, date=TODAY - timedelta(days=2), amount=D('42000'), currency='₹',

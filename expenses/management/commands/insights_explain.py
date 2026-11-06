@@ -2,6 +2,7 @@
 stored rows but writes nothing, and it prints rule ids and statuses only (never an amount, a name or a category)."""
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import F
 from django.utils import timezone, translation
 
 from expenses.insights import channel_enabled, engine, engine_mode, prefs, registry

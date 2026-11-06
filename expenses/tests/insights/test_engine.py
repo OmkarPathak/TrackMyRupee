@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from expenses.insights import engine, prefs, sampling
 from expenses.insights.types import Insight, Kind, Module, Plan, Surface, Tone
-from expenses.models import Account, InsightFeedback, InsightState, UserProfile
+from expenses.models import Account, Income, InsightFeedback, InsightState, UserProfile
 
 from .base import ENGINE_ON, NOW, TODAY, D, InsightBase, month_start, temp_rule
 
@@ -354,3 +354,30 @@ class QueryCountTests(StoredBase):
         with CaptureQueriesContext(connection) as big:
             engine.refresh(self.user, today=TODAY)
         self.assertLessEqual(len(big), 37)
+
+
+class SalaryLateRetiredOnSaveTests(StoredBase):
+    """Saving the salary retires "Salary has not arrived yet" at once, not at the next refresh."""
+
+    @ENGINE_ON
+    def test_saving_a_salary_entry_retires_the_note(self):
+        row = self.store('income.salary_late', insight(rule_id='income.salary_late', module=Module.INCOME, key='2026-10'))
+        self.assertGreaterEqual(row.valid_until, TODAY)
+        self.income(60000, TODAY)
+        row.refresh_from_db()
+        self.assertLess(row.valid_until, TODAY)
+
+    @ENGINE_ON
+    def test_pay_named_salary_on_another_type_retires_it_too(self):
+        row = self.store('income.salary_late', insight(rule_id='income.salary_late', module=Module.INCOME, key='2026-10'))
+        Income.objects.create(user=self.user, date=TODAY, amount=D('60000'), source='ClearWater Salary',
+                              source_type='Other', currency='₹', account=self.cash)
+        row.refresh_from_db()
+        self.assertLess(row.valid_until, TODAY)
+
+    @ENGINE_ON
+    def test_other_income_leaves_the_note_alone(self):
+        row = self.store('income.salary_late', insight(rule_id='income.salary_late', module=Module.INCOME, key='2026-10'))
+        self.income(5000, TODAY, 'Freelance / Consulting')
+        row.refresh_from_db()
+        self.assertGreaterEqual(row.valid_until, TODAY)

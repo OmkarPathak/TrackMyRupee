@@ -24,6 +24,11 @@ GAP_DAYS = 45
 GAP_PATTERN_MONTHS = 3          # months with income before a gap means anything
 
 
+def _is_salary(row) -> bool:
+    """An entry typed Salary, or one the person named salary (a recurring "ClearWater Salary" left on another type)."""
+    return row.source_type == SALARY or getattr(row, 'salary_hint', False)
+
+
 def _months(rows) -> set[tuple[int, int]]:
     return {(r.date.year, r.date.month) for r in rows}
 
@@ -79,7 +84,7 @@ def steady_vs_variable(ctx) -> list[Insight]:
       sample=sampling.salary_late_sample)
 def salary_late(ctx) -> list[Insight]:
     """The usual salary day was a few days ago and no salary is recorded in this cycle. Gentle: it may be on its way."""
-    salary_rows = [r for r in ctx.income_rows if r.source_type == SALARY]
+    salary_rows = [r for r in ctx.income_rows if _is_salary(r)]
     day = _usual_salary_day(ctx, salary_rows)
     if day is None:
         return []

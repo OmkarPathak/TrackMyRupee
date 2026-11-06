@@ -283,6 +283,36 @@ def invalidate_dashboard_cache(sender=None, instance=None, user_id=None, **kwarg
     _mark_insights_stale(user_id)
 
 
+def retire_salary_late_on_salary(sender=None, instance=None, **kwargs):
+    """A salary entry was just saved (typed Salary, or named salary): the "Salary has not arrived yet" note is no longer
+    true, so retire it now instead of waiting for the next refresh (which runs after a page's response, can be an hour
+    away, and may be on another worker that never saw this save)."""
+    if kwargs.get('raw', False) or not getattr(instance, 'user_id', None):
+        return
+    text = f"{getattr(instance, 'source', '')} {getattr(instance, 'description', '')}".lower()
+    if getattr(instance, 'source_type', '') != 'Salary' and 'salary' not in text:
+        return
+    try:
+        from types import SimpleNamespace
+
+        from .insights import is_engine_on
+        if not is_engine_on(SimpleNamespace(pk=instance.user_id)):
+            return
+        from datetime import timedelta
+
+        from .models import InsightState
+        InsightState.objects.filter(user_id=instance.user_id, rule_id='income.salary_late',
+                                    valid_until__gte=timezone.localdate()).update(
+            valid_until=timezone.localdate() - timedelta(days=1))
+        from .insights.engine import mark_stale
+        mark_stale(instance.user_id)
+    except Exception:
+        pass
+
+
+post_save.connect(retire_salary_late_on_salary, sender=Income, dispatch_uid='insights_retire_salary_late')
+
+
 def _mark_insights_stale(user_id):
     """The person's stored insights were worked out before this change: the next time they open the dashboard (or a
     page with an insights strip) the quick rules run again. A cache write, so a save costs no extra query."""

@@ -14,7 +14,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import NamedTuple
 
-from django.db.models import Count, F, Q, Sum
+from django.db.models import BooleanField, Case, Count, F, Q, Sum, Value, When
 
 from ..account_types import investment_codes
 from ..budgets import capital_report_name, normalize_category
@@ -54,6 +54,7 @@ class IncomeRow(NamedTuple):
     date: date
     source_type: str
     amount: Decimal                  # base currency
+    salary_hint: bool = False        # the entry says "salary" in its source or description, whatever type it was given
 
 
 def load_income_rows(user, first: date, last: date) -> list[IncomeRow]:
@@ -62,9 +63,11 @@ def load_income_rows(user, first: date, last: date) -> list[IncomeRow]:
 
     # (cashback and refunds are not income anywhere else in the app, so they do not count as pay arriving)
     rows = Income.objects.filter(user=user, date__range=(first, last)).exclude(
-        source_type__in=CASHBACK_REFUND_TYPES).exclude(LINKED_REFUND).order_by('date', 'id').values_list(
-        'date', 'source_type', 'base_amount')
-    return [IncomeRow(d, t or '', a or ZERO) for d, t, a in rows]
+        source_type__in=CASHBACK_REFUND_TYPES).exclude(LINKED_REFUND).order_by('date', 'id').annotate(
+        hint=Case(When(Q(source__icontains='salary') | Q(description__icontains='salary'), then=Value(True)),
+                  default=Value(False), output_field=BooleanField())).values_list(
+        'date', 'source_type', 'base_amount', 'hint')
+    return [IncomeRow(d, t or '', a or ZERO, bool(h)) for d, t, a, h in rows]
 
 
 def load_category_cycles(user, ranges, *, categories: Iterable[str] = (), account_ids: Iterable[int] = ()
