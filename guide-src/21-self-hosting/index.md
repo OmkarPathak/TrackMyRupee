@@ -53,6 +53,7 @@ DEBUG=False
 # SENTRY_DSN=''
 # RECAPTCHA_PUBLIC_KEY=''
 # RECAPTCHA_SECRET_KEY=''
+# ALLRATESTODAY_API_KEY=''   # optional exchange rate source
 ```
 
 !!! warning "Never commit .env to git"
