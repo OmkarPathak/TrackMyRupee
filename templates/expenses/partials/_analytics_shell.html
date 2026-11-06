@@ -14,7 +14,6 @@
             <p class="text-muted small mb-0 d-none d-sm-block">{% trans "Where your money comes from, where it goes, and what it adds up to." %}</p>
         </div>
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            {% if FAMILY_ON and tab == 'networth' %}{% family_toggle 'networth' %}{% endif %}
             <a href="{% url 'year_in_review' year=wrapped_year %}" class="header-action-btn btn-primary d-inline-flex align-items-center gap-1 text-nowrap">
                 <i class="bi bi-stars" aria-hidden="true"></i>
                 <span><span class="d-none d-sm-inline">{% trans "View" %} </span>{{ wrapped_year|translate_digits }} {% trans "Wrapped" %}</span>

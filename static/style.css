@@ -35,8 +35,10 @@ body {
 [data-bs-theme="dark"] .form-select, 
 [data-bs-theme="dark"] .input-group-text {
   background-color: var(--color-background);
-  border-color: var(--color-border);
+  border-color: var(--color-control-border);
 }
+[data-bs-theme="dark"] .form-check-input:not(:checked) { border-color: var(--color-control-border); }
+
 
 [data-bs-theme="dark"] .bg-light {
   background-color: rgba(255, 255, 255, 0.05) !important;
@@ -891,7 +893,7 @@ body.has-sidebar {
   background-color: #faf8f5 !important;
 }
 
-[data-bs-theme="dark"] html,
+html[data-bs-theme="dark"],
 [data-bs-theme="dark"] body.has-sidebar {
   background-color: var(--color-background, #151513) !important;
 }
@@ -1250,7 +1252,8 @@ body.has-sidebar {
   --color-surface: #1E1E1B;      /* cards, panels, dialogs */
   --color-surface-2: #272723;    /* rows and sub-cards inside a card */
   --color-surface-3: #302F2B;    /* hover and raised states */
-  --color-border: #34342F;       /* hairlines */
+  --color-border: #34342F;       /* hairlines and card edges (decorative) */
+  --color-control-border: #77746B; /* the edge of an input or checkbox: 3.6:1 on a card, 3.9:1 on the page (WCAG 1.4.11) */
   --color-text: #ECEAE3;
   --bg-color: #151513;
   --surface-color: #1E1E1B;
@@ -1260,7 +1263,7 @@ body.has-sidebar {
   --bs-body-color: #ECEAE3; --bs-body-color-rgb: 236, 234, 227;
   --bs-emphasis-color: #F7F5EF; --bs-emphasis-color-rgb: 247, 245, 239;
   --bs-secondary-color: rgba(236, 234, 227, 0.72); --bs-secondary-color-rgb: 236, 234, 227;
-  --bs-tertiary-color: rgba(236, 234, 227, 0.52); --bs-tertiary-color-rgb: 236, 234, 227;
+  --bs-tertiary-color: rgba(236, 234, 227, 0.66); --bs-tertiary-color-rgb: 236, 234, 227;
   --bs-secondary-bg: #302F2B; --bs-secondary-bg-rgb: 48, 47, 43;
   --bs-tertiary-bg: #272723; --bs-tertiary-bg-rgb: 39, 39, 35;
   --bs-border-color: #34342F;
@@ -1423,6 +1426,13 @@ footer {
 /* Cards written with the body-background utility would sit hollow on the page in dark mode (same tone as the page):
    they take the card tone like every other card. */
 [data-bs-theme="dark"] .card.bg-body { background-color: var(--color-surface) !important; border: 1px solid var(--color-border) !important; }
+
+/* Faded text (Bootstrap's opacity utilities on words) must still read: WCAG wants 4.5:1 for small text. Half-opacity text
+   sat at about 3:1, so words with a fade now keep at least 4.5:1; icons and other decoration keep the full fade. */
+:is(small, .small, .text-muted, span, div, p, a, label, li, td, h1, h2, h3, h4, h5, h6).opacity-50 { opacity: .8 !important; }
+:is(small, .small, .text-muted).opacity-50.text-muted, .text-muted.opacity-50 { opacity: .9 !important; }
+[data-bs-theme="dark"] :is(small, .small, .text-muted, span, div, p, a, label, li, td, h1, h2, h3, h4, h5, h6).opacity-50 { opacity: .82 !important; }
+.text-muted.opacity-75 { opacity: .9 !important; }
 
 /* Floating and list surfaces take the card tone, not the (darker) page tone */
 [data-bs-theme="dark"] .modal,

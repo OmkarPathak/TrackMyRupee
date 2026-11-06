@@ -245,33 +245,19 @@ class FamilyPagesTests(ViewFixture):
             self.assertLessEqual(len(queries), 60, name)
 
 
-class MeFamilyToggleTests(ViewFixture):
-    def test_members_get_the_switch_on_net_worth_but_not_on_the_accounts_list(self):
+class NoMeFamilySwitchOnPersonalPagesTests(ViewFixture):
+    """Net worth and Accounts are the person's own pages: no Me / Family switch on them. The family pages are reached from
+    the Family section, and link back to the personal pages."""
+
+    def test_members_get_no_switch_on_the_personal_pages(self):
         self.client.force_login(self.partner)
-        self.assertNotContains(self.client.get(reverse('account-list')), 'fam-seg')
-        networth = self.client.get(reverse('analytics-networth'))
-        self.assertContains(networth, reverse('family-networth'))
+        for name in ('account-list', 'analytics-networth'):
+            self.assertNotContains(self.client.get(reverse(name)), 'fam-seg', msg_prefix=name)
 
     def test_the_family_pages_link_back_to_the_personal_pages(self):
         self.client.force_login(self.partner)
         self.assertContains(self.client.get(reverse('family-networth')), reverse('analytics-networth'))
         self.assertContains(self.client.get(reverse('family-inventory')), reverse('account-list'))
-
-    def test_people_outside_a_family_see_no_switch(self):
-        loner = make_user('loner4')
-        self.client.force_login(loner)
-        self.assertNotContains(self.client.get(reverse('analytics-networth')), 'fam-seg')
-
-    def test_no_switch_while_the_flag_is_off(self):
-        self.client.force_login(self.partner)
-        with override_settings(FAMILY_ENABLED=False):
-            self.assertNotContains(self.client.get(reverse('analytics-networth')), 'fam-seg')
-
-    def test_the_family_side_is_disabled_while_family_view_is_paused(self):
-        end_pro(self.parent)
-        self.client.force_login(self.partner)
-        page = self.client.get(reverse('analytics-networth'))
-        self.assertContains(page, 'is-off')
 
 
 class TranslationOfFamilyPagesTests(ViewFixture):

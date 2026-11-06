@@ -21,8 +21,7 @@ a combined, read-only picture of only what was shared.
    plain values with a fixed set of fields, never model instances, so no view or template can reach a private field.
 4. **Same numbers as the owner's own screens.** Values come from the same valuation code as the owner's net worth
    (`LedgerReadService.get_net_worth(only_account_ids=...)`), so a shared amount never disagrees with the owner's page.
-5. **Family pages are separate pages.** The Me / Family toggle on Net worth is a link between an existing page and its family
-   page, not a mode inside the existing page, so no existing query changes.
+5. **Family pages are separate pages.** They are reached from the Family section, with no Me / Family switch on the personal pages, and are not a mode inside an existing page, so no existing query changes.
 
 ## What a family member can see of a shared account
 

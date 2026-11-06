@@ -1,20 +1,21 @@
-/* Analytics page (anx-*). Every colour is a token from style.css, so light and dark both follow it. */
+/* Analytics page (anx-*). Colours are tokens from style.css; the chart ochre is darkened in light mode so every chart
+   colour clears 3:1 against the card (WCAG 1.4.11). */
 .anx {
     --anx-tone-income: var(--color-success);
     --anx-tone-kept: var(--color-success);
     --anx-tone-spend: var(--color-danger);
     --anx-tone-shortfall: var(--color-danger);
     --anx-tone-cat: var(--color-danger);
-    --anx-tone-interest: var(--color-warning);
-    --anx-tone-budget: var(--color-warning);
+    --anx-tone-interest: #BF7210;
+    --anx-tone-budget: #BF7210;
     --anx-tone-invest: var(--color-info-text);
     --anx-tone-muted: var(--color-muted-text);
     --anx-tone-cat0: var(--color-success);
     --anx-tone-cat1: var(--color-info-text);
-    --anx-tone-cat2: var(--color-warning);
+    --anx-tone-cat2: #BF7210;
     --anx-tone-cat3: var(--color-danger);
     --anx-tone-cat4: var(--color-muted-text);
-    --anx-tone-g_cash: var(--color-warning);
+    --anx-tone-g_cash: #BF7210;
     --anx-tone-g_fixed: var(--color-info-text);
     --anx-tone-g_invest: var(--color-success);
     --anx-tone-g_property: var(--color-muted-text);
@@ -25,6 +26,21 @@
     position: relative;
 }
 [data-bs-theme="dark"] .anx { --anx-on-tone: #0c1510; }
+/* Chart colours on the warm charcoal. Two ideas: (1) money colours keep their meaning, in richer tones than the muted ones
+   first tried: green for income and what is growing, coral for spending and debt, gold for cash waiting to be used,
+   blue for fixed income, stone for property; (2) the category chart is categorical, so it no longer borrows those
+   meaning colours (a category called Insurance should not read as "bad" because it landed on coral): it takes blue,
+   gold, violet, green and stone in that order. Every colour stays above 5:1 against the card, except the darker stone
+   used for "Other", which is above 3.4:1. */
+[data-bs-theme="dark"] .anx {
+    --anx-tone-income: #4FB08E; --anx-tone-kept: #4FB08E; --anx-tone-g_invest: #4FB08E;
+    --anx-tone-spend: #E4806E; --anx-tone-shortfall: #E4806E; --anx-tone-cat: #E4806E; --anx-tone-g_debt: #E4806E;
+    --anx-tone-interest: #E2B04F; --anx-tone-budget: #E2B04F; --anx-tone-g_cash: #E2B04F;
+    --anx-tone-invest: #6B9BE2; --anx-tone-g_fixed: #6B9BE2;
+    --anx-tone-muted: #A09B8F; --anx-tone-g_property: #A09B8F;
+    --anx-tone-g_other: #7C7870;
+    --anx-tone-cat0: #6B9BE2; --anx-tone-cat1: #E2B04F; --anx-tone-cat2: #9C8BE3; --anx-tone-cat3: #4FB08E; --anx-tone-cat4: #A09B8F;
+}
 
 /* ---- header (same rules as the Budget page header) ---- */
 .anx-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
@@ -113,6 +129,8 @@
 .anx-split { display: flex; height: 34px; gap: 2px; border-radius: 10px; overflow: hidden; }
 .anx-split-part { display: flex; align-items: center; justify-content: center; color: var(--anx-on-tone); font-weight: 800; font-size: .8rem; text-decoration: none; min-width: 4px; }
 .anx-split-part:hover { filter: brightness(1.08); color: var(--anx-on-tone); }
+/* (the dark theme's global link colour would otherwise paint these labels mint on a mint bar) */
+[data-bs-theme="dark"] .anx .anx-split-part, [data-bs-theme="dark"] .anx .anx-split-part:hover { color: var(--anx-on-tone); }
 .anx-health { display: grid; gap: 4px; }
 .anx-health-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 8px 6px; border-radius: 10px; color: var(--bs-body-color); text-decoration: none; }
 .anx-health-row:hover, .anx-health-row:focus-visible { background: var(--bs-tertiary-bg); }

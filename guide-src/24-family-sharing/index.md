@@ -88,7 +88,7 @@ Stop sharing any account at any time. **Sharing activity** lists what you shared
 
 ## 4. The family's pages
 
-Members see a **Me / Family** switch on Net worth. The family's accounts are on **Who holds what** in the Family section.
+Members open the family's net worth and accounts from the **Family** section (**Net worth** and **Who holds what**). Your own Net worth and Accounts pages stay yours, with no switch on them.
 
 ### Family net worth
 
