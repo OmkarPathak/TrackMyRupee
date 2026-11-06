@@ -1434,6 +1434,12 @@ footer {
 [data-bs-theme="dark"] :is(small, .small, .text-muted, span, div, p, a, label, li, td, h1, h2, h3, h4, h5, h6).opacity-50 { opacity: .82 !important; }
 .text-muted.opacity-75 { opacity: .9 !important; }
 
+/* A card edge written as a very light black hairline (invisible on a dark page): the same edge, in the dark theme's own colour */
+.tmr-edge { border: 1px solid rgba(0, 0, 0, 0.07) !important; }
+[data-bs-theme="dark"] .tmr-edge, [data-bs-theme="dark"] .card.tmr-edge, [data-bs-theme="dark"] .expense-card.tmr-edge {
+  border: 1px solid var(--color-border) !important;
+}
+
 /* Floating and list surfaces take the card tone, not the (darker) page tone */
 [data-bs-theme="dark"] .modal,
 [data-bs-theme="dark"] .dropdown-menu,

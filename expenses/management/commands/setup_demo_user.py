@@ -691,7 +691,7 @@ class Command(BaseCommand):
             date=today - timedelta(days=30),
             subtype='investment_lump_sum',
             note='Lump sum into Parag Parikh Flexi Cap Fund',
-            account=acc.mf,
+            account=acc_main,
             exclude_from_averages=True,
             exclude_from_budget=True,
             include_in_net_worth=True
