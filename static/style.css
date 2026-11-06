@@ -1435,7 +1435,8 @@ footer {
 .text-muted.opacity-75 { opacity: .9 !important; }
 
 /* A card edge written as a very light black hairline (invisible on a dark page): the same edge, in the dark theme's own colour */
-.tmr-edge { border: 1px solid rgba(0, 0, 0, 0.07) !important; }
+/* (doubled so it also beats a page's own .expense-card border, as the inline style it replaces did) */
+.tmr-edge.tmr-edge { border: 1px solid rgba(0, 0, 0, 0.07) !important; }
 [data-bs-theme="dark"] .tmr-edge, [data-bs-theme="dark"] .card.tmr-edge, [data-bs-theme="dark"] .expense-card.tmr-edge {
   border: 1px solid var(--color-border) !important;
 }
