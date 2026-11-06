@@ -2870,8 +2870,9 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 }
 
 [data-bs-theme="dark"] .mobile-bottom-sheet {
-  background: rgba(30, 35, 40, 0.96) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  /* the same surface and edge as the filter tray (.tmr-popover-menu), so the two sheets match */
+  background: var(--bs-body-bg) !important;
+  border-color: var(--bs-border-color) !important;
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5), 0 4px 15px rgba(0, 0, 0, 0.3) !important;
 }
 .offcanvas-bottom.mobile-bottom-sheet:not(.show),
@@ -2999,7 +3000,7 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 }
 
 [data-bs-theme="dark"] .mobile-bottom-sheet {
-  background: rgba(30, 34, 38, 0.98) !important;
+  background: var(--bs-body-bg) !important;
   box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
 }
 
