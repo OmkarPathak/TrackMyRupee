@@ -1099,6 +1099,16 @@ html[data-bs-theme="dark"],
 [data-bs-theme="dark"] .pay-upi { background-color: rgba(var(--bs-warning-rgb), 0.15); color: var(--color-warning-text); }
 [data-bs-theme="dark"] .pay-netbanking { background-color: rgba(var(--bs-success-rgb), 0.15); color: var(--color-success-text); }
 
+/* The plan badge (Free / Plus / Pro) beside the user's name: readable on both themes, one colour per plan */
+.tmr-tier { display: inline-flex; align-items: center; justify-content: center; padding: .28rem .7rem; border-radius: 50rem;
+  font-size: .68rem; font-weight: 800; letter-spacing: .06em; line-height: 1; border: 1px solid transparent; }
+.tmr-tier--pro { background: rgba(15, 118, 87, .10); color: #0B5E46; border-color: rgba(15, 118, 87, .35); }
+.tmr-tier--plus { background: rgba(22, 90, 158, .10); color: #165A9E; border-color: rgba(22, 90, 158, .35); }
+.tmr-tier--free { background: rgba(89, 88, 85, .08); color: #595855; border-color: rgba(89, 88, 85, .30); }
+[data-bs-theme="dark"] .tmr-tier--pro { background: rgba(93, 202, 165, .14); color: #5DCAA5; border-color: rgba(93, 202, 165, .45); }
+[data-bs-theme="dark"] .tmr-tier--plus { background: rgba(133, 183, 235, .14); color: #85B7EB; border-color: rgba(133, 183, 235, .45); }
+[data-bs-theme="dark"] .tmr-tier--free { background: rgba(168, 165, 155, .12); color: #C9C6BC; border-color: rgba(168, 165, 155, .40); }
+
 /* Dashboard Soft Badges */
 .badge-soft {
   display: inline-flex;

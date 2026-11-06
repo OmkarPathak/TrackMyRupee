@@ -356,7 +356,7 @@
     </div>
     <div class="offcanvas-body p-0" style="overflow-y: auto; overflow-x: hidden;">
         <!-- User Profile Header -->
-        <div class="px-4 py-4 border-bottom bg-body-tertiary">
+        <div class="px-4 py-4 border-bottom">
             <div class="d-flex align-items-center gap-3">
                 <div class="profile-avatar rounded-circle bg-primary-subtle text-primary fw-bold border d-flex align-items-center justify-content-center shadow-sm" style="width: 52px; height: 52px; font-size: 1.1rem;">
                     {% if user.first_name and user.last_name %}
@@ -370,7 +370,7 @@
                     <small class="text-muted text-truncate d-block">{{ user.email }}</small>
                 </div>
                 <div class="ms-auto">
-                    <span class="badge rounded-pill {% if user.profile.active_tier == 'PRO' %}bg-success{% elif user.profile.active_tier == 'PLUS' %}bg-primary{% else %}bg-secondary{% endif %} bg-opacity-10 {% if user.profile.active_tier == 'PRO' %}text-success border-success{% elif user.profile.active_tier == 'PLUS' %}text-primary border-primary{% else %}text-secondary border-secondary{% endif %} border px-2 py-1 fw-bold" style="font-size: 0.65rem;">
+                    <span class="tmr-tier {% if user.profile.active_tier == 'PRO' %}tmr-tier--pro{% elif user.profile.active_tier == 'PLUS' %}tmr-tier--plus{% else %}tmr-tier--free{% endif %}">
                         {{ user.profile.active_tier_display|upper }}
                     </span>
                 </div>
