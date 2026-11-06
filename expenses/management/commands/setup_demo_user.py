@@ -719,6 +719,7 @@ class Command(BaseCommand):
         run('recurring SIP split across funds', extras.seed_sip_schedule, user, acc, today, window_start)
         run('insurance policies and premiums', extras.seed_insurance, user, acc, cat_objs, today)
         run('refunds', extras.seed_refunds, user, acc, today)
+        run('more capital events', extras.seed_more_capital_events, user, acc, today)
         run('budget history', extras.seed_budgets, user, cat_objs, today, window_start)
         run('subscriptions', extras.seed_subscriptions, user, acc, today, window_start)
         run('car and car loan', extras.seed_car, user, acc, today)

@@ -219,10 +219,10 @@
 
                 <!-- 4. Pay-1-Extra-EMI Insight Card (if present) -->
                 {% if extra_emi_savings and extra_emi_savings.months_saved > 0 %}
-                <div class="card border-0 shadow-sm rounded-4" style="background: linear-gradient(135deg, rgba(13,110,253,0.06), rgba(111,66,193,0.10));">
+                <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-2">
-                            <span class="fs-4 me-2">💡</span>
+                            <i class="bi bi-lightbulb fs-4 me-2 text-warning" aria-hidden="true"></i>
                             <h6 class="fw-bold mb-0">{% trans "Pay 1 Extra EMI/Year" %}</h6>
                         </div>
                         <p class="text-muted small mb-3">{% trans "If you pay one additional EMI every year (applied to principal), here's what you save:" %}</p>

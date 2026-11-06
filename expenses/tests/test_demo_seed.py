@@ -65,6 +65,17 @@ class DemoSeedTests(TestCase):
         accounts = set(m.Holding.objects.filter(account__user=self.user).values_list('account__account_type', flat=True))
         self.assertEqual(accounts, {'MUTUAL_FUND', 'DEMAT'})
 
+    def test_the_year_has_a_spread_of_capital_events(self):
+        events = m.CapitalEvent.objects.filter(user=self.user)
+        self.assertGreaterEqual(events.count(), 12)
+        self.assertGreaterEqual(len({e.subtype for e in events}), 6)
+
+    def test_holdings_are_backed_by_recorded_cash_so_the_page_shows_no_warning(self):
+        self.client.force_login(self.user)
+        page = self.client.get(reverse('holding-list'))
+        self.assertEqual(page.status_code, 200)
+        self.assertNotContains(page, 'more than the money recorded')
+
     def test_budgets_have_history_and_a_month_with_its_own_limit(self):
         self.assertGreaterEqual(m.BudgetLimitVersion.objects.filter(user=self.user).count(), 6)
         self.assertTrue(m.BudgetMonthOverride.objects.filter(user=self.user).exists())
@@ -82,7 +93,7 @@ class DemoSeedTests(TestCase):
     def test_the_pages_that_show_it_all_render(self):
         self.client.force_login(self.user)
         for name in ('home', 'account-list', 'income-list', 'capital-event-list', 'loan-list', 'budget', 'analytics',
-                     'analytics-networth', 'recurring-list', 'flow-landing', 'family-home', 'family-share',
+                     'analytics-networth', 'recurring-list', 'holding-list', 'flow-landing', 'family-home', 'family-share',
                      'family-preview', 'family-networth', 'family-inventory', 'family-emergency', 'notification-list'):
             self.assertEqual(self.client.get(reverse(name)).status_code, 200, name)
 

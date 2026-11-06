@@ -234,6 +234,13 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-countdown { background: rgba(212,131,26,.12); color: var(--fam-amber); border-radius: 12px; padding: .7rem .9rem; }
     [data-bs-theme="dark"] .fam-countdown { background: rgba(244,180,78,.14); }
     .fam-countdown b { display: block; font-size: 1.4rem; line-height: 1.2; }
+    /* The "someone asked for your sheet" card: room between the parts, so the question, the countdown and the two answers each read on their own */
+    .fam-request { padding: 1.5rem 1.5rem 1.6rem; display: flex; flex-direction: column; gap: .95rem; }
+    .fam-request h2 { margin: 0 !important; line-height: 1.3; }
+    .fam-request .fam-note { margin: 0; line-height: 1.55; }
+    .fam-request .fam-countdown { display: flex; flex-direction: column; gap: .4rem; padding: 1.05rem 1.2rem; }
+    .fam-request .fam-countdown .fam-row-sub { margin: 0; line-height: 1.5; }
+    .fam-request .fam-actions { gap: .7rem; margin-top: .35rem; }
     .fam-steps { display: flex; flex-direction: column; gap: .9rem; margin: .8rem 0; }
     .fam-step { display: flex; gap: .75rem; align-items: flex-start; }
     .fam-step .dot { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%; background: var(--bs-secondary-bg); display: inline-flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 700; color: var(--fam-muted); }

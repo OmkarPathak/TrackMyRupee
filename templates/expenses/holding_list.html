@@ -64,7 +64,7 @@
             <li class="d-flex justify-content-between align-items-start gap-3 py-1 {% if not forloop.last %}border-bottom{% endif %}">
                 <a href="{% url 'account-detail' row.account.uuid %}" class="text-decoration-none">{{ row.account.name }}</a>
                 {% if row.shortfall %}
-                    <span class="text-warning-emphasis text-end"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{% blocktrans with amount=row.shortfall|ind_comma:row.account.currency cur=row.account.currency %}Holdings cost {{ cur }}{{ amount }} more than the money recorded in this account. A transfer into it may be missing.{% endblocktrans %}</span>
+                    <span class="text-muted text-end tmr-ic justify-content-end"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{% blocktrans with amount=row.shortfall|ind_comma:row.account.currency cur=row.account.currency %}Holdings cost {{ cur }}{{ amount }} more than the money recorded in this account. A transfer into it may be missing.{% endblocktrans %}</span></span>
                 {% else %}
                     <span class="fw-semibold text-nowrap">{{ row.account.currency }}{{ row.uninvested|ind_comma:row.account.currency|translate_digits }}</span>
                 {% endif %}

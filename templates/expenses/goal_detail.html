@@ -8,53 +8,21 @@
 
 {% block content %}
 <div class="fade-in">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <div>
-            <nav aria-label="{% trans "breadcrumb" %}">
-                <ol class="breadcrumb mb-2">
-                    <li class="breadcrumb-item"><a href="{% url 'home' %}">{% trans "Dashboard" %}</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'goal-list' %}">{% trans "Goals" %}</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ goal.name }}</li>
-                </ol>
-            </nav>
-            <div class="d-flex align-items-center justify-content-between gap-2 mb-0 flex-wrap flex-md-nowrap">
-                <h1 class="h2 fw-bold mb-0">
-                    <span class="d-none d-md-inline">{{ goal.icon }} </span>{{ goal.name }}
-                </h1>
-                <div class="d-flex align-items-center gap-2 d-md-none ms-auto">
-                    {% if not goal.is_completed and not is_locked %}
-                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addContributionModal" aria-label="{% trans 'Add Contribution' %}" title="{% trans 'Add Contribution' %}">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
-                    {% elif is_locked %}
-                        <a href="{% url 'pricing' %}" class="btn btn-sm btn-outline-warning" aria-label="{% trans 'Upgrade to Unlock' %}" title="{% trans 'Upgrade to Unlock' %}">
-                            <i class="bi bi-unlock"></i>
-                        </a>
-                    {% endif %}
-                    <a href="{% url 'goal-edit' goal.uuid %}" class="btn btn-sm btn-outline-primary" aria-label="{% trans 'Edit Goal' %}" title="{% trans 'Edit Goal' %}">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <a href="{% url 'goal-delete' goal.uuid %}" class="btn btn-sm btn-outline-danger" aria-label="{% trans 'Delete Goal' %}" title="{% trans 'Delete Goal' %}">
-                        <i class="bi bi-trash"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="d-md-none mt-2">
-                <p class="text-muted mb-0">
-                    {% trans "Target" %}: {{ goal.currency }}{{ goal.target_amount|ind_comma:goal.currency|translate_digits }}
-                    {% if goal.target_date %}
-                        • {% trans "By" %} {{ goal.target_date|date:"d M Y" }}
-                    {% elif estimated_completion_date %}
-                        • {% trans "Estimated" %}: {{ estimated_completion_date|date:"d M Y" }}
-                    {% endif %}
-                </p>
-            </div>
-            <div class="d-none d-md-block">
+    <!-- Header: the same layout as a loan's page (back arrow, name, a status badge, one line of detail, the actions) -->
+    <div class="row align-items-center mb-4">
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center mb-2">
+                <a href="{% url 'goal-list' %}" class="btn me-3 icon-btn" aria-label="{% trans 'Back to goals' %}" title="{% trans 'Back to goals' %}">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                </a>
+                <h1 class="h3 fw-bold mb-0">{{ goal.name }}</h1>
                 {% if goal.is_completed %}
-                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill border">{% trans "Completed" %}</span>
+                    <span class="badge bg-success ms-3 rounded-pill px-3">{% trans "Completed" %}</span>
+                {% else %}
+                    <span class="badge bg-primary ms-3 rounded-pill px-3">{% trans "Savings goal" %}</span>
                 {% endif %}
             </div>
-            <p class="text-muted mb-0 d-none d-md-block">
+            <p class="text-muted ms-5 mb-0">
                 {% trans "Target" %}: {{ goal.currency }}{{ goal.target_amount|ind_comma:goal.currency|translate_digits }}
                 {% if goal.target_date %}
                     • {% trans "By" %} {{ goal.target_date|date:"d M Y" }}
@@ -63,51 +31,59 @@
                 {% endif %}
             </p>
         </div>
-        <div class="d-flex gap-2 flex-wrap goal-action-buttons d-none d-md-flex">
-            {% if not goal.is_completed and not is_locked %}
-                <button type="button" class="btn btn-outline-primary fw-bold goal-action-btn goal-action-btn-primary" data-bs-toggle="modal" data-bs-target="#addContributionModal">
-                    <i class="bi bi-plus-circle me-1"></i> {% trans "Add Contribution" %}
-                </button>
-            {% elif is_locked %}
-                <a href="{% url 'pricing' %}" class="btn btn-outline-warning fw-bold goal-action-btn goal-action-btn-primary">
-                    <i class="bi bi-unlock me-1"></i> {% trans "Upgrade to Unlock" %}
+        <div class="col-lg-5 mt-3 mt-lg-0">
+            <div class="d-flex gap-2 flex-wrap justify-content-lg-end">
+                {% if not goal.is_completed and not is_locked %}
+                    <button type="button" class="btn btn-action-primary d-inline-flex align-items-center justify-content-center gap-2 text-nowrap tmr-ic" data-bs-toggle="modal" data-bs-target="#addContributionModal">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans "Add Contribution" %}
+                    </button>
+                {% elif is_locked %}
+                    <a href="{% url 'pricing' %}" class="btn btn-action-primary d-inline-flex align-items-center justify-content-center gap-2 text-nowrap tmr-ic">
+                        <i class="bi bi-unlock" aria-hidden="true"></i> {% trans "Upgrade to Unlock" %}
+                    </a>
+                {% endif %}
+                <a href="{% url 'goal-edit' goal.uuid %}" class="btn btn-action-cancel d-inline-flex align-items-center justify-content-center gap-2 text-nowrap tmr-ic">
+                    <i class="bi bi-pencil" aria-hidden="true"></i> {% trans "Edit Goal" %}
                 </a>
-            {% endif %}
-            <a href="{% url 'goal-edit' goal.uuid %}" class="btn btn-primary fw-bold goal-action-btn">
-                <i class="bi bi-pencil me-1"></i> {% trans "Edit Goal" %}
-            </a>
-            <a href="{% url 'goal-delete' goal.uuid %}" class="btn btn-outline-danger fw-bold goal-action-btn">
-                <i class="bi bi-trash me-1"></i> {% trans "Delete Goal" %}
-            </a>
+                <a href="{% url 'goal-delete' goal.uuid %}" class="btn btn-action-danger d-inline-flex align-items-center justify-content-center gap-2 text-nowrap tmr-ic">
+                    <i class="bi bi-trash" aria-hidden="true"></i> {% trans "Delete Goal" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top stats: one small card per figure, like the loan page -->
+    <div class="row g-3 mb-3 mb-md-4">
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-3">
+                <p class="text-muted small mb-1">{% trans "Saved" %}</p>
+                <h4 class="fw-bold mb-0 text-success">{{ goal.currency }}{{ goal.current_amount|ind_comma:goal.currency|translate_digits }}</h4>
+            </div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-3">
+                <p class="text-muted small mb-1">{% trans "Remaining" %}</p>
+                <h4 class="fw-bold mb-0 text-warning">{{ goal.currency }}{{ remaining_amount|ind_comma:goal.currency|translate_digits }}</h4>
+            </div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-3">
+                <p class="text-muted small mb-1">{% trans "Progress" %}</p>
+                <h4 class="fw-bold mb-0">{{ goal.progress_percentage|translate_digits }}%</h4>
+            </div></div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100"><div class="card-body p-3">
+                <p class="text-muted small mb-1">{% trans "Avg Daily" %}</p>
+                <h4 class="fw-bold mb-0">{% if avg_daily_contribution and avg_daily_contribution > 0 %}{{ goal.currency }}{{ avg_daily_contribution|ind_comma:goal.currency|translate_digits }}{% else %}-{% endif %}</h4>
+            </div></div>
         </div>
     </div>
 
     <div class="row g-3 mb-3 mb-md-4">
         <div class="col-12 col-lg-4">
-            <div class="card shadow-sm border-0 rounded-4 p-4 h-100 bg-primary bg-opacity-10">
-                <div class="text-muted small text-uppercase fw-bold mb-3" style="letter-spacing: 1px;">{% trans "Goal Summary" %}</div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted">{% trans "Saved" %}</span>
-                    <span class="fw-bold text-primary summary-amount-smaller">{{ goal.currency }}{{ goal.current_amount|ind_comma:goal.currency|translate_digits }}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted">{% trans "Remaining" %}</span>
-                    <span class="fw-bold text-warning-emphasis summary-amount-smaller">{{ goal.currency }}{{ remaining_amount|ind_comma:goal.currency|translate_digits }}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted">{% trans "Progress" %}</span>
-                    <span class="fw-bold">{{ goal.progress_percentage|translate_digits }}%</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center {% if needed_per_month is not None %}mb-2{% else %}mb-3{% endif %}">
-                    <span class="text-muted">{% trans "Avg Daily" %}</span>
-                    <span class="fw-bold summary-amount summary-amount-smaller">
-                        {% if avg_daily_contribution and avg_daily_contribution > 0 %}
-                            {{ goal.currency }}{{ avg_daily_contribution|ind_comma:goal.currency|translate_digits }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </span>
-                </div>
+            <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
+                <div class="text-muted small text-uppercase fw-bold mb-3" style="letter-spacing: 1px;">{% trans "Pace" %}</div>
                 {% if needed_per_month is not None %}
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted">{% trans "Needed/month to hit target" %}</span>
@@ -119,7 +95,7 @@
                     </span>
                 </div>
                 {% endif %}
-                <div class="progress shadow-sm bg-white mb-2" style="height: 14px; border-radius: 7px;">
+                <div class="progress mb-2" style="height: 12px; border-radius: 6px;">
                     <div class="progress-bar bg-success goal-progress-bar" role="progressbar" data-progress="{{ goal.progress_percentage }}" aria-label="{{ goal.name }}" aria-valuenow="{{ goal.progress_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
                 <p class="small text-muted mb-0">
@@ -167,8 +143,8 @@
                 <div class="fw-bold mb-1">{% trans "Goal Locked" %}</div>
                 <p class="mb-0 small">{% trans "This goal exceeds your current plan's limit. Upgrade to resume adding funds." %}</p>
             </div>
-            <a href="{% url 'pricing' %}" class="btn btn-warning fw-bold">
-                <i class="bi bi-arrow-up-circle-fill me-1"></i> {% trans "Upgrade Now" %}
+            <a href="{% url 'pricing' %}" class="btn btn-action-primary d-inline-flex align-items-center justify-content-center gap-2 text-nowrap tmr-ic">
+                <i class="bi bi-arrow-up-circle-fill"></i> {% trans "Upgrade Now" %}
             </a>
         </div>
     </div>
@@ -435,6 +411,7 @@
 </div>
 
 <style>
+.icon-btn { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
 .empty-state-container svg {
     max-width: 160px;
     max-height: 140px;

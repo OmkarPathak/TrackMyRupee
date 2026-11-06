@@ -23835,3 +23835,6 @@ msgstr "सभी खोलें"
 
 msgid "Collapse all"
 msgstr "सभी बंद करें"
+
+msgid "Back to goals"
+msgstr "लक्ष्यों पर वापस"

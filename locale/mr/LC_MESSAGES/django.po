@@ -23898,3 +23898,6 @@ msgstr "सर्व उघडा"
 
 msgid "Collapse all"
 msgstr "सर्व बंद करा"
+
+msgid "Back to goals"
+msgstr "उद्दिष्टांकडे परत"

@@ -202,7 +202,7 @@ def seed_holdings(user, acc, today: date, window_start: date, sips: list[Transfe
     from expenses import holdings_service as hs
 
     accounts = {'mf': acc.mf, 'demat': acc.demat}
-    created = {}
+    created, opening_cost = {}, {}
     for key, name, kind, units, avg, nav, ids in HOLDINGS:
         account = accounts[key]
         lots = []                                           # (date, units, price, transfer)
@@ -219,6 +219,7 @@ def seed_holdings(user, acc, today: date, window_start: date, sips: list[Transfe
         opening_price = ((units * avg - spent) / opening_units).quantize(D('0.0001')) if opening_units > 0 else avg
         holding = hs.create_holding(account, name=name, units=opening_units, price=opening_price,
                                     date=window_start - timedelta(days=200), **ids)
+        opening_cost[account.pk] = opening_cost.get(account.pk, D('0')) + (opening_units * opening_price)
         for when, u, price, transfer in lots:
             hs.add_purchase(holding, date=when, units=u, price=price, transfer=transfer, note='SIP' if transfer in sips else '')
         created[name] = (holding, nav)
@@ -228,6 +229,12 @@ def seed_holdings(user, acc, today: date, window_start: date, sips: list[Transfe
         past_nav = (nav * D('0.94')).quantize(D('0.000001'))
         m.Valuation.objects.create(holding=holding, value=(holding.units * past_nav).quantize(D('0.01')),
                                    as_of_date=today - timedelta(days=30), unit_nav=past_nav, source='demo_seed')
+    # The money behind the opening positions: without it the Holdings page warns that holdings cost more than the cash
+    # recorded in the account. The SIP instalments and the lump sum are funded by their own transfers.
+    for account in accounts.values():
+        cost = opening_cost.get(account.pk)
+        if cost:
+            _opening(user, account, (cost + D('5000')).quantize(D('1')), window_start - timedelta(days=201), 'Opening Balance')
     # a part-sale of Infosys: 10 shares at a higher price than the average cost
     infosys, nav = created['Infosys Ltd']
     hs.add_sale(infosys, date=today - timedelta(days=45), units=D('10'), price=(nav * D('0.97')).quantize(D('0.01')),
@@ -316,6 +323,28 @@ def seed_refunds(user, acc, today: date) -> None:
         Income.objects.create(user=user, source=REFUND, source_type=REFUND, amount=D(str(amount)), date=today - timedelta(days=ago),
                               description=f'{who} paid their share of the Kerala trip', account=acc.main,
                               refund_for_capital_event=event)
+
+
+# ── more capital events: the big one-off money moves of a year ───────────────────────────────────────────────────────
+
+def seed_more_capital_events(user, acc, today: date) -> None:
+    rows = (
+        ('large_purchase', 68000, 140, acc.cc_amazon, 'Washing machine and refrigerator', True, False),
+        ('gift_given', 21000, 100, acc.main, 'Cousin\'s wedding gift', True, False),
+        ('medical_lump_sum', 32000, 35, acc.savings, 'Dental treatment (root canal and crowns)', True, False),
+        ('other', 24000, 170, acc.main, 'Society maintenance and sinking fund, annual', True, False),
+        ('large_purchase', 42000, 22, acc.cc_regalia, 'Standing desk and monitor for the home office', True, False),
+        ('gift_received', 25000, 12, acc.main, 'Diwali gift from the company', False, True),
+    )
+    # the card bills for the two big card purchases were paid, so the demo's cards do not pile up debt
+    Transfer.objects.create(user=user, from_account=acc.main, to_account=acc.cc_amazon, amount=D('68000.00'),
+                            date=today - timedelta(days=118), description='ICICI Amazon Pay card bill (appliances)')
+    Transfer.objects.create(user=user, from_account=acc.main, to_account=acc.cc_regalia, amount=D('42000.00'),
+                            date=today - timedelta(days=8), description='HDFC Regalia card bill (home office)')
+    for subtype, amount, ago, account, note, exclude_averages, in_net_worth in rows:
+        CapitalEvent.objects.create(
+            user=user, amount=D(str(amount)), date=today - timedelta(days=ago), subtype=subtype, note=note, account=account,
+            exclude_from_averages=exclude_averages, exclude_from_budget=True, include_in_net_worth=in_net_worth)
 
 
 # ── budgets that changed over time ────────────────────────────────────────────────────────────────────────────────────

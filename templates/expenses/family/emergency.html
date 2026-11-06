@@ -140,7 +140,7 @@
 
 <aside class="fam-stack">
     {% for p in pending %}
-    <section class="card fam-card" aria-labelledby="fam-rq-{{ forloop.counter }}">
+    <section class="card fam-card fam-request" aria-labelledby="fam-rq-{{ forloop.counter }}">
         <span class="badge badge-soft-warning align-self-start">{% trans "Needs your answer" %}</span>
         <h2 id="fam-rq-{{ forloop.counter }}" class="mt-2">{% blocktrans with name=p.name %}{{ name }} asked for your emergency sheet{% endblocktrans %}</h2>
         <p class="fam-note">{% blocktrans trimmed with when=p.request.created_at|date:"j M, H:i" %}Asked on {{ when }}.{% endblocktrans %}</p>
