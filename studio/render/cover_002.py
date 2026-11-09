@@ -10,12 +10,12 @@ def build():
     W, H = 1080, 1920
     c = Canvas(W, H, bg=C["paper"])
     c.logo(90, 330, 56, True, word_color=C["ink900"], word_size=30)
-    c.text(90, 540, "Your salary went up.", "pjxb", 80, C["ink900"])
-    c.text(90, 650, "Are you actually", "pjxb", 100, C["coral400"]); c.text(90, 760, "richer?", "pjxb", 100, C["coral400"])
-    for k, (y, lab, val, col) in enumerate(((880, "Salary", "+₹10,000", C["teal400"]), (1030, "Net worth", "?", C["coral400"]))):
-        c.card(90, y, 900, 124, 30); c.check(150, y + 62, 24, C["teal200"] if k == 0 else C["coral200"])
-        c.text(200, y + 78, lab, "pjxb", 42, rgb(C["ink900"])); c.text(950, y + (84 if k == 0 else 90), val, "pjxb", 46 if k == 0 else 72, rgb(col), "r")
-    mascot.draw(c, 840, 1520, 250, t=0.8, mood="wide", pal=mascot.LIGHT, mouth=("C", 0.5), mstyle=mascot.NARRATOR_MSTYLE)
+    c.text(90, 540, "Same salary.", "pjxb", 92, C["ink900"]); c.text(90, 650, "5 years later.", "pjxb", 92, C["coral400"]); c.text(90, 775, "Why?", "pjxb", 118, C["ink900"])
+    base, sc = 1480, 420 / 1400000
+    for val, x0, col, lab in ((1400000, 150, C["teal400"], "Riya"), (400000, 560, C["coral200"], "Aman")):
+        h = val * sc; c.rrect(x0, base - h, 330, h, 30, fill=rgb(col)); c.text(x0 + 165, base + 52, lab, "pjxb", 34, rgb(C["ink900"]), "m")
+    c.rrect(90, 1560, 372, 58, 29, fill=rgb(C["teal50"])); c.text(90 + 186, 1597, "ILLUSTRATIVE EXAMPLE", "pjsb", 22, rgb(C["teal800"]), "m", 2)
+    mascot.draw(c, 900, 700, 190, t=0.8, mood="wide", pal=mascot.LIGHT, mouth=("C", 0.5), mstyle=mascot.NARRATOR_MSTYLE)
     return c.done()
 
 

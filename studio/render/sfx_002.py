@@ -13,7 +13,8 @@ def build():
     def put(x, at, g=1.0):
         i = max(0, int(at * SR)); out[i:i + len(x)] += x[:len(out) - i] * g
     put(ding(), 0.05, .8); put(pop(360), 0.1, .4)
-    put(pop(520), B(0, "Your salary") + 0.5, .4); put(pop(420), B(0, "Your salary") + 1.25, .5); put(thud(), B(0, "Your salary") + 1.6, .45)
+    put(pop(520), B(0, "Same salary") + 0.2, .4); put(pop(430), B(0, "Same salary") + 0.4, .4)
+    put(whoosh(.9), B(0, "Five years", .1), .35); put(thud(), B(0, "ten lakh", .1), .6); put(pop(640), B(0, "Why?", .1), .5)
     for i, ph in enumerate(("everything you own", "minus everything", "One number")):
         put(tick(700 + 120 * i), B(1, ph) - 0.15, .5)
     put(thud(), B(1, "One number") - 0.1, .5)

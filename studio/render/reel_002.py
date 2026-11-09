@@ -48,13 +48,13 @@ def draw_mascot(c, t, n):
     if t < 0.5:
         sz *= max(0.01, min(1.06, q(prog(t, 0.05, 0.4)) * 1.03))
     mood = "talk"
-    if T.beat(0, "But are") - 0.1 <= t < S[0][1] or S[4][0] <= t < S[5][0]:
+    if T.beat(0, "Why?") - 0.1 <= t < S[0][1] or S[4][0] <= t < S[5][0]:
         mood = "wide"
     if t >= S[7][0] + 0.3:
         mood = "happy" if cu["shape"] == "X" else "talk"
     rot = math.sin(t * 2.1) * 1.6 + en * 2.2 * math.sin(t * 9)
-    if T.beat(0, "But are") <= t < S[0][1]:
-        rot = math.sin((t - T.beat(0, "But are")) * 7) * 5                # shrug
+    if T.beat(0, "Why?") <= t < S[0][1]:
+        rot = math.sin((t - T.beat(0, "Why?")) * 7) * 5                # shrug
     blink = 1.0 if (t % 3.3) < 0.12 else 0.0
     squash = 0.05 * en
     mascot.draw(c, cx, yb, sz, t=t, mood=mood, rot=rot, squash=squash, pal=mascot.LIGHT, wiggle=0.6,
@@ -70,25 +70,38 @@ def hdr(c, t, a0, line1, line2=None, size=80, col2="coral400", e=1.0, y1=330, y2
 
 
 def scene1(c, t):
-    a0, b0 = S[0]; e = env(t, a0, b0, 0.2, 0.25)
-    hdr(c, t, a0 + 0.05, "Your salary went up.", "Are you actually richer?", 72, e=e)
-    for k, (y, lab, val, col) in enumerate(((640, "Salary", "+₹10,000", C["teal400"]), (800, "Net worth", "?", C["coral400"]))):
-        ca = T.beat(0, "Your salary") + 0.5 + k * 0.75
-        ce = env(t, ca, b0, 0.3, 0.25) * e
-        if ce <= 0.01:
-            continue
-        y0 = y + (1 - q(prog(t, ca, 0.4))) * 26
-        c.card(LM, y0, W - 2 * LM, 124, 30, alpha=ce)
-        c.check(LM + 60, y0 + 62, 24, C["teal200"] if k == 0 else C["coral200"], ce)
-        txt(c, LM + 110, y0 + 78, lab, "pjxb", 42, C["ink900"], ce)
-        sz = 46 if k == 0 else int(72 * (1 + 0.25 * (1 - q(prog(t, ca + 0.45, 0.35)))))
-        txt(c, W - LM - 44, y0 + (84 if k == 0 else 92), val, "pjxb", sz, col, ce * (1 if k == 0 else q(prog(t, ca + 0.4, 0.3))), "r")
+    """HOOK A: same salary, very different net worth (illustrative)."""
+    a0, b0 = S[0]; e = env(t, a0, b0, 0.15, 0.25)
+    ts, tf, tw = T.beat(0, "Same salary") - 0.05, T.beat(0, "Five years", 0.1), T.beat(0, "Why?", 0.1)
+    a, dy = rise(t, ts); txt(c, LM, 330 + dy, "Same salary.", "pjxb", 84, C["ink900"], a * e)
+    a, dy = rise(t, tf); txt(c, LM, 430 + dy, "5 years later.", "pjxb", 84, C["coral400"], a * e)
+    a, dy = rise(t, tw, 0.3); txt(c, LM, 540 + dy, "Why?", "pjxb", int(110 * (1 + .2 * (1 - q(prog(t, tw + .1, .3))))), C["ink900"], a * e)
+    for k, nm in enumerate(("Riya", "Aman")):
+        x0 = LM if k == 0 else W / 2 + 14
+        ca = q(prog(t, ts + 0.25 + k * 0.15, 0.4)) * e
+        if ca > 0.01:
+            y0 = 640 + (1 - q(prog(t, ts + 0.25 + k * 0.15, 0.4))) * 24
+            c.card(x0, y0, W / 2 - LM - 14, 132, 28, alpha=ca)
+            c.ellipse(x0 + 56, y0 + 66, 34, fill=rgb(C["teal200"] if k == 0 else C["blue200"], ca)); txt(c, x0 + 56, y0 + 80, nm[0], "pjxb", 38, "#FFFFFF", ca, "m")
+            txt(c, x0 + 108, y0 + 62, nm, "pjxb", 34, C["ink900"], ca); txt(c, x0 + 108, y0 + 104, "₹80,000/month", "pjsb", 26, C["grey"], ca)
+    base, sc = 1290, 380 / 1400000
+    for k, (val, x0, col, lab) in enumerate(((1400000, 200, C["teal400"], "Riya"), (400000, 600, C["coral200"], "Aman"))):
+        g = q(prog(t, tf + 0.3 + k * 0.15, 1.0)) * e
+        if g > 0.01:
+            h = val * sc * q(prog(t, tf + 0.3 + k * 0.15, 1.0))
+            c.rrect(x0, base - h, 280, h, 28, fill=rgb(col, e)); txt(c, x0 + 140, base + 50, lab, "pjxb", 32, C["ink900"], g, "m")
+            if prog(t, tf + 1.1, 0.3) > 0:
+                txt(c, x0 + 140, base - h - 18, fmt_inr(val), "pjxb", 44, C["ink900"], q(prog(t, tf + 1.1, 0.3)) * e, "m")
+    gp = q(prog(t, T.beat(0, "ten lakh") - 0.1, 0.4)) * e
+    if gp > 0.01:
+        pill(c, W / 2, 814, "₹10,00,000 gap", "#FFFFFF", C["coral400"], 30, gp)
+    pill(c, W / 2, 1600, "ILLUSTRATIVE EXAMPLE", C["teal800"], C["teal50"], 24, q(prog(t, ts + 0.3, 0.4)) * e)
 
 
 def scene2(c, t):
     a0, b0 = S[1]; e = env(t, a0, b0, 0.25, 0.25)
-    hdr(c, t, a0 + 0.05, "Net worth", None, 94, e=e)
-    a, dy = rise(t, a0 + 0.35); txt(c, LM, 405 + dy, "One number.", "pjsb", 38, C["coral400"], a * e)
+    a, dy = rise(t, T.beat(1, "Because") - 0.05); txt(c, LM, 330 + dy, "Salary isn't the score.", "pjxb", 62, C["ink900"], a * e)
+    a, dy = rise(t, T.beat(1, "Net worth is") - 0.05); txt(c, LM, 430 + dy, "Net worth is.", "pjxb", 90, C["coral400"], a * e)
     base, bw = 1190, 250
     spec = [(90, OWN, "What you own", C["teal200"], T.beat(1, "everything you own") - 0.15),
             (415, OWE, "What you owe", C["coral200"], T.beat(1, "minus everything") - 0.1),

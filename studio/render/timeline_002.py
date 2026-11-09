@@ -6,7 +6,7 @@ sys.path.insert(0, str(ROOT))
 from packages.reel_002 import PACKAGE
 
 VO_DIR = ROOT / "assets" / "vo" / "reel_002"
-MIN_WIN = [3.6, 4.8, 7.4, 6.2, 3.2, 5.4, 9.8, 5.2]
+MIN_WIN = [4.0, 6.0, 6.8, 6.0, 3.2, 5.4, 9.8, 5.2]
 BUFFER = 0.55
 VO_OFFSET = 0.1
 VO_TEXT = [s["vo_en"] for s in PACKAGE["scenes"]]
