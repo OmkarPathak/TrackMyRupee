@@ -1,0 +1,18 @@
+{
+ "A": {
+  "text": "Same salary. Five years later, one friend is worth ten lakh more. Why? Because salary isn't the score. Net worth is.",
+  "dur": 7.381333333333333
+ },
+ "B": {
+  "text": "Quick test. What's your net worth? You've got three seconds. Time's up. If you hesitated, this one's for you.",
+  "seg1": "Quick test. What's your net worth? You've got three seconds.",
+  "seg2": "Time's up. If you hesitated, this one's for you.",
+  "dur": 8.768,
+  "seg1_end": 2.9226666666666667,
+  "seg2_start": 6.1226666666666665
+ },
+ "C": {
+  "text": "I'm a piggy bank, and I know exactly what's inside me: five thousand rupees. But do you know what you're worth?",
+  "dur": 5.930666666666666
+ }
+}
