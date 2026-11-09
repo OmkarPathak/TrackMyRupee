@@ -359,23 +359,12 @@ def metrics_view(req, mid=None):
         store.write("metrics", [m for m in ms if m["id"] != mid]); return JsonResponse({"ok": True})
     if req.method == "POST":
         d = body(req); idea(d.get("content_id", ""))
-        row = {"id": uuid.uuid4().hex[:8], "content_id": d["content_id"], "published_date": d.get("published_date", ""), "hook_style": d.get("hook_style", "")}
-        for k in analytics.FIELDS:
-            try:
-                v = float(d.get(k) or 0)
-            except (TypeError, ValueError):
-                raise ValueError(f"{k} must be a number")
-            if v < 0:
-                raise ValueError(f"{k} cannot be negative")
-            row[k] = v
-        if row["reach"] <= 0:
-            raise ValueError("Reach must be greater than 0 to compute rates")
-        for a, b in (("link_clicks", "profile_visits"), ):
-            pass
+        row = {"id": uuid.uuid4().hex[:8], **analytics.normalize(d)}
         ms.append(row); store.write("metrics", ms)
     ideas = store.read("ideas")
+    idx = {i["id"]: i for i in ideas}
     for m in ms:
-        m["rates"] = analytics.rates(m)
+        m["rates"] = analytics.rates(m, analytics.duration_s(idx.get(m["content_id"], {})))
     cmp = analytics.compare(ms, ideas)
     return JsonResponse({"entries": ms, "compare": cmp, "suggestions": analytics.suggestions(ms, cmp)})
 
