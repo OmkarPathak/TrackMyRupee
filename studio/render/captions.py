@@ -53,21 +53,22 @@ def chunks(text, key, size=40):
     return out
 
 
-def compose(video, audio, scenes, lang, out, workdir):
+def compose(video, audio, scenes, lang, out, workdir, starts=None, ends=None, dur=None, prefix="cap"):
+    STARTS_, ENDS_, DUR_ = (starts or STARTS), (ends or ENDS), (dur or DUR)
     key, field = KEY[lang]; workdir = Path(workdir); workdir.mkdir(parents=True, exist_ok=True)
     items = []   # (png, start, end)
     for i, s in enumerate(scenes):
         parts = chunks(s[field], key)
-        a, b = STARTS[i], ENDS[i]
+        a, b = STARTS_[i], ENDS_[i]
         tot = sum(len(p) for p in parts) or 1
         t = a
         for j, part in enumerate(parts):
             d = (b - a) * len(part) / tot
-            p = workdir / f"cap_{lang}_{i+1:02d}_{j+1}.png"; pill_png(part, key, p)
+            p = workdir / f"{prefix}_{lang}_{i+1:02d}_{j+1}.png"; pill_png(part, key, p)
             items.append((p, t, t + d)); t += d
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-i", str(video)]
     for p, _, _ in items:
-        cmd += ["-loop", "1", "-framerate", "60", "-t", str(DUR), "-i", str(p)]
+        cmd += ["-loop", "1", "-framerate", "60", "-t", str(DUR_), "-i", str(p)]
     cmd += ["-i", str(audio)]
     fc, last = [], "0:v"
     for i, (_, a, b) in enumerate(items):

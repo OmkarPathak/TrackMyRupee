@@ -50,8 +50,13 @@ def run(pkg):
             pct = round(100 * mys[0]["amount"] / b["salary"])
             ok = f"{pct}%" in txt
             add("4b. Stated percentage matches", "pass" if ok else "warn", f"computed {pct}%")
-    else:
+    elif not pkg.get("illustrative_networth"):
         add("4. Numbers are mathematically correct", "warn", "No structured budget to verify — check by hand")
+
+    nw = pkg.get("illustrative_networth")
+    if nw:
+        a = sum(x["amount"] for x in nw["assets"]); l = sum(x["amount"] for x in nw["liabilities"])
+        add("4. Numbers are mathematically correct", "pass" if a - l == nw["net_worth"] else "fail", f"assets ₹{a:,} − liabilities ₹{l:,} = ₹{a-l:,} (stated ₹{nw['net_worth']:,})")
 
     hits = []
     for pat, why in BANNED:
@@ -77,7 +82,7 @@ def run(pkg):
 
     flags = set(m.group(0).lower() for m in re.finditer(FACT_WORDS, txt, re.I)) | set(pkg.get("fact_check_flags", []))
     add("Fact-check before publishing", "warn" if flags else "pass", ("Verify: " + ", ".join(sorted(flags))) if flags else "No changing financial/regulatory facts used")
-    add("8. Visual matches brand", "pass", "Rendered with TrackMyRupee tokens, real logo, Instrument Serif + DM Sans (manual visual check still required)")
+    add("8. Visual matches brand", "pass", "Rendered with TrackMyRupee tokens, real logo, Plus Jakarta Sans (manual visual check still required)")
     add("6. Language natural", "warn", "Automated check not possible — read the VO aloud once")
     return res
 

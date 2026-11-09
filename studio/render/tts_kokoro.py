@@ -17,7 +17,7 @@ import re
 
 def spoken(t):
     """Spell out initialisms the TTS would otherwise read as words (EMI -> 'Emmy')."""
-    for a, b in ((r'\bEMIs?\b', 'E M I'), (r'\bSIPs?\b', 'S I P'), (r'\bOTT\b', 'O T T'), (r'\bUPI\b', 'U P I'), (r'\b(\d+|nine) ?pm\b', 'nine P M'), (r'\bPM\b', 'P M')):
+    for a, b in ((r'\bEMIs?\b', 'E M I'), (r'\bFDs\b', 'F Ds'), (r'\bFD\b', 'F D'), (r'\bEPF\b', 'E P F'), (r'\bPPF\b', 'P P F'), (r'\bNPS\b', 'N P S'), (r'\bSMS\b', 'S M S'), (r'\bETFs?\b', 'E T F'), (r'\bSIPs?\b', 'S I P'), (r'\bOTT\b', 'O T T'), (r'\bUPI\b', 'U P I'), (r'\b(\d+|nine) ?pm\b', 'nine P M'), (r'\bPM\b', 'P M')):
         t = re.sub(a, b, t)
     return t
 

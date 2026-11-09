@@ -22,14 +22,23 @@ def srt(pkg, key="vo_en"):
     return "\n".join(out)
 
 
+def _illustrative(pkg):
+    if pkg.get("illustrative_budget"):
+        return "## Illustrative budget (labelled on screen)\n" + "".join(f"- {g['name']}: ₹{g['amount']:,}\n" for g in pkg["illustrative_budget"]["groups"])
+    n = pkg.get("illustrative_networth")
+    if n:
+        return ("## Illustrative net worth (labelled on screen)\n" + "".join(f"- {a['name']}: ₹{a['amount']:,}\n" for a in n["assets"]) +
+                "".join(f"- {a['name']}: −₹{a['amount']:,}\n" for a in n["liabilities"]) + f"- **Net worth: ₹{n['net_worth']:,}**\n")
+    return ""
+
+
 def build_files(pkg):
     """Return {filename: text} for a Reel package."""
     st, pub = pkg["strategy"], pkg["publishing"]
     f = {}
     f["script.md"] = f"# {pkg['title']}\n\n## Strategy\n" + "".join(f"- **{k.replace('_', ' ').title()}:** {v}\n" for k, v in st.items()) + \
         "\n## Hooks\n" + "".join(f"{i+1}. {h}{'  ← selected' if i == pkg['hooks']['selected'] else ''}\n" for i, h in enumerate(pkg["hooks"]["options"])) + \
-        f"\n_{pkg['hooks'].get('note','')}_\n\n## Illustrative budget (labelled on screen)\n" + \
-        "".join(f"- {g['name']}: ₹{g['amount']:,}\n" for g in pkg["illustrative_budget"]["groups"]) + \
+        f"\n_{pkg['hooks'].get('note','')}_\n\n" + _illustrative(pkg) + \
         "\n## Scene script\n" + "".join(f"\n### Scene {s['n']} · {s['t']}s · {s['name']}\n- **On-screen:** {s['on_screen']}\n- **VO (EN):** {s['vo_en']}\n- **SFX:** {s['sfx']}\n- **Transition:** {s['transition']}\n" for s in pkg["scenes"]) + \
         f"\n## Music\n{pkg['music']['direction']}\n\n{pkg['music']['structure']}\n\n_{pkg['music']['licensing']}_\n\n## CTA\n{pub['cta']}\n"
     f["storyboard.md"] = f"# Storyboard — {pkg['title']}\n" + "".join(

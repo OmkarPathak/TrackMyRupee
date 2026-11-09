@@ -25,7 +25,8 @@ def read_wav(path):
     return d.reshape(-1, 2).mean(1) if d.size % 2 == 0 else d
 
 
-def mix(sfx_wav, vo_dir, out_wav):
+def mix(sfx_wav, vo_dir, out_wav, starts=None, ends=None, vo_only_wav=None):
+    STARTS_, ENDS_ = (starts or STARTS), (ends or ENDS)
     sfx = read_wav(sfx_wav); n = len(sfx)
     vo = np.zeros(n); used = False; warns = []
     vo_dir = Path(vo_dir)
@@ -33,15 +34,19 @@ def mix(sfx_wav, vo_dir, out_wav):
     if full:
         x = load(full); vo[:min(n, len(x))] += x[:n]; used = True
     else:
-        for i in range(len(STARTS)):
+        for i in range(len(STARTS_)):
             f = next(iter(sorted(vo_dir.glob(f"scene_{i+1:02d}.*"))), None)
             if not f:
                 continue
             x = load(f); used = True
-            at = int(STARTS[i] * SR); vo[at:at + len(x)] += x[:n - at]
+            at = int(STARTS_[i] * SR); vo[at:at + len(x)] += x[:n - at]
             dur = len(x) / SR
-            if STARTS[i] + dur > ENDS[i] + 0.15:
-                warns.append(f"scene {i+1}: clip {dur:.2f}s overruns window by {STARTS[i] + dur - ENDS[i]:.2f}s")
+            if STARTS_[i] + dur > ENDS_[i] + 0.15:
+                warns.append(f"scene {i+1}: clip {dur:.2f}s overruns window by {STARTS_[i] + dur - ENDS_[i]:.2f}s")
+    if vo_only_wav is not None:
+        v2 = vo / (np.abs(vo).max() or 1) * 0.9
+        with wave.open(str(vo_only_wav), "wb") as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes((v2 * 32767).astype("<i2").tobytes())
     peak = np.abs(vo).max() or 1
     vo = vo / peak * 0.9 if used else vo
     env = np.convolve(np.abs(vo), np.ones(int(0.12 * SR)) / int(0.12 * SR), "same")
