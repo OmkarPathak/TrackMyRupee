@@ -17,7 +17,7 @@ from ..filters import RECURRING_FILTERS, apply_filter_config
 from ..forms import RecurringTransactionForm
 from ..models import RecurringTransaction
 from ..posthog_utils import ph_capture
-from ..recurring_utils import calculate_recurring_equivalents
+from ..recurring_utils import FIXED_COST_TYPES, calculate_recurring_equivalents
 from finance_tracker.plans import get_limit
 from .mixins import (
     HtmxPartialTemplateMixin,
@@ -77,12 +77,12 @@ class RecurringTransactionListView(HtmxPartialTemplateMixin, LoginRequiredMixin,
             
         cancelled_subs = [t for t in all_transactions if not t.is_active]
         
-        # Calculate Totals (Monthly & Yearly) - exclude transfers since they aren't costs
+        # Calculate Totals (Monthly & Yearly): only running costs, the same set the "fixed costs" insight uses
         total_monthly = 0
         total_yearly = 0
         
         for sub in active_subs:
-            if sub.transaction_type in COST_TYPES_EXCLUDED:
+            if sub.transaction_type not in FIXED_COST_TYPES:
                 continue
             total_monthly += sub.monthly_equivalent
             total_yearly += sub.yearly_equivalent

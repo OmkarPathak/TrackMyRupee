@@ -4,6 +4,11 @@ from decimal import Decimal
 from typing import Tuple, Union
 
 
+# The recurring payments that are running costs. The Subscriptions page totals and the "fixed costs" insight both use
+# this one definition, so they always agree (a recurring capital event, transfer or income is not a fixed cost).
+FIXED_COST_TYPES = ('EXPENSE', 'INSURANCE_PREMIUM', 'LOAN')
+
+
 def calculate_recurring_equivalents(
     frequency: str,
     amount: Union[Decimal, float, int]

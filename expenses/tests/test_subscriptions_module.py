@@ -831,6 +831,16 @@ class TestSubscriptionList(SubBase):
         self.assertEqual(ctx['total_yearly_cost'], D('2400'))          # 1200 + 1200
         self.assertEqual(ctx['total_daily_cost'], D('2400') / 365)
 
+    def test_a_recurring_capital_event_is_not_a_running_cost_and_the_totals_match_the_fixed_costs_insight(self):
+        from expenses.insights.rules.recurring import FIXED_TYPES
+        from expenses.recurring_utils import FIXED_COST_TYPES
+        self.assertEqual(FIXED_TYPES, FIXED_COST_TYPES)               # one definition for the page and the insight
+        self.rt(amount='8444', frequency='MONTHLY', description='bills')
+        self.rt('CAPITAL', amount='25000', frequency='MONTHLY', description='big monthly capital', account=self.cash)
+        ctx = self.ctx()
+        self.assertEqual(ctx['total_monthly_cost'], D('8444'))         # the capital event is not counted
+        self.assertEqual(ctx['total_yearly_cost'], D('101328'))
+
     def test_loan_and_insurance_costs_are_included_in_the_totals(self):
         loan = Loan.objects.create(user=self.user, name='L', loan_type='PERSONAL', initial_principal=100000,
                                    duration_months=12, start_date=today(), is_active=True)

@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from ...analytics.links import EXPENSE
-from ...recurring_utils import calculate_recurring_equivalents
+from ...recurring_utils import FIXED_COST_TYPES, calculate_recurring_equivalents
 from .. import sampling
 from ..registry import rule
 from ..types import Action, Evidence, Insight, Kind, Module, Plan, Surface, Tone
@@ -19,7 +19,7 @@ from .expenses import _is_posting
 
 D = Decimal
 EVIDENCE_ROWS = 3
-FIXED_TYPES = ('EXPENSE', 'INSURANCE_PREMIUM', 'LOAN')     # the recurring payments that are costs
+FIXED_TYPES = FIXED_COST_TYPES                                 # the recurring payments that are costs (shared with the page totals)
 PRICE_CHANGE = D('0.05')        # a posting this far from the one before it is a change in price
 RECENT_POSTING = timedelta(days=45)
 REPEATS = 3                     # the same entry this many times in three months looks recurring
