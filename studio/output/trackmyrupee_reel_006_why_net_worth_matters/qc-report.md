@@ -1,6 +1,6 @@
 # QC report
 
-- ✅ **1. Hook is compelling** — 5 hook options; none generic ('Did you know')
+- ✅ **1. Hook is compelling** — 7 hook options; none generic ('Did you know')
 - ✅ **2. Relevant to Indian audience** — Rupee/Indian money terms present
 - ✅ **4. Numbers are mathematically correct** — assets ₹1,050,000 − liabilities ₹340,000 = ₹710,000 (stated ₹710,000)
 - ✅ **5/10. No unsupported feature, financial or privacy claims** — none found

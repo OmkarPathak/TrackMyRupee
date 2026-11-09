@@ -1,31 +1,31 @@
 1
-00:00:00,200 --> 00:00:03,500
-Your salary went up. But are you actually richer?
+00:00:00,200 --> 00:00:04,700
+Same salary. Five years later, one friend is worth ten lakh more. Why?
 
 2
-00:00:03,800 --> 00:00:08,300
-Meet net worth: everything you own, minus everything you owe. One number.
+00:00:05,000 --> 00:00:11,300
+Because salary isn't the score. Net worth is: everything you own, minus everything you owe. One number.
 
 3
-00:00:08,600 --> 00:00:15,700
+00:00:11,600 --> 00:00:18,100
 You own ten lakh fifty thousand. You owe three lakh forty. Net worth: seven lakh ten thousand.
 
 4
-00:00:16,000 --> 00:00:21,900
+00:00:18,400 --> 00:00:24,100
 It shows your direction. It exposes quiet debt. And it gives every decision a scoreboard.
 
 5
-00:00:22,200 --> 00:00:25,100
+00:00:24,400 --> 00:00:27,300
 But your money lives in five different places.
 
 6
-00:00:25,400 --> 00:00:30,500
+00:00:27,600 --> 00:00:32,700
 So build a habit: log your spends in seconds, and update your balances now and then.
 
 7
-00:00:30,800 --> 00:00:40,600
+00:00:33,000 --> 00:00:42,800
 TrackMyRupee puts it in one place: savings, FDs, PPF, EPF, NPS, funds, gold, loans. One number, with its history.
 
 8
-00:00:40,900 --> 00:00:46,000
+00:00:43,100 --> 00:00:48,200
 No bank login. No SMS access. Try the free demo — link in bio.
