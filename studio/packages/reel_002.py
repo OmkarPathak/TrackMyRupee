@@ -104,7 +104,7 @@ PACKAGE = {
               "prompt": "Render with studio/render/cover_002.py (typography must come from the renderer, never an image model)."},
     "publishing": {
         "caption_hook": "Same salary. Five years later, one friend is worth ten lakh more. Why? 🤔",
-        "caption": "Same salary. Five years later, one friend is worth ten lakh more. Why? 🤔\n\n(Illustrative example.) Net worth is the one number that answers it: everything you own, minus everything you owe. (The example in the Reel is illustrative.)\n\nWhy it matters:\n1️⃣ It shows your direction — salary can rise while net worth stalls\n2️⃣ It exposes quiet debt\n3️⃣ It gives every money decision a scoreboard\n\nThe hard part isn't the formula, it's keeping it up to date when your money sits in savings, FDs, PPF, EPF, NPS, funds, gold and loans. TrackMyRupee puts it in one place — log spends in seconds, update balances now and then, and watch one net worth number (with its history).\n\n👉 Try the free demo — link in bio. No bank login. No SMS access.\n\n💾 Save this for your next month-end check-in.\n📩 Send it to a friend who's earning more but feels the same.\n\nIllustrative numbers. Not financial advice.",
+        "caption": "Same salary. Five years later, one friend is worth ten lakh more. Why? 🤔\n\nNet worth is the one number that answers it: everything you own, minus everything you owe. (The example in the Reel is illustrative.)\n\nWhy it matters:\n1️⃣ It shows your direction — salary can rise while net worth stalls\n2️⃣ It exposes quiet debt\n3️⃣ It gives every money decision a scoreboard\n\nThe hard part isn't the formula, it's keeping it up to date when your money sits in savings, FDs, PPF, EPF, NPS, funds, gold and loans. TrackMyRupee puts it in one place — log spends in seconds, update balances now and then, and watch one net worth number (with its history).\n\n👉 Try the free demo — link in bio. No bank login. No SMS access.\n\n💾 Save this for your next month-end check-in.\n📩 Send it to a friend who's earning more but feels the same.\n\nIllustrative numbers. Not financial advice.",
         "cta": "Try the free demo — link in bio",
         "hashtags_core": ["#NetWorth", "#PersonalFinanceIndia", "#FinancialLiteracy", "#MoneyManagement", "#TrackMyRupee"],
         "hashtags_extended": ["#FinanceForYoungProfessionals", "#ExpenseTracker", "#MoneyHabits", "#IndianFinance"],
@@ -146,7 +146,7 @@ _windows()
 
 
 # ======================= APPROVED by the creative director (Reel 006 v2, hook A) =======================
-PACKAGE["version"] = 3
+PACKAGE["version"] = 4
 PACKAGE["status"] = "approved"
 PACKAGE["learning_log"] = {"approved": True, "notes": [
     "Hook A (same salary, different net worth) chosen from 3 tested concepts; built for a 5s average watch time",
