@@ -143,3 +143,14 @@ def _windows():
 
 
 _windows()
+
+
+# ======================= APPROVED by the creative director (Reel 006 v2, hook A) =======================
+PACKAGE["version"] = 3
+PACKAGE["status"] = "approved"
+PACKAGE["learning_log"] = {"approved": True, "notes": [
+    "Hook A (same salary, different net worth) chosen from 3 tested concepts; built for a 5s average watch time",
+    "Open loop + visual payoff inside ~3s; the answer lands in the very next scene",
+    "Mascot narrates (approved 'Line' mouth, audio-driven) top-right; real app captures (demo account) for proof",
+    "Education first (own - owe, worked illustrative example, why it matters), product in the last third",
+    "Full detail: studio/STYLE_GUIDE.md"]}

@@ -18,3 +18,11 @@ Recorded on approval of **Reel 001 "Where does your ₹50,000 salary disappear?"
 - **Languages** — English now; Hindi voice tested in the proof; Hinglish to be written in Devanagari with English terms in Latin. Funnel intent: Instagram is the customer-acquisition funnel; primary focus is personal-finance *education* with soft, specific CTAs (free demo / free resource).
 - Reel 001 (approved) stays mouthless; narrating Reels use the Line mouth.
 - Open items: free/open-source stack only for now; Rhubarb (external lip-sync binary) was not used; richer voice (non-Kokoro) is a later upgrade.
+
+## Hook & retention learnings (from Reel 006 approval)
+- **Context:** Reel 001's average watch time was 5s (~10% of its length). Reel 006 is the first built around that: the hook must hold a viewer inside the first ~3 seconds.
+- **What was approved:** an open loop with an immediate visual payoff — "Same salary. 5 years later. Why?" with two bars diverging (illustrative, labelled) — then the *answer in the next scene* ("Because salary isn't the score. Net worth is…").
+- **Hook toolkit (tested as previews):** A comparison/puzzle (approved) · B timed challenge (3-second countdown; risky because of the silence) · C first-person mascot ("I'm a piggy bank…"; the best brand piece, kept for later).
+- **Rules:** content on frame 0 (no slow intro); voice starts at 0.1s; one question, no setup; numbers visible and labelled illustrative; caption pill must not cover key visuals (keep bars/cards above y≈1340).
+- **Narrated Reels:** mascot top-right (~190px), mouth from the voice audio; real product proof comes from local app captures (demo account), never mocked UI.
+- **Measurement:** log each post's stats in the (git-ignored) tracker. Compare average watch time and % of length against Reel 001 (5s, 10.4%) before drawing conclusions; one post is not a trend.
