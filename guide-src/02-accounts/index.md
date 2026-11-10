@@ -42,10 +42,12 @@ Click **+ Add** next to Accounts in the sidebar on desktop, or tap **+ Add** on 
 
 ![Choosing the exact type inside a kind](img/add-account-type-desktop.webp){ loading=lazy }
 
+![Searching for a type](img/add-account-search-desktop.webp){ loading=lazy }
+
 
 The form is a two-step wizard. It starts by asking **what kind of account it is**, in plain words, and only then asks for the details:
 
-1. **Account Basics**: Pick the kind of account (**Bank or cash**, **Credit card or pay later**, **Investments**, **Deposits & savings schemes**, **Loan**, or **Property, vehicle or insurance**), then the exact type inside it, for example **Public Provident Fund (PPF)** under **Deposits & savings schemes**. Then enter the Account Name, Currency and Initial Balance. **Change** takes you back to pick a different type.
+1. **Account Basics**: Type what you have in the search box (for example `ppf`, `credit card` or `gold`) and pick the match, or pick the kind of account (**Bank or cash**, **Credit card or pay later**, **Investments**, **Deposits & savings schemes**, **Loan**, or **Property, vehicle or insurance**), then the exact type inside it, for example **Public Provident Fund (PPF)** under **Deposits & savings schemes**. Then enter the Account Name, Currency and Initial Balance. **Change** takes you back to pick a different type.
 2. **Type-specific fields**: Fill in details that apply to your account type. For example, Fixed Deposits show deposit terms and maturity date fields. Credit Cards show a credit limit field.
 
 Click **Save** when done.

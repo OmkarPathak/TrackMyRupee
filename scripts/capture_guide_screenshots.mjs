@@ -67,6 +67,10 @@ const shots = [
   // The second part of "What kind of account is it?": the types inside one kind
   { file: '02-accounts/img/add-account-type-desktop.webp', url: '/accounts/add/', before: `
       document.querySelector('[data-category="deposit"]').click();`, wait: 800 },
+  // ...or type what you have: the search shows matching types from every kind
+  { file: '02-accounts/img/add-account-search-desktop.webp', url: '/accounts/add/', before: `
+      const box = document.getElementById('typeSearch');
+      box.value = 'gold'; box.dispatchEvent(new Event('input', { bubbles: true }));`, wait: 800 },
   { file: '02-accounts/img/account-detail-desktop.webp', url: '/accounts/list/', before: `
       const a=[...document.querySelectorAll('.acx-name')].find(x=>x.textContent.includes('HDFC Bank')); location.href=a.href; ` , wait: 1800 },
   { file: '03-transactions-expenses/img/expenses-list-desktop.webp', url: '/expenses/' },
