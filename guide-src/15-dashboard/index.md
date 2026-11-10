@@ -25,8 +25,8 @@ Use the period picker to switch to last month, the last 3 or 6 months, this year
 
 | Number | What it is |
 |---|---|
-| **Income** | All income in the period, including cashback and refunds, but not a refund you [linked to the expense or capital event it paid back](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back) (that is not income) |
-| **Spent** | Expenses (each one for what it really cost: its amount less any refunds linked to it), plus the **interest** part of loan repayments, plus any [Capital Event](../09-capital-events/index.md) you chose to count in averages |
+| **Income** | All income in the period, including cashback and refunds, but not a refund you [linked to the expense or one-time big purchase it paid back](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back) (that is not income) |
+| **Spent** | Expenses (each one for what it really cost: its amount less any refunds linked to it), plus the **interest** part of loan repayments, plus any [one-time big purchase](../09-capital-events/index.md) you chose to count in averages |
 | **Saved** | Income minus Spent |
 | **Savings rate** | Saved divided by income, leaving cashback and refunds out of the income used for the rate |
 | **Invested** | Money you moved by transfer into investment accounts. It is shown separately and is **not** taken off Saved |
@@ -41,7 +41,7 @@ When you look at exactly one month or cycle, each number shows how it changed ag
 
 ## 3. Where the money went
 
-- **Categories**: spending per category, largest first. The chart shows the top five and groups the rest as **Others**. Loan interest appears as its own line. Capital Events that you did not exclude from budget appear under their subtype name, the same way the [Budgets](../07-budgets/index.md) page counts them. The card has two tabs: **Breakdown** is the chart, and **All categories** lists every category as a bar, biggest first, with its amount and share of the total. Click a bar to see that category's expenses.
+- **Categories**: spending per category, largest first. The chart shows the top five and groups the rest as **Others**. Loan interest appears as its own line. One-time big purchases that you did not exclude from budget appear under their subtype name, the same way the [Budgets](../07-budgets/index.md) page counts them. The card has two tabs: **Breakdown** is the chart, and **All categories** lists every category as a bar, biggest first, with its amount and share of the total. Click a bar to see that category's expenses.
 - **Budget bars**: for each category that has a limit, how much of it you have used. The bar turns amber at 85 percent and red once you pass the limit. For a period longer than a month the limit is scaled up to match (a 3-month view compares against three months of budget). On the current month the Dashboard also shows where you are heading at your current pace.
 - **Payment methods**: the split of expenses by how you paid.
 - **Top expenses**: your five largest single expenses in the period.
@@ -49,7 +49,7 @@ When you look at exactly one month or cycle, each number shows how it changed ag
 
 ### Filters
 
-You can filter by category, payment method and account. Category and payment method narrow **spending** only: income is not tagged with them, so it stays as it is. An account filter narrows everything (income, expenses, loan repayments, capital events and transfers) to that account.
+You can filter by category, payment method and account. Category and payment method narrow **spending** only: income is not tagged with them, so it stays as it is. An account filter narrows everything (income, expenses, loan repayments, one-time big purchases and transfers) to that account.
 
 ---
 
@@ -73,5 +73,5 @@ When you are saving, the Dashboard can tell you where you would end the year if 
 - [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)
 - [Budgets](../07-budgets/index.md)
 - [Accounts and Net Worth](../02-accounts/index.md)
-- [Capital Events](../09-capital-events/index.md)
+- [one-time big purchases](../09-capital-events/index.md)
 - [Search and Filters](../14-filters-and-search/index.md)

@@ -33,7 +33,7 @@ The **Source Type** field tells the app what kind of income this is. Choose the 
 | Other | Anything that does not fit the above |
 
 !!! info "Why source type matters"
-    The app separates your predictable income (Salary) from one-off receipts (Refund / Reimbursement) when calculating your savings rate. Cashback and Rewards and Refund / Reimbursement types are excluded from the savings rate denominator so they do not inflate your rate artificially. A refund you [link to the expense or capital event it paid back](#4-refunds-and-reimbursements-link-them-to-what-they-paid-back) is not income at all.
+    The app separates your predictable income (Salary) from one-off receipts (Refund / Reimbursement) when calculating your savings rate. Cashback and Rewards and Refund / Reimbursement types are excluded from the savings rate denominator so they do not inflate your rate artificially. A refund you [link to the expense or one-time big purchase it paid back](#4-refunds-and-reimbursements-link-them-to-what-they-paid-back) is not income at all.
 
 ---
 
@@ -69,34 +69,34 @@ Say you paid Rs. 20,000 for a trip stay for four friends, and they sent you back
 Link the refund to what it paid back instead. When you choose **Refund / Reimbursement** as the Source Type, a **Refund for** search box appears:
 
 - **Not linked to anything** is the default and is always the first choice. The money counts as ordinary income, exactly as before.
-- Below it, the **5 most recent expenses and capital events** are listed together, newest first, each tagged **Expense** or **Capital event**. Tap or click one to link the refund to it.
-- To find something older, **type**. The search covers both your expenses and your capital events: the description or note, the category, the amount (commas are ignored), the date, and a capital event's type.
+- Below it, the **5 most recent expenses and one-time big purchases** are listed together, newest first, each tagged **Expense** or **one-time big purchase**. Tap or click one to link the refund to it.
+- To find something older, **type**. The search covers both your expenses and your one-time big purchases: the description or note, the category, the amount (commas are ignored), the date, and a one-time big purchase's type.
 - The chosen item shows in the box with an **x** to unlink it again.
 
 Once linked:
 
 - The refund is **not counted as income**: not on the Dashboard, in the savings rate, on the Transactions page, in your emails, or in Analytics.
-- The expense (or capital event) counts for **what it really cost**: its amount less everything refunded against it. In the example, the trip shows Rs. 5,000, in the month it was spent, in its own category and against its own budget.
+- The expense (or one-time big purchase) counts for **what it really cost**: its amount less everything refunded against it. In the example, the trip shows Rs. 5,000, in the month it was spent, in its own category and against its own budget.
 - Your account balance still goes **up** by the amount you received, because the money really arrived.
 
 !!! info "Which month does it count in?"
-    A refund reduces the **expense it paid back**, in that expense's own month, not the month the refund arrived. So a dinner on 20 October, repaid on 3 November, shows its real cost in October. For a capital event that you counted in your averages, the refund comes off in the month it arrived.
+    A refund reduces the **expense it paid back**, in that expense's own month, not the month the refund arrived. So a dinner on 20 October, repaid on 3 November, shows its real cost in October. For a one-time big purchase that you counted in your averages, the refund comes off in the month it arrived.
 
 A few rules keep the numbers honest:
 
-- You can only link to your own entries, and a refund pays back **one** thing: an expense or a capital event, not both.
-- The refunds against one expense, or one capital event, cannot add up to more than what it cost, whatever currency the refund is in (the comparison is made in your own currency). The form tells you how much can still be refunded.
+- You can only link to your own entries, and a refund pays back **one** thing: an expense or a one-time big purchase, not both.
+- The refunds against one expense, or one one-time big purchase, cannot add up to more than what it cost, whatever currency the refund is in (the comparison is made in your own currency). The form tells you how much can still be refunded.
 - An expense that has had money paid back cannot be edited to cost less than what came back. Change or remove the refund first.
-- If you [convert an expense to a capital event](../03-transactions-expenses/index.md), the refunds already linked to it move with it.
-- Budgets follow the same rule as the Dashboard: a capital event counted in your budget is reduced by what was refunded against it, in the month the refund arrived. The Calendar takes the refund off the day it arrived.
+- If you [convert an expense to a one-time big purchase](../03-transactions-expenses/index.md), the refunds already linked to it move with it.
+- Budgets follow the same rule as the Dashboard: a one-time big purchase counted in your budget is reduced by what was refunded against it, in the month the refund arrived. The Calendar takes the refund off the day it arrived.
 - Changing your base currency in Settings converts the refunds along with everything else, so the net cost stays right.
 - Delete the expense and its refunds count as ordinary income again, because there is nothing left for them to pay back.
-- The **Expenses** and **Capital Events** lists show "refunded" and "Net" under an amount that has refunds, and each has an **Add refund** action in its menu that opens this form with the item already chosen. Opening an expense or capital event for editing lists its refunds too.
+- The **Expenses** and **one-time big purchases** lists show "refunded" and "Net" under an amount that has refunds, and each has an **Add refund** action in its menu that opens this form with the item already chosen. Opening an expense or one-time big purchase for editing lists its refunds too.
 
 To link a refund you already saved without a link, open it from the Income list, choose **Refund / Reimbursement**, pick what it paid back, and save.
 
 !!! example "Real-world use case"
-    On a Goa trip, Meera pays the Rs. 20,000 villa advance and logs it as a capital event. Back home, her three friends send Rs. 15,000 between them. She logs it as income with Source Type **Refund / Reimbursement**, types `villa` in **Refund for**, and picks the villa advance. Her savings and Dashboard no longer show Rs. 15,000 of extra income, and the villa now shows as Rs. 5,000 net, which is her real share. Her bank balance is still correct, because the money did arrive.
+    On a Goa trip, Meera pays the Rs. 20,000 villa advance and logs it as a one-time big purchase. Back home, her three friends send Rs. 15,000 between them. She logs it as income with Source Type **Refund / Reimbursement**, types `villa` in **Refund for**, and picks the villa advance. Her savings and Dashboard no longer show Rs. 15,000 of extra income, and the villa now shows as Rs. 5,000 net, which is her real share. Her bank balance is still correct, because the money did arrive.
 
 ---
 
@@ -144,6 +144,6 @@ To delete, use the delete action on the income detail screen and confirm the pro
 
 ## Related Links
 - [Adding Expenses](../03-transactions-expenses/index.md)
-- [Capital Events](../09-capital-events/index.md)
+- [one-time big purchases](../09-capital-events/index.md)
 - [Recurring Transactions and Subscriptions](../05-transactions-recurring/index.md)
 - [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)

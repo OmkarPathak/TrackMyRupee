@@ -6,7 +6,7 @@ Move money between your own accounts without double-counting it as income or an 
 
 ## 1. Overview
 
-An **Internal Transfer** moves money from one account you own to another. It does not change your net worth because the money stays within your own financial ecosystem. It is excluded from your income and expense totals in Analytics and the Dashboard.
+A **transfer** (the **Move Money** option in the Add menu) moves money from one account you own to another. It does not change your net worth because the money stays within your own financial ecosystem. It is excluded from your income and expense totals in Analytics and the Dashboard.
 
 Common uses include:
 
@@ -19,11 +19,13 @@ Common uses include:
 ## 2. Opening the Transfer Form
 
 
-![The Internal Transfer form](img/add-transfer-desktop.webp){ loading=lazy }
+![The Move Money form](img/add-transfer-desktop.webp){ loading=lazy }
+
+Choose **From** and **To** (each shows its balance), then the amount and the date. Both balances update, and the move is not counted as spending. The button shows what it will do, for example **Move ₹10,000**. Open **Add a note** if you want to describe it. You need at least two accounts; with only one, the form says so and offers **Add Account**.
 
 
-- **Desktop**: Click **Add** in the top navbar, then select **Internal Transfer**.
-- **Mobile**: Tap the **+** button in the bottom tab bar, then tap **Internal Transfer**.
+- **Desktop**: Click **Add** in the top navbar, then select **Move Money**.
+- **Mobile**: Tap the **+** button in the bottom tab bar, then tap **Move Money**.
 
 ---
 
@@ -76,7 +78,7 @@ The transfer also appears in the **Transactions** list at `/transactions/` with 
 - **Editing** a transfer moves only the difference. **Deleting** it returns the money to the From Account and takes it back from the To Account.
 
 !!! warning "Do not log a transfer as Expense and Income"
-    A common mistake is logging the outflow as an expense from one account and the inflow as income to another. This double-counts the money in your Analytics, inflating both your total expense and total income figures by the transferred amount. Always use Add → Internal Transfer instead.
+    A common mistake is logging the outflow as an expense from one account and the inflow as income to another. This double-counts the money in your Analytics, inflating both your total expense and total income figures by the transferred amount. Always use Add → Move Money instead.
 
 ---
 
@@ -97,7 +99,7 @@ For automated monthly investments such as a Systematic Investment Plan (SIP), se
 Every month, money automatically moves from your bank account balance into your Mutual Fund account's cash pool. Record which fund each instalment bought under [Holdings and Portfolio](../02-accounts/holdings.md): open the fund, choose **Buy more**, and pick the instalment in **Paid by transfer**.
 
 !!! example "Real-world use case"
-    After checking the Trends page and finding that Rs. 80,000 has been sitting idle in his SBI Savings Account for three cycles, Arjun decides to sweep Rs. 25,000 into his Mutual Funds account each month. He sets up the transfer via Add → Internal Transfer, From Account: SBI Savings, To Account: Mutual Funds, Amount: 25,000, and clicks Execute Transfer. His Accounts page immediately shows SBI balance down by Rs. 25,000 and Mutual Funds up by Rs. 25,000. His net worth is unchanged but his asset allocation is now working harder.
+    After checking the Trends page and finding that Rs. 80,000 has been sitting idle in his SBI Savings Account for three cycles, Arjun decides to sweep Rs. 25,000 into his Mutual Funds account each month. He sets up the transfer via Add → Move Money, From Account: SBI Savings, To Account: Mutual Funds, Amount: 25,000, and clicks Execute Transfer. His Accounts page immediately shows SBI balance down by Rs. 25,000 and Mutual Funds up by Rs. 25,000. His net worth is unchanged but his asset allocation is now working harder.
 
 ---
 

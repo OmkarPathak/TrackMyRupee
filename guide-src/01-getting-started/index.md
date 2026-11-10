@@ -28,6 +28,14 @@ At the end you get a **Next steps** checklist, tailored to what you picked: anyt
 
 If something is wrong with an answer (say, an amount of zero), the step shows a message and nothing is saved.
 
+### The first-visit tour
+
+The first time you open the Dashboard after the wizard, a short tour points out where things are. On a computer it has eight stops: the **Add** menu, Transactions, Accounts, Analytics, Guided Setup, page search and Settings. On a phone it has four: the **+** button, the bottom bar, and **More**. Close it at any point and it does not come back by itself. To see it again, open **Settings → Tutorial**.
+
+### Getting around on a phone
+
+The bottom bar names each page under its icon: **Dashboard**, **Transactions**, **Accounts** and **More**, with the **+** button beside it for adding things. **More** holds everything else, in two groups: **Everyday** (Expenses, Income, Budgets, Subscriptions, Calendar, Analytics) and **Money & plans** (Holdings, Loans, Goals, One-time big purchases, Family, Guided Setup). Alerts, Settings, Legal, Theme and Logout sit underneath.
+
 ---
 
 ## 3. Setting the Salary Cycle Start Date
@@ -89,10 +97,10 @@ When you sign up, three default expense categories are created automatically: Fo
 
 ## 7. A Faster Way to Set Everything Up
 
-Once your first account exists, the quickest way to cover the rest of your money is **TMR Flows**, found in the sidebar. Instead of filling separate forms for your salary, rent, loans, cards, and investments, you answer one short form per life event, such as "I started a new job" or "I took a loan", and everything connected to it is created for you.
+Once your first account exists, the quickest way to cover the rest of your money is **Guided Setup**, found in the sidebar. Instead of filling separate forms for your salary, rent, loans, cards, and investments, you answer one short form per life event, such as "I started a new job" or "I took a loan", and everything connected to it is created for you.
 
 
-![The TMR Flows page](../13-tmr-flows/img/flows-landing-desktop.webp){ loading=lazy }
+![The Guided Setup page](../13-tmr-flows/img/flows-landing-desktop.webp){ loading=lazy }
 
 
 A good first four are, in this order:
@@ -102,7 +110,7 @@ A good first four are, in this order:
 3. [I took a loan](../13-tmr-flows/debt.md#i-took-a-loan), if you have one
 4. [I got a credit card](../13-tmr-flows/debt.md#i-got-a-credit-card), if you have one
 
-See [TMR Flows](../13-tmr-flows/index.md) for the full tour.
+See [Guided Setup](../13-tmr-flows/index.md) for the full tour.
 
 ---
 

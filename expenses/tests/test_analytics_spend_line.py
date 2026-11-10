@@ -39,6 +39,18 @@ class SpendLineTests(PageCase):
         self.expense(60000, when=month_start(0), category='Food')
         self.assertIn('50% more than the same days last month', self.line(time_period='this_month'))
 
+    def test_a_huge_jump_is_put_in_words_not_as_a_four_digit_percentage(self):
+        self.expense(1000, when=month_start(1), category='Food')
+        self.expense(40000, when=month_start(0), category='Food')
+        text = self.line(time_period='this_month')
+        self.assertIn('far more than the same days last month', text)
+        self.assertNotRegex(text, r'\d{4}%')
+
+    def test_a_big_but_ordinary_rise_still_gets_its_percentage(self):
+        self.expense(10000, when=month_start(1), category='Food')
+        self.expense(40000, when=month_start(0), category='Food')
+        self.assertIn('300% more than the same days last month', self.line(time_period='this_month'))
+
     def test_with_about_the_same_spending_it_says_about_the_same(self):
         self.expense(40000, when=month_start(1), category='Food')
         self.expense(40000, when=month_start(0), category='Food')

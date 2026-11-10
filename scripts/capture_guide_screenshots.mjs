@@ -64,25 +64,29 @@ const shots = [
   { file: '01-getting-started/img/categories-desktop.webp', url: '/category/list/' },
   { file: '02-accounts/img/accounts-list-desktop.webp', url: '/accounts/list/?sort=attention' },
   { file: '02-accounts/img/add-account-desktop.webp', url: '/accounts/add/' },
+  // The second part of "What kind of account is it?": the types inside one kind
+  { file: '02-accounts/img/add-account-type-desktop.webp', url: '/accounts/add/', before: `
+      document.querySelector('[data-category="deposit"]').click();`, wait: 800 },
+  // ...or type what you have: the search shows matching types from every kind
+  { file: '02-accounts/img/add-account-search-desktop.webp', url: '/accounts/add/', before: `
+      const box = document.getElementById('typeSearch');
+      box.value = 'gold'; box.dispatchEvent(new Event('input', { bubbles: true }));`, wait: 800 },
   { file: '02-accounts/img/account-detail-desktop.webp', url: '/accounts/list/', before: `
       const a=[...document.querySelectorAll('.acx-name')].find(x=>x.textContent.includes('HDFC Bank')); location.href=a.href; ` , wait: 1800 },
   { file: '03-transactions-expenses/img/expenses-list-desktop.webp', url: '/expenses/' },
   { file: '03-transactions-expenses/img/add-menu-desktop.webp', url: '/dashboard/', before: `
       const toggle = [...document.querySelectorAll('.navbar .dropdown-toggle, nav .dropdown-toggle')].find(a => a.textContent.trim() === 'Add');
       const menu = toggle.parentElement.querySelector('.dropdown-menu');
-      // The demo account hides Add Transfer; every real account has it, so show it as users see it
-      if (![...menu.querySelectorAll('a')].some(a => a.textContent.includes('Transfer'))) {
+      // The demo account hides Move Money; every real account has it, so show it as users see it
+      if (![...menu.querySelectorAll('a')].some(a => a.textContent.includes('Move Money'))) {
         const item = menu.querySelector('li').cloneNode(true);
         const link = item.querySelector('a');
         link.href = '/transfers/add/';
-        link.innerHTML = '<span class="add-menu-ico text-info"><i class="bi bi-arrow-left-right"></i></span> Add Transfer';
+        link.innerHTML = '<span class="add-menu-ico text-info"><i class="bi bi-arrow-left-right"></i></span> Move Money';
         menu.insertBefore(item, menu.querySelectorAll('li')[2]);
       }
       toggle.click();` },
   { file: '03-transactions-expenses/img/composer-parsed-desktop.webp', url: '/expenses/add/', before: `${TYPE_INTO_COMPOSER('zomato 450 yesterday upi')}`, wait: 1800 },
-  { file: '03-transactions-expenses/img/large-amount-desktop.webp', url: '/expenses/add/', before: `${TYPE_INTO_COMPOSER('sofa 150000')}
-      await new Promise(r => setTimeout(r, 1200));
-      document.getElementById('tmr-add').click();`, wait: 1800 },
   { file: '07-budgets/img/set-limit-desktop.webp', url: '/budget/', before: `
       document.querySelector('[data-bdx-adjust]').click();`, wait: 1400 },
   { file: '05-transactions-recurring/img/subscription-step1-desktop.webp', url: '/recurring/create/', before: SUBSCRIPTION_STEP(1), clipTo: '#subscriptionForm', clipClosest: '.card-body' },
@@ -105,6 +109,7 @@ const shots = [
   { file: '06-transfers/img/transfers-list-desktop.webp', url: '/transfers/' },
   { file: '07-budgets/img/budgets-desktop.webp', url: '/budget/' },
   { file: '08-loans/img/loans-list-desktop.webp', url: '/loans/' },
+  { file: '08-loans/img/pay-emi-desktop.webp', url: '/loans/pay-emi/' },
   { file: '08-loans/img/add-loan-desktop.webp', url: '/loans/add/', fullPage: true },
   { file: '09-capital-events/img/capital-events-all-desktop.webp', url: '/capital-events/' },
   { file: '09-capital-events/img/add-capital-event-desktop.webp', url: '/capital-events/add/', fullPage: true },
@@ -119,7 +124,7 @@ const shots = [
 
 
 // ---------------------------------------------------------------------------------------------------
-// TMR Flows: each flow is filled in with the guide's sample values, one step at a time. `steps` lists, per
+// Guided Setup flows: each flow is filled in with the guide's sample values, one step at a time. `steps` lists, per
 // wizard step, the image to save and the field values to enter first (select options match by label prefix).
 // The last image is the review screen.
 // ---------------------------------------------------------------------------------------------------

@@ -145,7 +145,7 @@ The last tab summarises what will be created, with the headline figure at the to
 ### What gets created
 
 - A **fixed deposit account** with the rate, dates, and compounding you entered
-- A **one-time funding entry**, recorded as a Capital Event of type *Investment Lump Sum*, taking the principal out of the funding account on the start date
+- A **one-time funding entry**, recorded as a one-time big purchase of type *Investment Lump Sum*, taking the principal out of the funding account on the start date
 - **Maturity tracking**, so you can see what it will be worth, and when
 
 The Review screen shows a quick estimate of the amount you will receive at maturity, such as *₹5,35,000 at maturity*.
@@ -163,8 +163,8 @@ The Review screen shows a quick estimate of the amount you will receive at matur
 !!! warning "Why did my bank balance drop?"
     That is the funding entry doing its job. The principal really did leave your savings account on the day you booked the FD. It reappears as an FD balance, so your net worth stays the same.
 
-!!! tip "Why the principal is a Capital Event"
-    Putting ₹5,00,000 into an FD is not an expense. Recording it as a Capital Event keeps it out of your monthly spending and your budget, so your Dashboard does not suddenly look like you overspent. See [Capital Events](../09-capital-events/index.md).
+!!! tip "Why the principal is a one-time big purchase"
+    Putting ₹5,00,000 into an FD is not an expense. Recording it as a one-time big purchase keeps it out of your monthly spending and your budget, so your Dashboard does not suddenly look like you overspent. See [one-time big purchases](../09-capital-events/index.md).
 
 ---
 
@@ -307,9 +307,9 @@ A quick way to sanity-check your plan: take the target, subtract what you have a
 ---
 
 ## Related Links
-- [TMR Flows overview](index.md)
+- [Guided Setup overview](index.md)
 - [Holdings and Mutual Funds](../02-accounts/holdings.md)
 - [Accrued vs Invested View](../02-accounts/accrued-vs-invested.md)
 - [Transfers](../06-transfers/index.md)
-- [Capital Events](../09-capital-events/index.md)
+- [one-time big purchases](../09-capital-events/index.md)
 - [Savings Goals](../12-goals/index.md)

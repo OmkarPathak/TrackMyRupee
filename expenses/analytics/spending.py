@@ -171,6 +171,9 @@ def spend_line(page: Page) -> str:
         text = _('You spent %(spent)s in this period, about the same as %(compare)s.') % parts
     elif direction == 'down':
         text = _('You spent %(spent)s in this period, %(pct)s less than %(compare)s.') % {**parts, 'pct': percent(abs(pct))}
+    elif pct >= 1000:
+        # A comparison period with next to nothing in it (a new account) gives a figure like 2330%: say it in words
+        text = _('You spent %(spent)s in this period, far more than %(compare)s.') % parts
     else:
         text = _('You spent %(spent)s in this period, %(pct)s more than %(compare)s.') % {**parts, 'pct': percent(abs(pct))}
     ranked = sorted(now.categories.items(), key=lambda item: item[1], reverse=True)

@@ -26,19 +26,19 @@ This guide walks you through every feature, step by step.
 
     [:octicons-arrow-right-24: Accounts](02-accounts/index.md)
 
--   :material-magic-staff:{ .lg .middle } **TMR Flows**
+-   :material-magic-staff:{ .lg .middle } **Guided Setup**
 
     ---
 
     Tell the app what happened, such as a new job, a loan, or a SIP, and it sets up everything linked to it in one short form.
 
-    [:octicons-arrow-right-24: TMR Flows](13-tmr-flows/index.md)
+    [:octicons-arrow-right-24: Guided Setup](13-tmr-flows/index.md)
 
 -   :material-receipt-text:{ .lg .middle } **Logging Transactions**
 
     ---
 
-    Record expenses, income, recurring bills, and internal transfers. Manually, fast, and accurately.
+    Record expenses, income, recurring bills, and transfers between your accounts. Manually, fast, and accurately.
 
     [:octicons-arrow-right-24: Expenses](03-transactions-expenses/index.md)
 
@@ -84,7 +84,7 @@ This guide walks you through every feature, step by step.
 |---|---|
 | [Philosophy](00-philosophy.md) | Why manual entry, salary cycles, and honest insights |
 | [Getting Started](01-getting-started/index.md) | First login, salary cycle, first account |
-| [TMR Flows](13-tmr-flows/index.md) | One-form setup for loans, salary, SIPs, FDs, cars, gold and more |
+| [Guided Setup](13-tmr-flows/index.md) | One-form setup for loans, salary, SIPs, FDs, cars, gold and more |
 | [Accounts & Net Worth](02-accounts/index.md) | Account types, opening balances, net worth roll-up |
 | [Expenses](03-transactions-expenses/index.md) | The one-line composer, undo, editing expenses |
 | [Quick Add from Your Phone](03-transactions-expenses/quick-add.md) | A link, the Share menu, paste, and iPhone or Android shortcuts that open the form filled in |
@@ -93,7 +93,7 @@ This guide walks you through every feature, step by step.
 | [Transfers](06-transfers/index.md) | Moving money without double-counting |
 | [Budgets](07-budgets/index.md) | Category limits, Needs Attention |
 | [Loans](08-loans/index.md) | EMI preview, repayments, auto-close |
-| [Capital Events](09-capital-events/index.md) | Large one-off payments |
+| [One-time big purchases](09-capital-events/index.md) | Large one-off payments |
 | [Calendar](10-calendar/index.md) | Day-by-day audit trail |
 | [Analytics](11-analytics-and-health/index.md) | Spending, cashflow, net worth, savings rate |
 | [Insights](18-insights/index.md) | Calm observations about your own money, and how to control them |

@@ -38,12 +38,16 @@ Each account is valued the way Net Worth values it (market value for funds, accr
 Click **+ Add** next to Accounts in the sidebar on desktop, or tap **+ Add** on the Accounts page on mobile.
 
 
-![The Add New Account form](img/add-account-desktop.webp){ loading=lazy }
+![The Add New Account form, starting with the kind of account](img/add-account-desktop.webp){ loading=lazy }
+
+![Choosing the exact type inside a kind](img/add-account-type-desktop.webp){ loading=lazy }
+
+![Searching for a type](img/add-account-search-desktop.webp){ loading=lazy }
 
 
-The form is a two-step wizard:
+The form is a two-step wizard. It starts by asking **what kind of account it is**, in plain words, and only then asks for the details:
 
-1. **Account Basics**: Enter Account Name, Account Type, Currency, and Initial Balance.
+1. **Account Basics**: Type what you have in the search box (for example `ppf`, `credit card` or `gold`) and pick the match, or pick the kind of account (**Bank or cash**, **Credit card or pay later**, **Investments**, **Deposits & savings schemes**, **Loan**, or **Property, vehicle or insurance**), then the exact type inside it, for example **Public Provident Fund (PPF)** under **Deposits & savings schemes**. Then enter the Account Name, Currency and Initial Balance. **Change** takes you back to pick a different type.
 2. **Type-specific fields**: Fill in details that apply to your account type. For example, Fixed Deposits show deposit terms and maturity date fields. Credit Cards show a credit limit field.
 
 Click **Save** when done.
@@ -54,7 +58,7 @@ Account names must be unique among your active accounts (capital letters do not 
     Free allows 2 active accounts, Plus allows 10, and Pro is unlimited. Deleted accounts do not count. If you go over a limit (for example after a downgrade), your **oldest** accounts stay open and the newer ones are locked until you upgrade or delete some: a locked account cannot be opened, edited or used in a transfer. Pinning or searching never changes which accounts are locked.
 
 !!! info "Balances are stored in the account's currency"
-    An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the **currency of an account is locked** as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or capital event). Change it only while the account is unused. If you later edit or delete such a transaction, the account gets back exactly the amount it took or gave at the time, even if the exchange rate has moved since.
+    An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the **currency of an account is locked** as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or one-time big purchase). Change it only while the account is unused. If you later edit or delete such a transaction, the account gets back exactly the amount it took or gave at the time, even if the exchange rate has moved since.
 
 ## 3. Account Types Reference
 
@@ -123,7 +127,7 @@ Moving money between your own accounts is covered in [Transfers](../06-transfers
 
 ## 5. Reading Account Transaction History
 
-Click any account row to open its detail page. Below the balance and its trend chart is the account's full **Transaction History**: every expense, income, transfer in or out, goal contribution, loan repayment and capital event posted to that account.
+Click any account row to open its detail page. Below the balance and its trend chart is the account's full **Transaction History**: every expense, income, transfer in or out, goal contribution, loan repayment and one-time big purchase posted to that account.
 
 
 ![An account with its balance trend and history](img/account-detail-desktop.webp){ loading=lazy }
@@ -134,10 +138,10 @@ The table looks and behaves like the [All Transactions](../03-transactions-expen
 | Column | What it shows |
 |---|---|
 | **Date** | When it happened |
-| **Type** | A coloured pill: Expense, Income, Transfer, Savings, Loan Repayment or Capital Event |
+| **Type** | A coloured pill: Expense, Income, Transfer, Savings, Loan Repayment or one-time big purchase |
 | **Description** | Your note (long notes are cut short; hover to read all of it) |
-| **Category/Source** | The expense category, income source, the other account of a transfer ("To SBI Savings", "From HDFC"), the goal, the loan, or the capital event type |
-| **Amount** | Green with **+** when money came into this account, red with **-** when it left. A foreign-currency row also shows its value in your own currency underneath. A capital event you excluded from net worth never moved the balance, so it is shown in grey with no sign |
+| **Category/Source** | The expense category, income source, the other account of a transfer ("To SBI Savings", "From HDFC"), the goal, the loan, or the one-time big purchase type |
+| **Amount** | Green with **+** when money came into this account, red with **-** when it left. A foreign-currency row also shows its value in your own currency underneath. A one-time big purchase you excluded from net worth never moved the balance, so it is shown in grey with no sign |
 | **Actions** | Edit or delete the row (or open its goal or loan). After saving you land back on this page |
 
 Click the **Amount** heading to sort by amount, and again to flip the order. On a phone the rows become cards grouped by day.
@@ -170,7 +174,7 @@ Inactive (deleted) accounts are left out.
 
 ### Change this month and the trend
 
-The change shown on the Net Worth tile is what you **saved this month**: income minus spending, using the same definition as the savings rate. Repaying loan principal is not spending (your cash goes down and your debt goes down by the same amount), only the interest is. Capital events count only when they are not excluded from averages.
+The change shown on the Net Worth tile is what you **saved this month**: income minus spending, using the same definition as the savings rate. Repaying loan principal is not spending (your cash goes down and your debt goes down by the same amount), only the interest is. One-time big purchases count only when they are not excluded from averages.
 
 The sparkline walks back from today's figure by each earlier month's savings, so it is an **estimate**. It does not know about market price changes, revaluations or money moved without being recorded, so use it for direction rather than for exact past values. A snapshot of your net worth is also saved each day for the record.
 

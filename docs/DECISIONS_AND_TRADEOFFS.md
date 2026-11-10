@@ -98,8 +98,9 @@ parts).
   both must union them.
 - **2026-10: the New Expense form offers it.** From ₹5,000 (a per-currency threshold) the review step shows a hint with
   a link that opens the Capital Event form with amount, currency, date, account, note and category already filled in.
-  It opens a form rather than saving directly, so the person reviews the flags. The older "is that right?" prompt only
-  started at ₹1,00,000 and its link carried only the amount; it now carries everything.
+  It opens a form rather than saving directly, so the person reviews the flags. The older "is that right?" prompt
+  (from ₹1,00,000, with a second link carrying only the amount) was removed in 2026-11: it duplicated this hint, and
+  the hint above the form is the single place that suggests a one-time big purchase.
 
 ### 3.6 Plan limits lock rather than delete
 - Accounts or categories beyond a plan's limit are *locked* (visible, not editable, never counted as stale), not
@@ -306,8 +307,8 @@ your own JS after load must call `window.initSearchableSelects(row)`**, or it st
   recomputed in the browser as the view changes.
 
 ### 9.5 The New Expense form
-Quick-add line with parsing, "your usual" chips, a review state with tags (Auto, Last used, Check), and a large-amount
-prompt. A learned keyword hint ("swiggy" to Food, account, payment method) makes the next entry faster; it is saved after
+Quick-add line with parsing, "your usual" chips, a review state with tags (Auto, Last used, Check), and a one-time big purchase
+hint. A learned keyword hint ("swiggy" to Food, account, payment method) makes the next entry faster; it is saved after
 the response because nothing waits for it.
 
 ---

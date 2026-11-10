@@ -23848,3 +23848,76 @@ msgstr "रोज़मर्रा"
 #: templates/components/navbar.html
 msgid "Money & plans"
 msgstr "पैसा और योजनाएँ"
+
+#: expenses/account_types.py
+msgid "What kind of account is it?"
+msgstr "यह किस तरह का खाता है?"
+
+#: expenses/account_types.py
+msgid "Pick the closest match. You can add more details on the next step."
+msgstr "सबसे नज़दीकी विकल्प चुनें। अगले चरण में और जानकारी जोड़ सकते हैं।"
+
+#: expenses/account_types.py
+msgid "Which one?"
+msgstr "कौन सा?"
+
+#: expenses/account_types.py
+msgid "Choose a different kind"
+msgstr "कोई और तरह चुनें"
+
+#: expenses/account_types.py
+msgid "Bank or cash"
+msgstr "बैंक या नकद"
+
+#: expenses/account_types.py
+msgid "Savings, salary and current accounts, wallets, cash"
+msgstr "बचत, सैलरी और चालू खाते, वॉलेट, नकद"
+
+#: expenses/account_types.py
+msgid "Credit card or pay later"
+msgstr "क्रेडिट कार्ड या बाद में भुगतान"
+
+#: expenses/account_types.py
+msgid "Credit cards, BNPL and overdrafts"
+msgstr "क्रेडिट कार्ड, BNPL और ओवरड्राफ्ट"
+
+#: expenses/account_types.py
+msgid "Mutual funds, shares, ETFs, gold and bonds"
+msgstr "म्यूचुअल फंड, शेयर, ETF, सोना और बॉन्ड"
+
+#: expenses/account_types.py
+msgid "Deposits & savings schemes"
+msgstr "जमा और बचत योजनाएँ"
+
+#: expenses/account_types.py
+msgid "FD, RD, PPF, EPF, NPS and post office"
+msgstr "FD, RD, PPF, EPF, NPS और पोस्ट ऑफिस"
+
+#: expenses/account_types.py
+msgid "Home, car, personal, education and other loans"
+msgstr "होम, कार, पर्सनल, एजुकेशन और अन्य लोन"
+
+#: expenses/account_types.py
+msgid "Property, vehicle or insurance"
+msgstr "संपत्ति, वाहन या बीमा"
+
+#: expenses/account_types.py
+msgid "Things you own, and insurance policies"
+msgstr "आपकी चीज़ें और बीमा पॉलिसियाँ"
+
+#: expenses/analytics/spending.py
+#, python-format
+msgid "You spent %(spent)s in this period, far more than %(compare)s."
+msgstr "इस अवधि में आपने %(spent)s खर्च किए, जो %(compare)s से काफ़ी ज़्यादा है।"
+
+#: templates/expenses/account_form.html
+msgid "Search, e.g. PPF, credit card"
+msgstr "खोजें, जैसे PPF, क्रेडिट कार्ड"
+
+#: templates/expenses/account_form.html
+msgid "Search account types"
+msgstr "खाते के प्रकार खोजें"
+
+#: templates/expenses/account_form.html
+msgid "Nothing matches. Try another word, or pick a kind."
+msgstr "कुछ नहीं मिला। कोई और शब्द आज़माएँ, या कोई प्रकार चुनें।"

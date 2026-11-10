@@ -1,4 +1,4 @@
-# TMR Flows
+# Guided Setup
 
 Tell TrackMyRupee what happened in your life, and it sets up everything connected to it in one go.
 
@@ -8,12 +8,12 @@ Tell TrackMyRupee what happened in your life, and it sets up everything connecte
 
 Think about what happens when you move to a new flat. You do not call the electricity board, then the gas agency, then the Wi-Fi company, then the bank, one by one, each with a different form. You tell a friendly agent "I have moved", and all of that gets updated together.
 
-A **TMR Flow** works the same way. Without Flows, if you take a car loan, you would:
+A **Guided Setup flow** works the same way. Without Guided Setup, if you take a car loan, you would:
 
 1. Create a loan record.
 2. Add the interest rate.
 3. Set up a recurring EMI.
-4. Record the down payment as a capital event.
+4. Record the down payment as a one-time big purchase.
 5. Add the car as an asset.
 
 With the **I bought a car** Flow, you answer one short form and all five things are created for you, properly linked to each other.
@@ -31,12 +31,12 @@ A twelfth Flow, **I want to share the big picture with my family**, appears unde
 
 ---
 
-## 2. Opening TMR Flows
+## 2. Opening Guided Setup
 
-Click **TMR Flows** in the sidebar on desktop. It carries a small **New** badge for now.
+Click **Guided Setup** in the sidebar on desktop. It carries a small **New** badge for now.
 
 
-![The TMR Flows page](img/flows-landing-desktop.webp){ loading=lazy }
+![The Guided Setup page](img/flows-landing-desktop.webp){ loading=lazy }
 
 
 The page opens with the line *"Tell us what happened in your life. We'll set up everything linked behind it, in one form."* Below it you will find:

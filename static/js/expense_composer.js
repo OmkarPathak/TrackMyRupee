@@ -67,8 +67,6 @@
     account: $('tmr-account'), accountMsg: $('tmr-account-msg'),
     payGroup: $('tmr-pay-group'), payMsg: $('tmr-pay-msg'),
     foot: $('tmr-foot'), cancel: $('tmr-cancel'), addAnother: $('tmr-add-another'), add: $('tmr-add'),
-    cLarge: $('tmr-confirm-large'), largeText: $('tmr-large-text'), largeYes: $('tmr-large-yes'),
-    largeEdit: $('tmr-large-edit'), largeCapital: $('tmr-large-capital'),
     capHint: $('tmr-capital-hint'), capHintText: $('tmr-capital-hint-text'), capLink: $('tmr-capital-link'),
     live: $('tmr-live')
   };
@@ -83,7 +81,7 @@
     v: { amount: '', currency: '₹', date: '', description: '', category: '', accountId: '', payment: 'Cash' },
     origin: {}, tag: {}, check: {}, edited: {}, usedParse: false,
     key: '', openedAt: 0, entry: 'other', stickyDate: null, saving: false,
-    opener: null, parseSeq: 0, largeOk: false, pushed: false, lastAnother: false,
+    opener: null, parseSeq: 0, pushed: false, lastAnother: false,
     deepLink: false, nextUrl: '', prevCategory: ''
   };
 
@@ -326,7 +324,7 @@
   function resetCard(keepDate) {
     S.v = { amount: '', currency: S.data ? S.data.default_currency : '₹', date: '', description: '', category: '', accountId: '', payment: 'Cash' };
     S.origin = {}; S.tag = {}; S.edited = {}; S.usedParse = false;
-    S.key = uuid(); S.largeOk = false; S.saving = false; S.parseSeq++;
+    S.key = uuid(); S.saving = false; S.parseSeq++;
     if (!keepDate) S.stickyDate = null;
     applyDefaults(false);
     el.quick.value = '';
@@ -339,7 +337,7 @@
   }
 
   function hideMessages() {
-    show(el.bNotice, false); show(el.bError, false); show(el.cLarge, false);
+    show(el.bNotice, false); show(el.bError, false);
     show(el.voiceMsg, false); show(el.catInline, false);
     [el.amountMsg, el.categoryMsg, el.accountMsg, el.payMsg].forEach(function (n) { if (n) { n.hidden = true; n.textContent = ''; } });
     Object.keys(fieldEl).forEach(function (f) { fieldEl[f].classList.remove('is-invalid'); });
@@ -569,7 +567,6 @@
   function userEdit(f) {
     S.origin[f] = 'user';
     S.tag[f] = null;
-    S.largeOk = false;
     var wrap = fieldEl[f];
     if (wrap) { wrap.classList.remove('is-invalid'); }
     paintTag(f);
@@ -707,19 +704,7 @@
     }
     var bad = validate();
     if (bad) { bad.focus(); return; }
-    var limit = S.data ? (S.data.large_amount_thresholds[S.v.currency] || 5000) : 100000;
-    if (!S.largeOk && amountNumber() >= limit) { askLarge(another); return; }
     save(another);
-  }
-
-  function askLarge(another) {
-    el.largeText.textContent = t('largeAmount', { amount: symbolFmt(amountNumber(), S.v.currency) });
-    el.largeYes.textContent = t('yesAdd'); el.largeEdit.textContent = t('editAmount');
-    el.largeCapital.textContent = t('asCapital');
-    el.largeCapital.href = capitalUrl();
-    el.largeYes.onclick = function () { S.largeOk = true; show(el.cLarge, false); save(another); };
-    el.largeEdit.onclick = function () { show(el.cLarge, false); el.amount.focus(); el.amount.select(); };
-    show(el.cLarge, true); el.largeYes.focus();
   }
 
   function showError(text, actions) {
@@ -854,9 +839,6 @@
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); attemptAdd(false); return; }
-    if (e.key === 'Escape') {
-      if (!el.cLarge.hidden) { show(el.cLarge, false); return; }
-    }
   });
 
   // ── Voice ─────────────────────────────────────────────────────────────────

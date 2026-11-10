@@ -59,6 +59,10 @@ There are two ways, and you can mix them.
 
 **Automatically, with a subscription.** Set up a recurring **Loan Repayment** (**Add → Add Subscription**, Transaction Type `Loan Repayment`, linked to the loan). Each time the recurring engine posts it, the repayment is split into interest and principal for you. See [Subscriptions](../05-transactions-recurring/index.md). The [I took a loan](../13-tmr-flows/debt.md#i-took-a-loan) Flow sets this up for you.
 
+**Quickest, with Pay EMI.** Open **Add → Pay EMI** (on a phone, tap **+** then **Pay EMI**). The amount is filled in from your loan, **Paid from** starts on the account you used last time, and the date is today. Tap **Record EMI**. The split between principal and interest is worked out for you; open **Split into principal and interest** only if you want to type your own. With more than one loan, pick which one at the top. On the Free plan Pay EMI is marked **Plus**.
+
+![The Pay EMI page](img/pay-emi-desktop.webp){ loading=lazy }
+
 **By hand, from the loan page.** Open the loan and use **Record Repayment**. Enter the **amount**, the **account** it was paid from, and the **date** (it cannot be in the future). You can leave the split blank, and TrackMyRupee estimates the interest from the current balance and rate and treats the rest as principal. Or fill in the **principal** and **interest** portions yourself; they must add up to the amount. If you pay more principal than is left, the extra is trimmed, so you can pay a loan off in full. Tick **Make this a recurring loan repayment** to turn it into a subscription with the same amount.
 
 Either way, the account you paid from goes down by the amount, and the remaining principal goes down by the **principal portion only**. To undo a repayment, delete it from the **History** tab and the money goes back to the account.
@@ -73,7 +77,7 @@ Use **Update Interest Rate** on the loan page and give the **New Annual Rate** a
 
 ### Down payments and prepayments
 
-A lump sum, such as a down payment or a prepayment, is recorded as a [Capital Event](../09-capital-events/index.md) with the subtype **Loan Down Payment** or **Loan Prepayment**, linked to the loan (the loan page has an **Add Capital Event for this Loan** shortcut). It counts fully as principal paid. Capital events with other subtypes do not change the loan.
+A lump sum, such as a down payment or a prepayment, is recorded as a [one-time big purchase](../09-capital-events/index.md) with the subtype **Loan Down Payment** or **Loan Prepayment**, linked to the loan (the loan page has an **Add one-time big purchase for this Loan** shortcut). It counts fully as principal paid. One-time big purchases with other subtypes do not change the loan.
 
 ---
 
@@ -90,7 +94,7 @@ On the Loans list page, each loan card shows:
 
 At the top, **Total Remaining Debt** adds up the remaining principal of all your active loans. If a loan is in a different currency from your own, it is converted to your currency for these totals, while each card keeps its own currency.
 
-Use the **Active**, **Paid Off**, and **All Loans** tabs to switch between loans still running and finished ones. Click any loan card to open its detail page, which shows the repayment history, the amortization schedule, the principal-versus-interest breakdown, the interest rate history, and any linked capital events.
+Use the **Active**, **Paid Off**, and **All Loans** tabs to switch between loans still running and finished ones. Click any loan card to open its detail page, which shows the repayment history, the amortization schedule, the principal-versus-interest breakdown, the interest rate history, and any linked one-time big purchases.
 
 ### The amortization schedule
 
@@ -110,7 +114,7 @@ The closed loan moves to the **Paid Off** tab for your records. It no longer cou
 
 ### Editing and deleting a loan
 
-Use **Edit** to change the name, type, principal, term, start date, or rate. If the loan has only one rate, editing the rate changes that rate; if you have added rate changes since, they are left as they are (use **Update Interest Rate** for new ones). **Deleting** a loan removes all its repayments (and gives the money back to the accounts they were paid from) and its recurring repayment. Capital events you had linked to it are kept, just unlinked.
+Use **Edit** to change the name, type, principal, term, start date, or rate. If the loan has only one rate, editing the rate changes that rate; if you have added rate changes since, they are left as they are (use **Update Interest Rate** for new ones). **Deleting** a loan removes all its repayments (and gives the money back to the accounts they were paid from) and its recurring repayment. One-time big purchases you had linked to it are kept, just unlinked.
 
 !!! example "Real-world use case"
     Ravi took a Rs. 1,20,000 personal loan 6 months ago to fund a travel trip. He adds it to TrackMyRupee with Principal Amount Rs. 1,20,000, Interest Rate 14 percent, Duration 12 months, and the disbursement date. The app calculates his estimated EMI at approximately Rs. 10,774 per month. Each time he makes a payment, the recurring engine auto-posts a Loan Repayment entry, and the paid-off percentage bar on the loan card ticks upward, giving him a visible motivation to make an extra prepayment and close it in 10 months instead of 12.
@@ -120,4 +124,4 @@ Use **Edit** to change the name, type, principal, term, start date, or rate. If 
 ## Related Links
 - [Accounts and Net Worth](../02-accounts/index.md)
 - [Recurring Transactions and Subscriptions](../05-transactions-recurring/index.md)
-- [Capital Events](../09-capital-events/index.md)
+- [one-time big purchases](../09-capital-events/index.md)
