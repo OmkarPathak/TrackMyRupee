@@ -23862,3 +23862,15 @@ msgstr "पैसे हस्तांतरित करण्यासाठ�
 #: templates/expenses/partials/_capital_event_list.html
 msgid "purchases"
 msgstr "खरेद्या"
+
+#: templates/expenses/transfer_form.html
+msgid "Add a note"
+msgstr "टीप जोडा"
+
+#: templates/expenses/transfer_form.html
+msgid "Move {amount}"
+msgstr "{amount} हस्तांतरित करा"
+
+#: templates/expenses/transfer_form.html
+msgid "Both balances update. This is not counted as spending."
+msgstr "दोन्ही खात्यांची शिल्लक अपडेट होईल. हे खर्चात मोजले जात नाही."

@@ -8,9 +8,11 @@
             <div class="card-header bg-transparent py-3">
                 <div class="d-flex align-items-center justify-content-between">
                     <h1 class="h4 mb-0 fw-bold">{% if form.instance.pk %}{% trans "Edit Transfer" %}{% else %}{% trans "Move Money" %}{% endif %}</h1>
-                    <button type="button" class="btn btn-action-outline tmr-ic" data-bs-toggle="modal" data-bs-target="#quickAddAccountModal">
+                    {% if form.instance.pk or form.fields.from_account.queryset.count >= 2 %}
+                    <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 tmr-ic" data-bs-toggle="modal" data-bs-target="#quickAddAccountModal">
                         <i class="bi bi-plus-lg"></i>{% trans "Add Account" %}
                     </button>
+                    {% endif %}
                 </div>
             </div>
             <div class="card-body p-4">
@@ -27,19 +29,41 @@
                     {% endif %}
 
                     {% if not form.instance.pk and form.fields.from_account.queryset.count < 2 %}
-                        <div class="alert alert-info mb-3">{% trans "Moving money needs two accounts. Add another account to get started." %}</div>
+                        <div class="alert alert-info mb-3 d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                            <span>{% trans "Moving money needs two accounts. Add another account to get started." %}</span>
+                            <button type="button" class="btn btn-action-outline btn-sm tmr-ic" data-bs-toggle="modal" data-bs-target="#quickAddAccountModal"><i class="bi bi-plus-lg"></i>{% trans "Add Account" %}</button>
+                        </div>
                     {% endif %}
 
                     <div class="row g-3">
-                        <!-- Row 1: Amount and Date -->
-                        <div class="col-6 mb-3">
+                        <!-- From, then To, stacked so the account names and balances are never cut off -->
+                        <div class="col-12">
+                            <label for="{{ form.from_account.id_for_label }}" class="form-label small text-muted fw-bold">{% trans "From" %}</label>
+                            {{ form.from_account }}
+                            {% if form.from_account.errors %}
+                                <div class="text-danger small mt-1">{{ form.from_account.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 text-center py-0" aria-hidden="true">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle border text-muted" style="width: 36px; height: 36px;"><i class="bi bi-arrow-down"></i></span>
+                        </div>
+                        <div class="col-12">
+                            <label for="{{ form.to_account.id_for_label }}" class="form-label small text-muted fw-bold">{% trans "To" %}</label>
+                            {{ form.to_account }}
+                            {% if form.to_account.errors %}
+                                <div class="text-danger small mt-1">{{ form.to_account.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Amount and date -->
+                        <div class="col-12 col-md-6">
                             <label for="{{ form.amount.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.amount.label }}</label>
                             {{ form.amount }}
                             {% if form.amount.errors %}
                                 <div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        <div class="col-6 mb-3">
+                        <div class="col-12 col-md-6">
                             <label for="{{ form.date.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.date.label }}</label>
                             {{ form.date }}
                             {% if form.date.errors %}
@@ -47,29 +71,22 @@
                             {% endif %}
                         </div>
 
-                        <!-- Row 2: From Account and To Account -->
-                        <div class="col-6 mb-3">
-                            <label for="{{ form.from_account.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.from_account.label }}</label>
-                            {{ form.from_account }}
-                            {% if form.from_account.errors %}
-                                <div class="text-danger small mt-1">{{ form.from_account.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label for="{{ form.to_account.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.to_account.label }}</label>
-                            {{ form.to_account }}
-                            {% if form.to_account.errors %}
-                                <div class="text-danger small mt-1">{{ form.to_account.errors.0 }}</div>
-                            {% endif %}
-                        </div>
+                        {% if not form.instance.pk %}
+                        <div class="col-12"><div class="small text-muted">{% trans "Both balances update. This is not counted as spending." %}</div></div>
+                        {% endif %}
 
-                        <!-- Row 3: Description -->
-                        <div class="col-12 mb-3">
-                            <label for="{{ form.description.id_for_label }}" class="form-label small text-muted fw-bold">{{ form.description.label }}</label>
-                            {{ form.description }}
-                            {% if form.description.errors %}
-                                <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
-                            {% endif %}
+                        <!-- Note: folded away unless there is one already -->
+                        <div class="col-12">
+                            <details{% if form.description.value or form.description.errors %} open{% endif %}>
+                                <summary class="small fw-semibold text-primary" style="cursor: pointer;">{% trans "Add a note" %}</summary>
+                                <div class="mt-2">
+                                    <label for="{{ form.description.id_for_label }}" class="visually-hidden">{{ form.description.label }}</label>
+                                    {{ form.description }}
+                                    {% if form.description.errors %}
+                                        <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </details>
                         </div>
 
                         <!-- Allocate to funds (only for a transfer into a Mutual Fund / Demat / ETF / SGB / ULIP / Gold account) -->
@@ -108,9 +125,11 @@
 
                     <div class="d-flex justify-content-end gap-2 mt-4">
                         <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'transfer-list' %}{% endif %}" class="btn btn-action-cancel">{% trans "Cancel" %}</a>
-                        <button type="submit" class="btn btn-action-primary">
-                            {% if form.instance.pk %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %}
-                        </button>
+                        {% if form.instance.pk %}
+                        <button type="submit" class="btn btn-action-primary flex-grow-1 flex-sm-grow-0">{% trans "Edit" %}</button>
+                        {% else %}
+                        <button type="submit" class="btn btn-action-primary flex-grow-1 flex-sm-grow-0" id="moveMoneySubmit" data-with-amount="{% trans 'Move {amount}' %}">{% trans "Move Money" %}</button>
+                        {% endif %}
                     </div>
                 </form>
             </div>
@@ -255,6 +274,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+</script>
+
+<script>
+(function() {
+    const btn = document.getElementById('moveMoneySubmit');
+    const amount = document.getElementById('{{ form.amount.id_for_label }}');
+    const from = document.getElementById('{{ form.from_account.id_for_label }}');
+    if (!btn || !amount) return;
+    const plain = btn.textContent.trim();
+    function refresh() {
+        const value = parseFloat((amount.value || '').replace(/[^0-9.]/g, ''));
+        if (!(value > 0)) { btn.textContent = plain; return; }
+        let symbol = '';
+        try { symbol = JSON.parse(from.dataset.currencies || '{}')[from.value] || ''; } catch (e) {}
+        // grouped the way the amount field groups it: lakhs for rupees, thousands for the rest
+        const shown = new Intl.NumberFormat(symbol === '₹' || !symbol ? 'en-IN' : 'en-US', { maximumFractionDigits: 2 }).format(value);
+        btn.textContent = btn.dataset.withAmount.replace('{amount}', symbol + shown);
+    }
+    ['input', 'change', 'blur'].forEach(ev => amount.addEventListener(ev, refresh));
+    if (from) from.addEventListener('change', refresh);
+    refresh();
+})();
 </script>
 
 {{ allocation_data|json_script:"allocation-data" }}

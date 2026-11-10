@@ -23799,3 +23799,15 @@ msgstr "पैसे ट्रांसफ़र करने के लिए �
 #: templates/expenses/partials/_capital_event_list.html
 msgid "purchases"
 msgstr "खरीदें"
+
+#: templates/expenses/transfer_form.html
+msgid "Add a note"
+msgstr "नोट जोड़ें"
+
+#: templates/expenses/transfer_form.html
+msgid "Move {amount}"
+msgstr "{amount} ट्रांसफ़र करें"
+
+#: templates/expenses/transfer_form.html
+msgid "Both balances update. This is not counted as spending."
+msgstr "दोनों खातों का शेष अपडेट होगा। इसे खर्च में नहीं गिना जाता।"
