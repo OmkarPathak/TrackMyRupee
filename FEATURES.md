@@ -4,7 +4,7 @@ TrackMyRupee is a privacy-first personal finance tracker built for India. There 
 
 ![Dashboard](misc/dashboard2.png)
 
-**Contents:** [Log money in seconds](#tracking) · [Your whole balance sheet](#accounts) · [Investments, fund by fund](#investments) · [Plan ahead](#planning) · [Guided setup with TMR Flows](#flows) · [Family sharing](#family) · [Insights that notice for you](#noticing) · [Know where you stand](#insights) · [Reminders that reach you](#alerts) · [Your data stays yours](#trust) · [Works the way you do](#everywhere)
+**Contents:** [Log money in seconds](#tracking) · [Your whole balance sheet](#accounts) · [Investments, fund by fund](#investments) · [Plan ahead](#planning) · [Guided Setup](#flows) · [Family sharing](#family) · [Insights that notice for you](#noticing) · [Know where you stand](#insights) · [Reminders that reach you](#alerts) · [Your data stays yours](#trust) · [Works the way you do](#everywhere)
 
 <a id="tracking"></a>
 ## Log money in seconds
@@ -14,7 +14,7 @@ _Type it the way you would text a friend. No bank login, no SMS access._
 - **Type it like a message.** Write "swiggy 320", "uber to airport 450 upi yesterday" or "laptop bag 2 lakh". It understands amounts like 1.5k, lakh and crore, dates, UPI, cards, your account names, and Hindi and Marathi. You check it, then add it. You can also speak it.
 - **Categories that learn your habits.** Your own history and common words like Swiggy, Uber and petrol suggest the category, and your "usual" expenses are one tap away. It all runs inside the app, and your descriptions are not sent to any third-party service.
 - **Expenses, income and transfers.** Log what you spend and what you earn, and move money between your own accounts without it counting as spending. Cashback and refunds are kept apart from income, so your savings rate stays honest.
-- **Refunds that net against what they paid back.** When friends or an employer repay you for part of an expense or a capital event, link the refund to it with one search box (recent items first, typing searches both). The refund stops counting as income and the expense shows what it really cost you, in its own month, category and budget.
+- **Refunds that net against what they paid back.** When friends or an employer repay you for part of an expense or a one-time big purchase, link the refund to it with one search box (recent items first, typing searches both). The refund stops counting as income and the expense shows what it really cost you, in its own month, category and budget.
 - **Amounts that format as you type.** Every amount box groups digits for its currency (1,00,000 for the rupee, 100,000 for others) and joins the currency picker into one control, with a searchable currency list.
 - **Your month starts on salary day.** Set the day your salary lands and every total, budget and chart follows your real cycle instead of the calendar month.
 - **Find anything, fast.** Filter by period, category, account and payment method, search by description, and sort. The totals update as you filter. A calendar shows every day at a glance, with salary days and upcoming payments marked.
@@ -53,10 +53,10 @@ _Bills, budgets, goals and loans that look after themselves._
 - **Budgets that warn you early.** Set a monthly limit for each category and see progress bars. You are alerted when a category reaches its warning level and again when it goes over, and a Needs Attention list shows what to look at.
 - **Goals with a finish line.** Set a target, log what you put towards it, and get a projected date based on your real pace. You are alerted at 50%, 90% and 100%.
 - **Loans and a free EMI calculator.** Preview an EMI before you borrow. Then track home, car, personal and other loans with an amortisation schedule, floating-rate changes, repayments and the remaining principal.
-- **Big one-off costs, kept separate.** Record a wedding, a car down payment or a medical bill as a capital event, and choose whether it counts towards your averages, so one big month does not distort your picture.
+- **Big one-off costs, kept separate.** Record a wedding, a car down payment or a medical bill as a one-time big purchase, and choose whether it counts towards your averages, so one big month does not distort your picture.
 
 <a id="flows"></a>
-## Guided setup with TMR Flows
+## Guided Setup
 
 _Say what happened. The app sets up everything that goes with it._
 
@@ -85,7 +85,7 @@ _Calm, specific observations from your own entries, so you do not have to go loo
 - **About fifty things it watches for.** A budget about to run out early, a category creeping up, a deposit about to mature, a card billing date, a salary that is late, idle cash, a subscription that changed price, a goal that is slipping or on track, and more. Each one is a plain sentence about your own money.
 - **Every number opens the entries behind it.** The sentence uses rounded figures. The exact amounts sit in small chips under it, and each chip opens the transactions that make up the number.
 - **Calm by design.** We lead with what is going well, never compare you with other people, and never predict the markets. Insights about debt, a shortfall or a long gap in income are written extra gently, and are never pushed or emailed.
-- **It follows your real month.** Insights use your salary cycle, your Capital Events choices and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app.
+- **It follows your real month.** Insights use your salary cycle, your choices about one-time big purchases and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app.
 - **You choose how loud it is.** Pick the topics, and whether the bell mentions things normally, quietly or only on the pages. Snooze or dismiss any insight, and say whether it was helpful so you see less of what is not.
 - **Where it shows up.** A short strip on your Dashboard and on pages like Budgets, Expenses, Accounts, Loans and Goals, the sentences on your Analytics tabs, a "What we noticed" card in your Year in Review, and on Pro a weekly email and a monthly report section.
 - **Runs on your entries, nowhere else.** Insights are worked out inside the app from what you logged. No bank feed, no outside AI service, and your data is never sold or used for advertising. Insights are included on every plan.

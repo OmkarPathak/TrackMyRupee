@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static i18n %}
 
-{% block title %}{{ flow.label }} | TMR Flows{% endblock %}
+{% block title %}{{ flow.label }} | {% trans "Guided Setup" %}{% endblock %}
 
 {% block extra_js %}
 <script defer src="{% static 'tmr_flows.js' %}?v=20261005"></script>

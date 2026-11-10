@@ -1876,8 +1876,8 @@ msgstr "लोन परतफेड"
 #: templates/expenses/partials/_recurring_transaction_list.html:401
 #: templates/expenses/partials/_recurring_transaction_list.html:581
 #: templates/expenses/partials/_transaction_list.html:237
-msgid "Capital Event"
-msgstr "भांडवली घटना"
+msgid "One-time big purchase"
+msgstr "एकवेळची मोठी खरेदी"
 
 #: expenses/forms.py:358 expenses/models.py:1488
 msgid "Insurance Premium"
@@ -1924,8 +1924,8 @@ msgid "Payment account is required."
 msgstr "पेमेंट खाते आवश्यक आहे."
 
 #: expenses/forms.py:499
-msgid "Subtype is required for capital events."
-msgstr "कॅपिटल इव्हेंटसाठी उप-प्रकार आवश्यक आहे."
+msgid "Subtype is required for one-time big purchases."
+msgstr "एकवेळच्या मोठ्या खरेदीसाठी उप-प्रकार आवश्यक आहे."
 
 #: expenses/forms.py:510
 msgid "Start date must be between year 2000 and 50 years into the future."
@@ -2457,11 +2457,11 @@ msgid "Select a category"
 msgstr "श्रेणी निवडा"
 
 #: expenses/forms.py:1877
-msgid "Optional. Without one, it is reported under its event type."
-msgstr "ऐच्छिक. हे नसल्यास ते त्याच्या इव्हेंट प्रकाराखाली दाखवले जाईल."
+msgid "Optional. Without one, it is reported under its purchase type."
+msgstr "ऐच्छिक. हे नसल्यास ते त्याच्या खरेदी प्रकाराखाली दाखवले जाईल."
 
 #: expenses/forms.py:1905
-msgid "Capital event date cannot be in the future."
+msgid "One-time big purchase date cannot be in the future."
 msgstr "भांडवली घटनेची तारीख भविष्यात असू शकत नाही."
 
 #: expenses/forms.py:1926
@@ -3263,8 +3263,8 @@ msgid "Insurance Policy"
 msgstr "विमा पॉलिसी"
 
 #: expenses/models.py:1516
-msgid "Capital Event Subtype"
-msgstr "कॅपिटल इव्हेंटचा उप-प्रकार"
+msgid "One-time big purchase type"
+msgstr "एकवेळच्या मोठ्या खरेदीचा प्रकार"
 
 #: expenses/models.py:1518 expenses/models.py:2725
 msgid "Exclude from Averages & Trends"
@@ -3994,18 +3994,12 @@ msgid "Big one-off costs, kept separate"
 msgstr "मोठे एकदाचे खर्च, वेगळे ठेवलेले"
 
 #: expenses/public_features.py:152
-msgid ""
-"Record a wedding, a car down payment or a medical bill as a capital event, "
-"and choose whether it counts towards your averages, so one big month does "
-"not distort your picture."
-msgstr ""
-"लग्न, कारचे डाउन पेमेंट किंवा वैद्यकीय बिल भांडवली घटना म्हणून नोंदवा, आणि "
-"ते तुमच्या सरासरीमध्ये मोजायचे की नाही ते ठरवा, म्हणजे एका मोठ्या "
-"महिन्यामुळे तुमचे चित्र बिघडत नाही."
+msgid "Record a wedding, a car down payment or a medical bill as a one-time big purchase, and choose whether it counts towards your averages, so one big month does not distort your picture."
+msgstr "लग्न, कारचे डाउन पेमेंट किंवा वैद्यकीय बिल एकवेळची मोठी खरेदी म्हणून नोंदवा, आणि ते तुमच्या सरासरीमध्ये मोजायचे की नाही ते ठरवा, म्हणजे एका मोठ्या महिन्यामुळे तुमचे चित्र बिघडत नाही."
 
 #: expenses/public_features.py:158
-msgid "Guided setup with TMR Flows"
-msgstr "TMR Flows सह मार्गदर्शित सेटअप"
+msgid "Guided Setup"
+msgstr "मार्गदर्शित सेटअप"
 
 #: expenses/public_features.py:159
 msgid "Say what happened. The app sets up everything that goes with it."
@@ -4560,8 +4554,8 @@ msgstr "%(amount)s चा नफा Investment Returns उत्पन्न म
 
 #: expenses/views/accounts.py:2279
 #, python-format
-msgid "a loss of %(amount)s is recorded as a capital event"
-msgstr "%(amount)s चा तोटा भांडवली घटना म्हणून नोंदवला जातो"
+msgid "a loss of %(amount)s is recorded as a one-time big purchase"
+msgstr "%(amount)s चा तोटा एकवेळची मोठी खरेदी म्हणून नोंदवला जातो"
 
 #: expenses/views/accounts.py:2281
 msgid "it sold at your average cost, so no profit or loss is recorded"
@@ -5008,60 +5002,40 @@ msgid "Original expense deleted after conversion."
 msgstr "रूपांतरणानंतर मूळ खर्च हटवला."
 
 #: expenses/views/capital_events.py:148
-msgid "Capital event recorded successfully."
-msgstr "भांडवली घटना यशस्वीरित्या नोंदवली."
+msgid "One-time big purchase recorded successfully."
+msgstr "एकवेळची मोठी खरेदी यशस्वीरित्या नोंदवली."
 
 #: expenses/views/capital_events.py:152
-msgid ""
-"Unable to save capital event because currency conversion failed or data is "
-"invalid."
-msgstr ""
-"कॅपिटल इव्हेंट जतन करता आला नाही, कारण चलन रूपांतरण अयशस्वी झाले किंवा डेटा "
-"अवैध आहे."
+msgid "Unable to save one-time big purchase because currency conversion failed or data is invalid."
+msgstr "एकवेळची मोठी खरेदी जतन करता आली नाही, कारण चलन रूपांतरण अयशस्वी झाले किंवा डेटा अवैध आहे."
 
 #: expenses/views/capital_events.py:193
-msgid "Capital event updated."
-msgstr "भांडवली घटना अपडेट केली."
+msgid "One-time big purchase updated."
+msgstr "एकवेळची मोठी खरेदी अपडेट केली."
 
 #: expenses/views/capital_events.py:198
-msgid ""
-"Unable to update capital event because currency conversion failed or data is"
-" invalid."
-msgstr ""
-"कॅपिटल इव्हेंट अपडेट करता आला नाही, कारण चलन रूपांतरण अयशस्वी झाले किंवा "
-"डेटा अवैध आहे."
+msgid "Unable to update one-time big purchase because currency conversion failed or data is invalid."
+msgstr "एकवेळची मोठी खरेदी अपडेट करता आली नाही, कारण चलन रूपांतरण अयशस्वी झाले किंवा डेटा अवैध आहे."
 
 #: expenses/views/capital_events.py:226
-msgid "Capital event deleted."
-msgstr "भांडवली घटना हटवली."
+msgid "One-time big purchase deleted."
+msgstr "एकवेळची मोठी खरेदी हटवली."
 
 #: expenses/views/capital_events.py:244
-msgid ""
-"Choose an account and turn on 'Include in Cash Flow / Net Worth' for this "
-"event first, so the expense is charged to an account."
-msgstr ""
-"आधी एखादे खाते निवडा आणि या घटनेसाठी 'Include in Cash Flow / Net Worth' चालू"
-" करा, म्हणजे खर्च एखाद्या खात्यातून वजा होईल."
+msgid "Choose an account and turn on 'Include in Cash Flow / Net Worth' for this purchase first, so the expense is charged to an account."
+msgstr "आधी एखादे खाते निवडा आणि या घटनेसाठी 'Include in Cash Flow / Net Worth' चालू करा, म्हणजे खर्च एखाद्या खात्यातून वजा होईल."
 
 #: expenses/views/capital_events.py:248
-msgid ""
-"You have reached the monthly expense limit for your plan, so this event "
-"cannot be converted to an expense. Upgrade to add more."
-msgstr ""
-"तुम्ही तुमच्या प्लॅनच्या मासिक खर्च मर्यादेपर्यंत पोहोचला आहात, त्यामुळे हा "
-"इव्हेंट खर्चात रूपांतरित करता येणार नाही. आणखी जोडण्यासाठी अपग्रेड करा."
+msgid "You have reached the monthly expense limit for your plan, so this purchase cannot be converted to an expense. Upgrade to add more."
+msgstr "तुम्ही तुमच्या प्लॅनच्या मासिक खर्च मर्यादेपर्यंत पोहोचला आहात, त्यामुळे ही खरेदी खर्चात रूपांतरित करता येणार नाही. आणखी जोडण्यासाठी अपग्रेड करा."
 
 #: expenses/views/capital_events.py:263
-msgid "Capital event converted to a regular expense."
-msgstr "भांडवली घटना सामान्य खर्चात रूपांतरित केली."
+msgid "One-time big purchase converted to a regular expense."
+msgstr "एकवेळची मोठी खरेदी सामान्य खर्चात रूपांतरित केली."
 
 #: expenses/views/capital_events.py:267
-msgid ""
-"Unable to convert capital event because currency conversion failed or data "
-"is invalid."
-msgstr ""
-"कॅपिटल इव्हेंट रूपांतरित करता आला नाही, कारण चलन रूपांतरण अयशस्वी झाले किंवा"
-" डेटा अवैध आहे."
+msgid "Unable to convert one-time big purchase because currency conversion failed or data is invalid."
+msgstr "एकवेळची मोठी खरेदी रूपांतरित करता आली नाही, कारण चलन रूपांतरण अयशस्वी झाले किंवा डेटा अवैध आहे."
 
 #: expenses/views/categories.py:103
 msgid "Name is required."
@@ -5591,33 +5565,27 @@ msgstr ""
 #: templates/expenses/loan_detail.html:189
 #: templates/expenses/partials/_capital_event_list.html:7
 #: templates/expenses/partials/_capital_event_list.html:28
-msgid "Capital Events"
-msgstr "कॅपिटल इव्हेंट"
+msgid "One-time big purchases"
+msgstr "एकवेळच्या मोठ्या खरेद्या"
 
 #: expenses/views/dashboard.py:1887
 #, python-brace-format
-msgid "Capital Event: <b>{}</b> this month"
-msgstr "कॅपिटल इव्हेंट: या महिन्यात <b>{}</b>"
+msgid "One-time big purchase: <b>{}</b> this month"
+msgstr "एकवेळची मोठी खरेदी: या महिन्यात <b>{}</b>"
 
 #: expenses/views/dashboard.py:1889
-msgid "<b>One-off Capital Event</b>"
-msgstr "<b>एकवेळचा कॅपिटल इव्हेंट</b>"
+msgid "<b>One-time big purchase</b>"
+msgstr "<b>एकवेळची मोठी खरेदी</b>"
 
 #: expenses/views/dashboard.py:1891
 #, python-brace-format
-msgid "<b>{} Capital Events this month</b>"
-msgstr "<b>या महिन्यात {} कॅपिटल इव्हेंट</b>"
+msgid "<b>{} one-time big purchases this month</b>"
+msgstr "<b>या महिन्यात {} एकवेळच्या मोठ्या खरेद्या</b>"
 
 #: expenses/views/dashboard.py:1895
 #, python-brace-format
-msgid ""
-"{title} You made a one-off payment of {curr}{total}. <a href='{url}' "
-"class='text-primary fw-semibold text-decoration-none ms-1'>View Capital "
-"Events &rarr;</a>"
-msgstr ""
-"{title} तुम्ही {curr}{total} चे एकवेळचे पेमेंट केले. <a href='{url}' "
-"class='text-primary fw-semibold text-decoration-none ms-1'>कॅपिटल इव्हेंट "
-"पहा &rarr;</a>"
+msgid "{title} You made a one-off payment of {curr}{total}. <a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>View one-time big purchases &rarr;</a>"
+msgstr "{title} तुम्ही {curr}{total} चे एकवेळचे पेमेंट केले. <a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>एकवेळच्या मोठ्या खरेद्या पहा &rarr;</a>"
 
 #: expenses/views/dashboard.py:1917
 #, python-brace-format
@@ -5932,16 +5900,12 @@ msgid "No valid expenses found to update."
 msgstr "अपडेट करण्यासाठी कोणताही वैध खर्च सापडला नाही."
 
 #: expenses/views/expenses.py:281
-msgid ""
-"Edit this expense and choose an account first, so the capital event is "
-"charged to an account."
-msgstr ""
-"आधी हा खर्च संपादित करून एखादे खाते निवडा, म्हणजे कॅपिटल इव्हेंटचे शुल्क "
-"त्या खात्यातून लागेल."
+msgid "Edit this expense and choose an account first, so the one-time big purchase is charged to an account."
+msgstr "आधी हा खर्च संपादित करून एखादे खाते निवडा, म्हणजे एकवेळच्या मोठ्या खरेदीचे शुल्क त्या खात्यातून लागेल."
 
 #: expenses/views/expenses.py:305
-msgid "Expense converted to a capital event."
-msgstr "खर्च कॅपिटल इव्हेंटमध्ये रूपांतरित केला."
+msgid "Expense converted to a one-time big purchase."
+msgstr "खर्च एकवेळच्या मोठ्या खरेदीत रूपांतरित केला."
 
 #: expenses/views/export.py:198
 msgid "Please select at least one data type to export."
@@ -8227,8 +8191,8 @@ msgid "Edit amount"
 msgstr "रक्कम बदला"
 
 #: templates/components/expense_composer_card.html:30
-msgid "Log as Capital Event instead"
-msgstr "त्याऐवजी कॅपिटल इव्हेंट म्हणून नोंदवा"
+msgid "Log as one-time big purchase instead"
+msgstr "त्याऐवजी एकवेळची मोठी खरेदी म्हणून नोंदवा"
 
 #: templates/components/expense_composer_card.html:31
 msgid ""
@@ -8627,8 +8591,8 @@ msgstr "सबस्क्रिप्शन जोडा"
 
 #: templates/components/navbar.html:121 templates/components/navbar.html:324
 #: templates/expenses/transfer_form.html:10
-msgid "Internal Transfer"
-msgstr "अंतर्गत हस्तांतरण"
+msgid "Move Money"
+msgstr "पैसे हस्तांतरित करा"
 
 #: templates/components/navbar.html:123 templates/components/navbar.html:336
 #: templates/components/sidebar.html:87 templates/expenses/income_form.html:10
@@ -8706,12 +8670,6 @@ msgstr "कमाई, पगार किंवा येणारी रक्�
 #: templates/components/navbar.html:411 templates/components/sidebar.html:61
 msgid "Cash Flow"
 msgstr "रोख प्रवाह"
-
-#: templates/components/navbar.html:453 templates/components/sidebar.html:40
-#: templates/components/sidebar.html:42 templates/components/sidebar.html:312
-#: templates/flows/landing.html:14
-msgid "TMR Flows"
-msgstr "TMR फ्लोज"
 
 #: templates/components/navbar.html:460
 #: templates/components/public_footer.html:20
@@ -9034,8 +8992,8 @@ msgstr "कर्जे (Plus/Pro)"
 #: templates/expenses/capital_event_form.html:13
 #: templates/expenses/capital_event_form.html:52
 #: templates/expenses/partials/_capital_event_list.html:31
-msgid "Add Capital Event"
-msgstr "कॅपिटल इव्हेंट जोडा"
+msgid "Add one-time big purchase"
+msgstr "एकवेळची मोठी खरेदी जोडा"
 
 #: templates/components/sidebar.html:225
 msgid "plan"
@@ -9098,8 +9056,8 @@ msgid "Investments and assets portfolio"
 msgstr "गुंतवणूक आणि मालमत्ता पोर्टफोलिओ"
 
 #: templates/components/sidebar.html:401
-msgid "Major purchases and capital activities"
-msgstr "मोठ्या खरेदी आणि भांडवली व्यवहार"
+msgid "Large one-off payments, kept out of monthly averages"
+msgstr "मोठी एकरकमी देयके, मासिक सरासरीतून वगळलेली"
 
 #: templates/components/sidebar.html:409
 msgid "Savings goals and progress tracking"
@@ -9789,12 +9747,8 @@ msgstr "फरकाचा निम्मा: कदाचित तो चु�
 
 #: templates/expenses/account_reconcile.html:113
 #, python-format
-msgid ""
-"Some older entries were saved without an account and never changed a "
-"balance: %(e)s expenses, %(i)s income, %(c)s capital events."
-msgstr ""
-"काही जुन्या नोंदी अकाउंटशिवाय जतन केल्या गेल्या होत्या आणि त्यांनी कधीही "
-"शिल्लक बदलली नाही: %(e)s खर्च, %(i)s उत्पन्न, %(c)s कॅपिटल इव्हेंट."
+msgid "Some older entries were saved without an account and never changed a balance: %(e)s expenses, %(i)s income, %(c)s one-time big purchases."
+msgstr "काही जुन्या नोंदी अकाउंटशिवाय जतन केल्या गेल्या होत्या आणि त्यांनी कधीही शिल्लक बदलली नाही: %(e)s खर्च, %(i)s उत्पन्न, %(c)s एकवेळच्या मोठ्या खरेद्या."
 
 #: templates/expenses/account_reconcile.html:118
 msgid ""
@@ -10173,26 +10127,22 @@ msgid "Every category already has a limit."
 msgstr "प्रत्येक श्रेणीला आधीच मर्यादा आहे."
 
 #: templates/expenses/capital_event_confirm_delete.html:4
-msgid "Delete Capital Event"
-msgstr "कॅपिटल इव्हेंट हटवा"
+msgid "Delete one-time big purchase"
+msgstr "एकवेळची मोठी खरेदी हटवा"
 
 #: templates/expenses/capital_event_confirm_delete.html:12
-msgid "Delete Capital Event?"
-msgstr "कॅपिटल इव्हेंट हटवायचा?"
+msgid "Delete one-time big purchase?"
+msgstr "एकवेळची मोठी खरेदी हटवायची?"
 
 #: templates/expenses/capital_event_confirm_delete.html:19
-msgid ""
-"If this event was deducted from an account balance, that balance will be "
-"restored."
-msgstr ""
-"हा इव्हेंट एखाद्या अकाउंटच्या शिल्लकीतून वजा केला असेल, तर ती शिल्लक परत "
-"जोडली जाईल."
+msgid "If this purchase was deducted from an account balance, that balance will be restored."
+msgstr "ही खरेदी एखाद्या अकाउंटच्या शिल्लकीतून वजा केली असेल, तर ती शिल्लक परत जोडली जाईल."
 
 #: templates/expenses/capital_event_form.html:4
 #: templates/expenses/capital_event_form.html:13
 #: templates/expenses/capital_event_form.html:52
-msgid "Edit Capital Event"
-msgstr "कॅपिटल इव्हेंट संपादित करा"
+msgid "Edit one-time big purchase"
+msgstr "एकवेळची मोठी खरेदी संपादित करा"
 
 #: templates/expenses/capital_event_form.html:15
 #: templates/expenses/partials/_capital_event_list.html:20
@@ -10204,30 +10154,16 @@ msgstr ""
 "जातात."
 
 #: templates/expenses/capital_event_form.html:28
-msgid "What is a Capital Event?"
-msgstr "कॅपिटल इव्हेंट म्हणजे काय?"
+msgid "What is a one-time big purchase?"
+msgstr "एकवेळची मोठी खरेदी म्हणजे काय?"
 
 #: templates/expenses/capital_event_form.html:29
-msgid ""
-"\n"
-"                    A Capital Event is a large, one-off payment (like a home loan down payment, a lump-sum medical bill, or a big purchase)\n"
-"                    that you don't want distorting your regular monthly spending charts and averages.\n"
-"                    It will still appear in your cash flow and net worth calculations.\n"
-"                    "
-msgstr ""
-"\n"
-"                    कॅपिटल इव्हेंट म्हणजे एक मोठे, एकदाच होणारे पेमेंट (जसे होम लोनचे डाउन पेमेंट, एकरकमी वैद्यकीय बिल, किंवा मोठी खरेदी)\n"
-"जे तुम्हाला तुमच्या नेहमीच्या मासिक खर्चाचे चार्ट आणि सरासरी बिघडवू नये असे वाटते.\n"
-"तरीही ते तुमच्या कॅश फ्लो आणि नेट वर्थच्या गणनेत दिसेल.\n"
-"                    "
+msgid "\n                    A one-time big purchase is a large, one-off payment (like a home loan down payment, a lump-sum medical bill, or a big purchase)\n                    that you don't want distorting your regular monthly spending charts and averages.\n                    It will still appear in your cash flow and net worth calculations.\n                    "
+msgstr "\n                    एकवेळची मोठी खरेदी म्हणजे एक मोठे, एकदाच होणारे पेमेंट (जसे होम लोनचे डाउन पेमेंट, एकरकमी वैद्यकीय बिल, किंवा मोठी खरेदी)\nजे तुम्हाला तुमच्या नेहमीच्या मासिक खर्चाचे चार्ट आणि सरासरी बिघडवू नये असे वाटते.\nतरीही ते तुमच्या कॅश फ्लो आणि नेट वर्थच्या गणनेत दिसेल.\n                    "
 
 #: templates/expenses/capital_event_form.html:43
-msgid ""
-"You're converting a regular expense into a Capital Event. You can optionally"
-" delete the original expense after saving."
-msgstr ""
-"तुम्ही एका सामान्य खर्चाचे कॅपिटल इव्हेंटमध्ये रूपांतर करत आहात. हवे असल्यास"
-" जतन केल्यानंतर मूळ खर्च हटवू शकता."
+msgid "You're converting a regular expense into a one-time big purchase. You can optionally delete the original expense after saving."
+msgstr "तुम्ही एका सामान्य खर्चाचे एकवेळच्या मोठ्या खरेदीत रूपांतर करत आहात. हवे असल्यास जतन केल्यानंतर मूळ खर्च हटवू शकता."
 
 #: templates/expenses/capital_event_form.html:91
 #: templates/expenses/recurring_transaction_form.html:347
@@ -10507,16 +10443,12 @@ msgid "Large payment detected"
 msgstr "मोठे पेमेंट आढळले"
 
 #: templates/expenses/expense_form.html:216
-msgid ""
-"This looks like a large one-time payment. Logging it as a Capital Event will"
-" keep your monthly trends and averages accurate."
-msgstr ""
-"हे मोठे एकरकमी पेमेंट दिसते. ते कॅपिटल इव्हेंट म्हणून नोंदवल्यास तुमचे मासिक"
-" ट्रेंड आणि सरासरी अचूक राहतील."
+msgid "This looks like a large one-time payment. Logging it as a one-time big purchase will keep your monthly trends and averages accurate."
+msgstr "हे मोठे एकरकमी पेमेंट दिसते. ते एकवेळची मोठी खरेदी म्हणून नोंदवल्यास तुमचे मासिक ट्रेंड आणि सरासरी अचूक राहतील."
 
 #: templates/expenses/expense_form.html:219
-msgid "Log as Capital Event"
-msgstr "कॅपिटल इव्हेंट म्हणून नोंदवा"
+msgid "Log as one-time big purchase"
+msgstr "एकवेळची मोठी खरेदी म्हणून नोंदवा"
 
 #: templates/expenses/expense_form.html:222
 msgid "Keep as Expense"
@@ -11523,11 +11455,6 @@ msgstr "परतफेड नोंदवा"
 msgid "incl."
 msgstr "सह"
 
-#: templates/expenses/loan_detail.html:44
-#: templates/expenses/partials/_transaction_list.html:64
-msgid "capital events"
-msgstr "कॅपिटल इव्हेंट"
-
 #: templates/expenses/loan_detail.html:60
 #: templates/expenses/loan_detail.html:165
 msgid "Interest Rate"
@@ -11614,8 +11541,8 @@ msgid "Grand Total Paid to Bank"
 msgstr "बँकेला भरलेली एकूण रक्कम"
 
 #: templates/expenses/loan_detail.html:214
-msgid "Add Capital Event for this Loan"
-msgstr "या कर्जासाठी कॅपिटल इव्हेंट जोडा"
+msgid "Add one-time big purchase for this Loan"
+msgstr "या कर्जासाठी एकवेळची मोठी खरेदी जोडा"
 
 #: templates/expenses/loan_detail.html:226
 msgid "Pay 1 Extra EMI/Year"
@@ -12040,10 +11967,6 @@ msgstr ""
 "काही जुने व्यवहार कोणत्याही खात्याशी जोडलेले नाहीत, त्यामुळे त्यांनी कोणतीही"
 " शिल्लक बदलली नाही. एखादा समाविष्ट करण्यासाठी तो उघडा आणि त्याचे खाते निवडा."
 
-#: templates/expenses/partials/_account_list.html:267
-msgid "Capital events"
-msgstr "कॅपिटल इव्हेंट"
-
 #: templates/expenses/partials/_account_list.html:292
 msgid "Total of inactive accounts"
 msgstr "निष्क्रिय खात्यांची एकूण रक्कम"
@@ -12379,8 +12302,8 @@ msgstr "परतफेड हटवा"
 #: templates/expenses/partials/_account_row_actions.html:26
 #: templates/expenses/partials/_transaction_list.html:295
 #: templates/expenses/partials/_transaction_list.html:374
-msgid "Are you sure you want to delete this capital event?"
-msgstr "तुम्हाला खरोखर हा कॅपिटल इव्हेंट हटवायचा आहे का?"
+msgid "Are you sure you want to delete this one-time big purchase?"
+msgstr "तुम्हाला खरोखर ही एकवेळची मोठी खरेदी हटवायची आहे का?"
 
 #: templates/expenses/partials/_budget_cat_flags.html:4
 msgid "Changed for this month"
@@ -12856,13 +12779,13 @@ msgstr "नेट वर्थमधून वगळलेले"
 #: templates/expenses/partials/_capital_event_list.html:114
 #: templates/expenses/partials/_capital_event_list.html:210
 #: templates/expenses/partials/_capital_event_list.html:212
-msgid "Capital event actions"
-msgstr "कॅपिटल इव्हेंट क्रिया"
+msgid "One-time big purchase actions"
+msgstr "एकवेळच्या मोठ्या खरेदीच्या क्रिया"
 
 #: templates/expenses/partials/_capital_event_list.html:125
 #: templates/expenses/partials/_capital_event_list.html:223
-msgid "Convert this capital event to a regular expense?"
-msgstr "हा कॅपिटल इव्हेंट सामान्य खर्चात बदलायचा का?"
+msgid "Convert this one-time big purchase to a regular expense?"
+msgstr "ही एकवेळची मोठी खरेदी सामान्य खर्चात बदलायची का?"
 
 #: templates/expenses/partials/_capital_event_list.html:129
 #: templates/expenses/partials/_capital_event_list.html:227
@@ -12872,30 +12795,24 @@ msgstr "खर्चात बदला"
 #: templates/expenses/partials/_capital_event_list.html:137
 #: templates/expenses/partials/_capital_event_list.html:235
 #, python-format
-msgid "Are you sure you want to delete this capital event ('%(name)s')?"
-msgstr "तुम्हाला खरोखर हा कॅपिटल इव्हेंट ('%(name)s') हटवायचा आहे का?"
+msgid "Are you sure you want to delete this one-time big purchase ('%(name)s')?"
+msgstr "तुम्हाला खरोखर ही एकवेळची मोठी खरेदी ('%(name)s') हटवायची आहे का?"
 
 #: templates/expenses/partials/_capital_event_list.html:255
-msgid "Capital event pagination"
-msgstr "कॅपिटल इव्हेंट पृष्ठसंख्या"
+msgid "One-time big purchase pagination"
+msgstr "एकवेळच्या मोठ्या खरेदीची पृष्ठसंख्या"
 
 #: templates/expenses/partials/_capital_event_list.html:302
-msgid "No capital events yet"
-msgstr "अजून कोणताही कॅपिटल इव्हेंट नाही"
+msgid "No one-time big purchases yet"
+msgstr "अजून कोणतीही एकवेळची मोठी खरेदी नाही"
 
 #: templates/expenses/partials/_capital_event_list.html:303
-msgid ""
-"Capital events are large one-off payments (e.g. a home loan down payment) "
-"that are excluded from your regular analytics so they don't distort your "
-"monthly trends."
-msgstr ""
-"कॅपिटल इव्हेंट म्हणजे मोठी एकरकमी देयके (उदा. होम लोनचे डाउन पेमेंट), जी "
-"तुमच्या नेहमीच्या विश्लेषणातून वगळली जातात, जेणेकरून तुमचे मासिक ट्रेंड "
-"बिघडत नाहीत."
+msgid "One-time big purchases are large one-off payments (e.g. a home loan down payment) that are excluded from your regular analytics so they don't distort your monthly trends."
+msgstr "एकवेळच्या मोठ्या खरेद्या म्हणजे मोठी एकरकमी देयके (उदा. होम लोनचे डाउन पेमेंट), जी तुमच्या नेहमीच्या विश्लेषणातून वगळली जातात, जेणेकरून तुमचे मासिक ट्रेंड बिघडत नाहीत."
 
 #: templates/expenses/partials/_capital_event_list.html:306
-msgid "Record your first capital event"
-msgstr "तुमचा पहिला कॅपिटल इव्हेंट नोंदवा"
+msgid "Record your first one-time big purchase"
+msgstr "तुमची पहिली एकवेळची मोठी खरेदी नोंदवा"
 
 #: templates/expenses/partials/_category_list.html:14
 #: templates/expenses/partials/_category_list.html:199
@@ -13067,15 +12984,15 @@ msgstr "क्रिया:"
 #: templates/expenses/partials/_expense_list.html:545
 #: templates/expenses/partials/_transaction_list.html:281
 #: templates/expenses/partials/_transaction_list.html:360
-msgid "Are you sure you want to convert this expense into a capital event?"
-msgstr "तुम्हाला खरोखर हा खर्च कॅपिटल इव्हेंटमध्ये बदलायचा आहे का?"
+msgid "Are you sure you want to convert this expense into a one-time big purchase?"
+msgstr "तुम्हाला खरोखर हा खर्च एकवेळच्या मोठ्या खरेदीत बदलायचा आहे का?"
 
 #: templates/expenses/partials/_expense_list.html:469
 #: templates/expenses/partials/_expense_list.html:547
 #: templates/expenses/partials/_transaction_list.html:282
 #: templates/expenses/partials/_transaction_list.html:361
-msgid "Convert to Capital Event"
-msgstr "कॅपिटल इव्हेंटमध्ये बदला"
+msgid "Convert to one-time big purchase"
+msgstr "एकवेळच्या मोठ्या खरेदीत बदला"
 
 #: templates/expenses/partials/_expense_list.html:474
 #: templates/expenses/partials/_expense_list.html:552
@@ -13741,10 +13658,6 @@ msgstr "तुम्हाला खरंच ही कर्ज परतफ�
 msgid "Transaction pagination"
 msgstr "व्यवहार पृष्ठसंख्या"
 
-#: templates/expenses/partials/_transfer_list.html:34
-msgid "Internal Transfers"
-msgstr "अंतर्गत हस्तांतरणे"
-
 #: templates/expenses/partials/_transfer_list.html:35
 msgid "About transfers"
 msgstr "हस्तांतरणांबद्दल"
@@ -14128,8 +14041,8 @@ msgid "Account & Details"
 msgstr "खाते आणि तपशील"
 
 #: templates/expenses/recurring_transaction_form.html:112
-msgid "Choose expense, income, transfer, loan repayment, or capital event."
-msgstr "खर्च, उत्पन्न, हस्तांतरण, कर्ज परतफेड किंवा भांडवली घटना निवडा."
+msgid "Choose expense, income, transfer, loan repayment, or one-time big purchase."
+msgstr "खर्च, उत्पन्न, हस्तांतरण, कर्ज परतफेड किंवा एकवेळची मोठी खरेदी निवडा."
 
 #: templates/expenses/recurring_transaction_form.html:118
 msgid "Description / Name"
@@ -14282,7 +14195,7 @@ msgid "Income source label (e.g. Employer, Dividends)."
 msgstr "उत्पन्नाच्या स्रोताचे नाव (उदा. नियोक्ता, डिव्हिडंड)."
 
 #: templates/expenses/recurring_transaction_form.html:380
-msgid "Capital Event Details"
+msgid "One-time big purchase details"
 msgstr "भांडवली घटनेचे तपशील"
 
 #: templates/expenses/recurring_transaction_form.html:398
@@ -15606,10 +15519,6 @@ msgstr ""
 msgid "Projected"
 msgstr "अंदाजित"
 
-#: templates/home.html:3174
-msgid "Capital event"
-msgstr "मोठा भांडवली व्यवहार"
-
 #: templates/home.html:3217
 msgid "Daily Spend"
 msgstr "दैनिक खर्च"
@@ -15908,8 +15817,8 @@ msgid "zero-leakage precision"
 msgstr "शून्य-गळती अचूकता"
 
 #: templates/landing.html:1846
-msgid "Capital Events & Milestones"
-msgstr "कॅपिटल इव्हेंट आणि टप्पे"
+msgid "One-time big purchases & milestones"
+msgstr "एकवेळच्या मोठ्या खरेद्या आणि टप्पे"
 
 #: templates/landing.html:1846
 msgid "(isolate large purchases without skewing monthly budgets)"
@@ -21148,7 +21057,7 @@ msgstr "इनसाइट्स तुमच्या स्वतःच्य�
 msgid "Insights that notice for you"
 msgstr "तुमच्यासाठी लक्ष ठेवणारे इनसाइट्स"
 
-msgid "Insights use your salary cycle, your Capital Events choices and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app."
+msgid "Insights use your salary cycle, your choices about one-time big purchases and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app."
 msgstr "इनसाइट्स तुमचे पगार चक्र, तुमच्या Capital Events च्या निवडी आणि तुमचे चलन तसेच वापरतात जसे तुमचे बजेट आणि बेरजा वापरतात, म्हणून ते ॲपच्या इतर भागांशी कधीही विसंगत नसतात."
 
 msgid "It follows your real month"
@@ -21241,8 +21150,8 @@ msgid "TrackMyRupee insight"
 msgstr "TrackMyRupee इनसाइट"
 
 #: templates/components/expense_composer_card.html
-msgid "A big one-off purchase? Log it as a Capital Event so it doesn't skew your monthly spending and budgets."
-msgstr "मोठी एकदाच केलेली खरेदी? ती कॅपिटल इव्हेंट म्हणून नोंदवा, म्हणजे तुमचा मासिक खर्च आणि बजेट बिघडणार नाही."
+msgid "A big one-off purchase? Log it as a one-time big purchase so it doesn't skew your monthly spending and budgets."
+msgstr "मोठी एकदाच केलेली खरेदी? ती एकवेळची मोठी खरेदी म्हणून नोंदवा, म्हणजे तुमचा मासिक खर्च आणि बजेट बिघडणार नाही."
 
 #: expenses/family
 msgid "Family"
@@ -23748,8 +23657,8 @@ msgid "Not linked: counts as income"
 msgstr "जोडलेले नाही: उत्पन्न म्हणून मोजले जाईल"
 
 #: expenses/forms.py:293
-msgid "Pick the capital event this pays back, so it reduces that event instead of adding to your income."
-msgstr "हे ज्या कॅपिटल इव्हेंटची परतफेड करते तो निवडा, म्हणजे ते तुमच्या उत्पन्नात भर घालण्याऐवजी त्या इव्हेंटची रक्कम कमी करेल."
+msgid "Pick the one-time big purchase this pays back, so it reduces that purchase instead of adding to your income."
+msgstr "हे ज्या एकवेळच्या मोठ्या खरेदीची परतफेड करते ती निवडा, म्हणजे ते तुमच्या उत्पन्नात भर घालण्याऐवजी त्या खरेदीची रक्कम कमी करेल."
 
 #: templates/expenses/capital_event_form.html:166
 msgid "Refunds"
@@ -23770,12 +23679,12 @@ msgid "Net cost"
 msgstr "निव्वळ खर्च"
 
 #: templates/expenses/capital_event_form.html:185
-msgid "Nothing has been paid back against this event yet. If someone repays you for part of it, add it as a refund and only your own share stays counted."
-msgstr "या इव्हेंटसाठी अद्याप काहीही परत मिळालेले नाही. कोणी त्याचा काही भाग परत केल्यास तो रिफंड म्हणून जोडा, म्हणजे फक्त तुमचा स्वतःचा वाटा मोजला जाईल."
+msgid "Nothing has been paid back against this purchase yet. If someone repays you for part of it, add it as a refund and only your own share stays counted."
+msgstr "या खरेदीसाठी अद्याप काहीही परत मिळालेले नाही. कोणी त्याचा काही भाग परत केल्यास तो रिफंड म्हणून जोडा, म्हणजे फक्त तुमचा स्वतःचा वाटा मोजला जाईल."
 
 #: templates/expenses/partials/_capital_event_list.html:86
-msgid "Paid back to you against this event"
-msgstr "या इव्हेंटपोटी तुम्हाला परत केलेली रक्कम"
+msgid "Paid back to you against this purchase"
+msgstr "या खरेदीपोटी तुम्हाला परत केलेली रक्कम"
 
 #: templates/expenses/partials/_capital_event_list.html:86
 msgid "refunded"
@@ -23787,8 +23696,8 @@ msgid "Net"
 msgstr "निव्वळ"
 
 #: templates/expenses/partials/_income_list.html:165
-msgid "Pays back a capital event: reduces it instead of counting as income"
-msgstr "कॅपिटल इव्हेंटची परतफेड: उत्पन्नात मोजण्याऐवजी तो कमी करते"
+msgid "Pays back a one-time big purchase: reduces it instead of counting as income"
+msgstr "एकवेळच्या मोठ्या खरेदीची परतफेड: उत्पन्नात मोजण्याऐवजी ती कमी करते"
 
 #: templates/expenses/partials/_income_list.html:165
 #: templates/expenses/partials/_income_list.html:245
@@ -23804,8 +23713,8 @@ msgid "Refunded (base currency)"
 msgstr "रिफंड (मूळ चलन)"
 
 #: expenses/forms.py:381
-msgid "A refund pays back either a capital event or an expense, not both."
-msgstr "एक रिफंड एकतर कॅपिटल इव्हेंटची किंवा खर्चाची परतफेड करतो, दोन्हींची नाही."
+msgid "A refund pays back either a one-time big purchase or an expense, not both."
+msgstr "एक रिफंड एकतर एकवेळच्या मोठ्या खरेदीची किंवा खर्चाची परतफेड करतो, दोन्हींची नाही."
 
 #: expenses/forms.py:397
 msgid "Refunds cannot add up to more than the expense cost. At most %(left)s can still be refunded against it."
@@ -23820,8 +23729,8 @@ msgid "Matches"
 msgstr "जुळणारे"
 
 #: templates/expenses/income_form.html:84
-msgid "No matching expenses or capital events"
-msgstr "जुळणारा खर्च किंवा कॅपिटल इव्हेंट नाही"
+msgid "No matching expenses or one-time big purchases"
+msgstr "जुळणारा खर्च किंवा एकवेळची मोठी खरेदी नाही"
 
 #: templates/expenses/income_form.html:85
 #: templates/expenses/income_form.html:100
@@ -23837,8 +23746,8 @@ msgid "Unlink this refund"
 msgstr "या रिफंडची जोडणी काढा"
 
 #: templates/expenses/income_form.html:105
-msgid "Search your expenses and capital events to link this refund to one. It is then taken off that expense or event, so its month, category and budget show what it really cost, instead of counting as income."
-msgstr "हा रिफंड जोडण्यासाठी तुमचे खर्च आणि कॅपिटल इव्हेंट शोधा. मग तो त्या खर्चातून किंवा इव्हेंटमधून वजा केला जातो, त्यामुळे त्याचा महिना, श्रेणी आणि बजेट त्याची खरी किंमत दाखवतात, आणि तो उत्पन्न म्हणून मोजला जात नाही."
+msgid "Search your expenses and one-time big purchases to link this refund to one. It is then taken off that expense or purchase, so its month, category and budget show what it really cost, instead of counting as income."
+msgstr "हा रिफंड जोडण्यासाठी तुमचे खर्च आणि एकवेळच्या मोठ्या खरेद्या शोधा. मग तो त्या खर्चातून किंवा खरेदीतून वजा केला जातो, त्यामुळे त्याचा महिना, श्रेणी आणि बजेट त्याची खरी किंमत दाखवतात, आणि तो उत्पन्न म्हणून मोजला जात नाही."
 
 #: templates/expenses/partials/_expense_list.html:454
 msgid "Paid back to you against this expense"
@@ -23872,7 +23781,7 @@ msgstr "मिळालेले पैसे नोंदवा"
 msgid "Guide"
 msgstr "मार्गदर्शिका"
 
-msgid "Refunds cannot add up to more than the capital event cost. At most %(left)s can still be refunded against it."
+msgid "Refunds cannot add up to more than the one-time big purchase cost. At most %(left)s can still be refunded against it."
 msgstr "रिफंडची एकूण रक्कम भांडवली घटनेच्या किमतीपेक्षा जास्त असू शकत नाही. त्याविरुद्ध जास्तीत जास्त %(left)s अजून रिफंड करता येईल."
 
 msgid "This expense has %(refunded)s paid back against it, so its cost cannot be less than that. Change or remove the refund first."

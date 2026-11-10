@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static i18n %}
 
-{% block title %}TMR Flows{% endblock %}
+{% block title %}{% trans "Guided Setup" %}{% endblock %}
 
 {% block extra_js %}
 <script defer src="{% static 'tmr_flows.js' %}"></script>
@@ -11,7 +11,7 @@
 {{ flows|json_script:"tmr-flows-data" }}
 <div class="tmr-flow-wrap pb-4" x-data="tmrFlows('{{ initial_category }}', '{{ initial_flow_key }}')">
     <div class="mb-4">
-        <h1 class="h2 fw-bold mb-1">{% trans "TMR Flows" %}</h1>
+        <h1 class="h2 fw-bold mb-1">{% trans "Guided Setup" %}</h1>
         <p class="tmr-flow-sub mb-0">{% trans "Tell us what happened in your life. We'll set up everything linked behind it, in one form." %}</p>
     </div>
 

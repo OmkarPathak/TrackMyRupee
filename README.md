@@ -25,7 +25,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 
 - **🔒 Minimal Data**: No SMS reading and no bank scraping. We collect only what you enter plus basic account details. Optional analytics run only if you accept cookies, as described in the [Privacy Policy](https://trackmyrupee.com/privacy-policy/).
 - **⚡ Fast Manual Entry**: Type "zomato 450 yesterday upi" and the app fills in the amount, date, category and payment method for you.
-- **🧭 Set Up Life Events in One Form**: TMR Flows turn "I took a loan" or "I started a new job" into every linked record you need.
+- **🧭 Set Up Life Events in One Form**: Guided Setup turns "I took a loan" or "I started a new job" into every linked record you need.
 - **📈 Comprehensive Net Worth**: Cash, bank accounts, investments, deposits, physical assets and loans in one unified view.
 - **👨‍👩‍👧 Family Sharing**: One true family net worth, and who holds which card, policy or loan, with every person choosing exactly what to share.
 - **🎯 Goal-Slaying Engine**: Visual savings goals with progress tracking and celebratory confetti.
@@ -45,7 +45,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 *   **Bulk Import**: Import months of data from Excel.
 *   **Smart Category Prediction**: Personalised learning and rule-based matching. Category prediction runs inside the app; descriptions are not sent to third-party AI services.
 
-### 🧭 TMR Flows
+### 🧭 Guided Setup
 *   **11 Guided Flows**: Loan, credit card, salary, rent or bill, insurance, SIP or RD, fixed deposit, PPF/EPF/NPS, savings goal, car and gold.
 *   **Review Before Anything Is Saved**: Every Flow shows exactly what it will create, then commits it all at once or not at all.
 *   **Backfill the Past**: Optionally create the entries you missed since a start date in the past.
@@ -56,7 +56,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 *   **Internal Transfers**: Move money between accounts with balanced reconciliations.
 *   **Net Worth Tracking**: Watch your total wealth grow with automated balance aggregation and a history chart.
 *   **Holdings**: Track mutual fund and other investment holdings alongside your accounts.
-*   **Capital Events**: Record one-off big payments (a down payment, a medical bill) so they do not distort your monthly averages and budgets, while still counting in your net worth.
+*   **One-time big purchases**: Record one-off big payments (a down payment, a medical bill) so they do not distort your monthly averages and budgets, while still counting in your net worth.
 
 ### 🔎 Filters and Search
 *   **One Filter Bar Everywhere**: The same time period menu, filter chips and sorting on every list page.

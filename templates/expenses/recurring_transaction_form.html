@@ -109,7 +109,7 @@
                             <div class="col-12 col-md-6">
                                 <label class="form-label fw-bold" for="{{ form.transaction_type.id_for_label }}">{% trans "Transaction Type" %}</label>
                                 {{ form.transaction_type }}
-                                <div class="form-text">{% trans "Choose expense, income, transfer, loan repayment, or capital event." %}</div>
+                                <div class="form-text">{% trans "Choose expense, income, transfer, loan repayment, or one-time big purchase." %}</div>
                                 {% if form.transaction_type.errors %}
                                     <div class="text-danger small">{{ form.transaction_type.errors|first }}</div>
                                 {% endif %}
@@ -377,7 +377,7 @@
                                 <div class="card border-warning border-opacity-25 shadow-sm mb-3">
                                     <div class="card-header bg-warning bg-opacity-10 border-warning border-opacity-25 py-3">
                                         <h6 class="fw-bold mb-0 text-warning-emphasis d-flex align-items-center gap-2">
-                                            <i class="bi bi-wallet2 fs-5"></i> {% trans "Capital Event Details" %}
+                                            <i class="bi bi-wallet2 fs-5"></i> {% trans "One-time big purchase details" %}
                                         </h6>
                                     </div>
                                     <div class="card-body py-3">
