@@ -23911,3 +23911,64 @@ msgstr "रोजचे"
 #: templates/components/navbar.html
 msgid "Money & plans"
 msgstr "पैसे आणि योजना"
+
+#: expenses/account_types.py
+msgid "What kind of account is it?"
+msgstr "हे कोणत्या प्रकारचे खाते आहे?"
+
+#: expenses/account_types.py
+msgid "Pick the closest match. You can add more details on the next step."
+msgstr "सर्वात जवळचा पर्याय निवडा. पुढच्या टप्प्यात अधिक माहिती जोडता येईल."
+
+#: expenses/account_types.py
+msgid "Which one?"
+msgstr "कोणते?"
+
+#: expenses/account_types.py
+msgid "Choose a different kind"
+msgstr "दुसरा प्रकार निवडा"
+
+#: expenses/account_types.py
+msgid "Bank or cash"
+msgstr "बँक किंवा रोख"
+
+#: expenses/account_types.py
+msgid "Savings, salary and current accounts, wallets, cash"
+msgstr "बचत, पगार आणि चालू खाती, वॉलेट, रोख"
+
+#: expenses/account_types.py
+msgid "Credit card or pay later"
+msgstr "क्रेडिट कार्ड किंवा नंतर पैसे भरा"
+
+#: expenses/account_types.py
+msgid "Credit cards, BNPL and overdrafts"
+msgstr "क्रेडिट कार्ड, BNPL आणि ओव्हरड्राफ्ट"
+
+#: expenses/account_types.py
+msgid "Mutual funds, shares, ETFs, gold and bonds"
+msgstr "म्युच्युअल फंड, शेअर्स, ETF, सोने आणि बॉण्ड"
+
+#: expenses/account_types.py
+msgid "Deposits & savings schemes"
+msgstr "ठेवी आणि बचत योजना"
+
+#: expenses/account_types.py
+msgid "FD, RD, PPF, EPF, NPS and post office"
+msgstr "FD, RD, PPF, EPF, NPS आणि पोस्ट ऑफिस"
+
+#: expenses/account_types.py
+msgid "Home, car, personal, education and other loans"
+msgstr "गृह, वाहन, वैयक्तिक, शैक्षणिक आणि इतर कर्जे"
+
+#: expenses/account_types.py
+msgid "Property, vehicle or insurance"
+msgstr "मालमत्ता, वाहन किंवा विमा"
+
+#: expenses/account_types.py
+msgid "Things you own, and insurance policies"
+msgstr "तुमच्या वस्तू आणि विमा पॉलिसी"
+
+#: expenses/analytics/spending.py
+#, python-format
+msgid "You spent %(spent)s in this period, far more than %(compare)s."
+msgstr "या कालावधीत तुम्ही %(spent)s खर्च केले, जे %(compare)s पेक्षा खूप जास्त आहे."

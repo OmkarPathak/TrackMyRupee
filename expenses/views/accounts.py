@@ -764,6 +764,27 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
         kwargs['user'] = self.request.user
         return kwargs
 
+    def _preset_type(self):
+        """A type named in the address (?type=PPF), if it is one of the current types."""
+        from ..account_types import type_categories
+        wanted = self.request.GET.get('type', '')
+        return wanted if any(wanted in c['codes'] for c in type_categories()) else ''
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self._preset_type():
+            initial['account_type'] = self._preset_type()
+        return initial
+
+    def get_context_data(self, **kwargs):
+        from ..account_types import type_categories
+        context = super().get_context_data(**kwargs)
+        context['type_categories'] = type_categories()
+        # "What kind of account is it?" comes first for a new account. Not when the type is already settled: named in
+        # the address, or the form came back with errors.
+        context['type_chooser'] = not context['form'].is_bound and not self._preset_type()
+        return context
+
     def form_valid(self, form):
         if not self.request.user.profile.can_add_account():
             limit = get_limit(self.request.user.profile.active_tier, 'accounts')

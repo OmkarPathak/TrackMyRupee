@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block content %}
 <style>
@@ -130,6 +130,23 @@
         color: #34d399;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
     }
+
+    /* "What kind of account is it?": six plain kinds first, then the exact type */
+    .type-card {
+        display: flex; align-items: center; gap: .85rem; width: 100%; min-height: 72px; padding: .75rem 1rem;
+        text-align: left; background: var(--bs-body-bg); color: var(--bs-body-color);
+        border: 1.5px solid var(--bs-border-color); border-radius: 14px; cursor: pointer;
+        transition: border-color .15s, background-color .15s;
+    }
+    .type-card:hover, .type-card:focus-visible { border-color: #0F7657; background: rgba(15, 118, 87, .06); outline: none; }
+    .type-card-icon { flex: none; width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; color: #0F7657; background: rgba(15, 118, 87, .1); }
+    .type-card-text { display: flex; flex-direction: column; min-width: 0; }
+    .type-card-title { font-weight: 700; line-height: 1.25; }
+    .type-card-hint { font-size: .8rem; color: var(--bs-secondary-color); line-height: 1.3; }
+    .type-option { text-align: left; min-height: 48px; border-radius: 12px; }
+    [data-bs-theme="dark"] .type-card-icon { color: #5DCAA5; background: rgba(93, 202, 165, .12); }
+    [data-bs-theme="dark"] .type-card:hover, [data-bs-theme="dark"] .type-card:focus-visible { border-color: #5DCAA5; background: rgba(93, 202, 165, .08); }
 </style>
 
 <script>
@@ -311,7 +328,46 @@
 
                     <!-- STEP 1: ACCOUNT BASICS -->
                     <div class="wizard-step-content" id="step1Content">
-                        <div class="row g-3">
+                        {% if type_chooser %}
+                        <!-- A new account starts with its kind. The script reveals this and hides the fields below
+                             until a type is chosen; without the script the type dropdown below works as before. -->
+                        <div id="typeChooser" class="d-none mb-3"
+                             data-label-which="{% trans 'Which one?' %}">
+                            <div id="typeKinds">
+                                <h2 class="h6 fw-bold mb-1">{% trans "What kind of account is it?" %}</h2>
+                                <p class="text-muted small mb-3">{% trans "Pick the closest match. You can add more details on the next step." %}</p>
+                                <div class="row g-2">
+                                    {% for c in type_categories %}
+                                    <div class="col-12 col-sm-6">
+                                        <button type="button" class="type-card" data-category="{{ c.key }}">
+                                            <span class="type-card-icon"><i class="bi bi-{{ c.icon }}" aria-hidden="true"></i></span>
+                                            <span class="type-card-text">
+                                                <span class="type-card-title">{{ c.title }}</span>
+                                                <span class="type-card-hint">{{ c.hint }}</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div id="typeChoices" class="d-none">
+                                <button type="button" id="typeChoicesBack" class="btn btn-link btn-sm p-0 text-decoration-none mb-2"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Choose a different kind" %}</button>
+                                <h2 class="h6 fw-bold mb-2" id="typeChoicesTitle" tabindex="-1"></h2>
+                                <div class="d-grid gap-2" id="typeChoicesList"></div>
+                            </div>
+                            <div id="typeChosen" class="d-none">
+                                <div class="d-flex align-items-center justify-content-between gap-2 rounded-3 bg-body-tertiary px-3 py-2">
+                                    <div>
+                                        <span class="text-muted small d-block">{% trans "Account Type" %}</span>
+                                        <strong id="typeChosenLabel"></strong>
+                                    </div>
+                                    <button type="button" id="typeChosenChange" class="btn btn-link btn-sm text-decoration-none">{% trans "Change" %}</button>
+                                </div>
+                            </div>
+                        </div>
+                        {{ type_categories|json_script:"type-categories" }}
+                        {% endif %}
+                        <div class="row g-3" id="accountBasicsFields">
                             <div class="col-12 col-md-6">
                                 <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.name.id_for_label }}">{% trans "Account Name" %}</label>
                                 {{ form.name }}
@@ -828,4 +884,5 @@
         updateWizardUI();
     });
 </script>
+{% if type_chooser %}<script src="{% static 'js/account_type_chooser.js' %}?v=1"></script>{% endif %}
 {% endblock %}

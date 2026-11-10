@@ -17,6 +17,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+from django.utils.translation import gettext_lazy as _
+
 
 class KIND(str, Enum):
     """Whether an account contributes positively (ASSET) or negatively (LIABILITY) to net worth."""
@@ -354,4 +356,41 @@ def resolve_category_selector(names: list[str]) -> set[str]:
             )
     return result
 
+
+# ---------------------------------------------------------------------------
+# The "What kind of account is it?" step of the Add account form.
+# ---------------------------------------------------------------------------
+# A new person picks one of six plain categories first, then the exact type inside it, instead of scanning all
+# of the types at once. Every current (non-legacy) type belongs to exactly one category; a test keeps it so.
+TYPE_CATEGORIES = [
+    {'key': 'bank', 'icon': 'bank', 'groups': ('Cash & Bank',),
+     'title': _('Bank or cash'),
+     'hint': _('Savings, salary and current accounts, wallets, cash')},
+    {'key': 'card', 'icon': 'credit-card-2-front', 'groups': ('Short-Term Credit',),
+     'title': _('Credit card or pay later'),
+     'hint': _('Credit cards, BNPL and overdrafts')},
+    {'key': 'invest', 'icon': 'graph-up-arrow', 'groups': ('Investments',),
+     'title': _('Investments'),
+     'hint': _('Mutual funds, shares, ETFs, gold and bonds')},
+    {'key': 'deposit', 'icon': 'piggy-bank', 'groups': ('Fixed-Income',),
+     'title': _('Deposits & savings schemes'),
+     'hint': _('FD, RD, PPF, EPF, NPS and post office')},
+    {'key': 'loan', 'icon': 'cash-stack', 'groups': ('Long-Term Loans',),
+     'title': _('Loan'),
+     'hint': _('Home, car, personal, education and other loans')},
+    {'key': 'assets', 'icon': 'house-door', 'groups': ('Physical Assets', 'Insurance'),
+     'title': _('Property, vehicle or insurance'),
+     'hint': _('Things you own, and insurance policies')},
+]
+
+
+def type_categories() -> list[dict]:
+    """The categories for the chooser, each with its account_type codes in the order the form lists them.
+    Titles and hints are translated now, so the result can go straight into JSON."""
+    codes_by_group = {group: [code for code, _label in items] for group, items in ACCOUNT_TYPES}
+    return [
+        {'key': c['key'], 'icon': c['icon'], 'title': str(c['title']), 'hint': str(c['hint']),
+         'codes': [code for group in c['groups'] for code in codes_by_group.get(group, [])]}
+        for c in TYPE_CATEGORIES
+    ]
 
