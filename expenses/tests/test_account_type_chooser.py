@@ -105,6 +105,33 @@ class AddAccountPageTests(TestCase):
         self.assertRedirects(response, reverse('account-list'), fetch_redirect_response=False)
         self.assertEqual(Account.objects.get(user=self.user).account_type, 'SAVINGS_ACCOUNT')
 
+    def test_the_cards_and_the_type_buttons_sit_in_an_equal_height_grid(self):
+        html = self.add_page().content.decode()
+        self.assertEqual(html.count('<div class="type-grid">'), 1)                  # the six kinds
+        for ident in ('typeChoicesList', 'typeResultsList'):
+            self.assertIn(f'class="type-grid" id="{ident}"', html)
+        css = html[html.index('.type-grid {'):]
+        self.assertIn('grid-auto-rows: 1fr', css[:200])                          # every row as tall as the tallest
+        self.assertNotIn('col-sm-6">\n                                        <button type="button" class="type-card"', html)
+
+    def test_there_is_a_search_box_that_is_never_submitted_with_the_form(self):
+        html = self.add_page().content.decode()
+        box = re.search(r'<input[^>]*id="typeSearch"[^>]*>', html).group(0)
+        self.assertIn('type="search"', box)
+        self.assertNotIn(' name=', box, 'the search words must not be posted with the account')
+        self.assertIn('aria-label="Search account types"', box)
+        self.assertIn('placeholder="Search, e.g. PPF, credit card"', box)
+        self.assertIn('data-label-none=', box)
+
+    def test_the_search_words_are_translated(self):
+        for lang in ('hi', 'mr'):
+            UserProfile.objects.filter(user=self.user).update(language=lang)        # the app reads the language from the profile
+            html = self.add_page().content.decode()
+            box = re.search(r'<input[^>]*id="typeSearch"[^>]*>', html).group(0)
+            self.assertNotIn('Search account types', box, lang)
+            self.assertNotIn('Search, e.g.', box, lang)
+            self.assertNotIn('Nothing matches', box, lang)
+
     def test_every_element_the_script_looks_for_is_in_the_page(self):
         js = open(finders.find('js/account_type_chooser.js'), encoding='utf-8').read()
         html = self.add_page().content.decode()

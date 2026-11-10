@@ -132,6 +132,9 @@
     }
 
     /* "What kind of account is it?": six plain kinds first, then the exact type */
+    /* One column on a phone, two from the sm breakpoint, and every row as tall as the tallest card, so they all match */
+    .type-grid { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: .5rem; }
+    @media (min-width: 576px) { .type-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .type-card {
         display: flex; align-items: center; gap: .85rem; width: 100%; min-height: 72px; padding: .75rem 1rem;
         text-align: left; background: var(--bs-body-bg); color: var(--bs-body-color);
@@ -144,7 +147,13 @@
     .type-card-text { display: flex; flex-direction: column; min-width: 0; }
     .type-card-title { font-weight: 700; line-height: 1.25; }
     .type-card-hint { font-size: .8rem; color: var(--bs-secondary-color); line-height: 1.3; }
-    .type-option { text-align: left; min-height: 48px; border-radius: 12px; }
+    /* The exact types: a compact grid (two across from the sm breakpoint), with a calm hover instead of a black fill */
+    .type-option { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: .1rem;
+        width: 100%; min-height: 46px; padding: .45rem .8rem; text-align: left; font-size: .92rem; line-height: 1.25;
+        color: var(--bs-body-color); background: var(--bs-body-bg); border: 1.5px solid var(--bs-border-color); border-radius: 12px; }
+    .type-option:hover, .type-option:focus-visible { color: var(--bs-body-color); border-color: #0F7657; background: rgba(15, 118, 87, .06); outline: none; }
+    .type-option-kind { font-size: .72rem; color: var(--bs-secondary-color); }
+    [data-bs-theme="dark"] .type-option:hover, [data-bs-theme="dark"] .type-option:focus-visible { border-color: #5DCAA5; background: rgba(93, 202, 165, .08); }
     [data-bs-theme="dark"] .type-card-icon { color: #5DCAA5; background: rgba(93, 202, 165, .12); }
     [data-bs-theme="dark"] .type-card:hover, [data-bs-theme="dark"] .type-card:focus-visible { border-color: #5DCAA5; background: rgba(93, 202, 165, .08); }
 </style>
@@ -329,31 +338,43 @@
                     <!-- STEP 1: ACCOUNT BASICS -->
                     <div class="wizard-step-content" id="step1Content">
                         {% if type_chooser %}
-                        <!-- A new account starts with its kind. The script reveals this and hides the fields below
-                             until a type is chosen; without the script the type dropdown below works as before. -->
+                        <!-- A new account starts with its kind, or with a search for it. The script reveals this and
+                             hides the fields below until a type is chosen; without the script the type dropdown below
+                             works as before. -->
                         <div id="typeChooser" class="d-none mb-3"
                              data-label-which="{% trans 'Which one?' %}">
-                            <div id="typeKinds">
+                            <div id="typeIntro">
                                 <h2 class="h6 fw-bold mb-1">{% trans "What kind of account is it?" %}</h2>
-                                <p class="text-muted small mb-3">{% trans "Pick the closest match. You can add more details on the next step." %}</p>
-                                <div class="row g-2">
+                                <p class="text-muted small mb-2">{% trans "Pick the closest match. You can add more details on the next step." %}</p>
+                            </div>
+                            <div id="typeSearchWrap" class="position-relative mb-3">
+                                <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted" aria-hidden="true"></i>
+                                <input type="search" id="typeSearch" class="form-control ps-5" autocomplete="off"
+                                       placeholder="{% trans 'Search, e.g. PPF, credit card' %}"
+                                       aria-label="{% trans 'Search account types' %}"
+                                       data-label-none="{% trans 'Nothing matches. Try another word, or pick a kind.' %}">
+                            </div>
+                            <div id="typeKinds">
+                                <div class="type-grid">
                                     {% for c in type_categories %}
-                                    <div class="col-12 col-sm-6">
-                                        <button type="button" class="type-card" data-category="{{ c.key }}">
-                                            <span class="type-card-icon"><i class="bi bi-{{ c.icon }}" aria-hidden="true"></i></span>
-                                            <span class="type-card-text">
-                                                <span class="type-card-title">{{ c.title }}</span>
-                                                <span class="type-card-hint">{{ c.hint }}</span>
-                                            </span>
-                                        </button>
-                                    </div>
+                                    <button type="button" class="type-card" data-category="{{ c.key }}">
+                                        <span class="type-card-icon"><i class="bi bi-{{ c.icon }}" aria-hidden="true"></i></span>
+                                        <span class="type-card-text">
+                                            <span class="type-card-title">{{ c.title }}</span>
+                                            <span class="type-card-hint">{{ c.hint }}</span>
+                                        </span>
+                                    </button>
                                     {% endfor %}
                                 </div>
                             </div>
                             <div id="typeChoices" class="d-none">
                                 <button type="button" id="typeChoicesBack" class="btn btn-link btn-sm p-0 text-decoration-none mb-2"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Choose a different kind" %}</button>
-                                <h2 class="h6 fw-bold mb-2" id="typeChoicesTitle" tabindex="-1"></h2>
-                                <div class="d-grid gap-2" id="typeChoicesList"></div>
+                                <h3 class="h6 fw-bold mb-2" id="typeChoicesTitle" tabindex="-1"></h3>
+                                <div class="type-grid" id="typeChoicesList"></div>
+                            </div>
+                            <div id="typeResults" class="d-none" role="status" aria-live="polite">
+                                <div class="type-grid" id="typeResultsList"></div>
+                                <p class="text-muted small mb-0 d-none" id="typeNoMatch"></p>
                             </div>
                             <div id="typeChosen" class="d-none">
                                 <div class="d-flex align-items-center justify-content-between gap-2 rounded-3 bg-body-tertiary px-3 py-2">

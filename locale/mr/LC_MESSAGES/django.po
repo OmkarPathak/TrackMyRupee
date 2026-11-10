@@ -23972,3 +23972,15 @@ msgstr "तुमच्या वस्तू आणि विमा पॉल�
 #, python-format
 msgid "You spent %(spent)s in this period, far more than %(compare)s."
 msgstr "या कालावधीत तुम्ही %(spent)s खर्च केले, जे %(compare)s पेक्षा खूप जास्त आहे."
+
+#: templates/expenses/account_form.html
+msgid "Search, e.g. PPF, credit card"
+msgstr "शोधा, उदा. PPF, क्रेडिट कार्ड"
+
+#: templates/expenses/account_form.html
+msgid "Search account types"
+msgstr "खात्याचे प्रकार शोधा"
+
+#: templates/expenses/account_form.html
+msgid "Nothing matches. Try another word, or pick a kind."
+msgstr "काहीही जुळले नाही. दुसरा शब्द वापरून पाहा, किंवा प्रकार निवडा."

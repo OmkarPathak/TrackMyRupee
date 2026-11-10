@@ -23909,3 +23909,15 @@ msgstr "आपकी चीज़ें और बीमा पॉलिसि�
 #, python-format
 msgid "You spent %(spent)s in this period, far more than %(compare)s."
 msgstr "इस अवधि में आपने %(spent)s खर्च किए, जो %(compare)s से काफ़ी ज़्यादा है।"
+
+#: templates/expenses/account_form.html
+msgid "Search, e.g. PPF, credit card"
+msgstr "खोजें, जैसे PPF, क्रेडिट कार्ड"
+
+#: templates/expenses/account_form.html
+msgid "Search account types"
+msgstr "खाते के प्रकार खोजें"
+
+#: templates/expenses/account_form.html
+msgid "Nothing matches. Try another word, or pick a kind."
+msgstr "कुछ नहीं मिला। कोई और शब्द आज़माएँ, या कोई प्रकार चुनें।"
