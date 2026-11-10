@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{% trans "Delete Capital Event" %}{% endblock %}
+{% block title %}{% trans "Delete one-time big purchase" %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center mt-5">
@@ -9,14 +9,14 @@
         <div class="card border-0 shadow-sm rounded-4">
             <div class="card-body p-4 text-center">
                 <i class="bi bi-exclamation-triangle-fill text-danger display-4 mb-3"></i>
-                <h1 class="h5 fw-bold mb-2">{% trans "Delete Capital Event?" %}</h1>
+                <h1 class="h5 fw-bold mb-2">{% trans "Delete one-time big purchase?" %}</h1>
                 <p class="text-muted mb-1">
                     <strong>{{ object.get_subtype_display }}</strong> —
                     {{ object.currency }}{{ object.amount }}
                 </p>
                 <p class="text-muted small mb-4">{{ object.date }}</p>
                 <p class="alert alert-warning rounded-3 small">
-                    {% trans "If this event was deducted from an account balance, that balance will be restored." %}
+                    {% trans "If this purchase was deducted from an account balance, that balance will be restored." %}
                 </p>
                 <form method="post">
                     {% csrf_token %}

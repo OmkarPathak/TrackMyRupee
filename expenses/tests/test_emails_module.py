@@ -389,7 +389,7 @@ class OneOffEmailTests(TestCase):
             self.assertIn(f"{free['expenses_per_month']} expenses a month", text)
             self.assertIn(f"₹{PLAN_DETAILS['PLUS']['price_monthly']} a month", text)
             self.assertIn('support@trackmyrupee.com', text)
-        for feature in ('Net worth', 'Loans', 'Capital events', 'Budgets', 'goals', 'Calendar', 'Recurring'):
+        for feature in ('Net worth', 'Loans', 'One-time big purchases', 'Budgets', 'goals', 'Calendar', 'Recurring'):
             self.assertIn(feature.lower(), msg.body.lower(), feature)
         self.assertGreater(len(msg.body), 1500)
         self.assertNotIn('<', msg.body)

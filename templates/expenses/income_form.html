@@ -81,9 +81,9 @@
                         <div class="col-12 mb-3" id="refund-for-container" style="display: none;"
                              data-search-url="{% url 'refund-target-search' %}"
                              data-label-recent="{% trans 'Recent' %}" data-label-matches="{% trans 'Matches' %}"
-                             data-label-none="{% trans 'No matching expenses or capital events' %}"
+                             data-label-none="{% trans 'No matching expenses or one-time big purchases' %}"
                              data-label-not-linked="{% trans 'Not linked to anything' %}" data-label-not-linked-meta="{% trans 'Counts as income' %}"
-                             data-label-expense="{% trans 'Expense' %}" data-label-event="{% trans 'Capital event' %}"
+                             data-label-expense="{% trans 'Expense' %}" data-label-event="{% trans 'One-time big purchase' %}"
                              data-label-refunded="{% trans 'refunded' %}" data-label-refund-prefix="{% trans 'Refund' %}" data-label-failed="{% trans 'Search is not available right now. Try again.' %}">
                             <label class="form-label small text-muted fw-bold" for="refund-search">{% trans "Refund for" %}</label>
                             <div class="tmr-picker-chosen" id="refund-chosen" hidden>
@@ -102,7 +102,7 @@
                                 </div>
                                 <div class="tmr-picker-results" id="refund-results" role="listbox" hidden></div>
                             </div>
-                            <div class="form-text small">{% trans "Search your expenses and capital events to link this refund to one. It is then taken off that expense or event, so its month, category and budget show what it really cost, instead of counting as income." %}</div>
+                            <div class="form-text small">{% trans "Search your expenses and one-time big purchases to link this refund to one. It is then taken off that expense or purchase, so its month, category and budget show what it really cost, instead of counting as income." %}</div>
                             {% if form.refund_for_expense.errors %}<div class="text-danger small mt-1">{{ form.refund_for_expense.errors.0 }}</div>{% endif %}
                             {% if form.refund_for_capital_event.errors %}<div class="text-danger small mt-1">{{ form.refund_for_capital_event.errors.0 }}</div>{% endif %}
                             {{ form.refund_choice|json_script:"refund-initial" }}

@@ -96,10 +96,10 @@ class RefundStringsAreTranslatedTests(TestCase):
 
     STRINGS = [
         'Refund for', 'Not linked: counts as income', 'Refunds', 'Add refund', 'Refunded so far', 'Net cost',
-        'Paid back to you against this event', 'refunded', 'Net', 'Pays back',
-        'Pays back a capital event: reduces it instead of counting as income',
-        'Pick the capital event this pays back, so it reduces that event instead of adding to your income.',
-        'Nothing has been paid back against this event yet. If someone repays you for part of it, add it as a '
+        'Paid back to you against this purchase', 'refunded', 'Net', 'Pays back',
+        'Pays back a one-time big purchase: reduces it instead of counting as income',
+        'Pick the one-time big purchase this pays back, so it reduces that purchase instead of adding to your income.',
+        'Nothing has been paid back against this purchase yet. If someone repays you for part of it, add it as a '
         'refund and only your own share stays counted.',
     ]
 

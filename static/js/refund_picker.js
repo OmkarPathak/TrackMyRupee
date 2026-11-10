@@ -27,7 +27,7 @@
     recent: label('recent', 'Recent'), matches: label('matches', 'Matches'),
     none: label('none', 'No matches'), notLinked: label('not-linked', 'Not linked to anything'),
     notLinkedMeta: label('not-linked-meta', 'Counts as income'),
-    expense: label('expense', 'Expense'), event: label('event', 'Capital event'),
+    expense: label('expense', 'Expense'), event: label('event', 'One-time big purchase'),
     refunded: label('refunded', 'refunded'), refundPrefix: label('refund-prefix', 'Refund'),
     failed: label('failed', 'Search is not available right now. Try again.')
   };

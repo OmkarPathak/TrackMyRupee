@@ -186,11 +186,11 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
                             source_expense.delete()
                             messages.info(request, _("Original expense deleted after conversion."))
 
-                messages.success(request, _("Capital event recorded successfully."))
+                messages.success(request, _("One-time big purchase recorded successfully."))
                 ph_capture(request.user, 'capital_event_created', {'subtype': getattr(event, 'subtype', '')})
                 return redirect('capital-event-list')
             except (RuntimeError, ValidationError):
-                messages.error(request, _("Unable to save capital event because currency conversion failed or data is invalid."))
+                messages.error(request, _("Unable to save one-time big purchase because currency conversion failed or data is invalid."))
                 return render(request, self.template_name, {
                     'form': form,
                     'from_expense_id': from_expense_id,
@@ -240,12 +240,12 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
             try:
                 with transaction.atomic():
                     form.save()
-                messages.success(request, _("Capital event updated."))
+                messages.success(request, _("One-time big purchase updated."))
                 ph_capture(request.user, 'capital_event_updated', {})
                 next_url = request.POST.get('next') or request.GET.get('next')
                 return redirect(get_safe_redirect_url(request, next_url, reverse_lazy('capital-event-list')))
             except (RuntimeError, ValidationError):
-                messages.error(request, _("Unable to update capital event because currency conversion failed or data is invalid."))
+                messages.error(request, _("Unable to update one-time big purchase because currency conversion failed or data is invalid."))
                 next_url = request.POST.get('next') or request.GET.get('next') or ''
                 return render(request, self.template_name, {
                     'form': form,
@@ -275,7 +275,7 @@ class CapitalEventDeleteView(LoginRequiredMixin, UUIDOrIntLookupMixin, DeleteVie
 
     def form_valid(self, form):
         # Django 4+ deletes through form_valid on POST; a custom delete() is never called.
-        messages.success(self.request, _("Capital event deleted."))
+        messages.success(self.request, _("One-time big purchase deleted."))
         ph_capture(self.request.user, 'capital_event_deleted', {})
         return super().form_valid(form)
 
@@ -293,11 +293,11 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
         event = get_object_by_uuid_or_pk(CapitalEvent, pk, user=request.user)
         if not (event.account_id and event.include_in_net_worth):
             # An expense must always be charged to an account; this event never moved one.
-            messages.error(request, _("Choose an account and turn on 'Include in Cash Flow / Net Worth' for this event first, so the expense is charged to an account."))
+            messages.error(request, _("Choose an account and turn on 'Include in Cash Flow / Net Worth' for this purchase first, so the expense is charged to an account."))
             return redirect('capital-event-list')
         now = timezone.localdate()
         if (event.date.year, event.date.month) == (now.year, now.month) and not request.user.profile.can_add_expense():
-            messages.error(request, _("You have reached the monthly expense limit for your plan, so this event cannot be converted to an expense. Upgrade to add more."))
+            messages.error(request, _("You have reached the monthly expense limit for your plan, so this purchase cannot be converted to an expense. Upgrade to add more."))
             return redirect('capital-event-list')
         try:
             with transaction.atomic():
@@ -312,11 +312,11 @@ class CapitalEventConvertToExpenseView(LoginRequiredMixin, View):
                 )
                 expense.save()
                 event.delete()
-            messages.success(request, _("Capital event converted to a regular expense."))
+            messages.success(request, _("One-time big purchase converted to a regular expense."))
             ph_capture(request.user, 'capital_event_converted_to_expense', {})
             return redirect('expense-list')
         except (RuntimeError, ValidationError):
-            messages.error(request, _("Unable to convert capital event because currency conversion failed or data is invalid."))
+            messages.error(request, _("Unable to convert one-time big purchase because currency conversion failed or data is invalid."))
             next_url = request.POST.get('next') or request.GET.get('next') or request.META.get('HTTP_REFERER')
             if next_url:
                 return redirect(get_safe_redirect_url(request, next_url, reverse_lazy('capital-event-list')))

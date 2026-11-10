@@ -118,7 +118,7 @@
                         <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'expense-create' %}?next={{ request.path }}"><span class="add-menu-ico text-danger"><i class="bi bi-receipt-cutoff"></i></span> {% trans "Add Expense" %}</a></li>
                         <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'recurring-create' %}?next={{ request.path }}"><span class="add-menu-ico text-primary"><i class="bi bi-calendar2-check"></i></span> {% trans "Add Subscription" %}</a></li>
                         {% if user.username != 'demo' %}
-                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'transfer-create' %}?next={{ request.path }}"><span class="add-menu-ico text-info"><i class="bi bi-arrow-left-right"></i></span> {% trans "Internal Transfer" %}</a></li>
+                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'transfer-create' %}?next={{ request.path }}"><span class="add-menu-ico text-info"><i class="bi bi-arrow-left-right"></i></span> {% trans "Move Money" %}</a></li>
                         {% endif %}
                         <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'income-create' %}?next={{ request.path }}"><span class="add-menu-ico text-success"><i class="bi bi-wallet2"></i></span> {% trans "Add Income" %}</a></li>
                     </ul>
@@ -321,7 +321,7 @@
                     <i class="bi bi-arrow-left-right"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <div class="fw-semibold">{% trans "Internal Transfer" %}</div>
+                    <div class="fw-semibold">{% trans "Move Money" %}</div>
                     <small class="text-muted" style="font-size: 0.75rem;">{% trans "Move money between your accounts" %}</small>
                 </div>
                 <i class="bi bi-chevron-right text-muted opacity-50 small"></i>
@@ -450,7 +450,7 @@
                 <div class="col">
                     <a href="{% url 'tmr-flows' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item {% if 'flow-' in request.resolver_match.url_name or request.resolver_match.url_name == 'tmr-flows' %}active{% endif %}">
                         <i class="bi bi-diagram-3 text-success mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "TMR Flows" %}</span>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Guided Setup" %}</span>
                     </a>
                 </div>
             </div>
@@ -491,7 +491,7 @@
                 <div class="col">
                     <a href="{% url 'capital-event-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
                         <i class="bi bi-gem text-info mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Capital Events" %}</span>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "One-time big purchases" %}</span>
                     </a>
                 </div>
 

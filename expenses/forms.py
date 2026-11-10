@@ -395,7 +395,7 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
             cleaned['refund_for_capital_event'] = None
             cleaned['refund_for_expense'] = None
         if cleaned.get('refund_for_capital_event') and cleaned.get('refund_for_expense'):
-            self.add_error('refund_for_expense', _('A refund pays back either a capital event or an expense, not both.'))
+            self.add_error('refund_for_expense', _('A refund pays back either a one-time big purchase or an expense, not both.'))
         self._check_refund_not_above_expense(cleaned)
         return cleaned
 
@@ -429,7 +429,7 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
                 self.add_error('amount', _('Refunds cannot add up to more than the expense cost. At most %(left)s can still be '
                                            'refunded against it.') % {'left': left_text})
             else:
-                self.add_error('amount', _('Refunds cannot add up to more than the capital event cost. At most %(left)s can '
+                self.add_error('amount', _('Refunds cannot add up to more than the one-time big purchase cost. At most %(left)s can '
                                            'still be refunded against it.') % {'left': left_text})
 
     def _post_clean(self):
@@ -495,7 +495,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             ('INCOME', _('Income')),
             ('TRANSFER', _('Transfer')),
             ('LOAN', _('Loan Repayment')),
-            ('CAPITAL', _('Capital Event')),
+            ('CAPITAL', _('One-time big purchase')),
             ('INSURANCE_PREMIUM', _('Insurance Premium')),
         ]
         self.fields['transaction_type'].choices = allowed_types
@@ -637,7 +637,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
         if transaction_type == 'CAPITAL':
             capital_subtype = cleaned_data.get('capital_subtype')
             if not capital_subtype:
-                self.add_error('capital_subtype', _('Subtype is required for capital events.'))
+                self.add_error('capital_subtype', _('Subtype is required for one-time big purchases.'))
 
         amount = cleaned_data.get('amount')
         if amount is not None and amount <= 0:
@@ -2036,7 +2036,7 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
             # Shown as muted placeholder text (and cleared with the x), never as a row in the list
             widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_category',
                                        'data-placeholder': str(_('Select a category'))}),
-            help_text=_('Optional. Without one, it is reported under its event type.'),
+            help_text=_('Optional. Without one, it is reported under its purchase type.'),
         )
         if user:
             self.fields['currency'].initial = user.profile.currency
@@ -2064,7 +2064,7 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
         # A capital event is a payment that has happened: it moves the account balance right away.
         # One day of slack so users ahead of the server's timezone can still log "today".
         if value and value > timezone.localdate() + timedelta(days=1):
-            raise forms.ValidationError(_('Capital event date cannot be in the future.'))
+            raise forms.ValidationError(_('One-time big purchase date cannot be in the future.'))
         return value
 
 

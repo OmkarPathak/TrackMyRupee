@@ -1650,7 +1650,7 @@ class AccountDetailView(LoginRequiredMixin, View):
         'TRANSFER_IN': ('transfer', _('Transfer'), True),
         'SAVINGS': ('savings', _('Savings'), False),
         'LOAN_REPAYMENT': ('loan', _('Loan Repayment'), False),
-        'CAPITAL_EVENT': ('capital_event', _('Capital Event'), False),
+        'CAPITAL_EVENT': ('capital_event', _('One-time big purchase'), False),
     }
 
     def _decorate_row(self, item, account):
@@ -2285,7 +2285,7 @@ def holding_sell_view(request, pk):
         result = _("a profit of %(amount)s is recorded as Investment Returns income") % {
             'amount': f'{cur}{tx.realized_income.amount:,.2f}'}
     elif tx.realized_loss_id:
-        result = _("a loss of %(amount)s is recorded as a capital event") % {'amount': f'{cur}{tx.realized_loss.amount:,.2f}'}
+        result = _("a loss of %(amount)s is recorded as a one-time big purchase") % {'amount': f'{cur}{tx.realized_loss.amount:,.2f}'}
     else:
         result = _("it sold at your average cost, so no profit or loss is recorded")
     messages.success(request, _("Sold from '%(name)s': %(amount)s is now cash in %(account)s, and %(result)s.") % {
