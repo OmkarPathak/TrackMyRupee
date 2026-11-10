@@ -50,9 +50,9 @@ Create the account once under one user's TrackMyRupee account and log all transa
 
 ## Transactions
 
-### Why should I use "Internal Transfer" instead of logging an Expense and Income?
+### Why should I use "Move Money" instead of logging an Expense and Income?
 
-A transfer moves money between accounts you already own. It does not change your net worth. Logging it as Expense and Income double-counts it, inflating both your total income and total expense figures in Analytics. Always use **Add → Internal Transfer** for account-to-account moves. See [Transfers](../06-transfers/index.md).
+A transfer moves money between accounts you already own. It does not change your net worth. Logging it as Expense and Income double-counts it, inflating both your total income and total expense figures in Analytics. Always use **Add → Move Money** for account-to-account moves. See [Transfers](../06-transfers/index.md).
 
 ### Can I import transactions from a spreadsheet?
 
@@ -78,11 +78,11 @@ A row with no category gets a match from your own categories or past entries, ot
 
 ### I paid for a group trip or dinner and my friends paid me back. How do I record it?
 
-Log your payment as usual (an expense, or a capital event if it is big). When the money comes back, add it as income with Source Type **Refund / Reimbursement** and, in the **Refund for** box, search for and pick the expense or capital event it paid back. The refund then stops counting as income, and that expense shows only your own share, in its own month, category and budget, while your account balance still goes up by what you received. The shortcut is **Add refund** in the expense's (or capital event's) menu. See [Refunds and Reimbursements](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back).
+Log your payment as usual (an expense, or a one-time big purchase if it is big). When the money comes back, add it as income with Source Type **Refund / Reimbursement** and, in the **Refund for** box, search for and pick the expense or one-time big purchase it paid back. The refund then stops counting as income, and that expense shows only your own share, in its own month, category and budget, while your account balance still goes up by what you received. The shortcut is **Add refund** in the expense's (or one-time big purchase's) menu. See [Refunds and Reimbursements](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back).
 
-### What is a Capital Event and when should I use it?
+### What is a One-Time Big Purchase and when should I use it?
 
-A Capital Event is a large, one-off payment such as a car down-payment, home renovation advance, or lump-sum medical bill that you do not want distorting your monthly average charts. It still appears in your cash flow and net worth but is excluded from budget calculations. As a rule of thumb: if the amount is large enough to make your average monthly expense chart look abnormal for months, log it as a Capital Event. See [Capital Events](../09-capital-events/index.md).
+A one-time big purchase is a large, one-off payment such as a car down-payment, home renovation advance, or lump-sum medical bill that you do not want distorting your monthly average charts. It still appears in your cash flow and net worth but is excluded from budget calculations. As a rule of thumb: if the amount is large enough to make your average monthly expense chart look abnormal for months, log it as a one-time big purchase. See [one-time big purchases](../09-capital-events/index.md).
 
 ### Why does the new expense form show a "Check" tag on some fields?
 
@@ -94,7 +94,7 @@ Yes, for ten minutes. Right after you add an expense, a message appears with an 
 
 ### Why did the app ask "Is that right?" before saving my expense?
 
-Amounts of ₹1,00,000 or more get a second look, which catches an accidental extra zero. You can confirm it, edit the amount, or choose **Log as Capital Event instead**, which is the right home for one-off big payments. See [Capital Events](../09-capital-events/index.md).
+Amounts of ₹1,00,000 or more get a second look, which catches an accidental extra zero. You can confirm it, edit the amount, or choose **Log as one-time big purchase instead**, which is the right home for one-off big payments. See [one-time big purchases](../09-capital-events/index.md).
 
 ### What does "auto-posting" mean for recurring transactions?
 
@@ -123,11 +123,11 @@ Expand the **Health Breakdown** section on the Analytics page to see four compon
 
 ### How is my savings rate calculated?
 
-Savings rate = (Income − Expenses − Loan interest − Capital Events that count towards averages) ÷ (Income − Cashback and Refund income) × 100. Refunds you linked to an expense or capital event are not income, and each expense counts for its amount less those refunds. The same formula is used on the Dashboard, Analytics, Month on Month, the Transactions page, and the monthly email. See [How the Savings Rate Is Calculated](../11-analytics-and-health/index.md#3-how-the-savings-rate-is-calculated) for the rules and a worked example.
+Savings rate = (Income − Expenses − Loan interest − one-time big purchases that count towards averages) ÷ (Income − Cashback and Refund income) × 100. Refunds you linked to an expense or one-time big purchase are not income, and each expense counts for its amount less those refunds. The same formula is used on the Dashboard, Analytics, Month on Month, the Transactions page, and the monthly email. See [How the Savings Rate Is Calculated](../11-analytics-and-health/index.md#3-how-the-savings-rate-is-calculated) for the rules and a worked example.
 
 ### Why is my savings rate different from what I expected?
 
-The usual reasons are: loan **principal** is not counted as spending (only the interest is), Capital Events are left out unless you turned off their **Exclude from Averages & Trends** setting, and Cashback and Refund income is not part of the base your rate is measured against (and a refund linked to an expense or capital event is not income at all). Also check that the pages you compare are looking at the same period and filters.
+The usual reasons are: loan **principal** is not counted as spending (only the interest is), one-time big purchases are left out unless you turned off their **Exclude from Averages & Trends** setting, and Cashback and Refund income is not part of the base your rate is measured against (and a refund linked to an expense or one-time big purchase is not income at all). Also check that the pages you compare are looking at the same period and filters.
 
 ---
 
@@ -139,15 +139,15 @@ When the remaining principal on a loan reaches zero, TrackMyRupee automatically 
 
 ### How do I log an extra prepayment on a loan?
 
-Log a **Capital Event** with the relevant Subtype and link it to the loan via the **Linked Loan** field. The Loan Detail page will then show the prepayment as part of total capital committed. See [Capital Events](../09-capital-events/index.md).
+Log a **one-time big purchase** with the relevant Subtype and link it to the loan via the **Linked Loan** field. The Loan Detail page will then show the prepayment as part of total capital committed. See [one-time big purchases](../09-capital-events/index.md).
 
 ---
 
-## TMR Flows
+## Guided Setup
 
-### What is TMR Flows, and do I have to use it?
+### What is Guided Setup, and do I have to use it?
 
-TMR Flows is a set of short, guided forms for life events, such as "I took a loan", "I started a SIP", or "I bought a car". One form creates everything connected to the event, properly linked together. You never have to use it. Everything a Flow creates can also be added by hand from its usual page. Flows are simply faster and harder to get wrong. See [TMR Flows](../13-tmr-flows/index.md).
+Guided Setup is a set of short, guided forms for life events, such as "I took a loan", "I started a SIP", or "I bought a car". One form creates everything connected to the event, properly linked together. You never have to use it. Everything a Flow creates can also be added by hand from its usual page. Flows are simply faster and harder to get wrong. See [Guided Setup](../13-tmr-flows/index.md).
 
 ### I ran a Flow and made a mistake. How do I fix it?
 

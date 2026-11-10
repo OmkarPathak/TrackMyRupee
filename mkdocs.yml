@@ -100,7 +100,7 @@ nav:
   - Home: index.md
   - Philosophy: 00-philosophy.md
   - Getting Started: 01-getting-started/index.md
-  - TMR Flows:
+  - Guided Setup:
       - How Flows Work: 13-tmr-flows/index.md
       - Debt (Loan, Credit Card): 13-tmr-flows/debt.md
       - Income and Bills: 13-tmr-flows/income-and-bills.md
@@ -119,7 +119,7 @@ nav:
       - Transfers: 06-transfers/index.md
   - Budgets: 07-budgets/index.md
   - Loans: 08-loans/index.md
-  - Capital Events: 09-capital-events/index.md
+  - One-time big purchases: 09-capital-events/index.md
   - Calendar: 10-calendar/index.md
   - Analytics: 11-analytics-and-health/index.md
   - Savings Goals: 12-goals/index.md

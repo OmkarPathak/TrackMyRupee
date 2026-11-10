@@ -68,16 +68,16 @@ The last tab shows everything before anything is saved. The big number at the to
 
 - A **loan account** with your balance and interest rate
 - A **repayment schedule**, set up as a recurring EMI
-- If you included a down payment, a **Capital Event** of type *Loan Down Payment*, linked to the loan
+- If you included a down payment, a **one-time big purchase** of type *Loan Down Payment*, linked to the loan
 
 On the Review screen the big number you see is your calculated monthly EMI, so you can compare it with what your bank told you before you confirm.
 
 !!! example "Real-world use case"
     Rohan has just closed on a flat. He borrowed ₹40,00,000 at 8.5% for 20 years from HDFC, with a ₹6,00,000 down payment from his savings account.
 
-    He opens **TMR Flows**, picks **I took a loan**, chooses **Home** and **EMI Amortizing**, names it "HDFC Home Loan", and enters 4000000, 8.5 and 240, with 5 November as the start date. On the schedule step he picks his salary account as the payment account. On the adjustments step he switches on the down payment and enters 600000.
+    He opens **Guided Setup**, picks **I took a loan**, chooses **Home** and **EMI Amortizing**, names it "HDFC Home Loan", and enters 4000000, 8.5 and 240, with 5 November as the start date. On the schedule step he picks his salary account as the payment account. On the adjustments step he switches on the down payment and enters 600000.
 
-    The Review screen shows a monthly EMI of ₹34,713. That matches his bank's sanction letter, so he confirms. His Loans page now shows the loan, his EMI is scheduled for the 5th of every month, and the down payment sits in Capital Events, so it never distorts his monthly spending.
+    The Review screen shows a monthly EMI of ₹34,713. That matches his bank's sanction letter, so he confirms. His Loans page now shows the loan, his EMI is scheduled for the 5th of every month, and the down payment sits in one-time big purchases, so it never distorts his monthly spending.
 
 ### Watch out for
 
@@ -160,7 +160,7 @@ The last tab summarises what will be created, with the headline figure at the to
 ---
 
 ## Related Links
-- [TMR Flows overview](index.md)
+- [Guided Setup overview](index.md)
 - [Loans](../08-loans/index.md)
-- [Capital Events](../09-capital-events/index.md)
+- [one-time big purchases](../09-capital-events/index.md)
 - [Accounts and Net Worth](../02-accounts/index.md)

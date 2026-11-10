@@ -53,7 +53,7 @@ The contribution takes the amount **out of that account's balance** and adds it 
 You can **edit** a contribution (the account and goal balances move by the difference) or **delete** it (the money goes back to the account). Deleting a whole goal returns every contribution to the account it came from.
 
 !!! tip "Use a dedicated savings account"
-    Create a separate Savings Account (for example "Goa Trip Savings"), and transfer your monthly amount to it from your salary account with **Add → Internal Transfer**. Then log the goal contribution from that account.
+    Create a separate Savings Account (for example "Goa Trip Savings"), and transfer your monthly amount to it from your salary account with **Add → Move Money**. Then log the goal contribution from that account.
 
 ---
 

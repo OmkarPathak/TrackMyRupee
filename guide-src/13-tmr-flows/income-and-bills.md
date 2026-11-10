@@ -207,7 +207,7 @@ The Review screen leads with your premium in the frequency you chose, for exampl
 ---
 
 ## Related Links
-- [TMR Flows overview](index.md)
+- [Guided Setup overview](index.md)
 - [Getting Started](../01-getting-started/index.md)
 - [Recurring and Subscriptions](../05-transactions-recurring/index.md)
 - [Budgets](../07-budgets/index.md)

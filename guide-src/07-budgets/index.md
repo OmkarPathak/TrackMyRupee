@@ -26,7 +26,7 @@ Past months show a **Month summary** instead of a daily amount (there is nothing
 For the month you are looking at, a category's spend is:
 
 - every **expense** in that category, including the ones your subscriptions post automatically, converted to your own currency (the category name is matched ignoring capital letters, so *food* counts towards *Food*), plus
-- any **Capital Event** whose **Exclude from Budget** switch is turned off. It counts towards the category with the same name as its subtype (for example *Large Purchase*). By default capital events are excluded. See [Capital Events](../09-capital-events/index.md).
+- any **one-time big purchase** whose **Exclude from Budget** switch is turned off. It counts towards the category with the same name as its subtype (for example *Large Purchase*). By default one-time big purchases are excluded. See [one-time big purchases](../09-capital-events/index.md).
 
 Loan interest and transfers are not budget spending.
 

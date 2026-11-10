@@ -34,7 +34,7 @@ Everyone keeps their **own TrackMyRupee account**. Each person chooses which of 
 2. Choose **Create your family** and give it a name, such as "Our family". You become its **owner**.
 3. Under **Invite someone**, choose **Send invite**. Enter an email address to have the link emailed to them, or leave it empty and send the link yourself.
 
-You can also start a family from **TMR Flows**: choose **I want to share the big picture with my family**. It appears there when family sharing is switched on for you, and it needs a Pro plan. It only creates the family. You invite people from the Family page afterwards.
+You can also start a family from **Guided Setup**: choose **I want to share the big picture with my family**. It appears there when family sharing is switched on for you, and it needs a Pro plan. It only creates the family. You invite people from the Family page afterwards.
 
 A family has up to **5 members**, and a person can belong to **one family** at a time. Seats taken by members and by open invitations both count, so cancel an unused invitation to free its seat.
 

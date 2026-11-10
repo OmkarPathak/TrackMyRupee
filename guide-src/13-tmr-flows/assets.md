@@ -66,7 +66,7 @@ This is the one Flow where the answer depends on how you paid.
 
 **If you paid cash (Financed is off):**
 
-- A **Capital Event** of type *Large Purchase* for the full price, taken from the account you chose. The money really did leave your account, and this records that without distorting your monthly spending.
+- A **one-time big purchase** of type *Large Purchase* for the full price, taken from the account you chose. The money really did leave your account, and this records that without distorting your monthly spending.
 
 **If you financed it (Financed is on):**
 
@@ -74,7 +74,7 @@ This is the one Flow where the answer depends on how you paid.
 - A **recurring EMI**, paid from the account you chose
 - A **Vehicle Loan account** linked to the loan
 
-There is **no** purchase Capital Event in this case. The loan and the vehicle together already tell the whole story, and a second entry would count the same money twice.
+There is **no** purchase one-time big purchase in this case. The loan and the vehicle together already tell the whole story, and a second entry would count the same money twice.
 
 !!! example "Real-world use case: financed"
     Siddharth buys a car for ₹9,00,000 and finances all of it at 9% for 60 months. He runs **I bought a car**, enters the price and date, ticks **Financed**, and fills in 9 and 60.
@@ -82,12 +82,12 @@ There is **no** purchase Capital Event in this case. The loan and the vehicle to
     His net worth now shows the car at ₹9,00,000 as something he owns and the loan at ₹9,00,000 as something he owes, so net worth does not jump or crash on the day he drives it home. Every month an EMI of about ₹18,683 goes out of his chosen account, and his remaining loan balance falls with it.
 
 !!! example "Real-world use case: cash"
-    Rekha pays ₹6,50,000 from her savings for a hatchback. She runs the same Flow and leaves **Financed** off. Her savings account drops by ₹6,50,000, a Large Purchase appears in Capital Events, and the car shows up as a ₹6,50,000 asset. Her monthly spending report still looks normal, because a car is not a "this month" expense. It is a change in where her wealth is stored.
+    Rekha pays ₹6,50,000 from her savings for a hatchback. She runs the same Flow and leaves **Financed** off. Her savings account drops by ₹6,50,000, a Large Purchase appears in one-time big purchases, and the car shows up as a ₹6,50,000 asset. Her monthly spending report still looks normal, because a car is not a "this month" expense. It is a change in where her wealth is stored.
 
 ### Watch out for
 
 !!! warning "A financed car here means 100% financed"
-    The Flow treats a financed car as fully covered by the loan. If you paid a down payment yourself, set the loan up with [I took a loan](debt.md#i-took-a-loan) (which has a down payment option), and add the vehicle as an account on the [Accounts](../02-accounts/index.md) page. If this is common for you, use **Request a flow** on the TMR Flows page and tell us.
+    The Flow treats a financed car as fully covered by the loan. If you paid a down payment yourself, set the loan up with [I took a loan](debt.md#i-took-a-loan) (which has a down payment option), and add the vehicle as an account on the [Accounts](../02-accounts/index.md) page. If this is common for you, use **Request a flow** on the Guided Setup page and tell us.
 
 !!! note "The car is carried at what you paid"
     The Flow records the car at its purchase price. Cars lose value as they age, so over the years your net worth will slightly overstate what the car would actually sell for. Keep that in mind when you read the number.
@@ -145,12 +145,12 @@ The result depends on the route you picked.
 
 **Either way, if you chose a From account:**
 
-- A **Capital Event** of type *Investment Lump Sum*, taking the amount out of that account on the purchase date. If you leave From account blank, nothing is taken out of any account, which is handy when you are adding gold you bought years ago.
+- A **one-time big purchase** of type *Investment Lump Sum*, taking the amount out of that account on the purchase date. If you leave From account blank, nothing is taken out of any account, which is handy when you are adding gold you bought years ago.
 
 !!! example "Real-world use case"
     Meghna buys a gold necklace for ₹1,20,000 before Diwali, paying from her savings account. She runs **I bought gold**, chooses Physical, names it "Diwali necklace", enters 120000, the date, and her savings account.
 
-    Her savings drop by ₹1,20,000, the necklace appears as a ₹1,20,000 asset, and the purchase is filed under Capital Events, so her Dashboard does not make it look like she overspent on festive shopping.
+    Her savings drop by ₹1,20,000, the necklace appears as a ₹1,20,000 asset, and the purchase is filed under one-time big purchases, so her Dashboard does not make it look like she overspent on festive shopping.
 
     A year later she adds her father's old coins, which she inherited. For those she runs the Flow again and leaves **From account** blank, because she did not pay for them, and her net worth simply grows by the value she records.
 
@@ -162,8 +162,8 @@ The result depends on the route you picked.
 ---
 
 ## Related Links
-- [TMR Flows overview](index.md)
+- [Guided Setup overview](index.md)
 - [Debt Flows](debt.md)
-- [Capital Events](../09-capital-events/index.md)
+- [one-time big purchases](../09-capital-events/index.md)
 - [Holdings and Mutual Funds](../02-accounts/holdings.md)
 - [Accounts and Net Worth](../02-accounts/index.md)

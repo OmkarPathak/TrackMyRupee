@@ -27,7 +27,7 @@ Each day shows the money that moved, in your own currency:
 | On the day | What it is |
 |---|---|
 | **Green, with +** | Income received |
-| **Red, with −** | Money that went out: expenses, loan EMIs (the whole payment, principal and interest), and Capital Events |
+| **Red, with −** | Money that went out: expenses, loan EMIs (the whole payment, principal and interest), and one-time big purchases |
 | **Blue** | Money you moved into investment accounts |
 | **Grey list at the bottom** | Scheduled entries (subscriptions, SIPs, EMIs, expected income) that have not posted yet |
 
@@ -80,5 +80,5 @@ Type a word such as a merchant, a category, a source, a loan name or an investme
 ## Related Links
 - [Adding Expenses](../03-transactions-expenses/index.md)
 - [Recurring Transactions and Subscriptions](../05-transactions-recurring/index.md)
-- [Capital Events](../09-capital-events/index.md)
+- [one-time big purchases](../09-capital-events/index.md)
 - [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md)
