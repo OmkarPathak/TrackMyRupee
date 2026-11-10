@@ -26,6 +26,10 @@
                         </div>
                     {% endif %}
 
+                    {% if not form.instance.pk and form.fields.from_account.queryset.count < 2 %}
+                        <div class="alert alert-info mb-3">{% trans "Moving money needs two accounts. Add another account to get started." %}</div>
+                    {% endif %}
+
                     <div class="row g-3">
                         <!-- Row 1: Amount and Date -->
                         <div class="col-6 mb-3">

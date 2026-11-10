@@ -23810,3 +23810,55 @@ msgstr "सर्व बंद करा"
 
 msgid "Back to goals"
 msgstr "उद्दिष्टांकडे परत"
+
+#: templates/expenses/pay_emi.html
+msgid "Pay EMI"
+msgstr "EMI भरा"
+
+#: templates/expenses/pay_emi.html
+msgid "Record an EMI you have paid on a loan."
+msgstr "कर्जावर भरलेला EMI नोंदवा."
+
+#: templates/expenses/pay_emi.html
+msgid "You have not added a loan yet"
+msgstr "तुम्ही अजून कोणतेही कर्ज जोडलेले नाही"
+
+#: templates/expenses/pay_emi.html
+msgid "Add your loan to track its EMIs, the balance left and when it ends. It takes about a minute."
+msgstr "तुमचे कर्ज जोडा, म्हणजे त्याचे EMI, उरलेली रक्कम आणि ते कधी संपते ते पाहता येईल. यासाठी सुमारे एक मिनिट लागतो."
+
+#: templates/expenses/pay_emi.html
+msgid "Set up a loan"
+msgstr "कर्ज सेट करा"
+
+#: templates/expenses/pay_emi.html
+msgid "Add a loan manually"
+msgstr "कर्ज हाताने जोडा"
+
+#: templates/expenses/pay_emi.html
+msgid "Which loan?"
+msgstr "कोणते कर्ज?"
+
+#: templates/expenses/pay_emi.html
+msgid "Paid from"
+msgstr "कोणत्या खात्यातून भरले"
+
+#: templates/expenses/pay_emi.html
+msgid "Split into principal and interest (optional)"
+msgstr "मुद्दल आणि व्याजात विभागा (ऐच्छिक)"
+
+#: templates/expenses/pay_emi.html
+msgid "Leave these empty and we work out the split from your loan."
+msgstr "हे रिकामे ठेवा, आम्ही तुमच्या कर्जावरून विभागणी काढू."
+
+#: templates/expenses/pay_emi.html
+msgid "Record EMI"
+msgstr "EMI नोंदवा"
+
+#: templates/expenses/transfer_form.html
+msgid "Moving money needs two accounts. Add another account to get started."
+msgstr "पैसे हस्तांतरित करण्यासाठी दोन खाती लागतात. सुरुवात करण्यासाठी आणखी एक खाते जोडा."
+
+#: templates/expenses/partials/_capital_event_list.html
+msgid "purchases"
+msgstr "खरेद्या"

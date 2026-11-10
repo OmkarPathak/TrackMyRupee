@@ -23747,3 +23747,55 @@ msgstr "सभी बंद करें"
 
 msgid "Back to goals"
 msgstr "लक्ष्यों पर वापस"
+
+#: templates/expenses/pay_emi.html
+msgid "Pay EMI"
+msgstr "EMI भरें"
+
+#: templates/expenses/pay_emi.html
+msgid "Record an EMI you have paid on a loan."
+msgstr "लोन पर चुकाई गई EMI दर्ज करें।"
+
+#: templates/expenses/pay_emi.html
+msgid "You have not added a loan yet"
+msgstr "आपने अभी तक कोई लोन नहीं जोड़ा है"
+
+#: templates/expenses/pay_emi.html
+msgid "Add your loan to track its EMIs, the balance left and when it ends. It takes about a minute."
+msgstr "अपना लोन जोड़ें, ताकि उसकी EMI, बची हुई राशि और खत्म होने की तारीख़ पर नज़र रख सकें। इसमें करीब एक मिनट लगता है।"
+
+#: templates/expenses/pay_emi.html
+msgid "Set up a loan"
+msgstr "लोन सेट करें"
+
+#: templates/expenses/pay_emi.html
+msgid "Add a loan manually"
+msgstr "लोन हाथ से जोड़ें"
+
+#: templates/expenses/pay_emi.html
+msgid "Which loan?"
+msgstr "कौन सा लोन?"
+
+#: templates/expenses/pay_emi.html
+msgid "Paid from"
+msgstr "किस खाते से भुगतान"
+
+#: templates/expenses/pay_emi.html
+msgid "Split into principal and interest (optional)"
+msgstr "मूलधन और ब्याज में बाँटें (वैकल्पिक)"
+
+#: templates/expenses/pay_emi.html
+msgid "Leave these empty and we work out the split from your loan."
+msgstr "इन्हें खाली छोड़ दें, हम आपके लोन से बँटवारा निकाल लेंगे।"
+
+#: templates/expenses/pay_emi.html
+msgid "Record EMI"
+msgstr "EMI दर्ज करें"
+
+#: templates/expenses/transfer_form.html
+msgid "Moving money needs two accounts. Add another account to get started."
+msgstr "पैसे ट्रांसफ़र करने के लिए दो खाते चाहिए। शुरू करने के लिए एक और खाता जोड़ें।"
+
+#: templates/expenses/partials/_capital_event_list.html
+msgid "purchases"
+msgstr "खरीदें"

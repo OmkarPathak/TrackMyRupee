@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
@@ -469,6 +469,7 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     def post(self, request, pk):
         loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
         form = LoanRepaymentForm(request.POST, user=request.user, loan=loan)
+        recorded = False
         if form.is_valid():
             try:
                 with transaction.atomic():
@@ -496,14 +497,74 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                             messages.warning(request, _("The repayment was recorded, but an identical recurring repayment already exists."))
 
                 messages.success(request, _("Repayment recorded successfully!"))
-                ph_capture(request.user, 'loan_repayment_added', {})
+                ph_capture(request.user, 'loan_repayment_added', {'via': 'pay_emi' if request.POST.get('from_pay_emi') else 'loan_page'})
+                recorded = True
             except (RuntimeError, ValidationError):
                 messages.error(request, _("Unable to record repayment because currency conversion failed or repayment data is invalid."))
         else:
             errors_list = [f"{err}" for field, errs in form.errors.items() for err in errs]
             err_msg = " ".join(errors_list) if errors_list else _("Please check the form.")
             messages.error(request, _("Error recording repayment: %(err)s") % {'err': err_msg})
+        if request.POST.get('from_pay_emi'):
+            # Pay EMI page: back to where the person came from when it worked, back to the page when it did not
+            if recorded:
+                return redirect(get_safe_redirect_url(request, request.POST.get('next'), reverse('loan-detail', kwargs={'pk': loan.uuid})))
+            return redirect(f"{reverse('pay-emi')}?loan={loan.uuid}")
         return redirect('loan-detail', pk=loan.uuid)
+
+
+class PayEmiView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    """Pay EMI: one short page for the loan payment most people make every month.
+
+    The amount is filled in from the loan, the split between principal and interest is worked out when it is
+    saved (the person can open it and change it), and the page posts to the same handler as the loan page.
+    With no loan yet it says so and points at the Guided Setup for loans.
+    """
+    template_name = 'expenses/pay_emi.html'
+
+    def get(self, request):
+        loans = list(Loan.objects.filter(user=request.user, is_active=True).order_by('start_date', 'id'))
+        loan = None
+        wanted = request.GET.get('loan')
+        if wanted:
+            loan = next((l for l in loans if str(l.uuid) == wanted), None)
+        if loan is None and loans:
+            loan = loans[0]
+        form = LoanRepaymentForm(user=request.user, loan=loan) if loan else None
+        if form:
+            # The split starts empty: it is worked out from the loan on save unless the person fills it in. A
+            # pre-filled split would go stale the moment the amount is edited. (`recalculatePortions` only
+            # exists on the loan page.)
+            form.fields['principal_portion'].initial = None
+            form.fields['interest_portion'].initial = None
+            form.fields['amount'].widget.attrs.pop('onchange', None)
+            default_account = self._default_account(form, loan)
+            if default_account:
+                form.fields['from_account'].initial = default_account.pk
+        ph_capture(request.user, 'pay_emi_opened', {'has_loan': bool(loan)})
+        return render(request, self.template_name, {
+            'loans': loans,
+            'loan': loan,
+            'form': form,
+            'next_url': get_safe_redirect_url(request, request.GET.get('next'), ''),
+        })
+
+    @staticmethod
+    def _default_account(form, loan):
+        """The account most likely to have paid: the one used for this loan's last EMI, else the first salary,
+        savings or current account, else the first account that is not a debt. Never a card or a loan."""
+        from ..account_types import is_liability
+        accounts = form.fields['from_account'].queryset
+        last = loan.repayments.order_by('-date', '-id').first()
+        if last and last.from_account_id:
+            used = accounts.filter(pk=last.from_account_id).first()
+            if used:
+                return used
+        usual = accounts.filter(account_type__in=('SALARY_ACCOUNT', 'SAVINGS_ACCOUNT', 'CURRENT_ACCOUNT')).first()
+        if usual:
+            return usual
+        return next((a for a in accounts if not is_liability(a.account_type)), None)
+
 
 class LoanInterestRateCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     def post(self, request, pk):
