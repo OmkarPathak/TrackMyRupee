@@ -23,8 +23,6 @@ from django.utils import timezone
 
 from expenses.tests.clock import pin_today
 from expenses.composer import (
-    LARGE_AMOUNT_DEFAULT,
-    LARGE_AMOUNT_THRESHOLDS,
     UNDO_WINDOW,
     display_amount,
     usual_expenses,
@@ -817,12 +815,6 @@ class TestComposerBootstrap(ComposerBase):
         self.assertEqual((data['default_account_id'], data['default_account_source']), (self.bank.id, 'last_used'))
         self.assertEqual(data['default_payment_method'], 'UPI')
 
-    def test_large_amount_thresholds_per_currency(self):
-        thresholds = self.data()['large_amount_thresholds']
-        self.assertEqual(thresholds['₹'], LARGE_AMOUNT_THRESHOLDS['₹'])
-        self.assertEqual(thresholds['$'], LARGE_AMOUNT_DEFAULT)
-        self.assertEqual(thresholds['¥'], LARGE_AMOUNT_THRESHOLDS['¥'])
-
     def test_free_tier_sees_only_unlocked_accounts(self):
         free = self.make_user('free-composer', tier='FREE')
         self.client.force_login(free)
@@ -1329,7 +1321,6 @@ class TestDocumentedNumbers(ExpenseTestBase):
         from expenses.composer import USUAL_WINDOW_DAYS
         from expenses.views.expenses import ExpenseListView
         self.assertEqual(UNDO_WINDOW, timedelta(minutes=10))            # "Undo for ten minutes"
-        self.assertEqual(LARGE_AMOUNT_THRESHOLDS['₹'], 100000)           # "₹1,00,000 or more"
         self.assertEqual(USUAL_WINDOW_DAYS, 60)                          # "last two months"
         self.assertEqual(ExpenseListView.paginate_by, 20)                # "20 to a page"
         from expenses.models import Expense as E

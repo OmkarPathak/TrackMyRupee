@@ -41,7 +41,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 ### ⚡ Fast Entry
 *   **One-Line Composer**: Type an expense the way you would text a friend. Amounts, dates and payment methods are understood, and a voice option is available.
 *   **Learns Your Habits**: It remembers the category, account and payment method you pick for each merchant, and offers your usual expenses as one-tap chips.
-*   **Safety Nets**: A second look at unusually large amounts, a 10-minute undo, and double-tap protection so one expense is never saved twice.
+*   **Safety Nets**: A 10-minute undo, and double-tap protection so one expense is never saved twice.
 *   **Bulk Import**: Import months of data from Excel.
 *   **Smart Category Prediction**: Personalised learning and rule-based matching. Category prediction runs inside the app; descriptions are not sent to third-party AI services.
 

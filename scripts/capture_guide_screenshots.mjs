@@ -87,9 +87,6 @@ const shots = [
       }
       toggle.click();` },
   { file: '03-transactions-expenses/img/composer-parsed-desktop.webp', url: '/expenses/add/', before: `${TYPE_INTO_COMPOSER('zomato 450 yesterday upi')}`, wait: 1800 },
-  { file: '03-transactions-expenses/img/large-amount-desktop.webp', url: '/expenses/add/', before: `${TYPE_INTO_COMPOSER('sofa 150000')}
-      await new Promise(r => setTimeout(r, 1200));
-      document.getElementById('tmr-add').click();`, wait: 1800 },
   { file: '07-budgets/img/set-limit-desktop.webp', url: '/budget/', before: `
       document.querySelector('[data-bdx-adjust]').click();`, wait: 1400 },
   { file: '05-transactions-recurring/img/subscription-step1-desktop.webp', url: '/recurring/create/', before: SUBSCRIPTION_STEP(1), clipTo: '#subscriptionForm', clipClosest: '.card-body' },

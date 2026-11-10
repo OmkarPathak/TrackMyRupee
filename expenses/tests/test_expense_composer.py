@@ -10,7 +10,7 @@ from django.test import Client, SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from expenses.composer import LARGE_AMOUNT_THRESHOLDS, UNDO_WINDOW
+from expenses.composer import UNDO_WINDOW
 from expenses.models import Account, Category, Expense, ExpenseKeywordHint
 from expenses.parser import keyword_candidates, parse_expense_nl
 from finance_tracker.plans import PLAN_DETAILS
@@ -624,6 +624,3 @@ class DeepLinkAndEntryPointTests(ComposerBase):
         self.assertNotContains(response, 'New Category')
 
 
-class ThresholdTests(SimpleTestCase):
-    def test_rupee_threshold_is_one_lakh(self):
-        self.assertEqual(LARGE_AMOUNT_THRESHOLDS['₹'], 100000)

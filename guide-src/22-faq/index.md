@@ -92,9 +92,6 @@ After you type a line such as `uber to airport 450 upi`, TrackMyRupee fills in w
 
 Yes, for ten minutes. Right after you add an expense, a message appears with an **Undo** button. After those ten minutes, delete the expense from the Expenses list instead.
 
-### Why did the app ask "Is that right?" before saving my expense?
-
-Amounts of ₹1,00,000 or more get a second look, which catches an accidental extra zero. You can confirm it, edit the amount, or choose **Log as one-time big purchase instead**, which is the right home for one-off big payments. See [one-time big purchases](../09-capital-events/index.md).
 
 ### What does "auto-posting" mean for recurring transactions?
 

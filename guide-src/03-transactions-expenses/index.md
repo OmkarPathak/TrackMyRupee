@@ -96,19 +96,9 @@ Each time you save, TrackMyRupee remembers what you picked for that kind of expe
 
 ## 4. Safety Nets
 
-### Big amounts get a second look
+### Big one-off purchases
 
-If an amount is large (₹1,00,000 or more in rupees), you will see *"... is a large amount. Is that right?"* with three options:
-
-
-![The large amount check](img/large-amount-desktop.webp){ loading=lazy }
-
-
-- **Yes, add it**
-- **Edit amount**
-- **Log as one-time big purchase instead**, for one-off big payments like a laptop or an advance. See [one-time big purchases](../09-capital-events/index.md).
-
-This catches the classic extra zero, and it nudges big one-off payments toward the place where they will not wreck your monthly budget.
+For a one-off big payment, a hint above the form suggests **Log as one-time big purchase**, so it does not wreck your monthly budget.
 
 ### Undo for ten minutes
 
