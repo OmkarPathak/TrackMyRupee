@@ -45,12 +45,6 @@
                 </span>
             </a>
 
-            <!-- Analytics (Spending & cashflow, and Net worth & trends, are tabs inside it) -->
-            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Analytics' %}">
-                <i class="bi bi-pie-chart fs-5"></i>
-                <span class="nav-text">{% trans "Analytics" %}</span>
-            </a>
-
             <!-- Cash Flow Section -->
             <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Cash Flow" %}</div>
 
@@ -193,6 +187,15 @@
             </a>
 
             <!-- Divider -->
+            <!-- Insights Section -->
+            <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Insights" %}</div>
+
+            <!-- Analytics (Spending & cashflow, and Net worth & trends, are tabs inside it) -->
+            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Analytics' %}">
+                <i class="bi bi-pie-chart fs-5"></i>
+                <span class="nav-text">{% trans "Analytics" %}</span>
+            </a>
+
             <!-- <hr class="my-2"> -->
             <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Settings" %}</div>
 

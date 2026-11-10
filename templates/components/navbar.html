@@ -454,12 +454,6 @@
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{% url 'analytics' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-pie-chart text-secondary mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Analytics" %}</span>
-                    </a>
-                </div>
-                <div class="col">
                     <a href="{% url 'tmr-flows' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item {% if 'flow-' in request.resolver_match.url_name or request.resolver_match.url_name == 'tmr-flows' %}active{% endif %}">
                         <i class="bi bi-diagram-3 text-success mb-1" style="font-size: 1.5rem;"></i>
                         <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Guided Setup" %}</span>
@@ -524,6 +518,19 @@
                     </a>
                 </div>
                 {% endif %}
+            </div>
+
+            <!-- Insights Section -->
+            <div class="px-4 pt-3 pb-2 text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                {% trans "Insights" %}
+            </div>
+            <div class="row row-cols-4 g-2 px-3">
+                <div class="col">
+                    <a href="{% url 'analytics' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
+                        <i class="bi bi-pie-chart text-secondary mb-1" style="font-size: 1.5rem;"></i>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Analytics" %}</span>
+                    </a>
+                </div>
             </div>
 
             <!-- System Section -->
