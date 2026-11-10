@@ -287,3 +287,103 @@ msgstr "तारीख निवडा"
 
 msgid "To"
 msgstr "पर्यंत"
+
+#: static/js/tutorial.js
+msgid "Welcome to TrackMyRupee"
+msgstr "TrackMyRupee मध्ये आपले स्वागत आहे"
+
+#: static/js/tutorial.js
+msgid "Here is a quick tour of where things are. It takes under a minute, and you can replay it any time from Settings."
+msgstr "सर्व काही कुठे आहे याचा हा एक छोटा फेरफटका आहे. यासाठी एका मिनिटापेक्षा कमी वेळ लागतो, आणि तुम्ही तो कधीही सेटिंग्जमधून पुन्हा पाहू शकता."
+
+#: static/js/tutorial.js
+msgid "Add anything from here"
+msgstr "इथून काहीही जोडा"
+
+#: static/js/tutorial.js
+msgid "Log an expense or income, move money between accounts, or record an EMI. Most days you will start with this button."
+msgstr "खर्च किंवा उत्पन्न नोंदवा, खात्यांमध्ये पैसे हस्तांतरित करा, किंवा EMI नोंदवा. बहुतेक दिवशी तुम्ही याच बटणाने सुरुवात कराल."
+
+#: static/js/tutorial.js
+msgid "Everything you log"
+msgstr "तुम्ही नोंदवलेले सर्व काही"
+
+#: static/js/tutorial.js
+msgid "Every expense, income and transfer is listed here, with search and filters."
+msgstr "प्रत्येक खर्च, उत्पन्न आणि हस्तांतरण इथे यादीत आहे, शोध आणि फिल्टरसह."
+
+#: static/js/tutorial.js
+msgid "Your accounts"
+msgstr "तुमची खाती"
+
+#: static/js/tutorial.js
+msgid "Add your bank accounts, cards, loans and investments to see your balances and net worth."
+msgstr "तुमची बँक खाती, कार्ड, कर्जे आणि गुंतवणूक जोडा, म्हणजे तुम्हाला तुमची शिल्लक आणि निव्वळ संपत्ती दिसेल."
+
+#: static/js/tutorial.js
+msgid "Review your month"
+msgstr "तुमचा महिना पाहा"
+
+#: static/js/tutorial.js
+msgid "Analytics starts with a plain sentence about your spending, then shows the charts behind it."
+msgstr "विश्लेषण तुमच्या खर्चाबद्दलच्या एका सोप्या वाक्याने सुरू होते, आणि मग त्यामागील चार्ट दाखवते."
+
+#: static/js/tutorial.js
+msgid "Guided Setup"
+msgstr "मार्गदर्शित सेटअप"
+
+#: static/js/tutorial.js
+msgid "Took a loan or started a new job? Tell it what happened and it sets everything up in one short form."
+msgstr "कर्ज घेतले किंवा नवीन नोकरी सुरू केली? काय झाले ते सांगा, आणि सर्व काही एका छोट्या फॉर्ममध्ये सेट होते."
+
+#: static/js/tutorial.js
+msgid "Find any page"
+msgstr "कोणतेही पान शोधा"
+
+#: static/js/tutorial.js
+msgid "Not sure where something is? Search for it here, or press Ctrl K (Cmd K on a Mac)."
+msgstr "काही कुठे आहे ते माहीत नाही? इथे शोधा, किंवा Ctrl K (Mac वर Cmd K) दाबा."
+
+#: static/js/tutorial.js
+msgid "Settings and help"
+msgstr "सेटिंग्ज आणि मदत"
+
+#: static/js/tutorial.js
+msgid "Change your currency, language and theme, or replay this tour."
+msgstr "तुमचे चलन, भाषा आणि थीम बदला, किंवा हा फेरफटका पुन्हा पाहा."
+
+#: static/js/tutorial.js
+msgid "Tap + to add"
+msgstr "+ दाबून जोडा"
+
+#: static/js/tutorial.js
+msgid "Add an expense in a few seconds. The + also moves money between accounts and records an EMI."
+msgstr "काही सेकंदांत खर्च जोडा. + ने खात्यांमध्ये पैसे हस्तांतरित करता येतात आणि EMI देखील नोंदवता येतो."
+
+#: static/js/tutorial.js
+msgid "Your three main screens"
+msgstr "तुमचे तीन मुख्य स्क्रीन"
+
+#: static/js/tutorial.js
+msgid "Home is your summary, Transactions lists everything you have logged, and Accounts shows your balances."
+msgstr "होम तुमचा सारांश आहे, व्यवहारांमध्ये तुम्ही नोंदवलेले सर्व दिसते, आणि खात्यांमध्ये तुमची शिल्लक."
+
+#: static/js/tutorial.js
+msgid "Everything else is in More"
+msgstr "बाकी सर्व काही \"अधिक\" मध्ये आहे"
+
+#: static/js/tutorial.js
+msgid "Budgets, bills, analytics, loans, goals and settings are all in this menu. You can replay this tour from Settings."
+msgstr "बजेट, बिले, विश्लेषण, कर्जे, उद्दिष्टे आणि सेटिंग्ज सर्व याच मेनूमध्ये आहेत. तुम्ही हा फेरफटका सेटिंग्जमधून पुन्हा पाहू शकता."
+
+#: static/js/tutorial.js
+msgid "Next"
+msgstr "पुढील"
+
+#: static/js/tutorial.js
+msgid "Back"
+msgstr "मागे"
+
+#: static/js/tutorial.js
+msgid "{{current}} of {{total}}"
+msgstr "{{current}} / {{total}}"

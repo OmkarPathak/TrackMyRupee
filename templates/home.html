@@ -8,7 +8,7 @@
     {# Product tour assets only ship when the tour will actually start (new users / ?tour=true). #}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
-    <script defer src="{% static 'js/tutorial.js' %}?v=1.1"></script>
+    <script defer src="{% static 'js/tutorial.js' %}?v=2.0"></script>
     {% endif %}
     <script>
         window.tutorialCompleteUrl = "{% url 'complete-tutorial' %}";

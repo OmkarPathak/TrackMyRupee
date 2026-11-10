@@ -1983,6 +1983,9 @@ class UserProfile(models.Model):
     ]
     persona = models.CharField(max_length=20, choices=PERSONA_CHOICES, blank=True, null=True)
     dismissed_onboarding_checklist = models.BooleanField(default=False)
+    # Set when onboarding finishes, cleared when the person finishes or skips the app tour on their first visit to
+    # the dashboard. A separate flag, because has_seen_tutorial also means "this account was set up" elsewhere.
+    app_tour_pending = models.BooleanField(default=False)
 
     # DPDPA Consent Fields
     consent_granted = models.BooleanField(default=False)

@@ -138,7 +138,7 @@ def home_view(request):
         if is_engine_on(request.user):
             context['nw'] = cached_net_worth_card(request.user.pk)    # None: the page asks for it after it paints
         context['is_ai_locked'] = not request.user.profile.has_ai_access
-        context['show_tutorial'] = not request.user.profile.has_seen_tutorial or request.GET.get('tour') == 'true'
+        context['show_tutorial'] = should_show_tutorial(request)
         context['is_new_user'] = not has_any_data
         context['filter_config'] = DASHBOARD_FILTERS
         if 'applied_state' not in context:
@@ -2453,7 +2453,7 @@ def home_view(request):
         'prev_month_data': prev_month_data,
         'prev_month_url': prev_month_url,
         'next_month_url': next_month_url,
-        'show_tutorial': not request.user.profile.has_seen_tutorial or request.GET.get('tour') == 'true',
+        'show_tutorial': should_show_tutorial(request),
         'has_any_budget': any((c.get('limit') or 0) > 0 for c in category_limits),
         'show_year_in_review': show_year_in_review,
         'year_in_review_year': year_in_review_year,
@@ -2586,12 +2586,20 @@ def home_view(request):
 
     return render(request, 'home.html', context)
 
+def should_show_tutorial(request) -> bool:
+    """The app tour runs for someone who has never seen a tour (an older account), for someone who has just finished
+    onboarding, and whenever it is asked for with ?tour=true (Settings, "Tutorial")."""
+    profile = request.user.profile
+    return (not profile.has_seen_tutorial) or profile.app_tour_pending or request.GET.get('tour') == 'true'
+
+
 @login_required
 def complete_tutorial(request):
     if request.method == 'POST':
         profile = request.user.profile
         profile.has_seen_tutorial = True
-        profile.save()
+        profile.app_tour_pending = False
+        profile.save(update_fields=['has_seen_tutorial', 'app_tour_pending'])
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
