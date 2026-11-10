@@ -1266,9 +1266,24 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         mapping = {code: get_fields_for_account_type(code) for code in ACCOUNT_TYPE_META}
         return json.dumps(mapping)
 
+    def _hide_legacy_account_types(self):
+        """Offer the "(legacy)" types only to an account that already has one.
+
+        New accounts, and accounts already on a current type, see the current types alone. Only the dropdown
+        changes: the field still accepts the legacy codes, so an old open tab or app build that posts one
+        keeps working, and existing rows keep validating and saving.
+        """
+        from .account_types import ACCOUNT_TYPES
+        legacy_codes = {code for group, choices in ACCOUNT_TYPES if group == 'Legacy' for code, _label in choices}
+        current = self.instance.account_type if self.instance and self.instance.pk else None
+        if current in legacy_codes - {'CREDIT_CARD'}:
+            return
+        self.fields['account_type'].widget.choices = [entry for entry in ACCOUNT_TYPES if entry[0] != 'Legacy']
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        self._hide_legacy_account_types()
         if self.user:
             self.fields['currency'].initial = self.user.profile.currency
             self.fields['linked_loan'].queryset = Loan.objects.filter(

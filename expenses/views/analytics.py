@@ -30,13 +30,7 @@ class AnalyticsView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.request.user
-        profile = getattr(user, 'profile', None)
         context['tab'] = self.tab
-        if profile is None or not profile.has_ai_access:
-            context['is_locked'] = True
-            return context
-
         page = Page(self.request, self.tab)
         key = cache_key(page) if cache_seconds() else None
         data = cache.get(key) if key else None
@@ -60,6 +54,5 @@ class AnalyticsView(HtmxPartialTemplateMixin, LoginRequiredMixin, TemplateView):
             'filters_active': page.filters_active,
             'include_capital_events': page.include_capital_events,
             'wrapped_year': page.period.end.year,
-            'is_locked': False,
         })
         return context

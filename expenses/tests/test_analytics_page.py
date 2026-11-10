@@ -72,7 +72,7 @@ class AccessTests(PageCase):
             for name in ('analytics', 'analytics-cashflow', 'analytics-networth'):
                 response = self.tab(name)
                 self.assertEqual(response.status_code, 200, (tier, name))
-                self.assertFalse(response.context['is_locked'])
+                self.assertNotContains(response, 'Analytics is a Pro Feature')
 
     def test_login_is_required(self):
         self.client.logout()
@@ -83,13 +83,6 @@ class AccessTests(PageCase):
         response = self.client.get(reverse('analytics-mom') + '?time_period=last_6_months')
         self.assertEqual(response.status_code, 301)
         self.assertEqual(response['Location'], reverse('analytics-networth') + '?time_period=last_6_months')
-
-    def test_a_plan_without_insights_sees_the_locked_page(self):
-        with patch.object(type(self.user.profile), 'has_ai_access', new=False):
-            response = self.tab()
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context['is_locked'])
-        self.assertContains(response, reverse('pricing'))
 
     def test_an_htmx_request_gets_just_the_shell(self):
         response = self.client.get(reverse('analytics'), HTTP_HX_REQUEST='true')
