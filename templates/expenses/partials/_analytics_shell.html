@@ -1,12 +1,5 @@
 {% load i18n digit_filters filter_tags family_tags %}
 <div id="analytics-shell" class="anx fade-in pb-4" data-tab="{{ tab }}" data-currency="{{ currency_symbol|default:'₹' }}" data-hint="{% trans 'Click to view transactions' %}" aria-busy="false">
-{% if is_locked %}
-    <div class="text-center py-5 mx-auto" style="max-width: 36rem;">
-        <h1 class="h3 fw-bold mb-2" data-analytics-title>{% trans "Analytics is a Pro Feature" %}</h1>
-        <p class="text-muted mb-4">{% trans "Unlock detailed insights, cashflow forecasting, and monthly trends with a Pro subscription." %}</p>
-        <a href="{% url 'pricing' %}" class="btn btn-primary rounded-pill px-4">{% trans "Upgrade to Pro" %}</a>
-    </div>
-{% else %}
     <!-- Header: title and the year-in-review shortcut -->
     <header class="anx-header">
         <div>
@@ -49,5 +42,4 @@
     {% else %}
         {% include 'expenses/partials/_analytics_networth.html' %}
     {% endif %}
-{% endif %}
 </div>

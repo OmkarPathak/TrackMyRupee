@@ -94,7 +94,7 @@
                 </li>
                 <li class="nav-item d-lg-none">
                     <a href="{% url 'holding-list' %}" class="nav-link {% if 'holding' in request.resolver_match.url_name %}active{% endif %}">
-                        {% trans "Holdings Portfolio" %}
+                        {% trans "Holdings" %}
                     </a>
                 </li>
                 <li class="nav-item d-lg-none">
@@ -483,7 +483,7 @@
                     {% else %}
                     <a href="{% url 'pricing' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
                         <i class="bi bi-shield-lock text-warning mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Loans (Pro)" %}</span>
+                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Loans" %} <span class="badge bg-warning-subtle text-warning-emphasis">{% trans "Plus" %}</span></span>
                     </a>
                     {% endif %}
                 </div>

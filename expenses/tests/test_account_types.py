@@ -254,3 +254,33 @@ class TestAccountTypesChoiceList(TestCase):
         allowed_duplicates = {'CREDIT_CARD'}  # intentional: same code in Legacy group
         unexpected_duplicates = duplicates - allowed_duplicates
         self.assertEqual(unexpected_duplicates, set(), f"Unexpected duplicate codes: {unexpected_duplicates}")
+
+
+class TestLegacyTypesHiddenFromTheForm(TestCase):
+    """New accounts pick from current types only; an account already on a legacy type keeps its own choice."""
+
+    @staticmethod
+    def _codes(form):
+        return {code for _group, choices in form.fields['account_type'].widget.choices for code, _label in choices}
+
+    def test_new_account_form_offers_no_legacy_types(self):
+        from expenses.forms import AccountForm
+        codes = self._codes(AccountForm())
+        for legacy in ('CASH', 'BANK', 'INVESTMENT', 'FIXED_DEPOSIT', 'OTHER'):
+            self.assertNotIn(legacy, codes)
+        self.assertIn('SAVINGS_ACCOUNT', codes)
+        self.assertIn('CREDIT_CARD', codes)
+
+    def test_a_legacy_account_still_offers_its_own_type(self):
+        from django.contrib.auth.models import User
+
+        from expenses.forms import AccountForm
+        from expenses.models import Account
+        user = User.objects.create_user('legacyuser', password='x')
+        account = Account.objects.create(user=user, name='Old bank', account_type='BANK')
+        self.assertIn('BANK', self._codes(AccountForm(instance=account, user=user)))
+
+    def test_a_posted_legacy_type_is_still_accepted(self):
+        from expenses.forms import AccountForm
+        form = AccountForm(data={'name': 'Old tab', 'account_type': 'BANK', 'balance': '0', 'currency': '₹'})
+        self.assertNotIn('account_type', form.errors)
