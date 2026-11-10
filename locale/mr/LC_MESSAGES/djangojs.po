@@ -365,8 +365,8 @@ msgid "Your three main screens"
 msgstr "तुमचे तीन मुख्य स्क्रीन"
 
 #: static/js/tutorial.js
-msgid "Home is your summary, Transactions lists everything you have logged, and Accounts shows your balances."
-msgstr "होम तुमचा सारांश आहे, व्यवहारांमध्ये तुम्ही नोंदवलेले सर्व दिसते, आणि खात्यांमध्ये तुमची शिल्लक."
+msgid "Dashboard is your summary, Transactions lists everything you have logged, and Accounts shows your balances."
+msgstr "डॅशबोर्ड तुमचा सारांश आहे, व्यवहारांमध्ये तुम्ही नोंदवलेले सर्व दिसते, आणि खात्यांमध्ये तुमची शिल्लक."
 
 #: static/js/tutorial.js
 msgid "Everything else is in More"

@@ -23903,3 +23903,11 @@ msgstr "या कालावधीत तुम्ही %(spent)s खर्�
 #, python-format
 msgid "%(category)s is the biggest part, at %(amount)s."
 msgstr "सर्वात मोठा हिस्सा %(category)s चा आहे, %(amount)s."
+
+#: templates/components/navbar.html
+msgid "Everyday"
+msgstr "रोजचे"
+
+#: templates/components/navbar.html
+msgid "Money & plans"
+msgstr "पैसे आणि योजना"

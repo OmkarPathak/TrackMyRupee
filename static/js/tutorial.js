@@ -25,7 +25,7 @@ const desktopSteps = [
 const mobileSteps = [
     WELCOME_STEP,
     { element: '#global-fab', popover: { title: gettext('Tap + to add'), description: gettext('Add an expense in a few seconds. The + also moves money between accounts and records an EMI.'), side: "top", align: 'end' } },
-    { element: '.mobile-nav-capsule', popover: { title: gettext('Your three main screens'), description: gettext('Home is your summary, Transactions lists everything you have logged, and Accounts shows your balances.'), side: "top", align: 'center' } },
+    { element: '.mobile-nav-capsule', popover: { title: gettext('Your three main screens'), description: gettext('Dashboard is your summary, Transactions lists everything you have logged, and Accounts shows your balances.'), side: "top", align: 'center' } },
     { element: '.mobile-nav-item-more', popover: { title: gettext('Everything else is in More'), description: gettext('Budgets, bills, analytics, loans, goals and settings are all in this menu. You can replay this tour from Settings.'), side: "top", align: 'end' } },
 ];
 

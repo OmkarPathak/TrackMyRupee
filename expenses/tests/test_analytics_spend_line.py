@@ -103,11 +103,10 @@ class InsightsMenuTests(PageCase):
         self.assertLess(insights, link)
         self.assertLess(link, sidebar.index('>Settings<'))
 
-    def test_the_phone_menu_has_the_same_insights_section(self):
+    def test_on_the_phone_analytics_is_one_of_the_everyday_places(self):
         html = self.page_html()
         sheet = html[html.index('id="moreMenuSheet"'):]
-        self.assertLess(sheet.index('Insights'), sheet.index(reverse('analytics')))
-        self.assertLess(sheet.index(reverse('analytics')), sheet.index('System'))
-        cash_flow = sheet.index('Cash Flow')
-        self.assertFalse(cash_flow < sheet.index(reverse('analytics')) < sheet.index('Net Worth'),
-                         'Analytics is still in the Cash Flow section of the phone menu')
+        everyday = sheet.index('Everyday')
+        money = sheet.index('Money & plans')
+        self.assertLess(everyday, sheet.index(reverse('analytics')))
+        self.assertLess(sheet.index(reverse('analytics')), money)

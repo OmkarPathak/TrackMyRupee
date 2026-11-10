@@ -239,10 +239,12 @@
         {% if request.resolver_match.url_name == 'home' %}
         <a href="{% url 'home' %}" class="mobile-nav-item active" title="{% trans 'Dashboard' %}" aria-label="{% trans 'Dashboard' %}">
             <i class="bi bi-house-door-fill"></i>
+            <span class="mobile-nav-label">{% trans "Dashboard" %}</span>
         </a>
         {% else %}
         <a href="{% url 'home' %}" class="mobile-nav-item" title="{% trans 'Dashboard' %}" aria-label="{% trans 'Dashboard' %}">
             <i class="bi bi-house-door"></i>
+            <span class="mobile-nav-label">{% trans "Dashboard" %}</span>
         </a>
         {% endif %}
 
@@ -252,6 +254,7 @@
             {% else %}
             <i class="bi bi-file-text"></i>
             {% endif %}
+            <span class="mobile-nav-label">{% trans "Transactions" %}</span>
         </a>
 
         <a href="{% url 'account-list' %}" class="mobile-nav-item {% if 'account' in request.resolver_match.url_name or 'transfer' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Accounts' %}" aria-label="{% trans 'Accounts' %}">
@@ -260,10 +263,12 @@
             {% else %}
             <i class="bi bi-bank"></i>
             {% endif %}
+            <span class="mobile-nav-label">{% trans "Accounts" %}</span>
         </a>
 
         <button class="mobile-nav-item mobile-nav-item-more position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#moreMenuSheet" aria-controls="moreMenuSheet" title="{% trans 'More' %}" aria-label="{% trans 'More' %}">
             <i class="bi bi-grid"></i>
+            <span class="mobile-nav-label">{% trans "More" %}</span>
             {% if has_unread_notifications %}
                 <span class="position-absolute badge rounded-circle bg-danger border border-white" 
                       id="notification-badge-more"
@@ -411,6 +416,15 @@
             [data-bs-theme="dark"] .mobile-grid-item.active i {
                 color: #5DCAA5 !important;
             }
+            /* The More sheet's tiles: three to a row, with labels big enough to read */
+            .mmt { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+                   width: 100%; min-height: 84px; padding: .6rem .25rem; border-radius: .75rem; text-decoration: none; }
+            .mmt i { font-size: 1.6rem; line-height: 1; }
+            .mmt .mmt-label { font-size: .8rem; font-weight: 500; line-height: 1.2; text-align: center; color: var(--bs-body-color); }
+            .mmt--small { min-height: 66px; }
+            .mmt--small i { font-size: 1.35rem; }
+            .mmt--small .mmt-label { font-size: .72rem; }
+            .mmt-footer { border-top: 1px solid var(--bs-border-color-translucent); }
             /* Prevent any row-level negative margin bleed */
             #moreMenuSheet .offcanvas-body .row {
                 margin-left: 0;
@@ -418,169 +432,139 @@
             }
         </style>
         <div class="pb-3 mt-2">
-            <!-- Cash Flow Section -->
+            <!-- Everyday: what you use most. Dashboard, Transactions and Accounts are on the bar below, so not repeated. -->
             <div class="px-4 pt-3 pb-2 text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                {% trans "Cash Flow" %}
+                {% trans "Everyday" %}
             </div>
-            <div class="row row-cols-4 g-2 px-3 mb-1">
+            <div class="row row-cols-3 g-2 px-3 mb-1">
                 <div class="col">
-                    <a href="{% url 'expense-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-credit-card text-danger mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Expenses" %}</span>
+                    <a href="{% url 'expense-list' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-credit-card text-danger"></i>
+                        <span class="mmt-label">{% trans "Expenses" %}</span>
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{% url 'income-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-cash-coin text-success mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Income" %}</span>
+                    <a href="{% url 'income-list' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-cash-coin text-success"></i>
+                        <span class="mmt-label">{% trans "Income" %}</span>
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{% url 'budget' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-wallet2 text-warning mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Budgets" %}</span>
+                    <a href="{% url 'budget' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-wallet2 text-warning"></i>
+                        <span class="mmt-label">{% trans "Budgets" %}</span>
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{% url 'recurring-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-arrow-repeat text-primary mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Subscriptions" %}</span>
+                    <a href="{% url 'recurring-list' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-arrow-repeat text-primary"></i>
+                        <span class="mmt-label">{% trans "Subscriptions" %}</span>
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{% url 'calendar' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-calendar3 text-info mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Calendar" %}</span>
+                    <a href="{% url 'calendar' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-calendar3 text-info"></i>
+                        <span class="mmt-label">{% trans "Calendar" %}</span>
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{% url 'tmr-flows' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item {% if 'flow-' in request.resolver_match.url_name or request.resolver_match.url_name == 'tmr-flows' %}active{% endif %}">
-                        <i class="bi bi-diagram-3 text-success mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Guided Setup" %}</span>
+                    <a href="{% url 'analytics' %}" class="mmt mobile-grid-item {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-pie-chart text-secondary"></i>
+                        <span class="mmt-label">{% trans "Analytics" %}</span>
                     </a>
                 </div>
             </div>
 
-            <!-- Net Worth Section -->
+            <!-- Money and plans: everything about what you own, owe and are working towards -->
             <div class="px-4 pt-3 pb-2 text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                {% trans "Net Worth" %}
+                {% trans "Money & plans" %}
             </div>
-            <div class="row row-cols-4 g-2 px-3 mb-1">
+            <div class="row row-cols-3 g-2 px-3 mb-1">
                 <div class="col">
-                    <a href="{% url 'account-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-bank text-info mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Accounts" %}</span>
+                    <a href="{% url 'holding-list' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-graph-up-arrow text-success"></i>
+                        <span class="mmt-label">{% trans "Holdings" %}</span>
                     </a>
                 </div>
-
-                <div class="col">
-                    <a href="{% url 'holding-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-graph-up-arrow text-success mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Holdings" %}</span>
-                    </a>
-                </div>
-
                 <div class="col">
                     {% if user.profile.can_track_loans %}
-                    <a href="{% url 'loan-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-shield-lock text-primary mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Loans" %}</span>
+                    <a href="{% url 'loan-list' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-shield-lock text-primary"></i>
+                        <span class="mmt-label">{% trans "Loans" %}</span>
                     </a>
                     {% else %}
-                    <a href="{% url 'pricing' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-shield-lock text-warning mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Loans" %} <span class="badge bg-warning-subtle text-warning-emphasis">{% trans "Plus" %}</span></span>
+                    <a href="{% url 'pricing' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-shield-lock text-warning"></i>
+                        <span class="mmt-label">{% trans "Loans" %} <span class="badge bg-warning-subtle text-warning-emphasis">{% trans "Plus" %}</span></span>
                     </a>
                     {% endif %}
                 </div>
-
                 <div class="col">
-                    <a href="{% url 'capital-event-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-gem text-info mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "One-time big purchases" %}</span>
+                    <a href="{% url 'goal-list' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-bullseye text-success"></i>
+                        <span class="mmt-label">{% trans "Goals" %}</span>
                     </a>
                 </div>
-
+                <div class="col">
+                    <a href="{% url 'capital-event-list' %}" class="mmt mobile-grid-item">
+                        <i class="bi bi-gem text-info"></i>
+                        <span class="mmt-label">{% trans "One-time big purchases" %}</span>
+                    </a>
+                </div>
                 {% if FAMILY_ON %}
                 <div class="col">
-                    <a href="{% url 'family-home' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item {% if 'family' in request.resolver_match.url_name %}active{% endif %}">
-                        <i class="bi bi-people text-primary mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Family" %}</span>
+                    <a href="{% url 'family-home' %}" class="mmt mobile-grid-item {% if 'family' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-people text-primary"></i>
+                        <span class="mmt-label">{% trans "Family" %}</span>
                     </a>
                 </div>
                 {% endif %}
-
-                {% if user.profile.active_tier == 'PRO' %}
                 <div class="col">
-                    <a href="{% url 'goal-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-bullseye text-success mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Goals" %}</span>
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Insights Section -->
-            <div class="px-4 pt-3 pb-2 text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                {% trans "Insights" %}
-            </div>
-            <div class="row row-cols-4 g-2 px-3">
-                <div class="col">
-                    <a href="{% url 'analytics' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-pie-chart text-secondary mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Analytics" %}</span>
+                    <a href="{% url 'tmr-flows' %}" class="mmt mobile-grid-item {% if 'flow-' in request.resolver_match.url_name or request.resolver_match.url_name == 'tmr-flows' %}active{% endif %}">
+                        <i class="bi bi-diagram-3 text-success"></i>
+                        <span class="mmt-label">{% trans "Guided Setup" %}</span>
                     </a>
                 </div>
             </div>
 
-            <!-- System Section -->
-            <div class="px-4 pt-3 pb-2 text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">
-                {% trans "System" %}
-            </div>
-            <div class="row row-cols-4 g-2 px-3">
+            <!-- Your account: quieter, and smaller than the places above -->
+            <div class="row row-cols-4 g-2 px-3 mt-2 pt-3 mmt-footer">
                 <div class="col">
-                    <a href="{% url 'notification-list' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item position-relative">
-                        <i class="bi bi-bell-fill text-warning mb-1" style="font-size: 1.5rem;"></i>
+                    <a href="{% url 'notification-list' %}" class="mmt mmt--small mobile-grid-item position-relative">
+                        <i class="bi bi-bell-fill text-warning"></i>
                         {% if has_unread_notifications %}
                             <span class="position-absolute top-0 start-50 translate-middle p-1 bg-danger border border-light rounded-circle" style="margin-top: 10px; margin-left: 10px;">
                                 <span class="visually-hidden">{% trans "New alerts" %}</span>
                             </span>
                         {% endif %}
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Alerts" %}</span>
+                        <span class="mmt-label">{% trans "Alerts" %}</span>
                     </a>
                 </div>
-
                 <div class="col">
-                    <a href="{% url 'settings-home' %}" class="text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item">
-                        <i class="bi bi-gear text-secondary mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Settings" %}</span>
+                    <a href="{% url 'settings-home' %}" class="mmt mmt--small mobile-grid-item">
+                        <i class="bi bi-gear text-secondary"></i>
+                        <span class="mmt-label">{% trans "Settings" %}</span>
                     </a>
                 </div>
-
                 <div class="col">
-                    <button class="btn btn-link text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item w-100 border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#supportLegalSheet">
-                        <i class="bi bi-info-circle text-primary mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Legal" %}</span>
+                    <button class="mmt mmt--small mobile-grid-item btn btn-link border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#supportLegalSheet">
+                        <i class="bi bi-info-circle text-primary"></i>
+                        <span class="mmt-label">{% trans "Legal" %}</span>
                     </button>
                 </div>
-
                 <div class="col">
-                    <button class="btn btn-link text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item w-100 border-0 theme-toggle-btn">
-                        <i class="bi bi-moon-stars-fill theme-icon-active text-primary mb-1" style="font-size: 1.5rem;"></i>
-                        <span class="text-body fw-medium text-center" style="font-size: 0.75rem;">{% trans "Theme" %}</span>
+                    <button class="mmt mmt--small mobile-grid-item btn btn-link border-0 theme-toggle-btn" type="button">
+                        <i class="bi bi-moon-stars-fill theme-icon-active text-primary"></i>
+                        <span class="mmt-label">{% trans "Theme" %}</span>
                     </button>
-                </div>
-
-                <div class="col">
-                    <form action="{% url 'account_logout' %}" method="post" class="m-0 h-100">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-link text-decoration-none d-flex flex-column align-items-center justify-content-center p-2 rounded-3 mobile-grid-item w-100 border-0 h-100">
-                            <i class="bi bi-box-arrow-right text-danger mb-1" style="font-size: 1.5rem;"></i>
-                            <span class="text-danger fw-medium text-center" style="font-size: 0.75rem;">{% trans "Logout" %}</span>
-                        </button>
-                    </form>
                 </div>
             </div>
+            <form action="{% url 'account_logout' %}" method="post" class="m-0 px-3 mt-1">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-link text-danger text-decoration-none w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-medium">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>{% trans "Logout" %}
+                </button>
+            </form>
         </div>
     </div>
 </div>
