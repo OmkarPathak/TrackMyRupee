@@ -97,6 +97,34 @@ class PayEmiRecordTests(LoanBase):
         self.assertEqual(self.bal(self.cash), before - D('9000.00'))
         self.assertRedirects(response, reverse('loan-detail', kwargs={'pk': loan.uuid}), fetch_redirect_response=False)
 
+    def test_the_same_payment_sent_twice_in_a_row_is_recorded_once(self):
+        loan = self.loan()
+        before = self.bal(self.cash)
+        self.post(loan)
+        response = self.post(loan)
+        self.assertEqual(LoanRepayment.objects.filter(loan=loan).count(), 1)
+        self.assertEqual(self.bal(self.cash), before - D('9000.00'))
+        self.assertRedirects(response, reverse('loan-detail', kwargs={'pk': loan.uuid}), fetch_redirect_response=False)
+
+    def test_a_different_amount_straight_after_is_a_new_payment(self):
+        loan = self.loan()
+        self.post(loan)
+        self.post(loan, amount='9500')
+        self.assertEqual(LoanRepayment.objects.filter(loan=loan).count(), 2)
+
+    def test_the_button_is_switched_off_after_the_first_click(self):
+        self.loan()
+        self.assertContains(self.client.get(reverse('pay-emi')), "b.disabled = true")
+
+    def test_the_page_is_counted_as_opened_only_on_a_fresh_visit(self):
+        from unittest import mock
+        loan = self.loan()
+        with mock.patch('expenses.views.loans.ph_capture') as capture:
+            self.client.get(reverse('pay-emi'))
+            self.client.get(reverse('pay-emi') + f'?loan={loan.uuid}')
+        events = [c.args[1] for c in capture.call_args_list]
+        self.assertEqual(events.count('pay_emi_opened'), 1)
+
     def test_the_person_goes_back_to_where_they_came_from(self):
         loan = self.loan()
         response = self.post(loan, next=reverse('account-list'))
@@ -162,6 +190,20 @@ class MoveMoneyHintTests(LoanBase):
                                balance=D('500.00'), currency='₹')
         response = self.client.get(reverse('transfer-create'))
         self.assertNotContains(response, 'Moving money needs two accounts')
+
+
+class MoveMoneyQueryTests(LoanBase):
+    def count_of_account_counts(self, url):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        with CaptureQueriesContext(connection) as queries:
+            self.client.get(url)
+        return sum(1 for q in queries if 'COUNT(*)' in q['sql'] and 'expenses_account' in q['sql'] and 'is_active' in q['sql'])
+
+    def test_a_new_transfer_counts_the_accounts_at_most_once(self):
+        Account.objects.create(user=self.user, name='Savings', account_type='SAVINGS_ACCOUNT',
+                               balance=D('500.00'), currency='₹')
+        self.assertLessEqual(self.count_of_account_counts(reverse('transfer-create')), 1)
 
 
 def today_str():

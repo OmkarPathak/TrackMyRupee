@@ -6218,6 +6218,10 @@ msgid ""
 "exists."
 msgstr "भुगतान दर्ज हो गया, लेकिन ऐसा ही आवर्ती भुगतान पहले से मौजूद है।"
 
+#: expenses/views/loans.py
+msgid "This repayment was already recorded."
+msgstr "यह भुगतान पहले ही दर्ज हो चुका है।"
+
 #: expenses/views/loans.py:498
 msgid "Repayment recorded successfully!"
 msgstr "भुगतान सफलतापूर्वक दर्ज हुआ!"

@@ -63,7 +63,6 @@ function startTour(mode = 'standard') {
     // target is not on screen (a collapsed sidebar, an unusual layout) rather than point at nothing.
     steps = steps.filter((step) => !step.element || isOnScreen(document.querySelector(step.element)));
     
-    console.log('Tour Steps:', steps);
     
     // Verify elements exist (Debug)
     steps.forEach((step, index) => {

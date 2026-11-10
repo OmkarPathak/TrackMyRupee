@@ -12,6 +12,7 @@ from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q, Sum
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV3
@@ -1689,6 +1690,12 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                 )
 
 class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
+    @cached_property
+    def has_two_accounts(self):
+        """Whether there are enough accounts to move money between. Counted once per form, and not at all when
+        editing, so the page does not repeat the same COUNT query for each place it asks."""
+        return bool(self.instance.pk) or self.fields['from_account'].queryset.count() >= 2
+
     class Meta:
         model = Transfer
         fields = ['date', 'amount', 'from_account', 'to_account', 'description', 'client_dedup_key']

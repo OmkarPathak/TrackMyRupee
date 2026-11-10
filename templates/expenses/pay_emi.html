@@ -36,7 +36,7 @@
                     <div class="small text-muted">{% trans "Outstanding" %}: {{ loan.currency }}{{ loan.remaining_principal|ind_comma:loan.currency|translate_digits }}</div>
                 </div>
 
-                <form method="post" action="{% url 'loan-repayment-create' loan.uuid %}">
+                <form method="post" action="{% url 'loan-repayment-create' loan.uuid %}" onsubmit="var b=this.querySelector('[type=submit]'); if (b) { if (b.dataset.sent) { return false; } b.dataset.sent = '1'; b.disabled = true; }">
                     {% csrf_token %}
                     <input type="hidden" name="from_pay_emi" value="1">
                     {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}

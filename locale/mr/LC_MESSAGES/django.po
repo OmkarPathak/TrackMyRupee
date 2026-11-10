@@ -6238,6 +6238,10 @@ msgid ""
 "exists."
 msgstr "परतफेड नोंदवली गेली, परंतु अशीच आवर्ती परतफेड आधीच अस्तित्वात आहे."
 
+#: expenses/views/loans.py
+msgid "This repayment was already recorded."
+msgstr "ही परतफेड आधीच नोंदवली आहे."
+
 #: expenses/views/loans.py:498
 msgid "Repayment recorded successfully!"
 msgstr "परतफेड यशस्वीरित्या नोंदवली!"

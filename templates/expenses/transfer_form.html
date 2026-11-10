@@ -8,7 +8,7 @@
             <div class="card-header bg-transparent py-3">
                 <div class="d-flex align-items-center justify-content-between">
                     <h1 class="h4 mb-0 fw-bold">{% if form.instance.pk %}{% trans "Edit Transfer" %}{% else %}{% trans "Move Money" %}{% endif %}</h1>
-                    {% if form.instance.pk or form.fields.from_account.queryset.count >= 2 %}
+                    {% if form.has_two_accounts %}
                     <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 tmr-ic" data-bs-toggle="modal" data-bs-target="#quickAddAccountModal">
                         <i class="bi bi-plus-lg"></i>{% trans "Add Account" %}
                     </button>
@@ -28,7 +28,7 @@
                         </div>
                     {% endif %}
 
-                    {% if not form.instance.pk and form.fields.from_account.queryset.count < 2 %}
+                    {% if not form.has_two_accounts %}
                         <div class="alert alert-info mb-3 d-flex align-items-center justify-content-between gap-3 flex-wrap">
                             <span>{% trans "Moving money needs two accounts. Add another account to get started." %}</span>
                             <button type="button" class="btn btn-action-outline btn-sm tmr-ic" data-bs-toggle="modal" data-bs-target="#quickAddAccountModal"><i class="bi bi-plus-lg"></i>{% trans "Add Account" %}</button>

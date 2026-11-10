@@ -1,9 +1,12 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
@@ -466,11 +469,26 @@ class LoanHistoryTabView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         return render(request, self.template_name, {'loan': loan, 'repayments': repayments})
 
 class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    DOUBLE_SUBMIT_SECONDS = 15
+
+    @classmethod
+    def _is_double_submit(cls, loan, cleaned):
+        """True when a repayment with the same account, amount and date was saved for this loan seconds ago."""
+        recent = timezone.now() - timedelta(seconds=cls.DOUBLE_SUBMIT_SECONDS)
+        return loan.repayments.filter(
+            from_account=cleaned.get('from_account'), amount=cleaned.get('amount'), date=cleaned.get('date'),
+            created_at__gte=recent,
+        ).exists()
+
     def post(self, request, pk):
         loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
         form = LoanRepaymentForm(request.POST, user=request.user, loan=loan)
         recorded = False
-        if form.is_valid():
+        if form.is_valid() and self._is_double_submit(loan, form.cleaned_data):
+            # The same payment arrived a moment ago (a double click, or a retry on a slow phone): it is already saved
+            messages.info(request, _("This repayment was already recorded."))
+            recorded = True
+        elif form.is_valid():
             try:
                 with transaction.atomic():
                     repayment = form.save(commit=False)
@@ -541,7 +559,9 @@ class PayEmiView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             default_account = self._default_account(form, loan)
             if default_account:
                 form.fields['from_account'].initial = default_account.pk
-        ph_capture(request.user, 'pay_emi_opened', {'has_loan': bool(loan)})
+        if not wanted:
+            # A fresh open only: choosing another loan, or coming back after a failed save, carries ?loan=
+            ph_capture(request.user, 'pay_emi_opened', {'has_loan': bool(loan)})
         return render(request, self.template_name, {
             'loans': loans,
             'loan': loan,
