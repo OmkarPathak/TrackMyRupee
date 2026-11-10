@@ -374,7 +374,7 @@
             
   
   <span class="md-ellipsis">
-    TMR Flows
+    Guided Setup
   </span>
   
 
@@ -384,7 +384,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            TMR Flows
+            Guided Setup
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1003,7 +1003,7 @@
         
   
   <span class="md-ellipsis">
-    Capital Events
+    One-time big purchases
   </span>
   
 
@@ -1441,10 +1441,12 @@
 <hr />
 <h2 id="2-adding-an-account">2. Adding an Account<a class="headerlink" href="#2-adding-an-account" title="Permanent link">&para;</a></h2>
 <p>Click <strong>+ Add</strong> next to Accounts in the sidebar on desktop, or tap <strong>+ Add</strong> on the Accounts page on mobile.</p>
-<p><img alt="The Add New Account form" loading="lazy" src="img/add-account-desktop.webp" /></p>
-<p>The form is a two-step wizard:</p>
+<p><img alt="The Add New Account form, starting with the kind of account" loading="lazy" src="img/add-account-desktop.webp" /></p>
+<p><img alt="Choosing the exact type inside a kind" loading="lazy" src="img/add-account-type-desktop.webp" /></p>
+<p><img alt="Searching for a type" loading="lazy" src="img/add-account-search-desktop.webp" /></p>
+<p>The form is a two-step wizard. It starts by asking <strong>what kind of account it is</strong>, in plain words, and only then asks for the details:</p>
 <ol>
-<li><strong>Account Basics</strong>: Enter Account Name, Account Type, Currency, and Initial Balance.</li>
+<li><strong>Account Basics</strong>: Type what you have in the search box (for example <code>ppf</code>, <code>credit card</code> or <code>gold</code>) and pick the match, or pick the kind of account (<strong>Bank or cash</strong>, <strong>Credit card or pay later</strong>, <strong>Investments</strong>, <strong>Deposits &amp; savings schemes</strong>, <strong>Loan</strong>, or <strong>Property, vehicle or insurance</strong>), then the exact type inside it, for example <strong>Public Provident Fund (PPF)</strong> under <strong>Deposits &amp; savings schemes</strong>. Then enter the Account Name, Currency and Initial Balance. <strong>Change</strong> takes you back to pick a different type.</li>
 <li><strong>Type-specific fields</strong>: Fill in details that apply to your account type. For example, Fixed Deposits show deposit terms and maturity date fields. Credit Cards show a credit limit field.</li>
 </ol>
 <p>Click <strong>Save</strong> when done.</p>
@@ -1455,7 +1457,7 @@
 </div>
 <div class="admonition info">
 <p class="admonition-title">Balances are stored in the account's currency</p>
-<p>An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the <strong>currency of an account is locked</strong> as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or capital event). Change it only while the account is unused. If you later edit or delete such a transaction, the account gets back exactly the amount it took or gave at the time, even if the exchange rate has moved since.</p>
+<p>An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the <strong>currency of an account is locked</strong> as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or one-time big purchase). Change it only while the account is unused. If you later edit or delete such a transaction, the account gets back exactly the amount it took or gave at the time, even if the exchange rate has moved since.</p>
 </div>
 <h2 id="3-account-types-reference">3. Account Types Reference<a class="headerlink" href="#3-account-types-reference" title="Permanent link">&para;</a></h2>
 <table>
@@ -1560,7 +1562,7 @@
 <p>Moving money between your own accounts is covered in <a href="../06-transfers/">Transfers</a>. Editing or deleting a transfer puts the money back exactly as it was before applying the change.</p>
 <hr />
 <h2 id="5-reading-account-transaction-history">5. Reading Account Transaction History<a class="headerlink" href="#5-reading-account-transaction-history" title="Permanent link">&para;</a></h2>
-<p>Click any account row to open its detail page. Below the balance and its trend chart is the account's full <strong>Transaction History</strong>: every expense, income, transfer in or out, goal contribution, loan repayment and capital event posted to that account.</p>
+<p>Click any account row to open its detail page. Below the balance and its trend chart is the account's full <strong>Transaction History</strong>: every expense, income, transfer in or out, goal contribution, loan repayment and one-time big purchase posted to that account.</p>
 <p><img alt="An account with its balance trend and history" loading="lazy" src="img/account-detail-desktop.webp" /></p>
 <p>The table looks and behaves like the <a href="../03-transactions-expenses/">All Transactions</a> page:</p>
 <table>
@@ -1577,7 +1579,7 @@
 </tr>
 <tr>
 <td><strong>Type</strong></td>
-<td>A coloured pill: Expense, Income, Transfer, Savings, Loan Repayment or Capital Event</td>
+<td>A coloured pill: Expense, Income, Transfer, Savings, Loan Repayment or one-time big purchase</td>
 </tr>
 <tr>
 <td><strong>Description</strong></td>
@@ -1585,11 +1587,11 @@
 </tr>
 <tr>
 <td><strong>Category/Source</strong></td>
-<td>The expense category, income source, the other account of a transfer ("To SBI Savings", "From HDFC"), the goal, the loan, or the capital event type</td>
+<td>The expense category, income source, the other account of a transfer ("To SBI Savings", "From HDFC"), the goal, the loan, or the one-time big purchase type</td>
 </tr>
 <tr>
 <td><strong>Amount</strong></td>
-<td>Green with <strong>+</strong> when money came into this account, red with <strong>-</strong> when it left. A foreign-currency row also shows its value in your own currency underneath. A capital event you excluded from net worth never moved the balance, so it is shown in grey with no sign</td>
+<td>Green with <strong>+</strong> when money came into this account, red with <strong>-</strong> when it left. A foreign-currency row also shows its value in your own currency underneath. A one-time big purchase you excluded from net worth never moved the balance, so it is shown in grey with no sign</td>
 </tr>
 <tr>
 <td><strong>Actions</strong></td>
@@ -1621,7 +1623,7 @@
 </ul>
 <p>Inactive (deleted) accounts are left out.</p>
 <h3 id="change-this-month-and-the-trend">Change this month and the trend<a class="headerlink" href="#change-this-month-and-the-trend" title="Permanent link">&para;</a></h3>
-<p>The change shown on the Net Worth tile is what you <strong>saved this month</strong>: income minus spending, using the same definition as the savings rate. Repaying loan principal is not spending (your cash goes down and your debt goes down by the same amount), only the interest is. Capital events count only when they are not excluded from averages.</p>
+<p>The change shown on the Net Worth tile is what you <strong>saved this month</strong>: income minus spending, using the same definition as the savings rate. Repaying loan principal is not spending (your cash goes down and your debt goes down by the same amount), only the interest is. One-time big purchases count only when they are not excluded from averages.</p>
 <p>The sparkline walks back from today's figure by each earlier month's savings, so it is an <strong>estimate</strong>. It does not know about market price changes, revaluations or money moved without being recorded, so use it for direction rather than for exact past values. A snapshot of your net worth is also saved each day for the record.</p>
 <div class="admonition example">
 <p class="admonition-title">Real-world use case</p>
