@@ -120,6 +120,7 @@
                         {% if user.username != 'demo' %}
                         <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'transfer-create' %}?next={{ request.path }}"><span class="add-menu-ico text-info"><i class="bi bi-arrow-left-right"></i></span> {% trans "Move Money" %}</a></li>
                         {% endif %}
+                        <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'pay-emi' %}?next={{ request.path }}"><span class="add-menu-ico text-warning"><i class="bi bi-bank"></i></span> {% trans "Pay EMI" %}{% if not user.profile.can_track_loans %} <span class="badge bg-warning-subtle text-warning-emphasis ms-auto">{% trans "Plus" %}</span>{% endif %}</a></li>
                         <li><a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{% url 'income-create' %}?next={{ request.path }}"><span class="add-menu-ico text-success"><i class="bi bi-wallet2"></i></span> {% trans "Add Income" %}</a></li>
                     </ul>
                 </li>
@@ -327,6 +328,17 @@
                 <i class="bi bi-chevron-right text-muted opacity-50 small"></i>
             </a>
             {% endif %}
+
+            <a href="{% url 'pay-emi' %}?next={{ request.path }}" class="drawer-action-item">
+                <div class="drawer-icon-badge bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-bank"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">{% trans "Pay EMI" %}{% if not user.profile.can_track_loans %} <span class="badge bg-warning-subtle text-warning-emphasis">{% trans "Plus" %}</span>{% endif %}</div>
+                    <small class="text-muted" style="font-size: 0.75rem;">{% trans "Record an EMI you have paid on a loan." %}</small>
+                </div>
+                <i class="bi bi-chevron-right text-muted opacity-50 small"></i>
+            </a>
 
             <a href="{% url 'income-create' %}?next={{ request.path }}" class="drawer-action-item">
                 <div class="drawer-icon-badge bg-success bg-opacity-10 text-success">
