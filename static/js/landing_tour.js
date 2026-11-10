@@ -4,9 +4,10 @@
   var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   var $=function(s,r){return (r||document).querySelector(s)};
   var IC={dashboard:'speedometer2',flows:'diagram-3',analytics:'pie-chart',transactions:'list-columns-reverse',expenses:'credit-card',income:'cash-coin',budgets:'wallet2',subs:'arrow-repeat',calendar:'calendar3',accounts:'bank',holdings:'pie-chart',family:'people',loans:'shield-lock',capital:'gem',goals:'bullseye'};
-  var NAV=[['Overview',[['dashboard','Dashboard'],['flows','TMR Flows','n','New'],['analytics','Analytics']]],
+  var NAV=[['Overview',[['dashboard','Dashboard'],['flows','Guided Setup','n','New']]],
    ['Cash flow',[['transactions','Transactions'],['expenses','Expenses'],['income','Income'],['budgets','Budgets'],['subs','Subscriptions','d','due soon'],['calendar','Calendar','c','2 this week']]],
-   ['Net worth',[['accounts','Accounts'],['holdings','Holdings'],['family','Family','n','New'],['loans','Loans','n','1 active'],['capital','Capital Events'],['goals','Goals','n','2 active']]]];
+   ['Net worth',[['accounts','Accounts'],['holdings','Holdings'],['family','Family','n','New'],['loans','Loans','n','1 active'],['capital','One-time big purchases'],['goals','Goals','n','2 active']]],
+   ['Insights',[['analytics','Analytics']]]];
   function bi(n,c){return '<i class="bi bi-'+n+(c?' '+c:'')+'"></i>'}
 
   function C(n,dec){return '<span data-count="'+n+'" data-dec="'+(dec||0)+'">0</span>'}
@@ -84,7 +85,7 @@
   function fcard(ic,t,d,tags,time,dly){return '<div class="card fl" style="animation-delay:'+dly+'s"><div class="fl-i">'+bi(ic)+'</div><b>'+t+'</b><span class="fl-d">'+d+'</span><div class="fl-t">'+tags.map(function(x){return '<em>'+x+'</em>'}).join('')+'</div><div class="fl-f"><small>'+time+'</small><span class="btn-g">Open setup</span></div></div>'}
   function chk(l,done,extra){return '<div class="ck'+(done?' done':'')+'"'+(extra||'')+'><span>'+bi(done?'check-circle-fill':'circle')+'<s>'+l+'</s></span><em>'+(done?'Done':'Set up →')+'</em></div>'}
   S.flow={nav:'flows',url:'/flows/landing/',dur:10500,t:'Tell it what happened in your life',d:'"I started a new job." "I took a loan." One short form sets up the account, the recurring entry and the reminders linked behind it.',
-   h:function(){return '<div class="pgt" style="font-size:24px">TMR Flows</div><div class="pgs">Tell us what happened in your life. We\'ll set up everything linked behind it, in one form.</div>'+
+   h:function(){return '<div class="pgt" style="font-size:24px">Guided Setup</div><div class="pgs">Tell us what happened in your life. We\'ll set up everything linked behind it, in one form.</div>'+
     '<div class="pl"><span class="on">All</span><span>Debt</span><span>Income</span><span>Bills</span><span>Savings &amp; investments</span><span>Assets</span></div>'+
     '<div class="flw"><div><div class="eyb" style="margin:10px 0 8px">Set up a new flow</div><div class="g2">'+
      fcard('car-front','I bought a car','Cash or financed, either way it lands in your net worth.',['Vehicle','Optional loan'],'About 2 min',.2)+
@@ -121,7 +122,7 @@
    run:function(ctx){ctx.after(2600,function(){ctx.move($('#tp-row1 .sw'),0,0)});
      ctx.after(3600,function(){ctx.click();var r=$('#tp-row1');if(r){r.querySelector('.sw').classList.remove('on');var b=r.querySelector('.shr-b');b.textContent='Not shared';b.classList.add('off')}var c=$('#tp-cnt');if(c)c.textContent='Sharing 7 of your 10 items.';var g=$('#tp-gc');if(g)g.textContent='1 of 2 shared'})}};
 
-  var ORDER=['add','rec','acc','nw','flow','fam','priv'],LABEL={add:'Quick add',rec:'Recurring',acc:'Accounts',nw:'Net worth',flow:'TMR Flows',fam:'Family',priv:'Privacy'};
+  var ORDER=['add','rec','acc','nw','flow','fam','priv'],LABEL={add:'Quick add',rec:'Recurring',acc:'Accounts',nw:'Net worth',flow:'Guided Setup',fam:'Family',priv:'Privacy'};
 
   /* ---- phone scenes ---- */
   var P={};
@@ -166,7 +167,7 @@
     prow('building','2BHK Flat, Baner','Real Estate','₹65,00,000','',.3)+prow('graph-up-arrow','Zerodha Demat','Demat Account (Direct Equity)','₹9,51,229','',.45)+prow('piggy-bank','EPF · Provident Fund','Employee Provident Fund (EPF)','₹4,18,600','',.6)+prow('bank','SBI Fixed Deposit (5Y)','Fixed Deposit · Matures 28 Oct 2029','₹2,00,000','',.75)+prow('gem','Gold · Sovereign Gold Bond','Sovereign Gold Bond (SGB)','₹1,32,400','',.9)},
    run:function(ctx){ctx.after(3600,function(){ctx.scroll(300)})}};
   P.flow={url:'/flows/landing/',nav:'menu',dur:10500,t:S.flow.t,d:S.flow.d,
-   h:function(){return '<div class="ph-t">TMR Flows</div><div class="pgs" style="margin:2px 0 8px">Tell us what happened in your life. We\'ll set up everything linked behind it, in one form.</div><div class="pl"><span class="on">All</span><span>Debt</span><span>Income</span></div><div class="eyb" style="margin:12px 0 8px">Set up a new flow</div>'+
+   h:function(){return '<div class="ph-t">Guided Setup</div><div class="pgs" style="margin:2px 0 8px">Tell us what happened in your life. We\'ll set up everything linked behind it, in one form.</div><div class="pl"><span class="on">All</span><span>Debt</span><span>Income</span></div><div class="eyb" style="margin:12px 0 8px">Set up a new flow</div>'+
     fcard('briefcase','I started a new job','Salary, pay day and the salary cycle for your month view.',['Income source','Monthly salary'],'About 1 min',.2)+fcard('car-front','I bought a car','Cash or financed, either way it lands in your net worth.',['Vehicle','Optional loan'],'About 2 min',.35)+fcard('shield-check','I bought insurance','Policy details and the premium that renews on its own.',['Policy','Premium reminder'],'About 1 min',.5)+
     '<div class="card" style="margin-top:4px"><div class="ring2"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="bgc"/><circle cx="18" cy="18" r="15" class="fgc" style="stroke-dasharray:'+(5/11*94.2).toFixed(1)+' 94.2"/></svg><b>5/11</b></div><b class="stt2">Your setup</b><div class="pgs" style="margin-bottom:6px">The more you add, the sharper your insights.</div>'+chk('Loan',1)+chk('Salary',0)+chk('SIP / RD',0)+chk('Rent / Bill',1)+'</div>'},
    run:function(ctx){ctx.after(3600,function(){ctx.scroll(380)})}};
@@ -223,7 +224,11 @@
        ctx.move(el,mode==='phone'?0:-20,0);ctx.after(950,function(){ctx.click();setActive(k);cb&&cb()})}};
   }
   function setUrl(u){var el=document.querySelector('#tp-frame .tp-bar span');if(el)el.textContent='trackmyrupee.com'+u}
-  function setActive(k){if(k==='fab')return;if(k==='menu')k='';[].forEach.call(sim.querySelectorAll('.ni,.pn'),function(n){var on=n.getAttribute('data-k')===k;n.classList.toggle('on',on);var ic=n.querySelector('.bi'),d=mode==='phone'&&PNAV.filter(function(q){return q[0]===n.getAttribute('data-k')})[0];if(ic&&d)ic.className='bi bi-'+(on?d[2]:d[1])})}
+  function setActive(k){if(k==='fab')return;if(k==='menu')k='';[].forEach.call(sim.querySelectorAll('.ni,.pn'),function(n){var on=n.getAttribute('data-k')===k;n.classList.toggle('on',on);var ic=n.querySelector('.bi'),d=mode==='phone'&&PNAV.filter(function(q){return q[0]===n.getAttribute('data-k')})[0];if(ic&&d)ic.className='bi bi-'+(on?d[2]:d[1])});
+    /* the sidebar is cropped, so scroll it to keep the highlighted item in view (Analytics sits near the bottom) */
+    var nv=sim.querySelector('.nvs'),cur=nv&&nv.querySelector('.ni.on');
+    if(nv&&nv.scrollTo){var at=cur?(cur.offsetParent===nv?cur.offsetTop:cur.offsetTop-nv.offsetTop):0;
+      nv.scrollTo({top:cur?Math.max(0,at-nv.clientHeight*.45):0,behavior:reduce?'auto':'smooth'})}}
   function count(el){var to=+el.getAttribute('data-count'),dec=+el.getAttribute('data-dec')||0,t0=null,d=reduce?1:1300;
     function f(ts){if(!t0)t0=ts;var p=Math.min(1,(ts-t0)/d),e=1-Math.pow(1-p,3);el.textContent=(to*e).toLocaleString('en-IN',{minimumFractionDigits:dec,maximumFractionDigits:dec});if(p<1)requestAnimationFrame(f)}
     requestAnimationFrame(f)}
