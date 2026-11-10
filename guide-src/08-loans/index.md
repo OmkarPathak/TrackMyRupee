@@ -51,6 +51,14 @@ Click **Create Loan** to save. The rate you enter becomes the loan's first inter
 
 You can also try the numbers first with the free [EMI calculator](https://trackmyrupee.com/loan-emi-calculator/), which works without signing in.
 
+### Rebuild an EMI loan from a statement
+
+Select **Statement history** when adding a new loan. Enter the sanctioned principal and the original terms, then record the dates and amounts the lender disbursed. Use **Rate change** for the lender's effective annual rate, including any repo-linked reset. Use **EMI change** if the lender set a different scheduled payment.
+
+The app marks installments due through today as **Paid · assumed**. Use **Correct** to enter the actual date and principal and interest split, **Mark missed** for a skipped installment, or **Extra payment** for an off-schedule payment. The future schedule updates from the corrected balance. Choose monthly reducing-balance interest or actual days divided by 365 according to your loan terms.
+
+Statement history affects loan balances and net worth. It leaves your cash accounts and cash-flow reports untouched. The repayment instructions below apply to loans using the standard setup.
+
 ---
 
 ## 3. How Repayments Are Logged

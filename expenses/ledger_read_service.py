@@ -378,9 +378,15 @@ class LedgerReadService:
 
         Returns: {loan_id: Decimal outstanding_principal}
         """
+        from .loan_history import build_history, prefetch_statement_history
+
         loans = list(annotate_loan_principal_totals(Loan.objects.filter(id__in=loan_ids), as_of=as_of))
+        prefetch_statement_history(loans)
         outstanding = {
-            loan.id: loan.remaining_principal.quantize(Decimal('0.01')) for loan in loans
+            loan.id: (
+                build_history(loan, as_of=as_of).balance if loan.statement_history else loan.remaining_principal
+            ).quantize(Decimal('0.01'))
+            for loan in loans
         }
         if as_of is not None:
             # A loan that had not started yet owed nothing
@@ -388,7 +394,10 @@ class LedgerReadService:
                 if loan.start_date and loan.start_date > as_of:
                     outstanding[loan.id] = Decimal('0.00')
 
-        emi_loan_ids = [l.id for l in loans if l.repayment_type not in ('BULLET', 'INTEREST_ONLY')]
+        emi_loan_ids = [
+            loan.id for loan in loans
+            if not loan.statement_history and loan.repayment_type not in ('BULLET', 'INTEREST_ONLY')
+        ]
         if emi_loan_ids:
             latest: dict = {}
             installments = LoanScheduleInstallment.objects.filter(loan_id__in=emi_loan_ids, is_paid=True)
@@ -521,9 +530,15 @@ class LedgerReadService:
             loans = loans.filter(is_active=True)
         else:
             loans = loans.filter(start_date__lte=as_of)
+        from .loan_history import build_history, prefetch_statement_history
+
+        loans = list(annotate_loan_principal_totals(loans, as_of=as_of))
+        prefetch_statement_history(loans)
         total = Decimal("0.00")
-        for loan in annotate_loan_principal_totals(loans, as_of=as_of):
-            remaining = loan.remaining_principal.quantize(Decimal("0.01"))
+        for loan in loans:
+            remaining = (
+                build_history(loan, as_of=as_of).balance if loan.statement_history else loan.remaining_principal
+            ).quantize(Decimal("0.01"))
             if remaining <= Decimal("0.00"):
                 continue
             if loan.currency != base_currency:

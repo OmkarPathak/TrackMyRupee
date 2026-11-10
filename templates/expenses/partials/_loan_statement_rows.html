@@ -1,0 +1,61 @@
+{% load i18n digit_filters %}
+<div class="list-group list-group-flush">
+    {% for row in rows %}
+        <div class="list-group-item px-3 px-md-4 py-3">
+            <div class="statement-history-row">
+                <div>
+                    <div class="fw-semibold">{{ row.date|date:"d M Y" }}</div>
+                    <div class="small text-muted">
+                        {% if row.status == 'assumed' %}{% trans "Paid · assumed" %}
+                        {% elif row.status == 'recorded' %}{% trans "Paid · recorded" %}
+                        {% elif row.status == 'partial' %}{% trans "Partial · recorded" %}
+                        {% elif row.status == 'missed' %}{% trans "Missed" %}
+                        {% elif row.status == 'projected' %}{% trans "Projected" %}
+                        {% elif row.status == 'pending_recorded' %}{% trans "Paid later · see recorded payment" %}
+                        {% else %}{{ row.entry.get_kind_display }}
+                        {% endif %}
+                    </div>
+                    {% if row.entry.installment_date and row.date != row.due_date %}
+                        <div class="small text-muted">{% trans "Due" %} {{ row.due_date|date:"d M Y" }}</div>
+                    {% endif %}
+                </div>
+                <div class="text-end">
+                    {% if row.rate is not None and row.status == 'RATE' %}
+                        <strong>{{ row.rate|translate_digits }}%</strong>
+                    {% elif row.amount is not None %}
+                        <strong>{{ row.amount|money_exact:loan.currency }}</strong>
+                    {% endif %}
+                </div>
+                <div class="small text-muted">
+                    {% if row.principal is not None %}
+                        <div>{% trans "Principal" %} {{ row.principal|money_exact:loan.currency }}</div>
+                        <div>{% trans "Interest" %} {{ row.interest|money_exact:loan.currency }}</div>
+                    {% endif %}
+                </div>
+                <div class="text-end small">
+                    <div class="text-muted">{% trans "Principal balance" %}</div>
+                    <strong>{{ row.balance|money_exact:loan.currency }}</strong>
+                    {% if row.unpaid_interest %}
+                        <div class="text-warning-emphasis">{% trans "Unpaid interest" %} {{ row.unpaid_interest|money_exact:loan.currency }}</div>
+                    {% endif %}
+                </div>
+                {% if editable %}
+                    <div class="statement-history-actions small d-flex flex-wrap justify-content-end gap-2">
+                        {% if row.entry %}
+                            <a class="text-primary" href="{% url 'loan-history-entry-edit' loan.uuid row.entry.uuid %}">{% trans "Edit" %}</a>
+                        {% elif row.status == 'assumed' %}
+                            <a class="text-primary" href="{% url 'loan-history-entry' loan.uuid %}?kind=PAY&amp;due={{ row.due_date|date:'Y-m-d' }}">{% trans "Correct" %}</a>
+                            <a class="text-primary" href="{% url 'loan-history-entry' loan.uuid %}?kind=MISS&amp;due={{ row.due_date|date:'Y-m-d' }}">{% trans "Mark missed" %}</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            {% if row.entry.note or row.entry.posting_date %}
+                <div class="small text-muted mt-2">
+                    {% if row.entry.posting_date %}{% trans "Posted" %} {{ row.entry.posting_date|date:"d M Y" }}{% endif %}
+                    {% if row.entry.note %}<span class="text-break">{{ row.entry.note }}</span>{% endif %}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>

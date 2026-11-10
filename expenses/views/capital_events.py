@@ -166,7 +166,7 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
         return render(request, self.template_name, {
             'form': form,
             'from_expense_id': expense_id,
-            'user_loans': Loan.objects.filter(user=request.user, is_active=True),
+            'user_loans': Loan.objects.filter(user=request.user, is_active=True, statement_history=False),
         })
 
     def post(self, request):
@@ -194,13 +194,13 @@ class CapitalEventCreateView(LoginRequiredMixin, View):
                 return render(request, self.template_name, {
                     'form': form,
                     'from_expense_id': from_expense_id,
-                    'user_loans': Loan.objects.filter(user=request.user, is_active=True),
+                    'user_loans': Loan.objects.filter(user=request.user, is_active=True, statement_history=False),
                 })
 
         return render(request, self.template_name, {
             'form': form,
             'from_expense_id': from_expense_id,
-            'user_loans': Loan.objects.filter(user=request.user, is_active=True),
+            'user_loans': Loan.objects.filter(user=request.user, is_active=True, statement_history=False),
         })
 
 
@@ -229,7 +229,7 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
             'form': form,
             'event': event,
             **_event_refund_context(event),
-            'user_loans': Loan.objects.filter(user=request.user, is_active=True),
+            'user_loans': Loan.objects.filter(user=request.user, is_active=True, statement_history=False),
             'next_url': next_url,
         })
 
@@ -251,7 +251,7 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
                     'form': form,
                     'event': event,
                     **_event_refund_context(event),
-                    'user_loans': Loan.objects.filter(user=request.user, is_active=True),
+                    'user_loans': Loan.objects.filter(user=request.user, is_active=True, statement_history=False),
                     'next_url': next_url,
                 })
 
@@ -260,7 +260,7 @@ class CapitalEventUpdateView(LoginRequiredMixin, View):
             'form': form,
             'event': event,
             **_event_refund_context(event),
-            'user_loans': Loan.objects.filter(user=request.user, is_active=True),
+            'user_loans': Loan.objects.filter(user=request.user, is_active=True, statement_history=False),
             'next_url': next_url,
         })
 
@@ -327,5 +327,5 @@ def capital_event_loans_ajax(request):
     """AJAX endpoint: return the user's active loans as JSON for dynamic loan dropdown."""
     if not request.user.is_authenticated:
         return JsonResponse({'loans': []})
-    loans = Loan.objects.filter(user=request.user, is_active=True).values('id', 'name', 'loan_type')
+    loans = Loan.objects.filter(user=request.user, is_active=True, statement_history=False).values('id', 'name', 'loan_type')
     return JsonResponse({'loans': list(loans)})

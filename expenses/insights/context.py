@@ -335,15 +335,26 @@ class InsightContext:
         return self._get('loans', self._load_loans)
 
     def _load_loans(self) -> list:
+        from ..loan_history import build_history, prefetch_statement_history
         from ..models import Loan, annotate_loan_principal_totals
 
         loans = list(annotate_loan_principal_totals(
             Loan.objects.filter(user=self.user, is_active=True).order_by('id')).prefetch_related('interest_rates'))
+        prefetch_statement_history(loans)
+        active = []
         for loan in loans:
-            remaining = (Decimal(str(loan.initial_principal)) - Decimal(str(loan.paid_principal))
-                         - Decimal(str(loan.capital_prepaid)) - Decimal(str(loan.opening_paid_principal or 0)))
-            loan._cached_summary = {'remaining_principal': float(max(remaining, ZERO))}
-        return loans
+            if loan.statement_history:
+                statement = build_history(loan, as_of=self.today)
+                if not statement.is_active:
+                    continue
+                remaining = statement.balance
+                loan.paid_principal = statement.principal_paid
+                loan.drawn_principal = statement.drawn
+            else:
+                remaining = loan.remaining_principal
+            loan._cached_summary = {'remaining_principal': float(remaining)}
+            active.append(loan)
+        return active
 
     @property
     def financial_year(self) -> tuple[date, date]:

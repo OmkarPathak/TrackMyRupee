@@ -135,11 +135,11 @@ def milestone_ahead(ctx) -> list[Insight]:
     fmt = ctx.fmt
     for loan in ctx.loans:
         own, link, remaining = Fmt(loan.currency), _loan_link(loan), _remaining(loan)
-        upcoming = sorted((r for r in loan.interest_rates.all()
+        upcoming = sorted((r for r in LoanService.rate_history(loan)
                            if ctx.today < r.effective_date <= ctx.today + timedelta(days=RATE_CHANGE_DAYS)),
                           key=lambda r: r.effective_date)
         left = _months_left(loan, ctx.today)
-        initial = D(str(loan.initial_principal))
+        initial = D(str(getattr(loan, 'drawn_principal', loan.initial_principal)))
         repaid = (initial - remaining) / initial * 100 if initial > 0 else D(0)
         if upcoming:
             change = upcoming[0]

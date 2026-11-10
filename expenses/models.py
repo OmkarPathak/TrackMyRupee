@@ -2111,8 +2111,12 @@ class UserProfile(models.Model):
         limit = get_limit(self.active_tier, 'loans')
         if limit == -1:
             return True
-        # Only loans still being repaid use up the quota: closing a loan frees its slot.
-        return self.user.loans.filter(is_active=True).count() < limit
+        # Closing a loan frees its slot. Statement loan status advances as installments fall due.
+        from .loan_history import build_history, prefetch_statement_history
+
+        loans = list(self.user.loans.filter(is_active=True))
+        prefetch_statement_history(loans)
+        return sum(not loan.statement_history or build_history(loan).is_active for loan in loans) < limit
 
     def is_recurring_locked(self, obj):
         """Check if a specific recurring transaction is locked based on tier limits."""
@@ -2654,6 +2658,24 @@ class Loan(models.Model):
     duration_months = models.IntegerField(verbose_name=_('Duration (Months)'))
     start_date = models.DateField(default=timezone.now, verbose_name=_('Start Date'))
     currency = models.CharField(max_length=5, choices=CURRENCY_CHOICES, default='₹', verbose_name=_('Currency'))
+    class InterestMethod(models.TextChoices):
+        MONTHLY = 'MONTHLY', _('Monthly reducing balance')
+        DAILY = 'DAILY', _('Actual days / 365')
+
+    class RateReset(models.TextChoices):
+        RECALCULATE = 'RECALCULATE', _('Recalculate EMI over remaining tenure')
+        KEEP_EMI = 'KEEP_EMI', _('Keep EMI and adjust payoff date')
+
+    statement_history = models.BooleanField(default=False)
+    first_emi_date = models.DateField(null=True, blank=True, verbose_name=_('First EMI date'))
+    interest_method = models.CharField(
+        max_length=7, choices=InterestMethod.choices, default=InterestMethod.MONTHLY,
+        verbose_name=_('Interest calculation'),
+    )
+    rate_reset = models.CharField(
+        max_length=11, choices=RateReset.choices, default=RateReset.RECALCULATE,
+        verbose_name=_('When the lender changes the rate'),
+    )
     is_active = models.BooleanField(default=True, verbose_name=_('Is Active'))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -2671,6 +2693,11 @@ class Loan(models.Model):
         initial_principal - sum(repayments.principal_portion) - sum(capital_prepaid) - opening_paid_principal
         """
         
+        if self.statement_history:
+            from .loan_history import build_history
+
+            return build_history(self).balance
+
         principal_paid = getattr(self, 'paid_principal', None)
         if principal_paid is None:
             principal_paid = self.repayments.aggregate(
@@ -2705,6 +2732,50 @@ class LoanInterestRate(models.Model):
 
     def __str__(self):
         return f"{self.loan.name} - {self.interest_rate}% from {self.effective_date}"
+
+
+class LoanHistoryEntry(models.Model):
+    """A lender statement entry, independent of the app's cash ledger."""
+
+    class Kind(models.TextChoices):
+        DISBURSEMENT = 'DRAW', _('Disbursement')
+        RATE = 'RATE', _('Interest rate change')
+        EMI = 'EMI', _('Scheduled EMI change')
+        PAYMENT = 'PAY', _('Recorded repayment')
+        MISSED = 'MISS', _('Missed installment')
+
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='history_entries')
+    kind = models.CharField(max_length=4, choices=Kind.choices)
+    date = models.DateField(verbose_name=_('Effective date'))
+    installment_date = models.DateField(null=True, blank=True, verbose_name=_('Installment due date'))
+    posting_date = models.DateField(null=True, blank=True, verbose_name=_('Lender posting date'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    principal = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    interest = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    note = models.CharField(max_length=255, blank=True)
+
+    @property
+    def effective_date(self):
+        return self.date
+
+    class Meta:
+        ordering = ['date', 'pk']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['loan', 'kind', 'date'],
+                condition=models.Q(kind__in=['RATE', 'EMI']),
+                name='unique_loan_history_term_date',
+            ),
+            models.UniqueConstraint(
+                fields=['loan', 'installment_date'],
+                condition=models.Q(installment_date__isnull=False),
+                name='unique_loan_history_installment',
+            ),
+        ]
+        indexes = [models.Index(fields=['loan', 'date'], name='loan_history_loan_date_idx')]
+
 
 def annotate_loan_principal_totals(queryset, as_of=None):
     """Annotate a Loan queryset with `paid_principal` and `capital_prepaid`.

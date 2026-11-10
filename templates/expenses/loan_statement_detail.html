@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters %}
+
+{% block content %}
+<div class="container-xl py-3">
+    <a class="small text-decoration-none" href="{% url 'loan-list' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Loans" %}</a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 my-3">
+        <div>
+            <div class="small text-muted">{% trans "Statement history" %}</div>
+            <h1 class="h3 fw-bold mb-1">{{ loan.name }}</h1>
+            <p class="small text-muted mb-0">{{ loan.get_loan_type_display }} · {{ loan.start_date|date:"d M Y" }} · {% blocktrans count months=loan.duration_months %}{{ months }} month{% plural %}{{ months }} months{% endblocktrans %}</p>
+        </div>
+        <a class="btn btn-outline-secondary" href="{% url 'loan-edit' loan.uuid %}"><i class="bi bi-pencil me-1"></i>{% trans "Edit Loan" %}</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 p-3">
+                <span class="small text-muted">{% trans "Remaining principal" %}</span>
+                <strong class="fs-5">{{ statement.balance|money_exact:loan.currency }}</strong>
+                {% if statement.unpaid_interest %}
+                    <span class="small text-muted">{% trans "Unpaid or accrued interest" %} {{ statement.unpaid_interest|money_exact:loan.currency }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 p-3">
+                <span class="small text-muted">{% trans "Total disbursed" %}</span>
+                <strong class="fs-5">{{ statement.drawn|money_exact:loan.currency }}</strong>
+                <span class="small text-muted">{% trans "Sanctioned principal" %} {{ loan.initial_principal|money_exact:loan.currency }}</span>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 p-3">
+                <span class="small text-muted">{% trans "Interest paid including estimates" %}</span>
+                <strong class="fs-5">{{ statement.interest_paid|money_exact:loan.currency }}</strong>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 p-3">
+                <span class="small text-muted">{% trans "Current lender rate" %}</span>
+                <strong class="fs-5">{{ current_rate|translate_digits }}%</strong>
+                <span class="small text-muted">{{ loan.get_interest_method_display }}</span>
+            </div>
+        </div>
+    </div>
+
+    <section id="statement-history" aria-labelledby="statement-history-title">
+        {% include 'expenses/partials/_loan_statement_history.html' %}
+    </section>
+    <section aria-labelledby="statement-projection-title">
+        {% include 'expenses/partials/_loan_statement_projection.html' %}
+    </section>
+</div>
+<style>
+    .statement-history-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: .5rem .75rem;
+        align-items: center;
+    }
+    .statement-history-actions { grid-column: 1 / -1; }
+    @media (min-width: 992px) {
+        .statement-history-row {
+            grid-template-columns: 1.3fr .85fr 1fr 1.05fr 1fr;
+            gap: .75rem 1rem;
+        }
+        .statement-history-actions { grid-column: auto; }
+    }
+</style>
+{% endblock %}

@@ -429,7 +429,11 @@ def get_current_loan(account: Account, ledger_balance: Decimal | None = None, to
     loan = account.linked_loan
     repayment_type = getattr(loan, 'repayment_type', 'EMI')
 
-    if repayment_type in ('BULLET', 'INTEREST_ONLY'):
+    if loan.statement_history:
+        from .loan_history import build_history
+
+        outstanding = build_history(loan, as_of=today).balance
+    elif repayment_type in ('BULLET', 'INTEREST_ONLY'):
         outstanding = loan.remaining_principal
     else:
         # EMI amortizing schedule logic

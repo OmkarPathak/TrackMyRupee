@@ -207,19 +207,21 @@ class LoanService:
         Standard EMI formula: E = P * r * (1 + r)^n / ((1 + r)^n - 1)
         r = monthly interest rate (annual_rate / 12 / 100)
         """
-        principal_dec = Decimal(str(principal or 0))
-        annual_rate_dec = Decimal(str(annual_rate or 0))
+        return float(LoanService.decimal_emi(principal, annual_rate, months))
 
-        if principal_dec <= 0 or months <= 0:
-            return 0.0
-        if annual_rate_dec == 0:
-            return float((principal_dec / Decimal(months)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+    @staticmethod
+    def decimal_emi(principal, annual_rate, months):
+        principal = Decimal(str(principal or 0))
+        annual_rate = Decimal(str(annual_rate or 0))
+        if principal <= 0 or months <= 0:
+            return Decimal('0.00')
+        if annual_rate == 0:
+            return (principal / Decimal(months)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-        monthly_rate = annual_rate_dec / Decimal('12') / Decimal('100')
-        n = int(months)
-        one_plus_r_pow_n = (Decimal('1') + monthly_rate) ** n
-        emi = principal_dec * monthly_rate * one_plus_r_pow_n / (one_plus_r_pow_n - Decimal('1'))
-        return float(emi.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
+        monthly_rate = annual_rate / Decimal('12') / Decimal('100')
+        factor = (1 + monthly_rate) ** int(months)
+        amount = principal * monthly_rate * factor / (factor - 1)
+        return amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
     @staticmethod
     def calculate_repayment(principal, annual_rate, months, repayment_type='EMI'):
@@ -281,9 +283,19 @@ class LoanService:
         return Decimal(str(chosen))
 
     @staticmethod
+    def rate_history(loan):
+        rates = list(loan.interest_rates.all())
+        if getattr(loan, 'statement_history', False):
+            from .models import LoanHistoryEntry
+
+            rates.extend(entry for entry in loan.history_entries.all() if entry.kind == LoanHistoryEntry.Kind.RATE)
+        return rates
+
+    @staticmethod
     def current_rate(loan, on_date=None):
+        """Return the lender's rate in force on the requested date (today by default)."""
         on_date = on_date or timezone.localdate()
-        return LoanService.rate_on(loan.interest_rates.all(), on_date)
+        return LoanService.rate_on(LoanService.rate_history(loan), on_date)
 
     @staticmethod
     def base_rate(user, currency):
@@ -344,6 +356,21 @@ class LoanService:
         if hasattr(loan, '_cached_summary'):
             return loan._cached_summary
 
+        if getattr(loan, 'statement_history', False):
+            from .loan_history import build_history
+
+            statement = build_history(loan)
+            summary = {
+                'principal_paid': float(statement.principal_paid),
+                'capital_prepaid': 0.0,
+                'opening_paid_principal': 0.0,
+                'interest_paid': float(statement.interest_paid),
+                'total_paid': float(statement.principal_paid + statement.interest_paid),
+                'remaining_principal': float(statement.balance),
+            }
+            loan._cached_summary = summary
+            return summary
+
         repayments = loan.repayments.aggregate(
             total_principal=Sum('principal_portion'),
             total_interest=Sum('interest_portion'),
@@ -391,6 +418,18 @@ class LoanService:
         Generates the planned amortization schedule from today until the end of the loan,
         taking into account current remaining principal and latest interest rate.
         """
+        if getattr(loan, 'statement_history', False):
+            from .loan_history import build_history
+
+            return [
+                {
+                    'month': row.date.strftime('%b %Y'), 'date': row.date,
+                    'emi': float(row.amount), 'principal': float(row.principal),
+                    'interest': float(row.interest), 'balance': float(row.balance),
+                }
+                for row in build_history(loan, project=True).rows if row.status == 'projected'
+            ]
+
         summary = LoanService.get_loan_summary(loan)
         remaining_principal = Decimal(str(summary['remaining_principal']))
 
@@ -462,6 +501,9 @@ class LoanService:
         Calculates interest saved and months reduced by paying one extra EMI per year
         applied entirely toward principal reduction.
         """
+        if getattr(loan, 'statement_history', False):
+            return None
+
         summary = LoanService.get_loan_summary(loan)
         remaining_principal = Decimal(str(summary['remaining_principal']))
 

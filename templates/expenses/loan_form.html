@@ -29,6 +29,15 @@
 
                 <form method="post" onsubmit="window.showLoader()">
                     {% csrf_token %}
+                    {{ form.statement_key }}
+                    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+                    {% if not form.instance.pk %}
+                        <div class="form-check mb-3">
+                            {{ form.statement_history }}
+                            <label class="form-check-label fw-semibold" for="{{ form.statement_history.id_for_label }}">{{ form.statement_history.label }}</label>
+                            <div class="form-text">{{ form.statement_history.help_text }}</div>
+                        </div>
+                    {% endif %}
                     
                     <div class="mb-3">
                         <label class="form-label fw-bold small text-uppercase" for="{{ form.name.id_for_label }}">{% trans "Loan Name" %}</label>
@@ -51,7 +60,7 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold small text-uppercase" for="{{ form.initial_principal.id_for_label }}">{% trans "Principal Amount" %}</label>
+                            <label class="form-label fw-bold small text-uppercase" for="{{ form.initial_principal.id_for_label }}" id="loan-principal-label" data-standard="{% trans 'Principal Amount' %}" data-statement="{% trans 'Sanctioned Principal' %}">{% if form.instance.statement_history or form.statement_history.value %}{% trans "Sanctioned Principal" %}{% else %}{% trans "Principal Amount" %}{% endif %}</label>
                             {{ form.initial_principal }}
                             {% if form.initial_principal.errors %}<div class="text-danger small">{{ form.initial_principal.errors }}</div>{% endif %}
                         </div>
@@ -75,7 +84,37 @@
                         </div>
                     </div>
 
-                    <div class="emi-preview card border-0 rounded-3 mb-3">
+                    {% if not form.instance.pk or form.instance.statement_history %}
+                        <fieldset id="statement-loan-options" class="border rounded-3 p-3 mb-3"{% if not form.instance.statement_history and not form.statement_history.value %} hidden{% endif %}>
+                            <legend class="float-none w-auto px-2 fs-6 fw-semibold">{% trans "Statement history settings" %}</legend>
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ form.first_emi_date.id_for_label }}">{{ form.first_emi_date.label }}</label>
+                                {{ form.first_emi_date }}
+                                <div class="form-text">{{ form.first_emi_date.help_text }}</div>
+                                {{ form.first_emi_date.errors }}
+                            </div>
+                            {% if not form.instance.pk %}
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ form.scheduled_emi.id_for_label }}">{{ form.scheduled_emi.label }}</label>
+                                    {{ form.scheduled_emi }}
+                                    <div class="form-text">{{ form.scheduled_emi.help_text }}</div>
+                                    {{ form.scheduled_emi.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label class="form-label" for="{{ form.interest_method.id_for_label }}">{{ form.interest_method.label }}</label>
+                                {{ form.interest_method }}
+                                {{ form.interest_method.errors }}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.rate_reset.id_for_label }}">{{ form.rate_reset.label }}</label>
+                                {{ form.rate_reset }}
+                                {{ form.rate_reset.errors }}
+                            </div>
+                        </fieldset>
+                    {% endif %}
+
+                    <div class="emi-preview card border-0 rounded-3 mb-3" id="loan-emi-preview"{% if form.instance.statement_history %} style="display: none"{% endif %}>
                         <div class="card-body py-3 px-3">
                             <p class="fw-bold small text-uppercase text-muted mb-1">{% trans "Estimated Monthly EMI" %}</p>
                             <h5 class="fw-bold mb-1" id="emi-preview-value">--</h5>
@@ -112,6 +151,20 @@
 
 <script>
 (function () {
+    const statementToggle = document.getElementById('id_statement_history');
+    const statementOptions = document.getElementById('statement-loan-options');
+    const emiPreview = document.getElementById('loan-emi-preview');
+    const principalLabel = document.getElementById('loan-principal-label');
+    if (statementToggle && statementOptions && emiPreview && principalLabel) {
+        const updateMode = () => {
+            statementOptions.hidden = !statementToggle.checked;
+            statementOptions.disabled = !statementToggle.checked;
+            emiPreview.classList.toggle('d-none', statementToggle.checked);
+            principalLabel.textContent = statementToggle.checked ? principalLabel.dataset.statement : principalLabel.dataset.standard;
+        };
+        statementToggle.addEventListener('change', updateMode);
+        updateMode();
+    }
     const principalInput = document.getElementById('id_initial_principal');
     const rateInput = document.getElementById('id_interest_rate');
     const durationInput = document.getElementById('id_duration_months');

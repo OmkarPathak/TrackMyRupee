@@ -28,6 +28,7 @@ from .models import (
     Holding,
     Income,
     Loan,
+    LoanHistoryEntry,
     LoanInterestRate,
     LoanRepayment,
     PhysicalAsset,
@@ -534,7 +535,7 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             self.fields['account'].queryset = accounts_qs
             self.fields['from_account'].queryset = accounts_qs
             self.fields['to_account'].queryset = accounts_qs
-            self.fields['loan'].queryset = Loan.objects.filter(user=user, is_active=True).order_by('-created_at')
+            self.fields['loan'].queryset = Loan.objects.filter(user=user, is_active=True, statement_history=False).order_by('-created_at')
             self.fields['physical_asset'].queryset = (
                 PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='INSURANCE')
                 .exclude(linked_accounts__is_active=False)
@@ -1762,7 +1763,7 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
             'loan_type': forms.Select(attrs={'class': 'form-select'}),
             'initial_principal': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'duration_months': forms.NumberInput(attrs={'class': 'form-control'}),
-            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
             'currency': forms.Select(attrs={'class': 'form-select'}),
         }
 
@@ -1770,6 +1771,60 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
         max_digits=5, decimal_places=2, label=_('Initial Interest Rate (%)'),
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
+
+    statement_history = forms.BooleanField(
+        required=False, label=_('Statement history'),
+        help_text=_('Calculate past EMIs and track corrections without changing cash accounts.'),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+    )
+    first_emi_date = forms.DateField(
+        required=False, label=_('First EMI date'),
+        help_text=_('Defaults to one month after the loan start date.'),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
+    )
+    scheduled_emi = forms.DecimalField(
+        required=False, min_value=Decimal('0.01'), max_digits=15, decimal_places=2,
+        label=_('Initial scheduled EMI'),
+        help_text=_('Leave blank to calculate the EMI.'),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
+    )
+    interest_method = forms.ChoiceField(
+        required=False, choices=Loan.InterestMethod.choices, initial=Loan.InterestMethod.MONTHLY,
+        label=_('Interest calculation'), widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    rate_reset = forms.ChoiceField(
+        required=False, choices=Loan.RateReset.choices, initial=Loan.RateReset.RECALCULATE,
+        label=_('When the lender changes the rate'), widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    statement_key = forms.UUIDField(required=False, widget=forms.HiddenInput)
+
+    def clean(self):
+        cleaned = super().clean()
+        is_statement = self.instance.statement_history if self.instance.pk else cleaned.get('statement_history')
+        if not is_statement:
+            return cleaned
+
+        if not self.instance.pk and not cleaned.get('statement_key'):
+            self.add_error(None, _('Reload this page before creating a statement-history loan.'))
+        first_emi_date = cleaned.get('first_emi_date')
+        start_date = cleaned.get('start_date')
+        if first_emi_date and start_date and first_emi_date < start_date:
+            self.add_error('first_emi_date', _('The first EMI date cannot precede the loan start.'))
+        if max((day.year for day in (start_date, first_emi_date) if day), default=0) > 9899:
+            self.add_error('first_emi_date', _('Enter a date within the supported loan term.'))
+        return cleaned
+
+    def save(self, commit=True):
+        loan = super().save(commit=False)
+        if not loan.pk:
+            loan.statement_history = bool(self.cleaned_data['statement_history'])
+        if loan.statement_history:
+            loan.first_emi_date = self.cleaned_data['first_emi_date']
+            loan.interest_method = self.cleaned_data['interest_method'] or Loan.InterestMethod.MONTHLY
+            loan.rate_reset = self.cleaned_data['rate_reset'] or Loan.RateReset.RECALCULATE
+        if commit:
+            loan.save()
+        return loan
 
     def clean_initial_principal(self):
         value = self.cleaned_data.get('initial_principal')
@@ -1796,10 +1851,111 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
         if user:
             self.fields['currency'].initial = user.profile.currency
         
+        self.fields['statement_key'].initial = uuid.uuid4
         if self.instance.pk:
-            latest_rate = self.instance.interest_rates.order_by('-effective_date').first()
-            if latest_rate:
-                self.fields['interest_rate'].initial = latest_rate.interest_rate
+            if self.instance.statement_history:
+                for name in ('first_emi_date', 'interest_method', 'rate_reset'):
+                    self.fields[name].initial = getattr(self.instance, name)
+                rate = self.instance.interest_rates.filter(effective_date=self.instance.start_date).first()
+            else:
+                rate = self.instance.interest_rates.order_by('-effective_date').first()
+            if rate:
+                self.fields['interest_rate'].initial = rate.interest_rate
+
+
+class LoanHistoryEntryForm(forms.ModelForm):
+    entry_key = forms.UUIDField(widget=forms.HiddenInput)
+    kind = forms.ChoiceField(choices=LoanHistoryEntry.Kind.choices, widget=forms.HiddenInput)
+
+    class Meta:
+        model = LoanHistoryEntry
+        fields = (
+            'kind', 'date', 'installment_date', 'posting_date',
+            'amount', 'interest_rate', 'principal', 'interest', 'note',
+        )
+        widgets = {
+            name: forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d')
+            for name in ('date', 'installment_date', 'posting_date')
+        } | {
+            name: MoneyInput(attrs={'class': 'form-control', 'step': '0.01'})
+            for name in ('amount', 'principal', 'interest')
+        } | {
+            'interest_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'note': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, loan, kind, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.loan = loan
+        self.kind = kind
+        self.instance.loan = loan
+        self.fields['entry_key'].initial = self.instance.uuid
+        self.fields['kind'].initial = kind
+        self.fields['date'].initial = timezone.localdate
+        self.fields['installment_date'].help_text = _(
+            'Link this payment to an installment to replace its assumed payment. '
+            'Leave blank to record an extra payment.'
+        )
+        kinds = LoanHistoryEntry.Kind
+        used_fields = {
+            kinds.DISBURSEMENT: ('amount', 'posting_date'),
+            kinds.RATE: ('interest_rate',),
+            kinds.EMI: ('amount',),
+            kinds.PAYMENT: ('amount', 'principal', 'interest', 'posting_date', 'installment_date'),
+            kinds.MISSED: (),
+        }
+        if kind == kinds.MISSED:
+            self.fields['date'].label = _('Installment due date')
+        for name in ('amount', 'interest_rate', 'principal', 'interest', 'posting_date', 'installment_date'):
+            if name not in used_fields[kind]:
+                del self.fields[name]
+            elif name not in ('posting_date', 'installment_date'):
+                self.fields[name].required = True
+
+    def clean(self):
+        from .loan_history import is_due_date
+
+        cleaned = super().clean()
+        kind = cleaned.get('kind')
+        day = cleaned.get('date')
+        installment = cleaned.get('installment_date')
+        kinds = LoanHistoryEntry.Kind
+        if kind != self.kind:
+            self.add_error('kind', _('Invalid loan history entry type.'))
+        if day and day < self.loan.start_date:
+            self.add_error('date', _('The effective date cannot precede the loan start.'))
+        today = timezone.localdate()
+        if day and kind in (kinds.DISBURSEMENT, kinds.PAYMENT, kinds.MISSED) and day > today:
+            self.add_error('date', _('Enter a date on or before today.'))
+        if kind == kinds.MISSED:
+            installment = day
+        if installment and (installment > today or not is_due_date(self.loan, installment)):
+            field = 'date' if kind == kinds.MISSED else 'installment_date'
+            self.add_error(field, _('Choose a valid installment due on or before today.'))
+        amount = cleaned.get('amount')
+        if amount is not None and amount <= 0:
+            self.add_error('amount', _('Amount must be greater than zero.'))
+        principal, interest = cleaned.get('principal'), cleaned.get('interest')
+        if principal is not None and interest is not None and amount is not None:
+            if min(principal, interest) < 0 or principal + interest != amount:
+                self.add_error(None, _('The nonnegative principal and interest must add up to the payment.'))
+        rate = cleaned.get('interest_rate')
+        if rate is not None and not 0 <= rate <= 100:
+            self.add_error('interest_rate', _('Interest rate must be between 0 and 100 percent.'))
+        if kind == kinds.RATE and day == self.loan.start_date:
+            self.add_error('date', _('Change the initial rate in Edit Loan.'))
+        return cleaned
+
+    def save(self, commit=True):
+        entry = super().save(commit=False)
+        if not entry.pk:
+            entry.uuid = self.cleaned_data['entry_key']
+        if entry.kind == LoanHistoryEntry.Kind.MISSED:
+            entry.installment_date = entry.date
+        if commit:
+            entry.save()
+        return entry
+
 
 class LoanInterestRateForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
@@ -2034,7 +2190,9 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
                     unlocked_ids.append(self.instance.account_id)
                 all_accounts = all_accounts.filter(id__in=unlocked_ids)
             self.fields['account'].queryset = all_accounts.order_by('name')
-            self.fields['linked_loan'].queryset = Loan.objects.filter(user=user, is_active=True).order_by('name')
+            self.fields['linked_loan'].queryset = Loan.objects.filter(
+                user=user, is_active=True, statement_history=False,
+            ).order_by('name')
             self.fields['linked_loan'].required = False
             self.fields['linked_loan'].empty_label = _('— No linked loan —')
 

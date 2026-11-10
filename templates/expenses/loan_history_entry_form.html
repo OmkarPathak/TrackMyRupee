@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <a class="small text-decoration-none" href="{% url 'loan-detail' loan.uuid %}#statement-history"><i class="bi bi-arrow-left me-1"></i>{{ loan.name }}</a>
+                <h1 class="h4 fw-bold mt-3">{{ entry_type }}</h1>
+                <p class="small text-muted">{% trans "This entry updates the loan history without changing cash-account balances." %}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form.hidden_fields %}{{ field }}{{ field.errors }}{% endfor %}
+                    {{ form.non_field_errors }}
+                    {% for field in form.visible_fields %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                            {{ field.errors }}
+                        </div>
+                    {% endfor %}
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-action-primary" type="submit">{% trans "Save entry" %}</button>
+                    </div>
+                </form>
+                {% if entry %}
+                    <details class="border-top mt-3 pt-3">
+                        <summary class="text-danger small">{% trans "Delete entry" %}</summary>
+                        <form method="post" class="mt-2">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-danger" type="submit" name="action" value="delete">{% trans "Confirm deletion" %}</button>
+                        </form>
+                    </details>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

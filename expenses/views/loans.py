@@ -1,22 +1,30 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
-from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
+from django.utils import timezone
+from django.utils.dateparse import parse_date
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
-from ..forms import LoanForm, LoanInterestRateForm, LoanRepaymentForm
+from ..forms import LoanForm, LoanHistoryEntryForm, LoanInterestRateForm, LoanRepaymentForm
+from ..loan_history import build_history, is_due_date, prefetch_statement_history
 from ..models import (
     CapitalEvent,
     Loan,
+    LoanHistoryEntry,
     LoanInterestRate,
     LoanRepayment,
     RecurringTransaction,
+    UserProfile,
 )
 from ..posthog_utils import ph_capture
 from ..services import LoanService
@@ -40,14 +48,8 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
     context_object_name = 'loans'
 
     def get_queryset(self):
-        status_filter = self.request.GET.get('status', 'active').lower()
         queryset = Loan.objects.filter(user=self.request.user).prefetch_related('repayments', 'interest_rates')
-        if status_filter == 'inactive':
-            return queryset.filter(is_active=False).order_by('-start_date')
-        elif status_filter == 'all':
-            return queryset.order_by('-start_date')
-        else:
-            return queryset.filter(is_active=True).order_by('-start_date')
+        return queryset.order_by('-start_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -55,7 +57,6 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
         if status_filter not in ('active', 'inactive', 'all'):
             status_filter = 'active'
 
-        from decimal import Decimal
         from django.db.models import Sum
         from ..models import CapitalEvent, LoanRepayment
 
@@ -82,17 +83,28 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
             for r in capital_prepayment_totals
         }
 
-        all_loans = list(Loan.objects.filter(user=self.request.user))
+        all_loans = list(self.object_list)
+        prefetch_statement_history(all_loans)
+        statement_results = {
+            loan.pk: build_history(loan) for loan in all_loans if loan.statement_history
+        }
         for loan in all_loans:
             r = repayment_map.get(loan.id, {})
             loan.paid_principal = r.get('total_principal') or Decimal('0.00')
             loan.capital_prepaid = capital_prepayment_map.get(loan.id) or Decimal('0.00')
+            if loan.statement_history:
+                loan.is_active = statement_results[loan.pk].is_active
 
         active_count = sum(1 for l in all_loans if l.is_active)
         inactive_count = sum(1 for l in all_loans if not l.is_active)
         all_count = len(all_loans)
 
-        filtered_loans = self.object_list
+        filtered_loans = [
+            loan for loan in all_loans
+            if status_filter == 'all' or loan.is_active == (status_filter == 'active')
+        ]
+        context['loans'] = filtered_loans
+        context['object_list'] = filtered_loans
 
         loan_summaries = []
         for loan in filtered_loans:
@@ -104,11 +116,17 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
 
             loan.paid_principal = principal_paid
             loan.capital_prepaid = capital_prepaid
-            remaining_principal = loan.remaining_principal
+            statement = statement_results.get(loan.pk)
+            if statement is not None:
+                principal_paid, interest_paid = statement.principal_paid, statement.interest_paid
+                total_paid = principal_paid + interest_paid
+                remaining_principal = statement.balance
+                initial = statement.drawn
+            else:
+                remaining_principal = loan.remaining_principal
+                initial = loan.initial_principal
             opening_paid = Decimal(str(loan.opening_paid_principal or 0))
-
-            initial = loan.initial_principal
-            progress = min((Decimal('1') - remaining_principal / initial) * Decimal('100'), Decimal('100')) if initial > 0 else Decimal('100')
+            progress = min((Decimal('1') - remaining_principal / initial) * Decimal('100'), Decimal('100')) if initial > 0 else Decimal('0' if statement is not None else '100')
             summary = {
                 'loan': loan,
                 'principal_paid': float(principal_paid),
@@ -118,6 +136,7 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
                 'total_paid': float(total_paid),
                 'remaining_principal': float(remaining_principal),
                 'progress': float(progress),
+                'tracked_principal': initial,
             }
             loan_summaries.append(summary)
 
@@ -131,7 +150,7 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
 
         # Total remaining debt across all active loans for top summary card
         total_debt = float(sum(
-            to_base(l, l.remaining_principal)
+            to_base(l, statement_results[l.pk].balance if l.statement_history else l.remaining_principal)
             for l in all_loans if l.is_active
         ))
 
@@ -181,22 +200,49 @@ class LoanCreateView(LoginRequiredMixin, LoanFeatureGateMixin, CreateView):
     success_url = reverse_lazy('loan-list')
 
     def form_valid(self, form):
+        statement_key = form.cleaned_data['statement_key'] if form.cleaned_data['statement_history'] else None
+        try:
+            with transaction.atomic():
+                return self.create_loan(form, statement_key)
+        except IntegrityError:
+            if not statement_key:
+                raise
+            existing = Loan.objects.filter(user=self.request.user, uuid=statement_key, statement_history=True).first()
+            if existing:
+                return statement_history_redirect(existing)
+            form.add_error(None, _("This form could not be saved. Reload the page and try again."))
+            return self.form_invalid(form)
+
+    def create_loan(self, form, statement_key):
+        if statement_key:
+            # Serialize plan-limit checks and retries from this user's Add Loan forms.
+            UserProfile.objects.select_for_update().get(user=self.request.user)
+            existing = Loan.objects.filter(user=self.request.user, uuid=statement_key, statement_history=True).first()
+            if existing:
+                return statement_history_redirect(existing)
         if not self.request.user.profile.can_add_loan():
             limit = get_limit(self.request.user.profile.active_tier, 'loans')
             messages.error(self.request, _("You have reached your current plan limit of %(limit)s tracked loans. Please upgrade to add more.") % {'limit': limit})
             return redirect('pricing')
 
-        with transaction.atomic():
-            form.instance.user = self.request.user
-            self.object = form.save()
-            # Create initial interest rate
-            LoanInterestRate.objects.create(
-                loan=self.object,
-                interest_rate=form.cleaned_data['interest_rate'],
-                effective_date=self.object.start_date
+        form.instance.user = self.request.user
+        if statement_key:
+            form.instance.uuid = statement_key
+        self.object = form.save()
+        LoanInterestRate.objects.create(
+            loan=self.object,
+            interest_rate=form.cleaned_data['interest_rate'],
+            effective_date=self.object.start_date,
+        )
+        if self.object.statement_history and form.cleaned_data['scheduled_emi'] is not None:
+            LoanHistoryEntry.objects.create(
+                loan=self.object, kind=LoanHistoryEntry.Kind.EMI,
+                date=self.object.start_date, amount=form.cleaned_data['scheduled_emi'],
             )
         messages.success(self.request, _("Loan created successfully!"))
         ph_capture(self.request.user, 'loan_created', {'loan_type': getattr(self.object, 'loan_type', ''), 'currency': self.object.currency, 'tenure_months': self.object.duration_months})
+        if self.object.statement_history:
+            return statement_history_redirect(self.object)
         return redirect(self.success_url)
 
     def get_form_kwargs(self):
@@ -215,6 +261,8 @@ class LoanUpdateView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMi
 
     def form_valid(self, form):
         with transaction.atomic():
+            if form.instance.statement_history:
+                return self.save_statement_loan(form)
             self.object = form.save()
             # Update initial interest rate if it changed and is the only one
             rates = self.object.interest_rates.all()
@@ -228,6 +276,31 @@ class LoanUpdateView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMi
         messages.success(self.request, _("Loan updated successfully!"))
         ph_capture(self.request.user, 'loan_updated', {})
         return redirect(self.success_url)
+
+    def save_statement_loan(self, form):
+        loan = form.save(commit=False)
+        current = Loan.objects.select_for_update().get(pk=loan.pk, user=self.request.user)
+        entries = list(current.history_entries.all())
+        if any(
+            entry.date < loan.start_date
+            or (entry.kind == LoanHistoryEntry.Kind.RATE and entry.date == loan.start_date)
+            or (entry.installment_date and not is_due_date(loan, entry.installment_date))
+            for entry in entries
+        ):
+            form.add_error(None, _("These terms conflict with existing history. Correct the affected entries first."))
+        elif build_history(loan, entries=entries, initial_rate=form.cleaned_data['interest_rate']).invalid_entry:
+            form.add_error(None, _("These terms leave a recorded payment with more principal than was owed."))
+        if form.errors:
+            return self.form_invalid(form)
+
+        self.object = loan
+        loan.save()
+        LoanInterestRate.objects.filter(loan=loan, effective_date=current.start_date).update(
+            interest_rate=form.cleaned_data['interest_rate'], effective_date=loan.start_date,
+        )
+        invalidate_statement_insights(loan)
+        messages.success(self.request, _("Loan updated successfully!"))
+        return statement_history_redirect(loan)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -264,6 +337,8 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         redirect_response = redirect_to_uuid_url_if_needed(request, loan)
         if redirect_response:
             return redirect_response
+        if loan.statement_history:
+            return render(request, 'expenses/loan_statement_detail.html', statement_context(loan))
         summary = LoanService.get_loan_summary(loan)
         schedule = LoanService.generate_amortization_schedule(loan)
         repayments = loan.repayments.select_related('from_account').order_by('-date')
@@ -448,11 +523,131 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         return render(request, self.template_name, context)
 
 
+def statement_history_redirect(loan):
+    return HttpResponseRedirect(reverse('loan-detail', kwargs={'pk': loan.uuid}) + '#statement-history')
+
+
+def invalidate_statement_insights(loan):
+    UserProfile.objects.filter(user_id=loan.user_id).update(insights_stale=True)
+
+
+def statement_context(loan):
+    result = build_history(loan, project=True)
+    today = timezone.localdate()
+    return {
+        'loan': loan,
+        'statement': result,
+        'history': [row for row in result.rows if row.date <= today],
+        'projection': [row for row in result.rows if row.status == 'projected'],
+        'upcoming_terms': [
+            row for row in result.rows
+            if row.date > today and row.status in (LoanHistoryEntry.Kind.RATE, LoanHistoryEntry.Kind.EMI)
+        ],
+        'current_rate': LoanService.current_rate(loan),
+        'projection_remaining': result.projected_balance + result.projected_unpaid_interest,
+    }
+
+
+class LoanHistoryEntryView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    template_name = 'expenses/loan_history_entry_form.html'
+
+    def get_loan(self, request, pk, *, lock=False):
+        loans = Loan.objects.filter(statement_history=True)
+        if lock:
+            loans = loans.select_for_update()
+        return get_object_by_uuid_or_pk(loans, pk, user=request.user)
+
+    def get_form(self, request, loan, entry=None):
+        if entry is not None:
+            kind = entry.kind
+        else:
+            kind = request.POST.get('kind') if request.method == 'POST' else request.GET.get('kind')
+        if kind not in LoanHistoryEntry.Kind.values:
+            raise Http404
+        initial = {}
+        if kind == LoanHistoryEntry.Kind.DISBURSEMENT and not loan.history_entries.filter(
+            kind=LoanHistoryEntry.Kind.DISBURSEMENT,
+        ).exists():
+            initial['date'] = loan.start_date
+        if request.method == 'GET' and request.GET.get('due'):
+            try:
+                day = parse_date(request.GET['due'])
+            except ValueError:
+                day = None
+            if day is not None:
+                initial['date'] = day
+                if kind == LoanHistoryEntry.Kind.PAYMENT:
+                    initial['installment_date'] = day
+        return LoanHistoryEntryForm(
+            request.POST if request.method == 'POST' else None,
+            loan=loan, kind=kind, instance=entry, initial=initial,
+        )
+
+    def render_form(self, request, loan, form, entry=None):
+        return render(request, self.template_name, {
+            'loan': loan, 'form': form, 'entry': entry,
+            'entry_type': LoanHistoryEntry.Kind(form.kind).label,
+        })
+
+    def get(self, request, pk, entry_uuid=None):
+        loan = self.get_loan(request, pk)
+        entry = get_object_or_404(loan.history_entries, uuid=entry_uuid) if entry_uuid else None
+        return self.render_form(request, loan, self.get_form(request, loan, entry), entry)
+
+    @transaction.atomic
+    def post(self, request, pk, entry_uuid=None):
+        loan = self.get_loan(request, pk, lock=True)
+        entries = list(loan.history_entries.all())
+        entry = next((row for row in entries if row.uuid == entry_uuid), None)
+        if entry_uuid and entry is None:
+            if request.POST.get('action') == 'delete':
+                return statement_history_redirect(loan)
+            raise Http404
+        remaining = [row for row in entries if row is not entry]
+
+        if entry is not None and request.POST.get('action') == 'delete':
+            if build_history(loan, entries=remaining).invalid_entry:
+                messages.error(request, _("This entry is needed by a recorded payment. Correct that payment first."))
+            else:
+                entry.delete()
+                invalidate_statement_insights(loan)
+            return statement_history_redirect(loan)
+
+        form = self.get_form(request, loan, entry)
+        if not form.is_valid():
+            return self.render_form(request, loan, form, entry)
+        candidate = form.save(commit=False)
+        if entry is None and any(row.uuid == candidate.uuid for row in entries):
+            return statement_history_redirect(loan)
+        if candidate.kind in (LoanHistoryEntry.Kind.RATE, LoanHistoryEntry.Kind.EMI) and any(
+            row.kind == candidate.kind and row.date == candidate.date for row in remaining
+        ):
+            form.add_error('date', _("Edit the existing change for this effective date."))
+        if candidate.installment_date and any(row.installment_date == candidate.installment_date for row in remaining):
+            form.add_error(None, _("Edit or delete the existing correction for this installment."))
+        if not form.errors and build_history(loan, entries=[*remaining, candidate]).invalid_entry:
+            form.add_error(None, _("A recorded payment would have more principal than was owed on its effective date."))
+        if form.errors:
+            return self.render_form(request, loan, form, entry)
+
+        try:
+            with transaction.atomic():
+                candidate.save()
+        except IntegrityError:
+            form.add_error(None, _("This entry could not be saved. Reload the history and try again."))
+            return self.render_form(request, loan, form, entry)
+        invalidate_statement_insights(loan)
+        messages.success(request, _("Loan history updated."))
+        return statement_history_redirect(loan)
+
+
 class LoanScheduleTabView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     template_name = 'expenses/partials/_loan_schedule_tab.html'
 
     def get(self, request, pk):
         loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        if loan.statement_history:
+            return render(request, 'expenses/partials/_loan_statement_projection.html', statement_context(loan))
         schedule = LoanService.generate_amortization_schedule(loan)
         return render(request, self.template_name, {'loan': loan, 'schedule': schedule})
 
@@ -462,12 +657,16 @@ class LoanHistoryTabView(LoginRequiredMixin, LoanFeatureGateMixin, View):
 
     def get(self, request, pk):
         loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        if loan.statement_history:
+            return render(request, 'expenses/partials/_loan_statement_history.html', statement_context(loan))
         repayments = loan.repayments.select_related('from_account').order_by('-date')
         return render(request, self.template_name, {'loan': loan, 'repayments': repayments})
 
 class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     def post(self, request, pk):
         loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        if loan.statement_history:
+            raise Http404
         form = LoanRepaymentForm(request.POST, user=request.user, loan=loan)
         if form.is_valid():
             try:
@@ -508,6 +707,8 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
 class LoanInterestRateCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     def post(self, request, pk):
         loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        if loan.statement_history:
+            raise Http404
         form = LoanInterestRateForm(request.POST)
         if form.is_valid():
             rate = form.save(commit=False)

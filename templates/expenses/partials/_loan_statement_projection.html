@@ -1,0 +1,21 @@
+{% load i18n digit_filters %}
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-transparent p-4">
+        <h2 class="h5 fw-bold" id="statement-projection-title">{% trans "Projected installments" %}</h2>
+        <p class="small text-muted mb-0">{% trans "Estimated future payments based on the balance, lender rates, and scheduled EMI changes entered above." %}</p>
+        {% if projection_remaining %}
+            <p class="small text-warning-emphasis mt-2 mb-0">{% trans "Balance remaining after the calculated schedule" %} {{ projection_remaining|money_exact:loan.currency }}</p>
+        {% endif %}
+    </div>
+    {% if upcoming_terms %}
+        {% include 'expenses/partials/_loan_statement_rows.html' with rows=upcoming_terms editable=True %}
+    {% endif %}
+    {% if projection %}
+        <details>
+            <summary class="p-3 text-primary fw-semibold">{% blocktrans count count=projection|length %}Show {{ count }} future installment{% plural %}Show {{ count }} future installments{% endblocktrans %}</summary>
+            {% include 'expenses/partials/_loan_statement_rows.html' with rows=projection editable=False %}
+        </details>
+    {% else %}
+        <p class="text-muted p-4 mb-0">{% trans "No future installments in the calculated schedule." %}</p>
+    {% endif %}
+</div>

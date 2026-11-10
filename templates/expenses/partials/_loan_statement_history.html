@@ -1,0 +1,19 @@
+{% load i18n %}
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-transparent p-4">
+        <h2 class="h5 fw-bold" id="statement-history-title">{% trans "Loan history" %}</h2>
+        <p class="small text-muted">{% trans "Installments due through today are assumed paid. Replace an estimate with a recorded payment, or mark it missed. These entries do not change cash accounts." %}</p>
+        {% url 'loan-history-entry' loan.uuid as entry_url %}
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-sm btn-primary" href="{{ entry_url }}?kind=DRAW"><i class="bi bi-plus-lg me-1"></i>{% trans "Disbursement" %}</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ entry_url }}?kind=RATE">{% trans "Rate change" %}</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ entry_url }}?kind=EMI">{% trans "EMI change" %}</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ entry_url }}?kind=PAY">{% trans "Extra payment" %}</a>
+        </div>
+    </div>
+    {% if history %}
+        {% include 'expenses/partials/_loan_statement_rows.html' with rows=history editable=True %}
+    {% else %}
+        <p class="text-muted p-4 mb-0">{% trans "Add the first disbursement to calculate installments and see your principal balance." %}</p>
+    {% endif %}
+</div>

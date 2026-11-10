@@ -218,7 +218,7 @@
                         <div class="text-end">
                             <span class="text-secondary small d-block mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Remaining" %}</span>
                             <span class="fw-bold">{{ summary.loan.currency }}{{ summary.remaining_principal|compact_amount:summary.loan.currency|translate_digits }}</span> 
-                            <span class="text-muted small">/ {{ summary.loan.initial_principal|compact_amount:summary.loan.currency|translate_digits }}</span>
+                            <span class="text-muted small">/ {{ summary.tracked_principal|compact_amount:summary.loan.currency|translate_digits }}</span>
                         </div>
                     </div>
 
