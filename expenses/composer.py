@@ -32,7 +32,6 @@ CURRENCY_CODES = {
     'A$': 'AUD', 'C$': 'CAD', 'CHF': 'CHF', '元': 'CNY', '₩': 'KRW',
 }
 
-# Amounts at or above this (per currency symbol) ask "is that right?" before saving.
 # From this amount the form offers to log the purchase as a Capital Event (a big one-off that is kept out of
 # monthly spending and budgets) instead of an everyday expense.
 CAPITAL_HINT_THRESHOLDS = {'₹': 5000, '¥': 50000, '₩': 500000, '元': 2500}
