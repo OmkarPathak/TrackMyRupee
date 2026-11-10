@@ -23874,3 +23874,40 @@ msgstr "{amount} हस्तांतरित करा"
 #: templates/expenses/transfer_form.html
 msgid "Both balances update. This is not counted as spending."
 msgstr "दोन्ही खात्यांची शिल्लक अपडेट होईल. हे खर्चात मोजले जात नाही."
+
+#: expenses/analytics/spending.py
+msgid "In one line"
+msgstr "एका ओळीत"
+
+#: expenses/analytics/spending.py
+#, python-format
+msgid "You spent %(spent)s in this period."
+msgstr "या कालावधीत तुम्ही %(spent)s खर्च केले."
+
+#: expenses/analytics/spending.py
+#, python-format
+msgid "You spent %(spent)s in this period, about the same as %(compare)s."
+msgstr "या कालावधीत तुम्ही %(spent)s खर्च केले, जे %(compare)s च्या जवळपास बरोबरीचे आहे."
+
+#: expenses/analytics/spending.py
+#, python-format
+msgid "You spent %(spent)s in this period, %(pct)s less than %(compare)s."
+msgstr "या कालावधीत तुम्ही %(spent)s खर्च केले, जे %(compare)s पेक्षा %(pct)s कमी आहे."
+
+#: expenses/analytics/spending.py
+#, python-format
+msgid "You spent %(spent)s in this period, %(pct)s more than %(compare)s."
+msgstr "या कालावधीत तुम्ही %(spent)s खर्च केले, जे %(compare)s पेक्षा %(pct)s जास्त आहे."
+
+#: expenses/analytics/spending.py
+#, python-format
+msgid "%(category)s is the biggest part, at %(amount)s."
+msgstr "सर्वात मोठा हिस्सा %(category)s चा आहे, %(amount)s."
+
+#: templates/components/navbar.html
+msgid "Everyday"
+msgstr "रोजचे"
+
+#: templates/components/navbar.html
+msgid "Money & plans"
+msgstr "पैसे आणि योजना"

@@ -1,21 +1,37 @@
 // Initialize driver with fallback for different build versions
 const driver = window.driver?.js?.driver || window.driver;
 
+// The app tour comes in two forms, because the two layouts navigate differently: from 992px up the sidebar and the
+// Add menu are on screen; below that there is the bottom bar with the + button and More. A step with no element is
+// shown centred. Keep each tour short: where things are, not every button.
+const WELCOME_STEP = {
+    popover: {
+        title: gettext('Welcome to TrackMyRupee'),
+        description: gettext('Here is a quick tour of where things are. It takes under a minute, and you can replay it any time from Settings.'),
+    },
+};
+
 const desktopSteps = [
-    { element: '#tour-income-card', popover: { title: gettext('Financial Overview'), description: gettext('Track your Income and Expenses here to see your monthly growth.'), side: "bottom", align: 'start' } },
-    { element: '#tour-budget-card', popover: { title: gettext('Budget Limits'), description: gettext('Visual bars help you stay within your category limits.'), side: "top", align: 'start' } },
-    { element: '#nav-expenses', popover: { title: gettext('Transaction List'), description: gettext('View and manage your detailed transaction history here.'), side: "bottom", align: 'start' } },
-    { element: '#global-fab', popover: { title: gettext('Quick Actions'), description: gettext('Click (+) to instantly add a new Income or Expense.'), side: "top", align: 'end' } },
+    WELCOME_STEP,
+    { element: '#tour-add-menu', popover: { title: gettext('Add anything from here'), description: gettext('Log an expense or income, move money between accounts, or record an EMI. Most days you will start with this button.'), side: "bottom", align: 'end' } },
+    { element: '#tour-nav-transactions', popover: { title: gettext('Everything you log'), description: gettext('Every expense, income and transfer is listed here, with search and filters.'), side: "right", align: 'center' } },
+    { element: '#tour-nav-accounts', popover: { title: gettext('Your accounts'), description: gettext('Add your bank accounts, cards, loans and investments to see your balances and net worth.'), side: "right", align: 'center' } },
+    { element: '#tour-nav-analytics', popover: { title: gettext('Review your month'), description: gettext('Analytics starts with a plain sentence about your spending, then shows the charts behind it.'), side: "right", align: 'center' } },
+    { element: '#tour-nav-guided-setup', popover: { title: gettext('Guided Setup'), description: gettext('Took a loan or started a new job? Tell it what happened and it sets everything up in one short form.'), side: "right", align: 'center' } },
+    { element: '#sidebarSearchTrigger', popover: { title: gettext('Find any page'), description: gettext('Not sure where something is? Search for it here, or press Ctrl K (Cmd K on a Mac).'), side: "right", align: 'start' } },
+    { element: '#tour-nav-settings', popover: { title: gettext('Settings and help'), description: gettext('Change your currency, language and theme, or replay this tour.'), side: "right", align: 'center' } },
 ];
 
 const mobileSteps = [
-    { element: '.navbar-toggler', popover: { title: gettext('Menu & Settings'), description: gettext('Access your Settings, Theme, and other options here.'), side: "bottom", align: 'end' } },
-    { element: '#tour-income-card', popover: { title: gettext('Income'), description: gettext('Track your total monthly income.'), side: "bottom", align: 'center' } },
-    { element: '#tour-expenses-card', popover: { title: gettext('Expenses'), description: gettext('Monitor your total monthly spending.'), side: "bottom", align: 'center' } },
-    { element: '#global-fab', popover: { title: gettext('Add New'), description: gettext('Tap (+) to record a transaction.'), side: "top", align: 'end' } },
+    WELCOME_STEP,
+    { element: '#global-fab', popover: { title: gettext('Tap + to add'), description: gettext('Add an expense in a few seconds. The + also moves money between accounts and records an EMI.'), side: "top", align: 'end' } },
+    { element: '.mobile-nav-capsule', popover: { title: gettext('Your three main screens'), description: gettext('Dashboard is your summary, Transactions lists everything you have logged, and Accounts shows your balances.'), side: "top", align: 'center' } },
+    { element: '.mobile-nav-item-more', popover: { title: gettext('Everything else is in More'), description: gettext('Budgets, bills, analytics, loans, goals and settings are all in this menu. You can replay this tour from Settings.'), side: "top", align: 'end' } },
 ];
 
-const isMobile = window.innerWidth < 768; // Bootstrap md breakpoint
+// The sidebar is only on screen from the lg breakpoint (992px) up
+const usesSidebar = () => window.matchMedia('(min-width: 992px)').matches;
+const isOnScreen = (el) => !!el && el.getClientRects().length > 0;
 
 const onboardingSteps = [
     { element: '#hero-card', popover: { title: gettext('Welcome Aboard! 🚀'), description: gettext('This is your starting point. Since you are new, we have simplified things for you.'), side: "top", align: 'center' } },
@@ -41,8 +57,11 @@ function startTour(mode = 'standard') {
     if (mode === 'onboarding') {
         steps = onboardingSteps;
     } else {
-        steps = isMobile ? mobileSteps : desktopSteps;
+        steps = usesSidebar() ? desktopSteps : mobileSteps;
     }
+    // Copy, so the Install step added below is not added twice if the tour is started again; and skip any step whose
+    // target is not on screen (a collapsed sidebar, an unusual layout) rather than point at nothing.
+    steps = steps.filter((step) => !step.element || isOnScreen(document.querySelector(step.element)));
     
     console.log('Tour Steps:', steps);
     
@@ -78,6 +97,10 @@ function startTour(mode = 'standard') {
     tourDriver = driverLib({
         animate: true,
         showProgress: true,
+        nextBtnText: gettext('Next'),
+        prevBtnText: gettext('Back'),
+        doneBtnText: gettext('Done'),
+        progressText: gettext('{{current}} of {{total}}'),
         steps: steps, // Pass steps directly here
         onDestroyStarted: () => {
             markTutorialComplete();

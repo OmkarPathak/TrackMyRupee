@@ -151,8 +151,39 @@ def top_category_chart(page: Page) -> dict:
             'series': series, 'tips': tips}
 
 
+def spend_line(page: Page) -> str:
+    """One plain sentence for the top of the Spending tab: what was spent, how that compares, and the biggest part.
+
+    Built from the same figures as the tiles and the category list below it, so the sentence never disagrees
+    with them. Nothing is said when there was no spending.
+    """
+    now, before = page.summary, page.compare
+    if not now.spending or now.spending <= 0:
+        return ''
+    money = page.money
+    spent = money.full(now.spending)
+    compare = page.compare_name()
+    parts = {'spent': spent, 'compare': compare}
+    pct, direction = change(now.spending, before.spending) if before is not None else (None, 'flat')
+    if pct is None or not compare:
+        text = _('You spent %(spent)s in this period.') % parts
+    elif abs(pct) < Decimal('0.5'):
+        text = _('You spent %(spent)s in this period, about the same as %(compare)s.') % parts
+    elif direction == 'down':
+        text = _('You spent %(spent)s in this period, %(pct)s less than %(compare)s.') % {**parts, 'pct': percent(abs(pct))}
+    else:
+        text = _('You spent %(spent)s in this period, %(pct)s more than %(compare)s.') % {**parts, 'pct': percent(abs(pct))}
+    ranked = sorted(now.categories.items(), key=lambda item: item[1], reverse=True)
+    if len(ranked) >= 2 and ranked[0][1] > 0:
+        key, amount = ranked[0]
+        text += ' ' + _('%(category)s is the biggest part, at %(amount)s.') % {
+            'category': page.category_name(key), 'amount': money.full(amount)}
+    return text
+
+
 def build(page: Page) -> dict:
     return {
+        'spend_line': spend_line(page),
         'tiles': page.tiles(),
         'insight': page.insight(),
         'in_out': in_out_chart(page),

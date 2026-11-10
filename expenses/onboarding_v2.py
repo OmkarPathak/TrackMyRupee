@@ -411,7 +411,9 @@ def mark_onboarding_finished(user) -> Dict[str, Any]:
 
     profile.has_seen_tutorial = True
     profile.onboarding_completed_at = now
-    profile.save(update_fields=['has_seen_tutorial', 'onboarding_completed_at'])
+    # The first dashboard visit after onboarding offers the app tour (once)
+    profile.app_tour_pending = True
+    profile.save(update_fields=['has_seen_tutorial', 'onboarding_completed_at', 'app_tour_pending'])
 
     state.completed_at = now
     state.current_step = 4

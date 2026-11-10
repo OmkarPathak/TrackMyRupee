@@ -1,4 +1,11 @@
 {% load i18n digit_filters %}
+{% if spend_line %}
+<!-- The month in one plain sentence, from the same figures as the tiles below -->
+<div class="anx-line rounded-4 p-3 px-md-4 mb-3" role="note">
+    <span class="anx-line-label d-block">{% trans "In one line" %}</span>
+    <p class="anx-line-text mb-0">{{ spend_line }}</p>
+</div>
+{% endif %}
 {% include 'expenses/partials/_analytics_tiles.html' %}
 
 <!-- Income against spending (by day / week / month / quarter), beside the biggest categories when there are any -->

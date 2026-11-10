@@ -58,7 +58,7 @@ ENTRIES = {
     ('', 'Accounts'): (None, 'खाते', 'खाती'),
     ('', 'Every Indian account in one place'): (None, 'हर भारतीय खाता, एक जगह', 'प्रत्येक भारतीय खाते, एका ठिकाणी'),
     ('', 'Savings, FDs, PPF, EPF, NPS, demat, gold, property and cards, grouped and added up into one net worth.'): (None, 'बचत, FD, PPF, EPF, NPS, डीमैट, सोना, प्रॉपर्टी और कार्ड, समूहों में बँटे और एक कुल संपत्ति में जुड़े हुए।', 'बचत, FD, PPF, EPF, NPS, डीमॅट, सोने, मालमत्ता आणि कार्ड, गटांमध्ये विभागलेली आणि एका एकूण संपत्तीत जोडलेली.'),
-    ('', 'TMR Flows'): (None, 'TMR फ़्लोज़', 'TMR फ्लोज'),
+    ('', 'Guided Setup'): (None, 'गाइडेड सेटअप', 'मार्गदर्शित सेटअप'),
     ('', 'Tell it what happened in your life'): (None, 'बताइए आपकी ज़िंदगी में क्या हुआ', 'सांगा तुमच्या आयुष्यात काय घडले'),
     ('', '"I started a new job." "I took a loan." One short form sets up the account, the recurring entry and the reminders linked behind it.'): (None, '"मैंने नई नौकरी शुरू की।" "मैंने लोन लिया।" एक छोटा फ़ॉर्म इसके पीछे जुड़ा खाता, आवर्ती प्रविष्टि और रिमाइंडर सेट कर देता है।', '"मी नवी नोकरी सुरू केली." "मी कर्ज घेतले." एक छोटा फॉर्म त्यामागील खाते, आवर्ती नोंद आणि स्मरणे सेट करतो.'),
     ('', 'Family'): (None, 'परिवार', 'कुटुंब'),

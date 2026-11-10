@@ -21,7 +21,7 @@
 .tp-sim{position:absolute;left:0;top:0;transform-origin:0 0;display:flex;font-family:var(--sans);color:var(--ink-900);background:var(--surface-0);font-size:13px;line-height:1.4;text-align:left}
 .tp-sim *{box-sizing:border-box}
 .tp-sim .sb{width:210px;flex:none;padding:14px 10px 10px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--surface-2);overflow:hidden}
-.tp-sim .sb .nvs{flex:1;min-height:0;overflow:hidden}
+.tp-sim .sb .nvs{flex:1;min-height:0;overflow:hidden;padding-bottom:190px}   /* room to scroll the last items clear of the caption */
 .tp-sim .sb .usr{display:flex;align-items:center;gap:10px;padding:8px 6px 0;border-top:1px solid var(--surface-2);margin-top:6px}
 .tp-sim .sb .usr .av{width:30px;height:30px;border-radius:50%;background:var(--teal-50);color:var(--teal-800);display:grid;place-items:center;font-size:11px;font-weight:700}
 .tp-sim .sb .usr b{display:block;font-size:13px;line-height:1.15}

@@ -2768,11 +2768,34 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 }
 
 .mobile-nav-item > i:not(.position-absolute) {
-  font-size: 1.45rem;
+  font-size: 1.3rem;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease, color 0.2s ease;
+}
+
+/* Each bar item names its page under the icon, so nobody has to guess what an icon means */
+.mobile-nav-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+  max-width: 100%;
+  padding: 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-nav-item.active .mobile-nav-label {
+  font-weight: 700;
+}
+
+/* Very narrow phones (320px): four names plus the + button need a little less room each */
+@media (max-width: 340px) {
+  .mobile-nav-label { font-size: 0.58rem; letter-spacing: -0.02em; padding: 0; }
 }
 
 /* The sheet hands focus back to this button when it closes, which drew the global focus ring as a green
@@ -2796,7 +2819,7 @@ html.is-mobile-app .sticky-action-bar .action-bar-content {
 }
 
 .mobile-nav-item.active > i:not(.position-absolute) {
-  transform: scale(1.15);
+  transform: scale(1.1);
   color: inherit;
 }
 

@@ -37,7 +37,7 @@
                 <span class="nav-text">{% trans "Dashboard" %}</span>
             </a>
 
-            <a href="{% url 'tmr-flows' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'flow-' in request.resolver_match.url_name or request.resolver_match.url_name == 'tmr-flows' %}active{% endif %}" title="{% trans 'Guided Setup' %}">
+            <a href="{% url 'tmr-flows' %}" id="tour-nav-guided-setup" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'flow-' in request.resolver_match.url_name or request.resolver_match.url_name == 'tmr-flows' %}active{% endif %}" title="{% trans 'Guided Setup' %}">
                 <i class="bi bi-diagram-3 fs-5"></i>
                 <span class="nav-text">{% trans "Guided Setup" %}</span>
                 <span class="badge badge-soft-success ms-auto nav-text" style="font-size: 0.65rem;">
@@ -45,17 +45,11 @@
                 </span>
             </a>
 
-            <!-- Analytics (Spending & cashflow, and Net worth & trends, are tabs inside it) -->
-            <a href="{% url 'analytics' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Analytics' %}">
-                <i class="bi bi-pie-chart fs-5"></i>
-                <span class="nav-text">{% trans "Analytics" %}</span>
-            </a>
-
             <!-- Cash Flow Section -->
             <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Cash Flow" %}</div>
 
             <!-- Transactions -->
-            <a href="{% url 'all-transactions' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'all-transactions' %}active{% endif %}" title="{% trans 'All Transactions' %}">
+            <a href="{% url 'all-transactions' %}" id="tour-nav-transactions" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if request.resolver_match.url_name == 'all-transactions' %}active{% endif %}" title="{% trans 'All Transactions' %}">
                 <i class="bi bi-list-columns-reverse fs-5"></i>
                 <span class="nav-text">{% trans "Transactions" %}</span>
             </a>
@@ -117,7 +111,7 @@
 
             <!-- Accounts -->
             <div class="d-flex align-items-center position-relative px-0">
-                <a href="{% url 'account-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'account' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Accounts' %}">
+                <a href="{% url 'account-list' %}" id="tour-nav-accounts" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'account' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Accounts' %}">
                     <i class="bi bi-bank fs-5"></i>
                     <span class="nav-text">{% trans "Accounts" %}</span>
                 </a>
@@ -193,11 +187,20 @@
             </a>
 
             <!-- Divider -->
+            <!-- Insights Section -->
+            <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Insights" %}</div>
+
+            <!-- Analytics (Spending & cashflow, and Net worth & trends, are tabs inside it) -->
+            <a href="{% url 'analytics' %}" id="tour-nav-analytics" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'analytics' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Analytics' %}">
+                <i class="bi bi-pie-chart fs-5"></i>
+                <span class="nav-text">{% trans "Analytics" %}</span>
+            </a>
+
             <!-- <hr class="my-2"> -->
             <div class="sidebar-section sidebar-section-title px-3 mt-3 mb-2">{% trans "Settings" %}</div>
 
             <!-- Settings -->
-            <a href="{% url 'settings-home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'settings' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Settings' %}">
+            <a href="{% url 'settings-home' %}" id="tour-nav-settings" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'settings' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Settings' %}">
                 <i class="bi bi-gear fs-5"></i>
                 <span class="nav-text">{% trans "Settings" %}</span>
             </a>
