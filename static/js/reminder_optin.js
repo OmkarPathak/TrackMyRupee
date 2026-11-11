@@ -9,14 +9,16 @@
  *
  * Markup: any [data-reminder-optin] element. Its children [data-reminder-when="<state>"] are shown for
  * that state only; [data-reminder-enable] starts the browser prompt (always from a tap, never on load);
- * [data-reminder-dismiss] hides a "card" for longer each time it is dismissed.
+ * [data-reminder-dismiss] hides the card and tells the server (window.tmrPrompt), which keeps it away for longer each
+ * time it is dismissed (3, 7, 14, then 30 days). Whether the dashboard renders the card at all is decided on the server,
+ * together with the announcement and the year in review banner, so only one of them is shown (expenses/prompts.py);
+ * an element marked [data-prompt-fallback-for="reminder"] waits behind the card and is shown if the card ends up hidden.
  * The state logic is a pure function so it can be tested without a browser.
  */
 (function (root) {
     'use strict';
 
-    var DISMISS_WAITS_DAYS = [3, 7, 14, 30];   // after the 4th "Not now" the card stays away
-    var STORAGE_KEY = 'tmr_reminder_ask';
+    var DISMISS_WAITS_DAYS = [3, 7, 14, 30];   // after the 4th "Not now" the card stays away (the server applies the same waits)
 
     function computeState(env) {
         if (!env.supported) {
@@ -54,12 +56,7 @@
     var win = root;
     var doc = win.document;
 
-    function readRecord() {
-        try { return JSON.parse(win.localStorage.getItem(STORAGE_KEY)); } catch (e) { return null; }
-    }
-    function writeRecord(rec) {
-        try { win.localStorage.setItem(STORAGE_KEY, JSON.stringify(rec)); } catch (e) { /* private mode */ }
-    }
+    var dismissedHere = false;       // closed on this page: stays closed until the next page view asks the server again
 
     function environment() {
         var ua = win.navigator.userAgent || '';
@@ -120,11 +117,6 @@
         });
     }
 
-    function pwaPromoVisible() {
-        var promo = doc.getElementById('pwa-promo-card');
-        return !!promo && win.getComputedStyle(promo).display !== 'none';
-    }
-
     function visibleStates(variant) {
         if (variant === 'card') return ['ask', 'ios-install'];
         if (variant === 'onboarding') return ['ask', 'ios-install'];
@@ -136,11 +128,7 @@
         var state = computeState(environment());
         var show = visibleStates(variant).indexOf(state) !== -1;
 
-        if (show && variant === 'card') {
-            if (!nextAskAllowed(readRecord(), Date.now())) show = false;
-            // The install banner already explains the iPhone route; do not stack two cards
-            if (state === 'ios-install' && pwaPromoVisible()) show = false;
-        }
+        if (show && variant === 'card' && dismissedHere) show = false;
 
         rootEl.hidden = !show;
         rootEl.setAttribute('data-reminder-state', state);
@@ -150,7 +138,19 @@
     }
 
     function renderAll() {
-        doc.querySelectorAll('[data-reminder-optin]').forEach(render);
+        var cards = doc.querySelectorAll('[data-reminder-optin]');
+        cards.forEach(render);
+        // What waited behind the card (the year in review banner) is shown when no card is
+        var anyShown = Array.prototype.some.call(cards, function (card) { return !card.hidden; });
+        doc.querySelectorAll('[data-prompt-fallback-for="reminder"]').forEach(function (el) { el.hidden = anyShown; });
+        // Notifications are on already (set up on another device, or before the server kept answers): say so once, so the
+        // card is not chosen for this person again
+        // (only where the server asked for the dashboard card, so a page without one never sends anything)
+        var cardAsked = Array.prototype.some.call(cards, function (card) { return card.getAttribute('data-variant') === 'card'; });
+        if (cardAsked && !anyShown && computeState(environment()) === 'on' && win.tmrPrompt && !win.__tmrReminderSynced) {
+            win.__tmrReminderSynced = true;
+            win.tmrPrompt('reminder', 'accept');
+        }
     }
 
     function init() {
@@ -163,7 +163,10 @@
                 var errorEl = rootEl && rootEl.querySelector('[data-reminder-error]');
                 if (errorEl) errorEl.hidden = true;
                 enableBtn.disabled = true;
-                enable().then(renderAll).catch(function (err) {
+                enable().then(function () {
+                    if (win.tmrPrompt) win.tmrPrompt('reminder', 'accept');
+                    renderAll();
+                }).catch(function (err) {
                     var denied = /permission-/.test(String(err && err.message));
                     if (denied) {
                         renderAll();
@@ -172,7 +175,8 @@
                     }
                 }).then(function () { enableBtn.disabled = false; });
             } else if (dismissBtn) {
-                writeRecord(recordDismissal(readRecord(), Date.now()));
+                dismissedHere = true;
+                if (win.tmrPrompt) win.tmrPrompt('reminder', 'dismiss');
                 renderAll();
             }
         });

@@ -227,6 +227,9 @@ class FeatureAnnouncementTests(TestCase):
         self.assertEqual(mail.outbox[0].to[0], self.admin.email)
 
     def test_active_announcement_context_processor(self):
+        # News is for people who were around for it: an account that joined a month ago
+        type(self.free_user).objects.filter(pk=self.free_user.pk).update(date_joined=timezone.now() - timedelta(days=30))
+        self.free_user.refresh_from_db()
         ann = Announcement.objects.create(
             title="Modal Announcement",
             body="Welcome modal!",
@@ -301,6 +304,8 @@ class AnnouncementShownOncePerSessionTests(TestCase):
         from expenses.models import Announcement
         cache.clear()
         user = get_user_model().objects.create_user('ann_once', 'ann_once@example.com', 'pw12345!x')
+        user.date_joined = timezone.now() - timedelta(days=30)       # not a first-day account: those are not shown news
+        user.save()
         profile = user.profile
         profile.has_seen_tutorial = profile.consent_granted = True
         profile.save()

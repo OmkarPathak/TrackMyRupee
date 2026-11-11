@@ -204,6 +204,7 @@ urlpatterns = [
     path('expenses/<uuid:pk>/undo/', views.expense_composer_undo, name='expense-composer-undo'),
     path('api/start-trial/', views_payment.start_trial, name='start-trial'),
     path('api/update-pwa-login/', views.UpdatePWALoginView.as_view(), name='update-pwa-login'),
+    path('api/prompts/', views.PromptStateView.as_view(), name='prompt-state'),
     
     # Notification URLs
     path('notifications/', views.NotificationListView.as_view(), name='notification-list'),

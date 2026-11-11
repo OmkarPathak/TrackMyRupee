@@ -32,7 +32,21 @@ class ReminderPlacementTests(TestCase):
         profile.save()
         self.client.force_login(self.user)
 
+    def ready_for_the_card(self):
+        """The card is for someone who has logged something and answered the cookie question."""
+        from datetime import date
+        from decimal import Decimal
+
+        from expenses.models import Account, Expense
+        account = Account.objects.create(user=self.user, name='Cash', account_type='CASH_WALLET', balance=Decimal('100'), currency='₹')
+        Expense.objects.create(user=self.user, date=date.today(), amount=Decimal('50'), category='Food', currency='₹', account=account, payment_method='Cash')
+        profile = self.user.profile
+        profile.prompt_state = {'cookie': {'choice': 'declined'}}
+        profile.save()
+        cache.clear()
+
     def test_dashboard_has_the_card_with_every_state(self):
+        self.ready_for_the_card()
         html = self.client.get(reverse('home')).content.decode()
         self.assertIn('data-reminder-optin data-variant="card"', html)
         for state in STATES:
@@ -60,12 +74,14 @@ class ReminderPlacementTests(TestCase):
         self.assertIn('data-reminder-optin data-variant="onboarding"', html)
 
     def test_page_loads_the_script_and_the_save_url(self):
+        self.ready_for_the_card()
         html = self.client.get(reverse('home')).content.decode()
         self.assertRegex(html, r'src="[^"]*js/reminder_optin[^"]*\.js"')
         self.assertIn(f'window.TMR_SAVE_PUSH_URL = "{reverse("save_webpush_info")}"', html)
 
     def test_the_prompt_only_follows_a_tap(self):
         """The card never starts the browser prompt itself: it needs a button with the enable hook."""
+        self.ready_for_the_card()
         html = self.client.get(reverse('home')).content.decode()
         self.assertIn('data-reminder-enable', html)
         source = JS.read_text()

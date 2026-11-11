@@ -71,7 +71,10 @@ if IS_TESTING:
     PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 
 # Only our own hosts; set ALLOWED_HOSTS (comma separated) in the environment to change them.
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
+    'ALLOWED_HOSTS',
+    'trackmyrupee.com,www.trackmyrupee.com,localhost,127.0.0.1'
+).split(',') if host.strip()]
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com').split(',')
 CSRF_FAILURE_VIEW = 'finance_tracker.csrf.csrf_failure'  # friendly recovery + reason logging for expired login forms
@@ -157,6 +160,7 @@ TEMPLATES = [
                 'expenses.context_processors.currency_symbol',
                 'expenses.context_processors.global_badge_data',
                 'expenses.context_processors.personalization',
+                'expenses.context_processors.prompt_flags',
                 'expenses.insights.context_processors.insights_flags',
                 'expenses.family.context_processors.family_flags',
                 'finance_tracker.context_processors.google_analytics',

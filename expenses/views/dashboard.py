@@ -19,6 +19,7 @@ from django.utils.html import escape, format_html, format_html_join, mark_safe
 from django.utils.translation import gettext as _
 from django.views.generic import TemplateView
 
+from .. import prompts
 from ..account_types import investment_codes
 from ..filters import DASHBOARD_FILTERS
 from ..ledger_read_service import LedgerReadService
@@ -150,6 +151,7 @@ def home_view(request):
                 'sort': '',
                 'filters': {},
             }
+        _apply_prompts(request, context, has_any_data)
         return render(request, 'home.html', context)
 
     # Process recurring transactions on cache miss / custom filter
@@ -1835,13 +1837,8 @@ def home_view(request):
     show_year_in_review = False
     year_in_review_year = None
     if has_any_data:
-        # Show last year's review from Jan to Oct
-        # Show this year's review in Nov/Dec
-        if now.month >= 11:
-            year_in_review_year = now.year
-        else:
-            year_in_review_year = now.year - 1
-            
+        # Shown from 15 December (this year's review) to 31 January (last year's); see prompts.yir_year
+        year_in_review_year = prompts.yir_year(now.date())
         if year_in_review_year:
             show_year_in_review = Expense.objects.filter(user=request.user, date__year=year_in_review_year).exists()
 
@@ -2584,7 +2581,20 @@ def home_view(request):
 
         cache.set(nudge_repeat_cache_key, True, 60 * 60 * 24)
 
+    _apply_prompts(request, context, has_any_data)
     return render(request, 'home.html', context)
+
+
+def _apply_prompts(request, context, has_any_data) -> None:
+    """Decide, for this visit only, which of the daily-reminder card and the year in review banner the page shows
+    (never both at once, and neither beside an announcement or the cookie question). Done after the context is cached,
+    so a dismissal is felt on the next page view; costs no query (the answers sit on the profile the request has)."""
+    window_year = prompts.yir_year(timezone.localdate())
+    candidate = window_year if (context.get('show_year_in_review') and context.get('year_in_review_year') == window_year) else None
+    context.update(prompts.inline_flags(request, has_any_data=has_any_data, yir_candidate_year=candidate,
+                                        tour_pending=bool(context.get('show_tutorial'))))
+    context['year_in_review_year'] = window_year
+
 
 def should_show_tutorial(request) -> bool:
     """The app tour runs for someone who has never seen a tour (an older account), for someone who has just finished

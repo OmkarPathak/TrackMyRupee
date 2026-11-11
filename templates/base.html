@@ -17,6 +17,20 @@
             else { window.addEventListener('load', go, { once: true }); }
         };
     </script>
+    {% if user.is_authenticated %}
+    <script>
+        // Remembers what this person answered or closed, on their account (see expenses/prompts.py). Only called from a
+        // tap; the cookie choice kept on the account is applied before analytics decides whether to start.
+        window.tmrPrompt = function (key, action, value) {
+            try {
+                fetch('{% url "prompt-state" %}', {method: 'POST', credentials: 'same-origin', keepalive: true,
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                    body: JSON.stringify({key: key, action: action, value: value})});
+            } catch (e) {}
+        };
+        {% if prompt_cookie_choice %}try { localStorage.setItem('cookieConsent', '{{ prompt_cookie_choice }}'); } catch (e) {}{% endif %}
+    </script>
+    {% endif %}
     {% include 'components/analytics.html' %}
 
     <!-- HTMX Configuration -->
@@ -817,107 +831,8 @@
     {% endif %}
     {% include "components/navbar.html" with is_landing=False %}
 
-    <!-- iOS Install Instructions Modal -->
-    <div class="modal fade" id="iosInstallModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
-                </div>
-                <div class="modal-body text-center pt-0 pb-4">
-                    <div class="mb-3 text-primary">
-                        <i class="bi bi-apple display-1"></i>
-                    </div>
-                    <h5 class="fw-bold mb-3">{% trans "Install TrackMyRupee" %}</h5>
-                    <p class="text-muted mb-4">{% trans "Install this app on your iPhone for the best experience." %}</p>
-
-                    <div
-                        class="d-flex align-items-center justify-content-center gap-2 mb-3 text-start bg-body-tertiary p-3 rounded">
-                        <i class="bi bi-share fs-4 text-primary"></i>
-                        <span>1. Tap the <strong>{% trans "Share" %}</strong> button</span>
-                    </div>
-                    <div
-                        class="d-flex align-items-center justify-content-center gap-2 text-start bg-body-tertiary p-3 rounded">
-                        <i class="bi bi-plus-square fs-4 text-primary"></i>
-                        <span>2. Scroll down and tap <strong>{% trans "Add to Home Screen" %}</strong></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PWA Install Prompt Banner -->
-    {% if request.user.username != 'demo' %}
-    <div id="installAppContainer"
-        class="position-fixed bottom-0 start-50 translate-middle-x mb-4 p-3 bg-body rounded shadow-lg border"
-        style="display: none; z-index: 10000; width: 90%; max-width: 400px;">
-        <div class="d-flex align-items-center gap-3">
-            <div class="d-flex align-items-center flex-grow-1">
-                <img src="{% static 'img/pwa-icon-512.png' %}" alt="{% trans "App Icon" %}" class="rounded me-3" width="40"
-                    height="40">
-                <div>
-                    <h6 class="mb-0 fw-bold">{% trans "Get Daily Reminders" %}</h6>
-                    <small class="text-muted">{% trans "Install to never miss an expense" %}</small>
-                </div>
-            </div>
-            <button class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 enable-push-btn" style="font-size: 0.75rem;">{% trans "Enable" %}</button>
-            <button id="installAppBtn" class="btn btn-primary btn-sm rounded-pill px-3">{% trans "Install" %}</button>
-            <button type="button" class="btn-close" onclick="dismissPWAInstall()" aria-label="{% trans 'Close' %}"></button>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- PWA Install Logic -->
+    <!-- Daily login ping -->
     <script>
-        let deferredPrompt;
-        const installBtn = document.getElementById('installAppBtn');
-        const installContainer = document.getElementById('installAppContainer');
-        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-        // Only show if not already installed and elements exist
-        if (!isStandalone && installContainer && installBtn && !localStorage.getItem('pwaInstallDismissed')) {
-            // Android/Chrome
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                installContainer.style.display = 'block';
-            });
-
-            // iOS (Keep visible if iOS, but check specific heuristic if needed)
-            if (isIos) {
-                installContainer.style.display = 'block';
-            }
-        }
-
-        function dismissPWAInstall() {
-            if (installContainer) installContainer.style.display = 'none';
-            localStorage.setItem('pwaInstallDismissed', 'true');
-        }
-
-        if (installBtn) {
-            installBtn.addEventListener('click', (e) => {
-                if (isIos) {
-                    const iosModal = document.getElementById('iosInstallModal');
-                    if (iosModal) new bootstrap.Modal(iosModal).show();
-                } else if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            if (installContainer) installContainer.style.display = 'none';
-                        }
-                        deferredPrompt = null;
-                    });
-                }
-            });
-        }
-
-        window.addEventListener('appinstalled', () => {
-            if (installContainer) installContainer.style.display = 'none';
-            deferredPrompt = null;
-            console.log('PWA was installed');
-        });
-
         // Update login time for all active users (PWA and regular web)
         {% if user.is_authenticated %}
         // Use localStorage to only send ping once per day per user
@@ -1704,11 +1619,15 @@
         try {
             localStorage.setItem('dismissed_announcement_' + id, '1');
         } catch (e) {}
+        if (window.tmrPrompt) window.tmrPrompt('announcement:' + id, 'dismiss');
     }
 
     document.addEventListener('DOMContentLoaded', function () {
         const announcementId = '{{ active_announcement.id }}';
         if (!announcementId) return;
+        // One question at a time: the cookie bar comes first, the announcement waits for the next page
+        const cookieBar = document.getElementById('cookie-consent-banner');
+        if (cookieBar && !cookieBar.classList.contains('d-none')) return;
 
         // Show once per app session (a login, a fresh tab, or opening the PWA), not on every page:
         // sessionStorage is per tab/window and is empty on each of those. Dismiss, or following the

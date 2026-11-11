@@ -645,6 +645,39 @@ def resend_verification_email(request):
     except EmailAddress.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Email not found'})
 
+class PromptStateView(LoginRequiredMixin, View):
+    """Remember what this person answered or closed (see expenses/prompts.py). Sent by the page when they tap, never
+    on load, so it costs nothing while a page is shown."""
+    MAX_BODY = 512
+
+    def post(self, request, *args, **kwargs):
+        import json
+
+        from django.db import transaction
+
+        from .. import prompts
+        from ..models import UserProfile
+
+        if len(request.body) > self.MAX_BODY:
+            return JsonResponse({'status': 'error'}, status=400)
+        try:
+            data = json.loads(request.body or b'{}')
+        except ValueError:
+            return JsonResponse({'status': 'error'}, status=400)
+        if not isinstance(data, dict):
+            return JsonResponse({'status': 'error'}, status=400)
+        with transaction.atomic():
+            profile = UserProfile.objects.select_for_update().filter(user=request.user).first()
+            if profile is None:
+                return JsonResponse({'status': 'error'}, status=400)
+            new = prompts.apply(prompts.state_of(profile), str(data.get('key') or ''), str(data.get('action') or ''),
+                                data.get('value') if isinstance(data.get('value'), str) else None)
+            if new is None:
+                return JsonResponse({'status': 'error'}, status=400)
+            prompts.save(request.user.pk, new)
+        return JsonResponse({'status': 'success'})
+
+
 class UpdatePWALoginView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         request.user.last_login = timezone.now()

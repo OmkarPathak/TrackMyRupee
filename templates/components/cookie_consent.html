@@ -1,5 +1,5 @@
 {% load i18n %}
-<div id="cookie-consent-banner" class="fixed-bottom bg-dark text-white p-3 shadow-lg d-none" style="z-index: 9999; border-top: 1px solid rgba(255,255,255,0.1);" data-is-demo="{% if request.user.is_authenticated and request.user.username == 'demo' %}true{% else %}false{% endif %}">
+<div id="cookie-consent-banner" class="fixed-bottom bg-dark text-white p-3 shadow-lg d-none" style="z-index: 9999; border-top: 1px solid rgba(255,255,255,0.1);" data-authed="{% if user.is_authenticated %}true{% endif %}" data-server-choice="{{ prompt_cookie_choice }}" data-is-demo="{% if request.user.is_authenticated and request.user.username == 'demo' %}true{% else %}false{% endif %}">
     <div class="container d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
         <div class="text-center text-md-start">
             <p class="mb-0 small">
@@ -26,12 +26,18 @@
             banner.classList.remove('d-none');
         }
 
+        // This browser answered before the answer was kept on the account: keep it there now, once.
+        if (consent && banner && banner.dataset.authed === 'true' && !banner.dataset.serverChoice && window.tmrPrompt) {
+            window.tmrPrompt('cookie', 'choice', consent);
+        }
+
         // Lets the "Cookie preferences" links reopen the banner after a choice was made.
         window.tmrOpenCookiePreferences = function () {
             banner.classList.remove('d-none');
         };
 
         function choose(choice) {
+            if (window.tmrPrompt) window.tmrPrompt('cookie', 'choice', choice);   // kept with the account, so a new device is not asked again
             if (typeof window.tmrSetConsent === 'function') {
                 window.tmrSetConsent(choice);
             } else {

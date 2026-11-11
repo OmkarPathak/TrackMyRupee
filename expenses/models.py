@@ -1986,6 +1986,9 @@ class UserProfile(models.Model):
     # Set when onboarding finishes, cleared when the person finishes or skips the app tour on their first visit to
     # the dashboard. A separate flag, because has_seen_tutorial also means "this account was set up" elsewhere.
     app_tour_pending = models.BooleanField(default=False)
+    # What this person has answered or dismissed (the cookie choice, the daily-reminder card, announcements, the year
+    # in review banner), kept with the account so a new phone or browser does not ask again. See expenses/prompts.py.
+    prompt_state = models.JSONField(default=dict, blank=True)
 
     # DPDPA Consent Fields
     consent_granted = models.BooleanField(default=False)

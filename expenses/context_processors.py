@@ -181,7 +181,32 @@ def personalization(request):
 
 
 def _active_announcement(request):
-    """Provides the active modal feature announcement to all templates."""
+    """Provides the active modal feature announcement to all templates, for the people it is meant for (see
+    prompts.announcement_visible: not in a person's first day, not news from before they joined, not one they closed)."""
+    found = _announcement_for_tier(request)
+    announcement = found.get('active_announcement')
+    if announcement is not None and request.user.is_authenticated and hasattr(request.user, 'profile'):
+        from .prompts import announcement_visible, state_of
+        if not announcement_visible(request.user, announcement, state_of(request.user.profile)):
+            return {'active_announcement': None}
+    return found
+
+
+def pending_announcement(request):
+    """The announcement this person would be shown now, or None."""
+    return _active_announcement(request).get('active_announcement')
+
+
+def prompt_flags(request):
+    """What the pages need to know about the prompts, with no database work: the cookie choice kept on the account."""
+    if not request.user.is_authenticated:
+        return {}
+    profile = getattr(request.user, 'profile', None)
+    from .prompts import cookie_choice
+    return {'prompt_cookie_choice': cookie_choice(profile) if profile else ''}
+
+
+def _announcement_for_tier(request):
     tier = 'ANONYMOUS'
     if request.user.is_authenticated and hasattr(request.user, 'profile'):
         tier = request.user.profile.active_tier or 'FREE'
