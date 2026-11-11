@@ -40,9 +40,6 @@
             <a href="{% url 'tmr-flows' %}" id="tour-nav-guided-setup" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'flow-' in request.resolver_match.url_name or request.resolver_match.url_name == 'tmr-flows' %}active{% endif %}" title="{% trans 'Guided Setup' %}">
                 <i class="bi bi-diagram-3 fs-5"></i>
                 <span class="nav-text">{% trans "Guided Setup" %}</span>
-                <span class="badge badge-soft-success ms-auto nav-text" style="font-size: 0.65rem;">
-                    {% trans "New" %}
-                </span>
             </a>
 
             <!-- Cash Flow Section -->
@@ -134,7 +131,6 @@
             <a href="{% url 'family-home' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 {% if 'family' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Family' %}">
                 <i class="bi bi-people fs-5"></i>
                 <span class="nav-text">{% trans "Family" %}</span>
-                <span class="badge badge-soft-success ms-auto nav-text" style="font-size: 0.65rem;">{% trans "New" %}</span>
             </a>
             {% endif %}
 
@@ -155,12 +151,6 @@
                     <span>{% trans "Add" %}</span>
                 </a>
             </div>
-            {% else %}
-            <a href="{% url 'pricing' %}" class="nav-link d-flex align-items-center gap-3 rounded-3" title="{% trans 'Loans (Plus/Pro)' %}">
-                <i class="bi bi-shield-lock fs-5"></i>
-                <span class="nav-text">{% trans "Loans" %}</span>
-                <span class="badge bg-warning-subtle text-warning-emphasis ms-auto nav-text">{% trans "Plus" %}</span>
-            </a>
             {% endif %}
 
             <!-- Capital Events -->

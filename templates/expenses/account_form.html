@@ -342,7 +342,8 @@
                              hides the fields below until a type is chosen; without the script the type dropdown below
                              works as before. -->
                         <div id="typeChooser" class="d-none mb-3"
-                             data-label-which="{% trans 'Which one?' %}">
+                             data-label-which="{% trans 'Which one?' %}"
+                             data-label-more="{% trans 'More types' %}">
                             <div id="typeIntro">
                                 <h2 class="h6 fw-bold mb-1">{% trans "What kind of account is it?" %}</h2>
                                 <p class="text-muted small mb-2">{% trans "Pick the closest match. You can add more details on the next step." %}</p>
@@ -369,7 +370,7 @@
                             </div>
                             <div id="typeChoices" class="d-none">
                                 <button type="button" id="typeChoicesBack" class="btn btn-link btn-sm p-0 text-decoration-none mb-2"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Choose a different kind" %}</button>
-                                <h3 class="h6 fw-bold mb-2" id="typeChoicesTitle" tabindex="-1"></h3>
+                                <h3 class="h6 fw-normal mb-2" id="typeChoicesTitle" tabindex="-1"></h3>
                                 <div class="type-grid" id="typeChoicesList"></div>
                             </div>
                             <div id="typeResults" class="d-none" role="status" aria-live="polite">
@@ -905,5 +906,5 @@
         updateWizardUI();
     });
 </script>
-{% if type_chooser %}<script src="{% static 'js/account_type_chooser.js' %}?v=1"></script>{% endif %}
+{% if type_chooser %}<script src="{% static 'js/account_type_chooser.js' %}?v=2"></script>{% endif %}
 {% endblock %}

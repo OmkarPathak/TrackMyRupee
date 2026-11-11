@@ -29,6 +29,7 @@
                         </button>
                     {% endif %}
                 </h1>
+                <p class="text-muted small mb-1 d-none d-md-block">{% trans "Everything you have spent, with search and filters." %}</p>
                 <p class="text-muted small mb-0 fw-medium">
                     <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "expenses" %} &middot;
                     <span class="fw-bold text-primary">₹{{ filtered_amount|compact_amount:'₹'|translate_digits }}</span> {% trans "spent" %}

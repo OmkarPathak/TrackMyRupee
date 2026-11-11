@@ -42,6 +42,7 @@
                         <i class="bi bi-info-circle" aria-hidden="true"></i>
                     </button>
                 </div>
+                <p class="text-muted small mb-1 d-none d-md-block">{% trans "Bills, rent, EMIs and anything else that repeats. It is added for you on the due date." %}</p>
                 <p class="text-muted small mb-0 fw-medium">
                     <span class="fw-bold text-primary">{{ active_subs|length|translate_digits }}</span> {% trans "subscriptions" %} &middot; 
                     <span class="fw-bold text-primary">{{ currency_symbol }}{{ total_monthly_cost|compact_amount:currency_symbol|translate_digits }}</span> {% trans "monthly" %} &middot; 

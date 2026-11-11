@@ -117,7 +117,21 @@
 
   function showTypes(category) {
     var items = category.codes.map(function (code) { return { code: code, label: optionLabel(code), kind: category.title }; });
-    fill(list, items, false);
+    var common = items.filter(function (item) { return (category.common || []).indexOf(item.code) !== -1; });
+    var more = list.parentNode.querySelector('.type-more');
+    if (more) more.remove();
+    if (common.length && common.length < items.length) {
+      // A kind with many types starts with the usual ones; "More types" shows the rest
+      fill(list, common, false);
+      more = document.createElement('button');
+      more.type = 'button';
+      more.className = 'type-more btn btn-link btn-sm text-decoration-none px-0 mt-2';
+      more.textContent = box.getAttribute('data-label-more') || '';
+      more.addEventListener('click', function () { fill(list, items, false); more.remove(); });
+      list.parentNode.appendChild(more);
+    } else {
+      fill(list, items, false);
+    }
     title.textContent = which ? which + ' · ' + category.title : category.title;
     stage('types');
     title.focus();

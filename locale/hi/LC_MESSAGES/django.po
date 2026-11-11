@@ -23933,3 +23933,31 @@ msgstr "अदला-बदली"
 #: templates/expenses/transfer_form.html
 msgid "Swap the From and To accounts"
 msgstr "From और To खातों की अदला-बदली करें"
+
+#: templates/expenses
+msgid "Everything you have spent, with search and filters."
+msgstr "आपके सारे खर्च, सर्च और फ़िल्टर के साथ।"
+
+#: templates/expenses
+msgid "Your salary and any other money coming in."
+msgstr "आपकी सैलरी और आने वाला बाकी सारा पैसा।"
+
+#: templates/expenses
+msgid "Every expense, income and transfer in one list."
+msgstr "हर खर्च, आमदनी और ट्रांसफ़र एक ही सूची में।"
+
+#: templates/expenses
+msgid "Bills, rent, EMIs and anything else that repeats. It is added for you on the due date."
+msgstr "बिल, किराया, EMI और बाकी सब जो दोहराया जाता है। यह देय तारीख पर अपने आप जुड़ जाता है।"
+
+#: templates/expenses
+msgid "How much you plan to spend in each category, and how this month is going."
+msgstr "हर श्रेणी में आप कितना खर्च करना चाहते हैं, और यह महीना कैसा चल रहा है।"
+
+#: templates/expenses
+msgid "Your bank accounts, cards, loans and investments, and what they add up to."
+msgstr "आपके बैंक खाते, कार्ड, लोन और निवेश, और उनका कुल योग।"
+
+#: templates/expenses
+msgid "More types"
+msgstr "और प्रकार"

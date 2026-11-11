@@ -83,13 +83,11 @@ class MoreSheetTests(MobileNavBase):
             sheet = self.sheet(self.html())
             self.assertIn(f'href="{reverse("goal-list")}"', sheet, tier)
 
-    def test_a_plan_without_loans_still_sees_them_marked_plus(self):
+    def test_a_plan_without_loans_is_not_shown_a_locked_loans_tile(self):
         self.user.profile.__class__.objects.filter(user=self.user).update(tier='FREE')
         sheet = self.sheet(self.html())
-        tile = sheet[sheet.index(f'href="{reverse("pricing")}"'):]
-        tile = tile[:tile.index('</a>')]
-        self.assertIn('Loans', tile)
-        self.assertIn('Plus', tile)
+        self.assertNotIn(f'href="{reverse("loan-list")}"', sheet)
+        self.assertNotIn('Loans', sheet)
 
     def test_the_tour_calls_the_first_screen_what_the_bar_calls_it(self):
         from django.contrib.staticfiles import finders

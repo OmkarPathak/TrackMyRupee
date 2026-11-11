@@ -373,9 +373,11 @@ TYPE_CATEGORIES = [
      'title': _('Investments'),
      'hint': _('Mutual funds, shares, ETFs, gold and bonds')},
     {'key': 'deposit', 'icon': 'piggy-bank', 'groups': ('Fixed-Income',),
+     'common': ('FD', 'RD', 'PPF', 'EPF', 'NPS'),
      'title': _('Deposits & savings schemes'),
      'hint': _('FD, RD, PPF, EPF, NPS and post office')},
     {'key': 'loan', 'icon': 'cash-stack', 'groups': ('Long-Term Loans',),
+     'common': ('HOME_LOAN', 'VEHICLE_LOAN', 'PERSONAL_LOAN', 'EDUCATION_LOAN'),
      'title': _('Loan'),
      'hint': _('Home, car, personal, education and other loans')},
     {'key': 'assets', 'icon': 'house-door', 'groups': ('Physical Assets', 'Insurance'),
@@ -386,11 +388,15 @@ TYPE_CATEGORIES = [
 
 def type_categories() -> list[dict]:
     """The categories for the chooser, each with its account_type codes in the order the form lists them.
-    Titles and hints are translated now, so the result can go straight into JSON."""
+    Titles and hints are translated now, so the result can go straight into JSON.
+
+    `common` is the short list shown first when a kind has many types; the rest sit behind "More types". It is
+    empty for a kind small enough to show whole. Search always looks at every type."""
     codes_by_group = {group: [code for code, _label in items] for group, items in ACCOUNT_TYPES}
     return [
         {'key': c['key'], 'icon': c['icon'], 'title': str(c['title']), 'hint': str(c['hint']),
-         'codes': [code for group in c['groups'] for code in codes_by_group.get(group, [])]}
+         'codes': [code for group in c['groups'] for code in codes_by_group.get(group, [])],
+         'common': list(c.get('common', ()))}
         for c in TYPE_CATEGORIES
     ]
 

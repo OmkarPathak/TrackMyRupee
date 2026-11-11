@@ -162,22 +162,28 @@ class AddMenuTests(LoanBase):
         self.assertEqual(response.status_code, 200)
         return response.content.decode()
 
-    def test_pay_emi_is_in_the_add_menu_and_the_phone_sheet(self):
+    def test_pay_emi_is_in_the_add_menu_and_the_phone_sheet_once_there_is_a_loan(self):
+        self.loan()
         html = self.page()
         self.assertGreaterEqual(html.count(reverse('pay-emi')), 2)
         self.assertIn('Pay EMI', html)
 
+    def test_pay_emi_is_left_out_until_there_is_a_loan(self):
+        html = self.page()
+        self.assertNotIn(reverse('pay-emi'), html)
+
     def test_move_money_is_still_there_and_expense_is_still_first(self):
+        self.loan()
         html = self.page()
         self.assertIn(reverse('transfer-create'), html)
         self.assertLess(html.index(reverse('expense-create')), html.index(reverse('pay-emi')))
 
-    def test_a_free_user_sees_pay_emi_with_a_plus_badge(self):
+    def test_a_free_user_is_not_shown_pay_emi_or_a_plus_badge(self):
         free = self.make_user('free-menu', 'FREE')
+        self.loan(user=free)
         self.client.force_login(free)
         html = self.page()
-        start = html.index(reverse('pay-emi'))
-        self.assertIn('Plus', html[start:start + 600])
+        self.assertNotIn(reverse('pay-emi'), html)
 
 
 class MoveMoneyHintTests(LoanBase):

@@ -141,3 +141,43 @@ class AddAccountPageTests(TestCase):
             self.assertIn(f'id="{ident}"', html, ident)
         for ident in ('id_account_type', 'id_name', 'nextBtn'):
             self.assertIn(f'id="{ident}"', html, ident)
+
+
+class CommonTypesFirstTests(TestCase):
+    def test_a_long_kind_names_its_usual_types_and_they_all_exist_in_it(self):
+        from expenses.account_types import type_categories
+        by_key = {c['key']: c for c in type_categories()}
+        for key in ('deposit', 'loan'):
+            category = by_key[key]
+            self.assertTrue(category['common'])
+            self.assertLess(len(category['common']), len(category['codes']))
+            self.assertTrue(set(category['common']) <= set(category['codes']))
+
+    def test_a_short_kind_is_shown_whole(self):
+        from expenses.account_types import type_categories
+        for category in type_categories():
+            if category['key'] not in ('deposit', 'loan'):
+                self.assertEqual(category['common'], [], category['key'])
+
+
+
+class PageIntroTests(TestCase):
+    """Each main page says in one plain line what it is for."""
+
+    LINES = {
+        'all-transactions': 'Every expense, income and transfer in one list.',
+        'expense-list': 'Everything you have spent, with search and filters.',
+        'income-list': 'Your salary and any other money coming in.',
+        'recurring-list': 'Bills, rent, EMIs and anything else that repeats.',
+        'account-list': 'Your bank accounts, cards, loans and investments, and what they add up to.',
+        'budget': 'How much you plan to spend in each category, and how this month is going.',
+    }
+
+    def test_every_listed_page_has_its_line(self):
+        user = User.objects.create_user('intro-user', password='pass')
+        UserProfile.objects.update_or_create(user=user, defaults={'currency': '₹', 'tier': 'PRO'})
+        self.client.force_login(user)
+        for name, line in self.LINES.items():
+            response = self.client.get(reverse(name))
+            self.assertEqual(response.status_code, 200, name)
+            self.assertContains(response, line, msg_prefix=name)

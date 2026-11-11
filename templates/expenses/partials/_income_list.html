@@ -28,6 +28,7 @@
                 <h1 class="h2 mb-0 fw-bold d-flex align-items-center gap-3 mb-1">
                     <span class="h3 mb-0">{% trans "Income" %}</span>
                 </h1>
+                <p class="text-muted small mb-1 d-none d-md-block">{% trans "Your salary and any other money coming in." %}</p>
                 <p class="text-muted small mb-0 fw-medium">
                     <span class="fw-bold text-primary">{{ filtered_count|translate_digits }}</span> {% trans "records" %} &middot; 
                     <span class="fw-bold text-primary">{{ user.profile.currency }}{{ filtered_amount|compact_amount:user.profile.currency|translate_digits }}</span> {% trans "received" %}
