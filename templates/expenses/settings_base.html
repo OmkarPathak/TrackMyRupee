@@ -6,32 +6,32 @@
 {% block content %}
 <div class="fade-in">
     <!-- Horizontal Navigation for Settings (Desktop Only) -->
-    <div class="d-none d-md-flex align-items-center mb-4 pb-2 border-bottom overflow-x-auto no-scrollbar settings-horizontal-nav">
-        <a href="{% url 'settings-home' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if request.resolver_match.url_name == 'settings-home' %}active fw-bold text-primary{% else %}text-muted{% endif %}">
+    <nav class="tmr-tabs d-none d-md-flex" aria-label="{% trans 'Settings' %}">
+        <a href="{% url 'settings-home' %}" class="tmr-tab {% if request.resolver_match.url_name == 'settings-home' %}active{% endif %}">
             {% trans "Overview" %}
         </a>
-        <a href="{% url 'profile-settings' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if request.resolver_match.url_name == 'profile-settings' %}active fw-bold text-primary{% else %}text-muted{% endif %}">
+        <a href="{% url 'profile-settings' %}" class="tmr-tab {% if request.resolver_match.url_name == 'profile-settings' %}active{% endif %}">
             {% trans "Profile" %}
         </a>
-        <a href="{% url 'currency-settings' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if request.resolver_match.url_name == 'currency-settings' %}active fw-bold text-primary{% else %}text-muted{% endif %}">
+        <a href="{% url 'currency-settings' %}" class="tmr-tab {% if request.resolver_match.url_name == 'currency-settings' %}active{% endif %}">
             {% trans "Currency" %}
         </a>
-        <a href="{% url 'language-settings' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if request.resolver_match.url_name == 'language-settings' %}active fw-bold text-primary{% else %}text-muted{% endif %}">
+        <a href="{% url 'language-settings' %}" class="tmr-tab {% if request.resolver_match.url_name == 'language-settings' %}active{% endif %}">
             {% trans "Language" %}
         </a>
-        <a href="{% url 'upload' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if request.resolver_match.url_name == 'upload' or request.resolver_match.url_name == 'import-history' %}active fw-bold text-primary{% else %}text-muted{% endif %}">
+        <a href="{% url 'upload' %}" class="tmr-tab {% if request.resolver_match.url_name == 'upload' or request.resolver_match.url_name == 'import-history' %}active{% endif %}">
             {% trans "Import" %}
         </a>
-        <a href="{% url 'export-data' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if request.resolver_match.url_name == 'export-data' %}active fw-bold text-primary{% else %}text-muted{% endif %}">
+        <a href="{% url 'export-data' %}" class="tmr-tab {% if request.resolver_match.url_name == 'export-data' %}active{% endif %}">
             {% trans "Export" %}
         </a>
-        <a href="{% url 'category-list' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if 'category' in request.resolver_match.url_name %}active fw-bold text-primary{% else %}text-muted{% endif %}">
+        <a href="{% url 'category-list' %}" class="tmr-tab {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
             {% trans "Categories" %}
         </a>
-        <a href="{% url 'payment-history' %}" class="nav-link px-3 py-2 me-2 rounded-3 {% if request.resolver_match.url_name == 'payment-history' %}active fw-bold text-primary{% else %}text-muted{% endif %}">
+        <a href="{% url 'payment-history' %}" class="tmr-tab {% if request.resolver_match.url_name == 'payment-history' %}active{% endif %}">
             {% trans "Payments" %}
         </a>
-    </div>
+    </nav>
 
     <!-- Main Content Area -->
     <div class="row">

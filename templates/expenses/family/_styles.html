@@ -78,22 +78,6 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-checks { padding: 0; }
 
     /* Sub-navigation between the family pages */
-    .fam-tabs { display: flex; gap: .25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--fam-line); overflow-x: auto; scrollbar-width: none; }
-    .fam-tabs::-webkit-scrollbar { display: none; }
-    .fam-tabs a { display: inline-flex; align-items: center; gap: .45rem; padding: .7rem .95rem; margin-bottom: -1px; font-size: .92rem; font-weight: 600; text-decoration: none; white-space: nowrap; color: var(--fam-muted); border-bottom: 2px solid transparent; }
-    .fam-tabs a .bi { font-size: 1.05rem; }
-    .fam-tabs a:hover { color: var(--bs-body-color); }
-    .fam-tabs a.is-active { color: var(--bs-body-color); border-bottom-color: var(--fam-green); }
-    .fam-tabs a.is-active .bi { color: var(--fam-green); }
-    .fam-tab-short { display: none; }
-    @media (max-width: 991.98px) and (min-width: 576px) { .fam-tabs a { padding-left: .7rem; padding-right: .7rem; font-size: .88rem; } }
-    @media (max-width: 575.98px) {
-        .fam-tabs { gap: 0; }
-        .fam-tabs a { flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: flex-start; gap: .2rem; padding: .55rem .1rem .5rem; font-size: .68rem; line-height: 1.15; white-space: normal; text-align: center; }
-        .fam-tabs a .bi { font-size: 1.2rem; }
-        .fam-tab-long { display: none; }
-        .fam-tab-short { display: inline; }
-    }
 
     /* Group headings and the on/off switch of "What I share" */
     .fam .fam-h2 { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; margin: 0; color: var(--bs-body-color); }
@@ -275,5 +259,5 @@ variables, the same way the Accounts page does, so nothing here is a new colour.
     .fam-check-detail { font-size: .85rem; color: var(--fam-muted); line-height: 1.45; margin-top: .5rem; overflow-wrap: anywhere; }
     .fam-progress { height: .4rem; border-radius: 99px; background: var(--fam-soft); overflow: hidden; margin: .9rem 0 .75rem; }
     .fam-progress > span { display: block; height: 100%; background: var(--fam-green); border-radius: 99px; }
-    @media print { .fam-tabs, .fam-noprint, .sidebar, .navbar, .fam-banner { display: none !important; } .fam-card { border: 0; box-shadow: none; } }
+    @media print { .fam-noprint, .sidebar, .navbar, .fam-banner { display: none !important; } .fam-card { border: 0; box-shadow: none; } }
 </style>

@@ -49,20 +49,8 @@
 .anx-header .header-action-btn.btn-primary, [data-bs-theme="dark"] .anx-header .header-action-btn.btn-primary { background-color: var(--color-secondary, #0F7657) !important; border-color: var(--color-secondary, #0F7657) !important; color: #fff !important; }
 
 /* ---- tabs: a segmented control, the active segment lifted inside a soft rounded track ---- */
-.anx .anx-tabs { display: flex; width: fit-content; max-width: 100%; padding: 3px; gap: 2px; border: 1px solid var(--bs-border-color); border-radius: 12px; background: var(--bs-tertiary-bg); }
-.anx .anx-tabs .nav-link { display: inline-flex; align-items: center; justify-content: center; height: 32px !important; padding: 0 .9rem !important; border: 1px solid transparent; border-radius: 9px; font-weight: 600; font-size: .9rem; white-space: nowrap; color: var(--color-muted-text) !important; background: transparent; }
-.anx .anx-tabs .nav-link:hover { color: var(--bs-body-color) !important; }
-.anx .anx-tabs .nav-link.active, .anx .anx-tabs .nav-link.active:hover { color: var(--bs-body-color) !important; background: var(--bs-body-bg); border-color: var(--bs-border-color); box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
-[data-bs-theme="dark"] .anx .anx-tabs { background: rgba(255, 255, 255, .04); }
-[data-bs-theme="dark"] .anx .anx-tabs .nav-link.active, [data-bs-theme="dark"] .anx .anx-tabs .nav-link.active:hover { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .12); box-shadow: none; }
-.anx .anx-tabs .nav-link .bi { color: var(--color-muted-text); }
-.anx .anx-tabs .nav-link.active .bi { color: var(--color-success-text); }
 @media (max-width: 575.98px) {
-    .anx .anx-tabs { width: 100%; }
-    .anx .anx-tabs .nav-item { flex: 1 1 0; min-width: 0; }
-    .anx .anx-tabs .nav-link { width: 100%; height: 38px !important; font-size: 1rem; padding: 0 .25rem !important; }
-    .anx .anx-tabs .nav-link .bi { display: none; }
-}
+                }
 
 /* ---- totals tiles: the figure is as big as the Accounts page's net worth, sized by the tile's own width ---- */
 .anx-tile { container-type: inline-size; border-radius: 20px; transition: transform .12s ease; }

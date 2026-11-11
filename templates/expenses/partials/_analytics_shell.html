@@ -15,13 +15,13 @@
     </header>
 
     <!-- Tabs: each is its own page, swapped in over htmx -->
-    <ul class="nav anx-tabs mb-3" aria-label="{% trans 'Analytics' %}">
+    <ul class="nav tmr-tabs" aria-label="{% trans 'Analytics' %}">
         {% for t in tabs %}
         <li class="nav-item">
-            <a class="nav-link no-loader {% if t.active %}active{% endif %}" href="{{ t.url }}"
+            <a class="tmr-tab no-loader {% if t.active %}active{% endif %}" href="{{ t.url }}"
                {% if t.active %}aria-current="page"{% endif %}
                hx-get="{{ t.url }}" hx-target="#analytics-shell" hx-swap="outerHTML show:none" hx-push-url="true" hx-indicator="#global-progress-bar">
-                {% if t.key == 'spend' %}<i class="bi bi-pie-chart me-1" aria-hidden="true"></i>{% elif t.key == 'cashflow' %}<i class="bi bi-diagram-3 me-1" aria-hidden="true"></i>{% else %}<i class="bi bi-graph-up-arrow me-1" aria-hidden="true"></i>{% endif %}{{ t.label }}
+                {% if t.key == 'spend' %}<i class="bi bi-pie-chart" aria-hidden="true"></i>{% elif t.key == 'cashflow' %}<i class="bi bi-diagram-3" aria-hidden="true"></i>{% else %}<i class="bi bi-graph-up-arrow" aria-hidden="true"></i>{% endif %}{{ t.label }}
             </a>
         </li>
         {% endfor %}

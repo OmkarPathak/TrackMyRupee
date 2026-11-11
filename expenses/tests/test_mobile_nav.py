@@ -51,7 +51,7 @@ class BottomBarLabelTests(MobileNavBase):
         from django.contrib.staticfiles import finders
         css = open(finders.find('style.css'), encoding='utf-8').read()
         self.assertIn('.mobile-nav-label', css)
-        self.assertIn("style.css' %}?v=7.9", open('templates/base.html', encoding='utf-8').read())
+        self.assertRegex(open('templates/base.html', encoding='utf-8').read(), r"style\.css' %\}\?v=\d")   # bump the number when the stylesheet changes
 
 
 class MoreSheetTests(MobileNavBase):

@@ -996,24 +996,6 @@ html[data-bs-theme="dark"],
     left: var(--sidebar-collapsed-width);
   }
 
-  /* Settings Navigation */
-  .settings-horizontal-nav .nav-link {
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    border: none !important;
-    color: var(--bs-secondary-color, #6c757d);
-  }
-
-  .settings-horizontal-nav .nav-link:hover:not(.active) {
-    background: rgba(var(--bs-primary-rgb), 0.05);
-    color: var(--bs-body-color);
-  }
-
-  .settings-horizontal-nav .nav-link.active {
-    background: rgba(var(--bs-primary-rgb), 0.1) !important;
-    color: var(--bs-primary) !important;
-  }
-
   .settings-card-hover {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -4573,3 +4555,27 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
 .tmr-ic[hidden] { display: none !important; }
 /* Inside a right-aligned amount cell the icon line hugs the right edge, like the amount and Net lines around it. */
 .tmr-table td.tmr-amount .tmr-ic, .tmr-table td.text-end .tmr-ic { justify-content: flex-end; }
+
+/* ── Tabs: one style for every tab bar in the app (Analytics, Family, Settings, Loan, Import) ──
+   An underline marks where you are. Many tabs scroll sideways instead of wrapping. Put .tmr-tabs on the bar and
+   .tmr-tab on each tab (a link or a button); .active or .is-active marks the open one. */
+.tmr-tabs { display: flex; flex-wrap: nowrap; gap: .25rem; margin: 0 0 1.25rem; padding: 0; list-style: none; border-bottom: 1px solid var(--bs-border-color); overflow-x: auto; scrollbar-width: none; }
+.tmr-tabs::-webkit-scrollbar { display: none; }
+.tmr-tabs .nav-item { display: flex; }
+.tmr-tabs .tmr-tab { display: inline-flex; align-items: center; gap: .45rem; padding: .7rem .95rem; margin-bottom: -1px; font-size: .92rem; font-weight: 600; line-height: 1.3; white-space: nowrap; text-decoration: none; color: var(--color-muted-text, var(--bs-secondary-color)); background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; cursor: pointer; }
+.tmr-tabs .tmr-tab .bi { font-size: 1.05rem; }
+.tmr-tabs .tmr-tab:hover { color: var(--bs-body-color); }
+.tmr-tabs .tmr-tab.active, .tmr-tabs .tmr-tab.is-active { color: var(--bs-body-color); border-bottom-color: var(--color-secondary, #0F7657); background: none; }
+.tmr-tabs .tmr-tab.active .bi, .tmr-tabs .tmr-tab.is-active .bi { color: var(--color-secondary, #0F7657); }
+.tmr-tabs .tmr-tab:focus-visible { outline: 2px solid var(--color-secondary, #0F7657); outline-offset: -2px; border-radius: 6px; }
+@media (max-width: 991.98px) { .tmr-tabs .tmr-tab { padding-left: .7rem; padding-right: .7rem; font-size: .88rem; } }
+/* A bar of five or more with long names (Family) shares the phone's width, icon over a short name */
+.tmr-tabs .tmr-tab-short { display: none; }
+@media (max-width: 575.98px) {
+    .tmr-tabs--stack { gap: 0; }
+    .tmr-tabs--stack .tmr-tab { flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: flex-start; gap: .2rem; padding: .55rem .1rem .5rem; font-size: .68rem; line-height: 1.15; white-space: normal; text-align: center; }
+    .tmr-tabs--stack .tmr-tab .bi { font-size: 1.2rem; }
+    .tmr-tabs--stack .tmr-tab-long { display: none; }
+    .tmr-tabs--stack .tmr-tab-short { display: inline; }
+}
+@media print { .tmr-tabs { display: none !important; } }

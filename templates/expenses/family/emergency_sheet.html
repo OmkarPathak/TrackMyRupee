@@ -6,7 +6,6 @@
 {% block content %}
 <div class="fam fade-in">
 {% include 'expenses/family/_styles.html' %}
-<div class="fam-tabs-wrap fam-noprint">{% include 'expenses/family/_tabs.html' %}</div>
 
 <div class="fam-head">
     <div class="fam-title">
@@ -18,6 +17,7 @@
         {% if preview %}<a href="{% url 'family-emergency' %}" class="btn btn-action-cancel">{% trans "Back to edit" %}</a>{% endif %}
     </div>
 </div>
+<div class="fam-tabs-wrap fam-noprint">{% include 'expenses/family/_tabs.html' %}</div>
 
 <div class="fam-stack">
 {% if state == 'ask' or state == 'expired' %}
