@@ -266,6 +266,8 @@
    ====================================================================================== */
 .bdx { --bdx-gap: 32px; }
 .bdx-header { margin-bottom: 20px; }
+/* where a sub heading follows the title (tablet and up), sit it as close as on the other pages */
+@media (min-width: 768px) { .bdx-header { margin-bottom: .25rem; } }
 .bdx-h2 { margin: var(--bdx-gap) 0 12px; font-size: 1rem; font-weight: 600; }
 .bdx-h2-row { align-items: center; }
 
