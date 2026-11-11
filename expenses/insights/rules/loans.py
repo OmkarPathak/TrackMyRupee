@@ -3,6 +3,7 @@ product or a rate to chase. Loans are a sensitive subject: the heavier ones are 
 share, never pushed). Loan maths is the loan service's, run on loans the context has already totalled."""
 from __future__ import annotations
 
+import re
 from datetime import timedelta
 from decimal import Decimal
 
@@ -17,6 +18,8 @@ from ..registry import rule
 from ..types import Action, Evidence, Insight, Kind, Module, Plan, Surface, Tone
 
 D = Decimal
+EMI_WORDS = re.compile(r'\b(emi|loan)\b', re.IGNORECASE)   # an entry or category named like an EMI
+EMI_MONTHS = 2                  # the same kind of entry in this many different months looks like an EMI
 MIN_MONTHS_SAVED = 3            # an extra EMI that saves fewer months than this is not worth a mention
 RATE_GAP = D('1.0')             # two loans this many points apart are worth putting side by side
 MILESTONES = (90, 75, 50, 25)   # share of the principal repaid
@@ -189,3 +192,61 @@ def milestone_ahead(ctx) -> list[Insight]:
                 surfaces=frozenset({Surface.DASHBOARD, Surface.MODULE}),
                 numbers={'loan': loan.name.strip().lower(), 'kind': 'pct', 'milestone': reached}))
     return out[:2]
+
+
+def _emi_like(ctx) -> list:
+    """What looks like an EMI paid with no loan set up: active recurring payments named like one (or entered as a loan
+    repayment), and expenses named like one in at least two different months. [(description, amount)], biggest
+    first."""
+    found = []
+    for rt in ctx.recurring_all:
+        text = rt.description or ''
+        if rt.transaction_type == 'LOAN' or (rt.transaction_type == 'EXPENSE' and EMI_WORDS.search(text)):
+            found.append((text.strip() or str(rt.transaction_type), D(str(rt.base_amount if rt.base_amount is not None else rt.amount))))
+    if found:
+        return sorted(found, key=lambda item: item[1], reverse=True)
+    months: dict[tuple, set] = {}
+    latest: dict[tuple, tuple] = {}
+    for row in ctx.expense_rows:
+        text = f'{row.description or ""} {row.category or ""}'
+        if not EMI_WORDS.search(text):
+            continue
+        name = (row.description or row.category or '').strip().lower()
+        months.setdefault((name,), set()).add((row.date.year, row.date.month))
+        latest[(name,)] = ((row.description or row.category).strip(), D(str(row.amount)))
+    return sorted((latest[k] for k, seen in months.items() if len(seen) >= EMI_MONTHS), key=lambda item: item[1], reverse=True)
+
+
+@rule(id='loans.track_emi', module=Module.LOANS, surfaces={Surface.DASHBOARD}, needs={'inventory', 'recurring_all', 'rows'},
+      cooldown_days=90, cost='heavy', sample=sampling.default_sample)
+def track_emi(ctx) -> list[Insight]:
+    """An EMI that is being paid but has no loan behind it: say what a loan adds, once in a while. For a plan that
+    does not include loans the action leads to the pricing page; otherwise to the loan form."""
+    if ctx.inventory.get('loans'):
+        return []
+    emis = _emi_like(ctx)
+    if not emis:
+        return []
+    description, amount = emis[0]
+    fmt = ctx.fmt
+    paid_plan = ctx.plan >= Plan.PLUS
+    link = reverse('loan-create') if paid_plan else reverse('pricing')
+    args = {'amount': fmt.approx(amount)}
+    if paid_plan:
+        message = _('Your entries show an EMI of about %(amount)s. Add the loan to see the balance left, the interest '
+                    'paid and when it ends.') % args
+        action = Action(_('Add a loan'), link)
+    else:
+        message = _('Your entries show an EMI of about %(amount)s. Loans, in the Plus plan, show the balance left, '
+                    'the interest paid and when it ends.') % args
+        action = Action(_('See what Loans include'), link)
+    return [Insight(
+        rule_id='loans.track_emi', module=Module.LOANS, kind=Kind.OPPORTUNITY, tone=Tone.CALM, priority=36,
+        icon='bank', sensitive=True,
+        title=_('Track the loan behind your EMI'), message=message,
+        evidence=(Evidence(fmt.short(description, words=6, chars=40), fmt.money(amount)),),
+        action=action,
+        dedupe_key='emi-without-loan', valid_until=ctx.today + timedelta(days=30),
+        surfaces=frozenset({Surface.DASHBOARD}),
+        numbers={'amount': str(amount.quantize(D('0.01')))},
+    )]

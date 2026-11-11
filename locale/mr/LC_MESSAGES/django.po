@@ -24024,3 +24024,25 @@ msgstr "तुमची बँक खाती, कार्ड, कर्जे
 #: templates/expenses
 msgid "More types"
 msgstr "आणखी प्रकार"
+
+#: expenses/insights/rules/loans.py
+msgid "Track the loan behind your EMI"
+msgstr "तुमच्या EMI मागचे कर्ज ट्रॅक करा"
+
+#: expenses/insights/rules/loans.py
+#, python-format
+msgid "Your entries show an EMI of about %(amount)s. Add the loan to see the balance left, the interest paid and when it ends."
+msgstr "तुमच्या नोंदींमध्ये सुमारे %(amount)s ची EMI दिसते. कर्ज जोडा, म्हणजे उरलेली रक्कम, भरलेले व्याज आणि संपण्याची तारीख दिसेल."
+
+#: expenses/insights/rules/loans.py
+#, python-format
+msgid "Your entries show an EMI of about %(amount)s. Loans, in the Plus plan, show the balance left, the interest paid and when it ends."
+msgstr "तुमच्या नोंदींमध्ये सुमारे %(amount)s ची EMI दिसते. प्लस प्लॅनमधील कर्ज सुविधा उरलेली रक्कम, भरलेले व्याज आणि संपण्याची तारीख दाखवते."
+
+#: expenses/insights/rules/loans.py
+msgid "Add a loan"
+msgstr "कर्ज जोडा"
+
+#: expenses/insights/rules/loans.py
+msgid "See what Loans include"
+msgstr "कर्जात काय मिळते ते पहा"

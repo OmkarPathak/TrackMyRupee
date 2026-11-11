@@ -23961,3 +23961,25 @@ msgstr "आपके बैंक खाते, कार्ड, लोन औ�
 #: templates/expenses
 msgid "More types"
 msgstr "और प्रकार"
+
+#: expenses/insights/rules/loans.py
+msgid "Track the loan behind your EMI"
+msgstr "अपनी EMI वाले लोन को ट्रैक करें"
+
+#: expenses/insights/rules/loans.py
+#, python-format
+msgid "Your entries show an EMI of about %(amount)s. Add the loan to see the balance left, the interest paid and when it ends."
+msgstr "आपकी एंट्री में लगभग %(amount)s की EMI दिखती है। लोन जोड़ें, तो बचा हुआ बैलेंस, चुकाया गया ब्याज और खत्म होने की तारीख दिखेगी।"
+
+#: expenses/insights/rules/loans.py
+#, python-format
+msgid "Your entries show an EMI of about %(amount)s. Loans, in the Plus plan, show the balance left, the interest paid and when it ends."
+msgstr "आपकी एंट्री में लगभग %(amount)s की EMI दिखती है। प्लस प्लान का लोन फ़ीचर बचा हुआ बैलेंस, चुकाया गया ब्याज और खत्म होने की तारीख दिखाता है।"
+
+#: expenses/insights/rules/loans.py
+msgid "Add a loan"
+msgstr "लोन जोड़ें"
+
+#: expenses/insights/rules/loans.py
+msgid "See what Loans include"
+msgstr "देखें लोन में क्या मिलता है"
