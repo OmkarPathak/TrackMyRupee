@@ -215,6 +215,11 @@ class SettingsHomeView(LoginRequiredMixin, TemplateView):
 
         context['num_accounts'] = cached_data['num_accounts']
         context['num_transactions'] = cached_data['num_transactions']
+        # What the next plan adds, so a locked feature can be found in a place people look (Settings)
+        from finance_tracker.plans import NEXT_TIER, PLAN_DETAILS, plan_unlocks
+        tier = user.profile.active_tier
+        context['plan_unlocks'] = plan_unlocks(tier)
+        context['next_plan_name'] = PLAN_DETAILS[NEXT_TIER[tier]]['name'] if tier in NEXT_TIER else ''
         return context
 
 

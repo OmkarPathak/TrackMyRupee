@@ -1,0 +1,14 @@
+{% load i18n %}{% if plan_unlocks %}
+<details class="plan-unlocks card border-0 shadow-sm rounded-4 mb-4">
+    <summary class="card-body p-3 d-flex align-items-center justify-content-between gap-2" style="cursor: pointer;">
+        <span class="fw-semibold"><i class="bi bi-lock text-muted me-2" aria-hidden="true"></i>{% blocktrans with plan=next_plan_name %}What {{ plan }} includes{% endblocktrans %}</span>
+        <i class="bi bi-chevron-down text-muted small" aria-hidden="true"></i>
+    </summary>
+    <div class="card-body pt-0 px-3 pb-3">
+        <ul class="mb-3 ps-3 small">
+            {% for line in plan_unlocks %}<li class="mb-1">{{ line }}</li>{% endfor %}
+        </ul>
+        <a href="{% url 'pricing' %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">{% trans "See plans" %}</a>
+    </div>
+</details>
+{% endif %}

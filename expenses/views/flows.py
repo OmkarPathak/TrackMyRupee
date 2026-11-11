@@ -96,6 +96,18 @@ class FlowBaseView(LoginRequiredMixin):
 class FlowLandingView(LoginRequiredMixin, TemplateView):
     template_name = 'flows/landing.html'
 
+    def _plan_needed(self, flow) -> str:
+        """"Plus plan" when this flow creates something the person's plan does not include at all (the loan flow on
+        the Free plan), so the card says so before they fill in the form. Empty otherwise."""
+        from finance_tracker.plans import PLAN_DETAILS, get_limit, lowest_tier_with
+        tier = self.request.user.profile.active_tier
+        for limit_key in getattr(flow, 'limit_map', None) or {}:
+            if get_limit(tier, limit_key) == 0:
+                needed = lowest_tier_with(limit_key)
+                if needed:
+                    return str(_('%(plan)s plan')) % {'plan': PLAN_DETAILS[needed]['name']}
+        return ''
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_flows = FlowRegistry.all()
@@ -129,6 +141,7 @@ class FlowLandingView(LoginRequiredMixin, TemplateView):
                 'estimated_time': str(flow.estimated_time),
                 'creates': [str(c) for c in flow.creates],
                 'is_configured': is_configured,
+                'needs_plan': self._plan_needed(flow),
                 'is_curated': flow.key in curated_keys,
                 'setup_url': reverse('flow-detail', kwargs={'key': flow.key}),
                 'edit_url': flow.get_edit_url(self.request.user),

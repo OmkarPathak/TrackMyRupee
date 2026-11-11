@@ -37,6 +37,7 @@
             <i class="bi bi-chevron-right text-muted small"></i>
         </a>
     </div>
+    {% include 'expenses/partials/_plan_unlocks.html' %}
     {% if user.profile.razorpay_subscription_id and not user.profile.subscription_expired %}
     <div class="card border-0 shadow-sm rounded-4 mb-4 fade-in" style="background-color: rgba(108, 117, 125, 0.05); border: 1px solid rgba(108, 117, 125, 0.1) !important;">
         <div class="card-body p-3">
@@ -256,6 +257,8 @@
             </a>
         </div>
     </div>
+
+    {% include 'expenses/partials/_plan_unlocks.html' %}
 
     <!-- Section: Data & Tools -->
     <h6 class="text-muted text-uppercase fw-bold mb-3 mt-4" style="font-size: 0.7rem; letter-spacing: 0.05rem;">{% trans "Data & Tools" %}</h6>

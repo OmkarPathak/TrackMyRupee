@@ -51,6 +51,7 @@
                         {% for tag in flow.tags %}
                         <span class="tag">{{ tag }}</span>
                         {% endfor %}
+                        {% if flow.needs_plan %}<span class="tag"><i class="bi bi-lock-fill" aria-hidden="true"></i> {{ flow.needs_plan }}</span>{% endif %}
                     </div>
                     <div class="gfoot">
                         <span class="time">{{ flow.estimated_time }}</span>

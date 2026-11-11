@@ -24046,3 +24046,84 @@ msgstr "कर्ज जोडा"
 #: expenses/insights/rules/loans.py
 msgid "See what Loans include"
 msgstr "कर्जात काय मिळते ते पहा"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "%(plan)s plan"
+msgstr "%(plan)s प्लॅन"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "What %(plan)s includes"
+msgstr "%(plan)s मध्ये काय मिळते"
+
+#: finance_tracker/plans.py
+msgid "Track loans: the balance left, the interest and the end date"
+msgstr "कर्ज ट्रॅक करा: उरलेली रक्कम, व्याज आणि संपण्याची तारीख"
+
+#: finance_tracker/plans.py
+msgid "Unlimited loans"
+msgstr "अमर्याद कर्जे"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Unlimited accounts, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी अमर्याद खाती"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Up to %(new)s accounts, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी %(new)s पर्यंत खाती"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Unlimited recurring payments, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी अमर्याद आवर्ती देयके"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Up to %(new)s recurring payments, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी %(new)s पर्यंत आवर्ती देयके"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Unlimited budget categories, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी अमर्याद बजेट श्रेणी"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Up to %(new)s budget categories, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी %(new)s पर्यंत बजेट श्रेणी"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Unlimited savings goals, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी अमर्याद बचत ध्येये"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Up to %(new)s savings goals, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी %(new)s पर्यंत बचत ध्येये"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Unlimited expenses each month, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी दरमहा अमर्याद खर्च"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Your whole net worth history, instead of the last %(cur)s months"
+msgstr "मागील %(cur)s महिन्यांऐवजी संपूर्ण नेट वर्थ इतिहास"
+
+#: finance_tracker/plans.py
+#, python-format
+msgid "Net worth history for %(new)s months, instead of %(cur)s"
+msgstr "%(cur)s ऐवजी %(new)s महिन्यांचा नेट वर्थ इतिहास"
+
+#: finance_tracker/plans.py
+msgid "Reminders and alerts by email"
+msgstr "ईमेलद्वारे स्मरणपत्रे आणि सूचना"
+
+#: finance_tracker/plans.py
+msgid "Your yearly review, with the year in numbers"
+msgstr "तुमचा वार्षिक आढावा, वर्षाच्या आकड्यांसह"
