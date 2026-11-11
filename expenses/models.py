@@ -446,7 +446,7 @@ class JournalEntry(models.Model):
         ('LOAN_REPAYMENT', _('Loan Repayment')),
         ('GOAL_CONTRIBUTION', _('Goal Contribution')),
         ('ADJUSTMENT', _('Adjustment')),
-        ('CAPITAL_EVENT', _('One-time big purchase')),
+        ('CAPITAL_EVENT', _('Big purchase')),
     ]
     STATUS_CHOICES = [
         ('POSTED', _('Posted')),
@@ -1732,7 +1732,7 @@ class RecurringTransaction(models.Model):
         ('INCOME', _('Income')),
         ('TRANSFER', _('Transfer')),
         ('LOAN', _('Loan Repayment')),
-        ('CAPITAL', _('One-time big purchase')),
+        ('CAPITAL', _('Big purchase')),
         ('INSURANCE_PREMIUM', _('Insurance Premium')),
     ]
 
@@ -1761,7 +1761,7 @@ class RecurringTransaction(models.Model):
         choices=CAPITAL_SUBTYPE_CHOICES,
         blank=True,
         null=True,
-        verbose_name=_('One-time big purchase type'),
+        verbose_name=_('Big purchase type'),
     )
     exclude_from_averages = models.BooleanField(default=True, verbose_name=_('Exclude from Averages & Trends'))
     exclude_from_budget = models.BooleanField(default=True, verbose_name=_('Exclude from Budget'))

@@ -56,7 +56,7 @@ Stop being the product. Most "free" finance apps profit by selling your spending
 *   **Internal Transfers**: Move money between accounts with balanced reconciliations.
 *   **Net Worth Tracking**: Watch your total wealth grow with automated balance aggregation and a history chart.
 *   **Holdings**: Track mutual fund and other investment holdings alongside your accounts.
-*   **One-time big purchases**: Record one-off big payments (a down payment, a medical bill) so they do not distort your monthly averages and budgets, while still counting in your net worth.
+*   **Big purchases**: Record one-off big payments (a down payment, a medical bill) so they do not distort your monthly averages and budgets, while still counting in your net worth.
 
 ### 🔎 Filters and Search
 *   **One Filter Bar Everywhere**: The same time period menu, filter chips and sorting on every list page.

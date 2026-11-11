@@ -312,7 +312,7 @@ class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
     def post(self, request, pk):
         expense = get_object_by_uuid_or_pk(Expense, pk, user=request.user)
         if not expense.account_id:
-            messages.error(request, _("Edit this expense and choose an account first, so the one-time big purchase is charged to an account."))
+            messages.error(request, _("Edit this expense and choose an account first, so the big purchase is charged to an account."))
             return redirect('expense-list')
         with transaction.atomic():
             # Match the category to a CapitalEvent subtype if possible, otherwise use 'other'
@@ -339,7 +339,7 @@ class ExpenseConvertToCapitalEventView(LoginRequiredMixin, View):
                 refund_for_expense=None, refund_for_capital_event=event)
             expense.delete()
         ph_capture(request.user, 'expense_converted_to_capital_event', {})
-        messages.success(request, _("Expense converted to a one-time big purchase."))
+        messages.success(request, _("Expense converted to a big purchase."))
         
         next_url = request.GET.get('next') or request.POST.get('next')
         return redirect(get_safe_redirect_url(request, next_url, reverse('capital-event-list')))

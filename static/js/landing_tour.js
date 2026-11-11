@@ -6,7 +6,7 @@
   var IC={dashboard:'speedometer2',flows:'diagram-3',analytics:'pie-chart',transactions:'list-columns-reverse',expenses:'credit-card',income:'cash-coin',budgets:'wallet2',subs:'arrow-repeat',calendar:'calendar3',accounts:'bank',holdings:'pie-chart',family:'people',loans:'shield-lock',capital:'gem',goals:'bullseye'};
   var NAV=[['Overview',[['dashboard','Dashboard'],['flows','Guided Setup','n','New']]],
    ['Cash flow',[['transactions','Transactions'],['expenses','Expenses'],['income','Income'],['budgets','Budgets'],['subs','Subscriptions','d','due soon'],['calendar','Calendar','c','2 this week']]],
-   ['Net worth',[['accounts','Accounts'],['holdings','Holdings'],['family','Family','n','New'],['loans','Loans','n','1 active'],['capital','One-time big purchases'],['goals','Goals','n','2 active']]],
+   ['Net worth',[['accounts','Accounts'],['holdings','Holdings'],['family','Family','n','New'],['loans','Loans','n','1 active'],['capital','Big purchases'],['goals','Goals','n','2 active']]],
    ['Insights',[['analytics','Analytics']]]];
   function bi(n,c){return '<i class="bi bi-'+n+(c?' '+c:'')+'"></i>'}
 

@@ -202,7 +202,7 @@ class TestIncomeForm(RefundLinkTestBase):
         page = self.client.get(reverse('income-create'))
         self.assertContains(page, 'refund_for_capital_event')
         listing = self.client.get(reverse('income-list'))
-        self.assertContains(listing, 'Pays back a one-time big purchase')
+        self.assertContains(listing, 'Pays back a big purchase')
 
     def test_dashboard_still_renders_with_a_linked_refund(self):
         event = self.capital(20000, excluded=False)

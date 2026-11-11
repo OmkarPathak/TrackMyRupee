@@ -443,10 +443,10 @@ class TestTranslated(TestCase):
     """The words of the expense refund picker read in Hindi and Marathi, not English."""
 
     STRINGS = [
-        'Refund for expense', 'Refunded (base currency)', 'Recent', 'Matches', 'No matching expenses or one-time big purchases',
+        'Refund for expense', 'Refunded (base currency)', 'Recent', 'Matches', 'No matching expenses or big purchases',
         'Not linked to anything', 'Counts as income', 'Unlink this refund', 'Paid back to you against this expense',
-        'A refund pays back either a one-time big purchase or an expense, not both.',
-        'Search your expenses and one-time big purchases to link this refund to one. It is then taken off that expense or purchase, '
+        'A refund pays back either a big purchase or an expense, not both.',
+        'Search your expenses and big purchases to link this refund to one. It is then taken off that expense or purchase, '
         'so its month, category and budget show what it really cost, instead of counting as income.',
         'Nothing has been paid back against this expense yet. If someone repays you for part of it, add it as a refund '
         'and only your own share stays counted.',

@@ -44,11 +44,15 @@
                                 <div class="text-danger small mt-1">{{ form.from_account.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        <div class="col-12 text-center py-0" aria-hidden="true">
-                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle border text-muted" style="width: 36px; height: 36px;"><i class="bi bi-arrow-down"></i></span>
-                        </div>
-                        <div class="col-12 mt-0">
-                            <label for="{{ form.to_account.id_for_label }}" class="form-label small text-muted fw-bold">{% trans "To" %}</label>
+                        <div class="col-12">
+                            <div class="d-flex align-items-end justify-content-between">
+                                <label for="{{ form.to_account.id_for_label }}" class="form-label small text-muted fw-bold mb-2">{% trans "To" %}</label>
+                                {% if form.has_two_accounts %}
+                                <button type="button" id="swapAccounts" class="btn btn-link btn-sm text-decoration-none p-0 mb-2 tmr-ic" aria-label="{% trans 'Swap the From and To accounts' %}">
+                                    <i class="bi bi-arrow-down-up"></i>{% trans "Swap" %}
+                                </button>
+                                {% endif %}
+                            </div>
                             {{ form.to_account }}
                             {% if form.to_account.errors %}
                                 <div class="text-danger small mt-1">{{ form.to_account.errors.0 }}</div>
@@ -277,6 +281,22 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
+(function() {
+    // Swap: the From and To accounts trade places. The change events keep everything that listens to either
+    // account (the styled dropdowns, the amount's currency, any fund allocation) in step.
+    const swap = document.getElementById('swapAccounts');
+    const fromSel = document.getElementById('{{ form.from_account.id_for_label }}');
+    const toSel = document.getElementById('{{ form.to_account.id_for_label }}');
+    if (swap && fromSel && toSel) {
+        swap.addEventListener('click', function() {
+            const first = fromSel.value, second = toSel.value;
+            fromSel.value = second;
+            toSel.value = first;
+            fromSel.dispatchEvent(new Event('change', { bubbles: true }));
+            toSel.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    }
+})();
 (function() {
     const btn = document.getElementById('moveMoneySubmit');
     const amount = document.getElementById('{{ form.amount.id_for_label }}');

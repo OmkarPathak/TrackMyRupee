@@ -93,7 +93,7 @@ This guide walks you through every feature, step by step.
 | [Transfers](06-transfers/index.md) | Moving money without double-counting |
 | [Budgets](07-budgets/index.md) | Category limits, Needs Attention |
 | [Loans](08-loans/index.md) | EMI preview, repayments, auto-close |
-| [One-time big purchases](09-capital-events/index.md) | Large one-off payments |
+| [Big purchases](09-capital-events/index.md) | Large one-off payments |
 | [Calendar](10-calendar/index.md) | Day-by-day audit trail |
 | [Analytics](11-analytics-and-health/index.md) | Spending, cashflow, net worth, savings rate |
 | [Insights](18-insights/index.md) | Calm observations about your own money, and how to control them |

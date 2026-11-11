@@ -28,7 +28,7 @@ The form is organized into three steps:
 ![Step 1 of the subscription form](img/subscription-step1-desktop.webp){ loading=lazy width="545" }
 
 
-- **Transaction Type**: Choose Expense for bills like streaming services or phone plans, Income for a monthly retainer, Transfer for a recurring investment or SIP, Loan Repayment for EMI payments, one-time big purchase for a repeating big one-off (such as an instalment on a purchase), or Insurance Premium for a policy.
+- **Transaction Type**: Choose Expense for bills like streaming services or phone plans, Income for a monthly retainer, Transfer for a recurring investment or SIP, Loan Repayment for EMI payments, big purchase for a repeating big one-off (such as an instalment on a purchase), or Insurance Premium for a policy.
 - **Description**: The name of the subscription (for example, "Airtel Broadband" or "Netflix").
 - **Amount**: The recurring amount. It must be greater than zero.
 - **Currency**: Defaults to your profile currency.
@@ -88,9 +88,9 @@ A subscription **stops and turns inactive** by itself when:
 
 ## 4. The "Renewing Soon" Section
 
-The Subscriptions list at `/recurring/` shows a **Renewing Soon** section for every subscription that takes money out and is due within the next 30 days, soonest first. That includes expenses, transfers (such as SIPs), loan EMIs, insurance premiums, and one-time big purchases. Recurring **income** is not listed, because nothing is leaving your account. The sidebar also shows a due-soon badge when subscriptions are coming up.
+The Subscriptions list at `/recurring/` shows a **Renewing Soon** section for every subscription that takes money out and is due within the next 30 days, soonest first. That includes expenses, transfers (such as SIPs), loan EMIs, insurance premiums, and big purchases. Recurring **income** is not listed, because nothing is leaving your account. The sidebar also shows a due-soon badge when subscriptions are coming up.
 
-Above the list you will see your **monthly, daily, and yearly cost**: every active expense, loan EMI, insurance premium, and one-time big purchase converted to a per-month and per-year figure (a quarterly bill of Rs. 1,200 counts as Rs. 400 a month). Income and transfers are not costs, so they are left out.
+Above the list you will see your **monthly, daily, and yearly cost**: every active expense, loan EMI, insurance premium, and big purchase converted to a per-month and per-year figure (a quarterly bill of Rs. 1,200 counts as Rs. 400 a month). Income and transfers are not costs, so they are left out.
 
 
 ![The Subscriptions page](img/subscriptions-list-desktop.webp){ loading=lazy }

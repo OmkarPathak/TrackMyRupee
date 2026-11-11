@@ -151,7 +151,7 @@ def _feature_categories():
                 },
                 {
                     'title': _('Big one-off costs, kept separate'),
-                    'desc': _('Record a wedding, a car down payment or a medical bill as a one-time big purchase, and choose whether it counts towards your averages, so one big month does not distort your picture.'),
+                    'desc': _('Record a wedding, a car down payment or a medical bill as a big purchase, and choose whether it counts towards your averages, so one big month does not distort your picture.'),
                 },
             ],
         },
@@ -228,7 +228,7 @@ def _feature_categories():
                 },
                 {
                     'title': _('It follows your real month'),
-                    'desc': _('Insights use your salary cycle, your choices about one-time big purchases and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app.'),
+                    'desc': _('Insights use your salary cycle, your choices about big purchases and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app.'),
                 },
                 {
                     'title': _('You choose how loud it is'),

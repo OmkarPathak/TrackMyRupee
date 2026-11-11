@@ -1869,7 +1869,7 @@ msgstr "लोन चुकौती"
 #: templates/expenses/partials/_recurring_transaction_list.html:401
 #: templates/expenses/partials/_recurring_transaction_list.html:581
 #: templates/expenses/partials/_transaction_list.html:237
-msgid "One-time big purchase"
+msgid "Big purchase"
 msgstr "बड़ी एकमुश्त खरीद"
 
 #: expenses/forms.py:358 expenses/models.py:1488
@@ -1917,7 +1917,7 @@ msgid "Payment account is required."
 msgstr "भुगतान खाता आवश्यक है।"
 
 #: expenses/forms.py:499
-msgid "Subtype is required for one-time big purchases."
+msgid "Subtype is required for big purchases."
 msgstr "बड़ी एकमुश्त खरीद के लिए उप-प्रकार आवश्यक है।"
 
 #: expenses/forms.py:510
@@ -2452,7 +2452,7 @@ msgid "Optional. Without one, it is reported under its purchase type."
 msgstr "वैकल्पिक। इसके बिना यह अपने खरीद प्रकार के अंतर्गत दिखेगा।"
 
 #: expenses/forms.py:1905
-msgid "One-time big purchase date cannot be in the future."
+msgid "Big purchase date cannot be in the future."
 msgstr "बड़ी एकमुश्त खरीद की तिथि भविष्य में नहीं हो सकती।"
 
 #: expenses/forms.py:1926
@@ -3252,7 +3252,7 @@ msgid "Insurance Policy"
 msgstr "बीमा पॉलिसी"
 
 #: expenses/models.py:1516
-msgid "One-time big purchase type"
+msgid "Big purchase type"
 msgstr "बड़ी एकमुश्त खरीद का उप-प्रकार"
 
 #: expenses/models.py:1518 expenses/models.py:2725
@@ -3983,7 +3983,7 @@ msgid "Big one-off costs, kept separate"
 msgstr "बड़े एकमुश्त खर्च, अलग रखे गए"
 
 #: expenses/public_features.py:152
-msgid "Record a wedding, a car down payment or a medical bill as a one-time big purchase, and choose whether it counts towards your averages, so one big month does not distort your picture."
+msgid "Record a wedding, a car down payment or a medical bill as a big purchase, and choose whether it counts towards your averages, so one big month does not distort your picture."
 msgstr "शादी, कार का डाउन पेमेंट या मेडिकल बिल को बड़ी एकमुश्त खरीद के रूप में दर्ज करें, और चुनें कि वह आपके औसत में गिना जाए या नहीं, ताकि एक बड़ा महीना आपकी तस्वीर न बिगाड़े।"
 
 #: expenses/public_features.py:158
@@ -4548,7 +4548,7 @@ msgstr "%(amount)s का मुनाफ़ा Investment Returns आय के
 
 #: expenses/views/accounts.py:2279
 #, python-format
-msgid "a loss of %(amount)s is recorded as a one-time big purchase"
+msgid "a loss of %(amount)s is recorded as a big purchase"
 msgstr "%(amount)s का घाटा बड़ी एकमुश्त खरीद के रूप में दर्ज होता है"
 
 #: expenses/views/accounts.py:2281
@@ -4990,23 +4990,23 @@ msgid "Original expense deleted after conversion."
 msgstr "रूपांतरण के बाद मूल खर्च हटा दिया गया।"
 
 #: expenses/views/capital_events.py:148
-msgid "One-time big purchase recorded successfully."
+msgid "Big purchase recorded successfully."
 msgstr "बड़ी एकमुश्त खरीद सफलतापूर्वक दर्ज की गई।"
 
 #: expenses/views/capital_events.py:152
-msgid "Unable to save one-time big purchase because currency conversion failed or data is invalid."
+msgid "Unable to save big purchase because currency conversion failed or data is invalid."
 msgstr "बड़ी एकमुश्त खरीद सहेजी नहीं जा सकी, क्योंकि मुद्रा रूपांतरण विफल रहा या डेटा अमान्य है।"
 
 #: expenses/views/capital_events.py:193
-msgid "One-time big purchase updated."
+msgid "Big purchase updated."
 msgstr "बड़ी एकमुश्त खरीद अपडेट की गई।"
 
 #: expenses/views/capital_events.py:198
-msgid "Unable to update one-time big purchase because currency conversion failed or data is invalid."
+msgid "Unable to update big purchase because currency conversion failed or data is invalid."
 msgstr "बड़ी एकमुश्त खरीद अपडेट नहीं हो सकी, क्योंकि मुद्रा रूपांतरण विफल रहा या डेटा अमान्य है।"
 
 #: expenses/views/capital_events.py:226
-msgid "One-time big purchase deleted."
+msgid "Big purchase deleted."
 msgstr "बड़ी एकमुश्त खरीद हटा दी गई।"
 
 #: expenses/views/capital_events.py:244
@@ -5018,11 +5018,11 @@ msgid "You have reached the monthly expense limit for your plan, so this purchas
 msgstr "आप अपने प्लान की मासिक खर्च सीमा तक पहुँच चुके हैं, इसलिए इस खरीद को खर्च में नहीं बदला जा सकता। और जोड़ने के लिए अपग्रेड करें।"
 
 #: expenses/views/capital_events.py:263
-msgid "One-time big purchase converted to a regular expense."
+msgid "Big purchase converted to a regular expense."
 msgstr "बड़ी एकमुश्त खरीद को सामान्य खर्च में बदल दिया गया।"
 
 #: expenses/views/capital_events.py:267
-msgid "Unable to convert one-time big purchase because currency conversion failed or data is invalid."
+msgid "Unable to convert big purchase because currency conversion failed or data is invalid."
 msgstr "बड़ी एकमुश्त खरीद को बदला नहीं जा सका, क्योंकि मुद्रा रूपांतरण विफल रहा या डेटा अमान्य है।"
 
 #: expenses/views/categories.py:103
@@ -5539,14 +5539,6 @@ msgstr ""
 " इसी रफ़्तार से (साल की शुरुआत से अब तक के औसत के आधार पर), आप साल के अंत तक"
 " {proj} बचा सकते हैं।"
 
-#: templates/components/sidebar.html
-msgid "Big purchases"
-msgstr "बड़ी खरीदारी"
-
-#: templates/components/sidebar.html
-msgid "Add big purchase"
-msgstr "बड़ी खरीदारी जोड़ें"
-
 #: expenses/views/dashboard.py:1873 expenses/views/dashboard.py:2130
 #: expenses/views/dashboard.py:2878 templates/components/navbar.html:494
 #: templates/components/sidebar.html:171 templates/components/sidebar.html:173
@@ -5556,26 +5548,26 @@ msgstr "बड़ी खरीदारी जोड़ें"
 #: templates/expenses/loan_detail.html:189
 #: templates/expenses/partials/_capital_event_list.html:7
 #: templates/expenses/partials/_capital_event_list.html:28
-msgid "One-time big purchases"
-msgstr "बड़ी एकमुश्त खरीदें"
+msgid "Big purchases"
+msgstr "बड़ी खरीदारी"
 
 #: expenses/views/dashboard.py:1887
 #, python-brace-format
-msgid "One-time big purchase: <b>{}</b> this month"
+msgid "Big purchase: <b>{}</b> this month"
 msgstr "बड़ी एकमुश्त खरीद: इस महीने <b>{}</b>"
 
 #: expenses/views/dashboard.py:1889
-msgid "<b>One-time big purchase</b>"
+msgid "<b>Big purchase</b>"
 msgstr "<b>बड़ी एकमुश्त खरीद</b>"
 
 #: expenses/views/dashboard.py:1891
 #, python-brace-format
-msgid "<b>{} one-time big purchases this month</b>"
+msgid "<b>{} big purchases this month</b>"
 msgstr "<b>इस महीने {} बड़ी एकमुश्त खरीदें</b>"
 
 #: expenses/views/dashboard.py:1895
 #, python-brace-format
-msgid "{title} You made a one-off payment of {curr}{total}. <a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>View one-time big purchases &rarr;</a>"
+msgid "{title} You made a one-off payment of {curr}{total}. <a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>View big purchases &rarr;</a>"
 msgstr "{title} आपने {curr}{total} का एकबारगी भुगतान किया। <a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>बड़ी एकमुश्त खरीदें देखें &rarr;</a>"
 
 #: expenses/views/dashboard.py:1917
@@ -5889,11 +5881,11 @@ msgid "No valid expenses found to update."
 msgstr "अपडेट करने के लिए कोई मान्य खर्च नहीं मिला।"
 
 #: expenses/views/expenses.py:281
-msgid "Edit this expense and choose an account first, so the one-time big purchase is charged to an account."
+msgid "Edit this expense and choose an account first, so the big purchase is charged to an account."
 msgstr "पहले इस खर्च को संपादित करके कोई खाता चुनें, ताकि बड़ी एकमुश्त खरीद का शुल्क उस खाते से लगे।"
 
 #: expenses/views/expenses.py:305
-msgid "Expense converted to a one-time big purchase."
+msgid "Expense converted to a big purchase."
 msgstr "खर्च को बड़ी एकमुश्त खरीद में बदल दिया गया।"
 
 #: expenses/views/export.py:198
@@ -8183,7 +8175,7 @@ msgid "Edit amount"
 msgstr "राशि बदलें"
 
 #: templates/components/expense_composer_card.html:30
-msgid "Log as one-time big purchase instead"
+msgid "Log as big purchase instead"
 msgstr "इसके बजाय बड़ी एकमुश्त खरीद के रूप में दर्ज करें"
 
 #: templates/components/expense_composer_card.html:31
@@ -8982,8 +8974,8 @@ msgstr "लोन (Plus/Pro)"
 #: templates/expenses/capital_event_form.html:13
 #: templates/expenses/capital_event_form.html:52
 #: templates/expenses/partials/_capital_event_list.html:31
-msgid "Add one-time big purchase"
-msgstr "बड़ी एकमुश्त खरीद जोड़ें"
+msgid "Add big purchase"
+msgstr "बड़ी खरीदारी जोड़ें"
 
 #: templates/components/sidebar.html:225
 msgid "plan"
@@ -9740,7 +9732,7 @@ msgstr "अंतर का आधा: हो सकता है इसे ग�
 
 #: templates/expenses/account_reconcile.html:113
 #, python-format
-msgid "Some older entries were saved without an account and never changed a balance: %(e)s expenses, %(i)s income, %(c)s one-time big purchases."
+msgid "Some older entries were saved without an account and never changed a balance: %(e)s expenses, %(i)s income, %(c)s big purchases."
 msgstr "कुछ पुरानी प्रविष्टियाँ बिना अकाउंट के सहेजी गई थीं और उन्होंने कभी शेष नहीं बदला: %(e)s खर्च, %(i)s आय, %(c)s बड़ी एकमुश्त खरीदें।"
 
 #: templates/expenses/account_reconcile.html:118
@@ -10121,11 +10113,11 @@ msgid "Every category already has a limit."
 msgstr "हर श्रेणी की पहले से सीमा है।"
 
 #: templates/expenses/capital_event_confirm_delete.html:4
-msgid "Delete one-time big purchase"
+msgid "Delete big purchase"
 msgstr "बड़ी एकमुश्त खरीद हटाएँ"
 
 #: templates/expenses/capital_event_confirm_delete.html:12
-msgid "Delete one-time big purchase?"
+msgid "Delete big purchase?"
 msgstr "बड़ी एकमुश्त खरीद हटाएँ?"
 
 #: templates/expenses/capital_event_confirm_delete.html:19
@@ -10135,7 +10127,7 @@ msgstr "यदि यह खरीद किसी अकाउंट के श
 #: templates/expenses/capital_event_form.html:4
 #: templates/expenses/capital_event_form.html:13
 #: templates/expenses/capital_event_form.html:52
-msgid "Edit one-time big purchase"
+msgid "Edit big purchase"
 msgstr "बड़ी एकमुश्त खरीद संपादित करें"
 
 #: templates/expenses/capital_event_form.html:15
@@ -10147,15 +10139,15 @@ msgstr ""
 "बड़े एक बार के भुगतान, जो मासिक औसत और बजट ट्रैकिंग से बाहर रखे जाते हैं।"
 
 #: templates/expenses/capital_event_form.html:28
-msgid "What is a one-time big purchase?"
+msgid "What is a big purchase?"
 msgstr "बड़ी एकमुश्त खरीद क्या है?"
 
 #: templates/expenses/capital_event_form.html:29
-msgid "\n                    A one-time big purchase is a large, one-off payment (like a home loan down payment, a lump-sum medical bill, or a big purchase)\n                    that you don't want distorting your regular monthly spending charts and averages.\n                    It will still appear in your cash flow and net worth calculations.\n                    "
+msgid "\n                    A big purchase is a large, one-off payment (like a home loan down payment, a lump-sum medical bill, or a big purchase)\n                    that you don't want distorting your regular monthly spending charts and averages.\n                    It will still appear in your cash flow and net worth calculations.\n                    "
 msgstr "\n                    बड़ी एकमुश्त खरीद एक बड़ा, एक बार का भुगतान होता है (जैसे होम लोन का डाउन पेमेंट, एकमुश्त मेडिकल बिल, या कोई बड़ी खरीद)\nजो आप नहीं चाहते कि आपके सामान्य मासिक खर्च चार्ट और औसत को बिगाड़े।\nयह फिर भी आपके कैश फ़्लो और नेट वर्थ की गणना में दिखेगा।\n                    "
 
 #: templates/expenses/capital_event_form.html:43
-msgid "You're converting a regular expense into a one-time big purchase. You can optionally delete the original expense after saving."
+msgid "You're converting a regular expense into a big purchase. You can optionally delete the original expense after saving."
 msgstr "आप एक सामान्य खर्च को बड़ी एकमुश्त खरीद में बदल रहे हैं। चाहें तो सहेजने के बाद मूल खर्च हटा सकते हैं।"
 
 #: templates/expenses/capital_event_form.html:91
@@ -10434,11 +10426,11 @@ msgid "Large payment detected"
 msgstr "बड़ा भुगतान मिला"
 
 #: templates/expenses/expense_form.html:216
-msgid "This looks like a large one-time payment. Logging it as a one-time big purchase will keep your monthly trends and averages accurate."
+msgid "This looks like a large one-time payment. Logging it as a big purchase will keep your monthly trends and averages accurate."
 msgstr "यह एक बड़ा एकमुश्त भुगतान लगता है। इसे बड़ी एकमुश्त खरीद के रूप में दर्ज करने से आपके मासिक रुझान और औसत सही रहेंगे।"
 
 #: templates/expenses/expense_form.html:219
-msgid "Log as one-time big purchase"
+msgid "Log as big purchase"
 msgstr "बड़ी एकमुश्त खरीद के रूप में दर्ज करें"
 
 #: templates/expenses/expense_form.html:222
@@ -11532,7 +11524,7 @@ msgid "Grand Total Paid to Bank"
 msgstr "बैंक को चुकाई गई कुल राशि"
 
 #: templates/expenses/loan_detail.html:214
-msgid "Add one-time big purchase for this Loan"
+msgid "Add big purchase for this Loan"
 msgstr "इस लोन के लिए बड़ी एकमुश्त खरीद जोड़ें"
 
 #: templates/expenses/loan_detail.html:226
@@ -12293,7 +12285,7 @@ msgstr "चुकौती हटाएँ"
 #: templates/expenses/partials/_account_row_actions.html:26
 #: templates/expenses/partials/_transaction_list.html:295
 #: templates/expenses/partials/_transaction_list.html:374
-msgid "Are you sure you want to delete this one-time big purchase?"
+msgid "Are you sure you want to delete this big purchase?"
 msgstr "क्या आप वाकई यह बड़ी एकमुश्त खरीद हटाना चाहते हैं?"
 
 #: templates/expenses/partials/_budget_cat_flags.html:4
@@ -12768,12 +12760,12 @@ msgstr "नेट वर्थ से बाहर"
 #: templates/expenses/partials/_capital_event_list.html:114
 #: templates/expenses/partials/_capital_event_list.html:210
 #: templates/expenses/partials/_capital_event_list.html:212
-msgid "One-time big purchase actions"
+msgid "Big purchase actions"
 msgstr "बड़ी एकमुश्त खरीद कार्रवाइयाँ"
 
 #: templates/expenses/partials/_capital_event_list.html:125
 #: templates/expenses/partials/_capital_event_list.html:223
-msgid "Convert this one-time big purchase to a regular expense?"
+msgid "Convert this big purchase to a regular expense?"
 msgstr "इस बड़ी एकमुश्त खरीद को सामान्य खर्च में बदलें?"
 
 #: templates/expenses/partials/_capital_event_list.html:129
@@ -12784,23 +12776,23 @@ msgstr "खर्च में बदलें"
 #: templates/expenses/partials/_capital_event_list.html:137
 #: templates/expenses/partials/_capital_event_list.html:235
 #, python-format
-msgid "Are you sure you want to delete this one-time big purchase ('%(name)s')?"
+msgid "Are you sure you want to delete this big purchase ('%(name)s')?"
 msgstr "क्या आप वाकई यह बड़ी एकमुश्त खरीद ('%(name)s') हटाना चाहते हैं?"
 
 #: templates/expenses/partials/_capital_event_list.html:255
-msgid "One-time big purchase pagination"
+msgid "Big purchase pagination"
 msgstr "बड़ी एकमुश्त खरीद पृष्ठ-संख्या"
 
 #: templates/expenses/partials/_capital_event_list.html:302
-msgid "No one-time big purchases yet"
+msgid "No big purchases yet"
 msgstr "अभी कोई बड़ी एकमुश्त खरीद नहीं"
 
 #: templates/expenses/partials/_capital_event_list.html:303
-msgid "One-time big purchases are large one-off payments (e.g. a home loan down payment) that are excluded from your regular analytics so they don't distort your monthly trends."
+msgid "Big purchases are large one-off payments (e.g. a home loan down payment) that are excluded from your regular analytics so they don't distort your monthly trends."
 msgstr "बड़ी एकमुश्त खरीदें बड़े एकमुश्त भुगतान होते हैं (जैसे होम लोन का डाउन पेमेंट), जिन्हें आपके सामान्य विश्लेषण से बाहर रखा जाता है ताकि आपके मासिक ट्रेंड न बिगड़ें।"
 
 #: templates/expenses/partials/_capital_event_list.html:306
-msgid "Record your first one-time big purchase"
+msgid "Record your first big purchase"
 msgstr "अपनी पहली बड़ी एकमुश्त खरीद दर्ज करें"
 
 #: templates/expenses/partials/_category_list.html:14
@@ -12972,14 +12964,14 @@ msgstr "कार्रवाइयाँ:"
 #: templates/expenses/partials/_expense_list.html:545
 #: templates/expenses/partials/_transaction_list.html:281
 #: templates/expenses/partials/_transaction_list.html:360
-msgid "Are you sure you want to convert this expense into a one-time big purchase?"
+msgid "Are you sure you want to convert this expense into a big purchase?"
 msgstr "क्या आप वाकई इस खर्च को बड़ी एकमुश्त खरीद में बदलना चाहते हैं?"
 
 #: templates/expenses/partials/_expense_list.html:469
 #: templates/expenses/partials/_expense_list.html:547
 #: templates/expenses/partials/_transaction_list.html:282
 #: templates/expenses/partials/_transaction_list.html:361
-msgid "Convert to one-time big purchase"
+msgid "Convert to big purchase"
 msgstr "बड़ी एकमुश्त खरीद में बदलें"
 
 #: templates/expenses/partials/_expense_list.html:474
@@ -14021,7 +14013,7 @@ msgid "Account & Details"
 msgstr "खाता और विवरण"
 
 #: templates/expenses/recurring_transaction_form.html:112
-msgid "Choose expense, income, transfer, loan repayment, or one-time big purchase."
+msgid "Choose expense, income, transfer, loan repayment, or big purchase."
 msgstr "खर्च, आय, ट्रांसफ़र, लोन भुगतान या पूंजी घटना चुनें।"
 
 #: templates/expenses/recurring_transaction_form.html:118
@@ -14174,7 +14166,7 @@ msgid "Income source label (e.g. Employer, Dividends)."
 msgstr "आय के स्रोत का नाम (जैसे नियोक्ता, डिविडेंड)।"
 
 #: templates/expenses/recurring_transaction_form.html:380
-msgid "One-time big purchase details"
+msgid "Big purchase details"
 msgstr "पूंजी घटना का विवरण"
 
 #: templates/expenses/recurring_transaction_form.html:398
@@ -15784,7 +15776,7 @@ msgid "zero-leakage precision"
 msgstr "शून्य-रिसाव की सटीकता"
 
 #: templates/landing.html:1846
-msgid "One-time big purchases & milestones"
+msgid "Big purchases & milestones"
 msgstr "बड़ी एकमुश्त खरीदें और मील के पत्थर"
 
 #: templates/landing.html:1846
@@ -21006,7 +20998,7 @@ msgstr "इनसाइट्स आपकी अपनी प्रविष्
 msgid "Insights that notice for you"
 msgstr "इनसाइट्स जो आपके लिए ध्यान रखते हैं"
 
-msgid "Insights use your salary cycle, your choices about one-time big purchases and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app."
+msgid "Insights use your salary cycle, your choices about big purchases and your currency, the same way your budgets and totals do, so they never disagree with the rest of the app."
 msgstr "इनसाइट्स आपके वेतन चक्र, आपके Capital Events के चुनाव और आपकी मुद्रा का वैसे ही उपयोग करते हैं जैसे आपके बजट और योग करते हैं, इसलिए वे ऐप के बाकी हिस्सों से कभी असहमत नहीं होते।"
 
 msgid "It follows your real month"
@@ -21099,7 +21091,7 @@ msgid "TrackMyRupee insight"
 msgstr "TrackMyRupee इनसाइट"
 
 #: templates/components/expense_composer_card.html
-msgid "A big one-off purchase? Log it as a one-time big purchase so it doesn't skew your monthly spending and budgets."
+msgid "A big one-off purchase? Log it as a big purchase so it doesn't skew your monthly spending and budgets."
 msgstr "कोई बड़ी एक-बार की खरीद? इसे बड़ी एकमुश्त खरीद के रूप में दर्ज करें, ताकि यह आपके मासिक खर्च और बजट को न बिगाड़े।"
 
 #: expenses/family
@@ -23606,7 +23598,7 @@ msgid "Not linked: counts as income"
 msgstr "जुड़ा नहीं: आय में गिना जाएगा"
 
 #: expenses/forms.py:293
-msgid "Pick the one-time big purchase this pays back, so it reduces that purchase instead of adding to your income."
+msgid "Pick the big purchase this pays back, so it reduces that purchase instead of adding to your income."
 msgstr "वह बड़ी एकमुश्त खरीद चुनें जिसका यह भुगतान लौटाता है, ताकि यह आपकी आय में जुड़ने के बजाय उस खरीद की राशि घटाए।"
 
 #: templates/expenses/capital_event_form.html:166
@@ -23645,7 +23637,7 @@ msgid "Net"
 msgstr "शुद्ध"
 
 #: templates/expenses/partials/_income_list.html:165
-msgid "Pays back a one-time big purchase: reduces it instead of counting as income"
+msgid "Pays back a big purchase: reduces it instead of counting as income"
 msgstr "बड़ी एकमुश्त खरीद की भरपाई: आय में गिनने के बजाय उसे घटाता है"
 
 #: templates/expenses/partials/_income_list.html:165
@@ -23662,7 +23654,7 @@ msgid "Refunded (base currency)"
 msgstr "रिफंड (मूल मुद्रा)"
 
 #: expenses/forms.py:381
-msgid "A refund pays back either a one-time big purchase or an expense, not both."
+msgid "A refund pays back either a big purchase or an expense, not both."
 msgstr "एक रिफंड या तो बड़ी एकमुश्त खरीद की भरपाई करता है या किसी खर्च की, दोनों की नहीं।"
 
 #: expenses/forms.py:397
@@ -23678,7 +23670,7 @@ msgid "Matches"
 msgstr "मिलान"
 
 #: templates/expenses/income_form.html:84
-msgid "No matching expenses or one-time big purchases"
+msgid "No matching expenses or big purchases"
 msgstr "कोई मेल खाता खर्च या बड़ी एकमुश्त खरीद नहीं"
 
 #: templates/expenses/income_form.html:85
@@ -23695,7 +23687,7 @@ msgid "Unlink this refund"
 msgstr "इस रिफंड का लिंक हटाएँ"
 
 #: templates/expenses/income_form.html:105
-msgid "Search your expenses and one-time big purchases to link this refund to one. It is then taken off that expense or purchase, so its month, category and budget show what it really cost, instead of counting as income."
+msgid "Search your expenses and big purchases to link this refund to one. It is then taken off that expense or purchase, so its month, category and budget show what it really cost, instead of counting as income."
 msgstr "इस रिफंड को जोड़ने के लिए अपने खर्च और बड़ी एकमुश्त खरीदें खोजें। फिर इसे उस खर्च या खरीद में से घटाया जाता है, इसलिए उसका महीना, श्रेणी और बजट उसकी असली लागत दिखाते हैं, और यह आय में नहीं गिना जाता।"
 
 #: templates/expenses/partials/_expense_list.html:454
@@ -23730,7 +23722,7 @@ msgstr "प्राप्त हुआ पैसा दर्ज करें"
 msgid "Guide"
 msgstr "गाइड"
 
-msgid "Refunds cannot add up to more than the one-time big purchase cost. At most %(left)s can still be refunded against it."
+msgid "Refunds cannot add up to more than the big purchase cost. At most %(left)s can still be refunded against it."
 msgstr "रिफंड की कुल राशि बड़ी एकमुश्त खरीद की लागत से अधिक नहीं हो सकती। इसके विरुद्ध अधिकतम %(left)s और रिफंड किया जा सकता है।"
 
 msgid "This expense has %(refunded)s paid back against it, so its cost cannot be less than that. Change or remove the refund first."
@@ -23933,3 +23925,11 @@ msgstr "खाते के प्रकार खोजें"
 #: templates/expenses/account_form.html
 msgid "Nothing matches. Try another word, or pick a kind."
 msgstr "कुछ नहीं मिला। कोई और शब्द आज़माएँ, या कोई प्रकार चुनें।"
+
+#: templates/expenses/transfer_form.html
+msgid "Swap"
+msgstr "अदला-बदली"
+
+#: templates/expenses/transfer_form.html
+msgid "Swap the From and To accounts"
+msgstr "From और To खातों की अदला-बदली करें"

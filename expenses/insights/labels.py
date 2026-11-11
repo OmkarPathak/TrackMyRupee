@@ -12,7 +12,7 @@ MODULE_LABELS = {
     Module.GOALS: _('Goals'),
     Module.RECURRING: _('Recurring payments'),
     Module.TRANSFERS: _('Transfers and investing'),
-    Module.CAPITAL_EVENTS: _('One-time big purchases'),
+    Module.CAPITAL_EVENTS: _('Big purchases'),
     Module.HOLDINGS: _('Holdings'),
     Module.CALENDAR: _('Calendar'),
     Module.ANALYTICS: _('Analytics'),

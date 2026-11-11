@@ -34,7 +34,7 @@ The first time you open the Dashboard after the wizard, a short tour points out 
 
 ### Getting around on a phone
 
-The bottom bar names each page under its icon: **Dashboard**, **Transactions**, **Accounts** and **More**, with the **+** button beside it for adding things. **More** holds everything else, in two groups: **Everyday** (Expenses, Income, Budgets, Subscriptions, Calendar, Analytics) and **Money & plans** (Holdings, Loans, Goals, One-time big purchases, Family, Guided Setup). Alerts, Settings, Legal, Theme and Logout sit underneath.
+The bottom bar names each page under its icon: **Dashboard**, **Transactions**, **Accounts** and **More**, with the **+** button beside it for adding things. **More** holds everything else, in two groups: **Everyday** (Expenses, Income, Budgets, Subscriptions, Calendar, Analytics) and **Money & plans** (Holdings, Loans, Goals, Big purchases, Family, Guided Setup). Alerts, Settings, Legal, Theme and Logout sit underneath.
 
 ---
 

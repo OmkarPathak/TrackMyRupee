@@ -78,11 +78,11 @@ A row with no category gets a match from your own categories or past entries, ot
 
 ### I paid for a group trip or dinner and my friends paid me back. How do I record it?
 
-Log your payment as usual (an expense, or a one-time big purchase if it is big). When the money comes back, add it as income with Source Type **Refund / Reimbursement** and, in the **Refund for** box, search for and pick the expense or one-time big purchase it paid back. The refund then stops counting as income, and that expense shows only your own share, in its own month, category and budget, while your account balance still goes up by what you received. The shortcut is **Add refund** in the expense's (or one-time big purchase's) menu. See [Refunds and Reimbursements](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back).
+Log your payment as usual (an expense, or a big purchase if it is big). When the money comes back, add it as income with Source Type **Refund / Reimbursement** and, in the **Refund for** box, search for and pick the expense or big purchase it paid back. The refund then stops counting as income, and that expense shows only your own share, in its own month, category and budget, while your account balance still goes up by what you received. The shortcut is **Add refund** in the expense's (or big purchase's) menu. See [Refunds and Reimbursements](../04-transactions-income/index.md#4-refunds-and-reimbursements-link-them-to-what-they-paid-back).
 
-### What is a One-Time Big Purchase and when should I use it?
+### What is a Big Purchase and when should I use it?
 
-A one-time big purchase is a large, one-off payment such as a car down-payment, home renovation advance, or lump-sum medical bill that you do not want distorting your monthly average charts. It still appears in your cash flow and net worth but is excluded from budget calculations. As a rule of thumb: if the amount is large enough to make your average monthly expense chart look abnormal for months, log it as a one-time big purchase. See [one-time big purchases](../09-capital-events/index.md).
+A big purchase is a large, one-off payment such as a car down-payment, home renovation advance, or lump-sum medical bill that you do not want distorting your monthly average charts. It still appears in your cash flow and net worth but is excluded from budget calculations. As a rule of thumb: if the amount is large enough to make your average monthly expense chart look abnormal for months, log it as a big purchase. See [big purchases](../09-capital-events/index.md).
 
 ### Why does the new expense form show a "Check" tag on some fields?
 
@@ -120,11 +120,11 @@ Expand the **Health Breakdown** section on the Analytics page to see four compon
 
 ### How is my savings rate calculated?
 
-Savings rate = (Income − Expenses − Loan interest − one-time big purchases that count towards averages) ÷ (Income − Cashback and Refund income) × 100. Refunds you linked to an expense or one-time big purchase are not income, and each expense counts for its amount less those refunds. The same formula is used on the Dashboard, Analytics, Month on Month, the Transactions page, and the monthly email. See [How the Savings Rate Is Calculated](../11-analytics-and-health/index.md#3-how-the-savings-rate-is-calculated) for the rules and a worked example.
+Savings rate = (Income − Expenses − Loan interest − big purchases that count towards averages) ÷ (Income − Cashback and Refund income) × 100. Refunds you linked to an expense or big purchase are not income, and each expense counts for its amount less those refunds. The same formula is used on the Dashboard, Analytics, Month on Month, the Transactions page, and the monthly email. See [How the Savings Rate Is Calculated](../11-analytics-and-health/index.md#3-how-the-savings-rate-is-calculated) for the rules and a worked example.
 
 ### Why is my savings rate different from what I expected?
 
-The usual reasons are: loan **principal** is not counted as spending (only the interest is), one-time big purchases are left out unless you turned off their **Exclude from Averages & Trends** setting, and Cashback and Refund income is not part of the base your rate is measured against (and a refund linked to an expense or one-time big purchase is not income at all). Also check that the pages you compare are looking at the same period and filters.
+The usual reasons are: loan **principal** is not counted as spending (only the interest is), big purchases are left out unless you turned off their **Exclude from Averages & Trends** setting, and Cashback and Refund income is not part of the base your rate is measured against (and a refund linked to an expense or big purchase is not income at all). Also check that the pages you compare are looking at the same period and filters.
 
 ---
 
@@ -136,7 +136,7 @@ When the remaining principal on a loan reaches zero, TrackMyRupee automatically 
 
 ### How do I log an extra prepayment on a loan?
 
-Log a **one-time big purchase** with the relevant Subtype and link it to the loan via the **Linked Loan** field. The Loan Detail page will then show the prepayment as part of total capital committed. See [one-time big purchases](../09-capital-events/index.md).
+Log a **big purchase** with the relevant Subtype and link it to the loan via the **Linked Loan** field. The Loan Detail page will then show the prepayment as part of total capital committed. See [big purchases](../09-capital-events/index.md).
 
 ---
 

@@ -110,7 +110,7 @@
                     {% if comparison.unaccounted.expenses or comparison.unaccounted.income or comparison.unaccounted.capital_events %}
                         <div class="alert alert-light border small">
                             <i class="bi bi-info-circle me-1"></i>
-                            {% blocktrans with e=comparison.unaccounted.expenses i=comparison.unaccounted.income c=comparison.unaccounted.capital_events %}Some older entries were saved without an account and never changed a balance: {{ e }} expenses, {{ i }} income, {{ c }} one-time big purchases.{% endblocktrans %}
+                            {% blocktrans with e=comparison.unaccounted.expenses i=comparison.unaccounted.income c=comparison.unaccounted.capital_events %}Some older entries were saved without an account and never changed a balance: {{ e }} expenses, {{ i }} income, {{ c }} big purchases.{% endblocktrans %}
                         </div>
                     {% endif %}
                     {% if comparison.missing_opening_entry %}

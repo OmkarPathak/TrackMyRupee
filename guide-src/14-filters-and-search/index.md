@@ -21,7 +21,7 @@ Almost every list in TrackMyRupee has the same bar across the top, so once you l
 | **+ Filter** | Adds extra conditions such as category, account, or amount. |
 | **Sort** (on the right) | Chooses the order, for example *Date, newest* or *Amount, highest*. |
 
-The bar appears on the Dashboard, Expenses, Income, Transactions, Accounts, Subscriptions, one-time big purchases, Categories, and on the detail pages for an account and a savings goal.
+The bar appears on the Dashboard, Expenses, Income, Transactions, Accounts, Subscriptions, big purchases, Categories, and on the detail pages for an account and a savings goal.
 
 ---
 
@@ -69,7 +69,7 @@ Filters combine. Pick two, and you see only what matches **both**.
 
 The **Amount** filter offers ranges such as *Under 500*, *500 to 2,000*, *2,000 to 10,000* and *Over 10,000*. They are in your own currency, using the amount converted to it. Each range includes its lower edge, so exactly 2,000 is in *2,000 to 10,000* and not in *500 to 2,000*, and every amount is in exactly one range.
 
-On the Expenses, Income and one-time big purchases pages the **Account** filter also has a **No account** choice. It lists older entries that were saved before every transaction needed an account. Open one and choose an account so it counts towards that account's balance.
+On the Expenses, Income and big purchases pages the **Account** filter also has a **No account** choice. It lists older entries that were saved before every transaction needed an account. Open one and choose an account so it counts towards that account's balance.
 
 ### What you can filter by, page by page
 
@@ -80,7 +80,7 @@ On the Expenses, Income and one-time big purchases pages the **Account** filter 
 | **Income** | Source Type, Income Group, Account, Amount |
 | **Transactions** | Transaction Type, Account, Amount |
 | **Subscriptions** | Category, Billing Cycle, Status, Account, Type |
-| **One-time big purchases** | Event Type, Account, Amount |
+| **Big purchases** | Event Type, Account, Amount |
 | **Accounts** | Account Type, Status, Pinned |
 | **Categories** | Budget |
 | **A single account** | Transaction Type, Category, Amount |

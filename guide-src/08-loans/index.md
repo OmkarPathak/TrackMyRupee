@@ -77,7 +77,7 @@ Use **Update Interest Rate** on the loan page and give the **New Annual Rate** a
 
 ### Down payments and prepayments
 
-A lump sum, such as a down payment or a prepayment, is recorded as a [one-time big purchase](../09-capital-events/index.md) with the subtype **Loan Down Payment** or **Loan Prepayment**, linked to the loan (the loan page has an **Add one-time big purchase for this Loan** shortcut). It counts fully as principal paid. One-time big purchases with other subtypes do not change the loan.
+A lump sum, such as a down payment or a prepayment, is recorded as a [big purchase](../09-capital-events/index.md) with the subtype **Loan Down Payment** or **Loan Prepayment**, linked to the loan (the loan page has an **Add big purchase for this Loan** shortcut). It counts fully as principal paid. Big purchases with other subtypes do not change the loan.
 
 ---
 
@@ -94,7 +94,7 @@ On the Loans list page, each loan card shows:
 
 At the top, **Total Remaining Debt** adds up the remaining principal of all your active loans. If a loan is in a different currency from your own, it is converted to your currency for these totals, while each card keeps its own currency.
 
-Use the **Active**, **Paid Off**, and **All Loans** tabs to switch between loans still running and finished ones. Click any loan card to open its detail page, which shows the repayment history, the amortization schedule, the principal-versus-interest breakdown, the interest rate history, and any linked one-time big purchases.
+Use the **Active**, **Paid Off**, and **All Loans** tabs to switch between loans still running and finished ones. Click any loan card to open its detail page, which shows the repayment history, the amortization schedule, the principal-versus-interest breakdown, the interest rate history, and any linked big purchases.
 
 ### The amortization schedule
 
@@ -114,7 +114,7 @@ The closed loan moves to the **Paid Off** tab for your records. It no longer cou
 
 ### Editing and deleting a loan
 
-Use **Edit** to change the name, type, principal, term, start date, or rate. If the loan has only one rate, editing the rate changes that rate; if you have added rate changes since, they are left as they are (use **Update Interest Rate** for new ones). **Deleting** a loan removes all its repayments (and gives the money back to the accounts they were paid from) and its recurring repayment. One-time big purchases you had linked to it are kept, just unlinked.
+Use **Edit** to change the name, type, principal, term, start date, or rate. If the loan has only one rate, editing the rate changes that rate; if you have added rate changes since, they are left as they are (use **Update Interest Rate** for new ones). **Deleting** a loan removes all its repayments (and gives the money back to the accounts they were paid from) and its recurring repayment. Big purchases you had linked to it are kept, just unlinked.
 
 !!! example "Real-world use case"
     Ravi took a Rs. 1,20,000 personal loan 6 months ago to fund a travel trip. He adds it to TrackMyRupee with Principal Amount Rs. 1,20,000, Interest Rate 14 percent, Duration 12 months, and the disbursement date. The app calculates his estimated EMI at approximately Rs. 10,774 per month. Each time he makes a payment, the recurring engine auto-posts a Loan Repayment entry, and the paid-off percentage bar on the loan card ticks upward, giving him a visible motivation to make an extra prepayment and close it in 10 months instead of 12.
@@ -124,4 +124,4 @@ Use **Edit** to change the name, type, principal, term, start date, or rate. If 
 ## Related Links
 - [Accounts and Net Worth](../02-accounts/index.md)
 - [Recurring Transactions and Subscriptions](../05-transactions-recurring/index.md)
-- [one-time big purchases](../09-capital-events/index.md)
+- [big purchases](../09-capital-events/index.md)

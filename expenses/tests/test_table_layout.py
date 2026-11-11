@@ -127,7 +127,7 @@ class EveryListTableTests(TestCase):
     def test_each_page_uses_the_shared_table(self):
         pages = {
             'transfers': reverse('transfer-list'),
-            'One-time big purchases': reverse('capital-event-list') + '?time_period=all',
+            'Big purchases': reverse('capital-event-list') + '?time_period=all',
             'categories': reverse('category-list'),
             'goal detail': reverse('goal-detail', args=[self.goal.pk]),
             'holdings': reverse('holding-list'),

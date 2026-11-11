@@ -41,7 +41,7 @@
                     <p class="text-muted small mb-1">{% trans "Principal Paid" %}</p>
                     <h4 class="fw-bold mb-0 text-success">{{ loan.currency }}{% widthratio summary.principal_paid|add:summary.capital_prepaid 1 1 %}</h4>
                     {% if summary.capital_prepaid > 0 %}
-                    <p class="text-muted mb-0" style="font-size:0.72rem;">{% trans "incl." %} {{ loan.currency }}{{ summary.capital_prepaid|ind_comma:loan.currency|translate_digits }} {% trans "One-time big purchases" %}</p>
+                    <p class="text-muted mb-0" style="font-size:0.72rem;">{% trans "incl." %} {{ loan.currency }}{{ summary.capital_prepaid|ind_comma:loan.currency|translate_digits }} {% trans "Big purchases" %}</p>
                     {% endif %}
                 </div>
             </div>
@@ -186,7 +186,7 @@
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <i class="bi bi-flag-fill text-primary"></i>
-                            <h6 class="fw-bold mb-0">{% trans "One-time big purchases" %}</h6>
+                            <h6 class="fw-bold mb-0">{% trans "Big purchases" %}</h6>
                         </div>
                         <p class="text-muted small mb-3">{% trans "Down payments, prepayments, and other lump-sum contributions linked to this loan." %}</p>
                         {% for ev in linked_capital_events %}
@@ -211,7 +211,7 @@
                             <span>{{ loan.currency }}{% widthratio linked_capital_total|add:summary.total_paid 1 1 %}</span>
                         </div>
                         <a href="{% url 'capital-event-create' %}?subtype=loan_down_payment" class="btn btn-sm btn-primary text-white rounded-3 mt-3 w-100 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-plus-lg me-1"></i>{% trans "Add one-time big purchase for this Loan" %}
+                            <i class="bi bi-plus-lg me-1"></i>{% trans "Add big purchase for this Loan" %}
                         </a>
                     </div>
                 </div>

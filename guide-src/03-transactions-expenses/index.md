@@ -98,7 +98,7 @@ Each time you save, TrackMyRupee remembers what you picked for that kind of expe
 
 ### Big one-off purchases
 
-For a one-off big payment, a hint above the form suggests **Log as one-time big purchase**, so it does not wreck your monthly budget.
+For a one-off big payment, a hint above the form suggests **Log as big purchase**, so it does not wreck your monthly budget.
 
 ### Undo for ten minutes
 
@@ -110,7 +110,7 @@ If you tap **Add expense** twice, or your connection hiccups and you retry, the 
 
 ### Monthly limit on the Free plan
 
-The Free plan has a monthly cap on the number of expenses. If you reach it, the composer tells you and offers an **Upgrade** button rather than failing silently. The cap counts expenses dated in the current month, and it applies to every way an expense can be created: the composer, an upload, and converting a one-time big purchase into an expense. Expenses dated in earlier months do not count towards it.
+The Free plan has a monthly cap on the number of expenses. If you reach it, the composer tells you and offers an **Upgrade** button rather than failing silently. The cap counts expenses dated in the current month, and it applies to every way an expense can be created: the composer, an upload, and converting a big purchase into an expense. Expenses dated in earlier months do not count towards it.
 
 ---
 
@@ -201,15 +201,15 @@ If you paid for a group dinner and friends send their share, the expense should 
 - The refund is **not income**, so your savings are not inflated.
 - Your account balances are untouched by the netting: the account was charged the full amount and credited what you received.
 
-### Turn an expense into a One-Time Big Purchase
+### Turn an expense into a Big Purchase
 
-If you logged something big as an ordinary expense, open its menu and choose **Convert to one-time big purchase** (you will be asked to confirm). The expense is removed and an equal one-time big purchase is created for the same date, account, and amount, so the money is charged once, and your monthly budget no longer includes it. See [one-time big purchases](../09-capital-events/index.md).
+If you logged something big as an ordinary expense, open its menu and choose **Convert to big purchase** (you will be asked to confirm). The expense is removed and an equal big purchase is created for the same date, account, and amount, so the money is charged once, and your monthly budget no longer includes it. See [big purchases](../09-capital-events/index.md).
 
 ### Export to CSV
 
 On every plan, the export button downloads exactly what the list is showing: the same period, search, filters, and sort. The file has the date, description, amount, currency, exchange rate, amount in your currency, category, payment method, and account. It opens correctly in Excel with the ₹ sign and Hindi text, and any text that starts with `=`, `+`, `-` or `@` is saved with a leading quote so a spreadsheet shows it as text instead of running it as a formula.
 
-To take **all** your data, use **Settings → Export Data**: expenses, income, transfers, loan repayments, subscriptions, goals and goal contributions, accounts (with their current balance), one-time big purchases, loans, and categories with their budgets. One choice gives a CSV file; several are packed into a ZIP.
+To take **all** your data, use **Settings → Export Data**: expenses, income, transfers, loan repayments, subscriptions, goals and goal contributions, accounts (with their current balance), big purchases, loans, and categories with their budgets. One choice gives a CSV file; several are packed into a ZIP.
 
 !!! example "Real-world use case"
     After a Swiggy delivery arrives, Meera opens **Add Expense**, types `swiggy dinner 450 upi`, and presses Enter. The amount, UPI, and the Food category are filled in for her, because she has logged Swiggy before and the app remembered. She glances at the form, taps **Add expense**, and the whole thing takes about ten seconds.

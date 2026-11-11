@@ -13,7 +13,7 @@ A **Guided Setup flow** works the same way. Without Guided Setup, if you take a 
 1. Create a loan record.
 2. Add the interest rate.
 3. Set up a recurring EMI.
-4. Record the down payment as a one-time big purchase.
+4. Record the down payment as a big purchase.
 5. Add the car as an asset.
 
 With the **I bought a car** Flow, you answer one short form and all five things are created for you, properly linked to each other.

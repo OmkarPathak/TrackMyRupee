@@ -429,7 +429,7 @@ class TestCapitalEventCreate(CapBase):
         self.assertEqual((e.user, e.amount, e.subtype, e.note, e.account, e.currency),
                          (self.user, D('400000.00'), 'large_purchase', 'Renovation advance', self.bank, '₹'))
         self.assertEqual(self.bal(self.bank), D('-300000.00'))
-        self.assertIn('One-time big purchase recorded successfully.', self.messages(response))
+        self.assertIn('Big purchase recorded successfully.', self.messages(response))
 
     def test_flags_are_stored_as_ticked(self):
         self.client.post(self.url, self.payload(exclude_from_averages='', exclude_from_budget='', include_in_net_worth=''))
@@ -547,7 +547,7 @@ class TestCapitalEventEditDelete(CapBase):
         e.refresh_from_db()
         self.assertEqual((e.amount, e.account, e.subtype, e.note), (D('1750.25'), self.bank, 'gift_given', 'Wedding'))
         self.assertEqual((self.bal(self.cash), self.bal(self.bank)), (D('100000.00'), D('98249.75')))
-        self.assertIn('One-time big purchase updated.', self.messages(response))
+        self.assertIn('Big purchase updated.', self.messages(response))
 
     def test_unticking_net_worth_on_edit_refunds_the_account(self):
         e = self.event('1000')
@@ -595,7 +595,7 @@ class TestCapitalEventEditDelete(CapBase):
         self.assertRedirects(response, reverse('capital-event-list'))
         self.assertFalse(CapitalEvent.objects.filter(pk=e.pk).exists())
         self.assertEqual(self.bal(self.cash), D('100000.00'))
-        self.assertIn('One-time big purchase deleted.', self.messages(response))
+        self.assertIn('Big purchase deleted.', self.messages(response))
 
     def test_delete_by_uuid(self):
         e = self.event(account=None)
@@ -633,7 +633,7 @@ class TestConversions(CapBase):
         self.assertEqual((x.amount, x.currency, x.description, x.category, x.account, x.date),
                          (D('5000.00'), '₹', 'Surgery', 'Medical Lump Sum', self.bank, today() - timedelta(days=3)))
         self.assertEqual(self.bal(self.bank), D('95000.00'), 'one debit before, one after')
-        self.assertIn('One-time big purchase converted to a regular expense.', self.messages(response))
+        self.assertIn('Big purchase converted to a regular expense.', self.messages(response))
 
     def test_a_blank_note_falls_back_to_the_subtype_name(self):
         self.to_expense(self.event('5', note='', subtype='gift_given'))

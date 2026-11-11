@@ -192,6 +192,18 @@ class MoveMoneyHintTests(LoanBase):
         self.assertNotContains(response, 'Moving money needs two accounts')
 
 
+class MoveMoneySwapTests(LoanBase):
+    def test_with_two_accounts_there_is_a_swap_link_and_no_decorative_arrow(self):
+        Account.objects.create(user=self.user, name='Savings', account_type='SAVINGS_ACCOUNT',
+                               balance=D('500.00'), currency='₹')
+        response = self.client.get(reverse('transfer-create'))
+        self.assertContains(response, 'id="swapAccounts"')
+        self.assertNotContains(response, 'bi-arrow-down"')
+
+    def test_with_one_account_there_is_nothing_to_swap(self):
+        self.assertNotContains(self.client.get(reverse('transfer-create')), 'id="swapAccounts"')
+
+
 class MoveMoneyQueryTests(LoanBase):
     def count_of_account_counts(self, url):
         from django.db import connection

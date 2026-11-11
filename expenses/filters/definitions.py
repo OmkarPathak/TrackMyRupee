@@ -408,7 +408,7 @@ ALL_TRANSACTIONS_FILTERS = FilterSetConfig(
                 {"value": "INCOME", "label": "Income"},
                 {"value": "TRANSFER", "label": "Transfers"},
                 {"value": "LOAN", "label": "Loan Repayments"},
-                {"value": "CAPITAL_EVENT", "label": "One-time big purchases"},
+                {"value": "CAPITAL_EVENT", "label": "Big purchases"},
             ],
         ),
         FilterDef(
@@ -518,7 +518,7 @@ ACCOUNT_DETAIL_FILTERS = FilterSetConfig(
                 {"value": "TRANSFER", "label": "Transfers"},
                 {"value": "SAVINGS", "label": "Savings"},
                 {"value": "LOAN", "label": "Loan Repayments"},
-                {"value": "CAPITAL", "label": "One-time big purchases"},
+                {"value": "CAPITAL", "label": "Big purchases"},
             ],
         ),
         FilterDef(
@@ -610,7 +610,7 @@ RECURRING_FILTERS = FilterSetConfig(
                 {"value": "TRANSFER", "label": "Transfer"},
                 {"value": "INCOME", "label": "Income"},
                 {"value": "LOAN", "label": "Loan"},
-                {"value": "CAPITAL", "label": "One-time big purchase"},
+                {"value": "CAPITAL", "label": "Big purchase"},
                 {"value": "INSURANCE_PREMIUM", "label": "Insurance Premium"},
             ],
             field_name="transaction_type",
@@ -689,7 +689,7 @@ CAPITAL_EVENT_FILTERS = FilterSetConfig(
     default_time_range="this_month",
     supports_time_period=True,
     supports_search=True,
-    search_placeholder="Search one-time big purchases...",
+    search_placeholder="Search big purchases...",
     search_field="note",
 )
 
@@ -810,7 +810,7 @@ ANALYTICS_FILTERS = FilterSetConfig(
         ),
         FilterDef(
             key="capital_events",
-            label="One-time big purchases",
+            label="Big purchases",
             type="single_select",
             source="static",
             options=[{"value": "include", "label": "Include in spending"}],

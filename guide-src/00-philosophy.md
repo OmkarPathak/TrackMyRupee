@@ -38,7 +38,7 @@ They are not financial advice and are not predictions about the future. Use them
 
 ## 5. Net Worth as the North Star
 
-Every feature in TrackMyRupee, including budgets, loans, transfers, and one-time big purchases, ultimately feeds into your net worth number. Keeping that number accurate is the purpose of everything else in the app.
+Every feature in TrackMyRupee, including budgets, loans, transfers, and big purchases, ultimately feeds into your net worth number. Keeping that number accurate is the purpose of everything else in the app.
 
 !!! example "Real-world use case"
     Priya is a software engineer paid on the 28th who does not want to link her bank account to any app after a past data-leak concern. She earns Rs. 95,000 per month and wants to know honestly whether she can afford an Rs. 80,000 trip in March. By using manual entry and salary-cycle budgets, TrackMyRupee gives her a clear picture of her savings run-rate so she can answer that question without ever sharing bank credentials.

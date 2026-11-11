@@ -58,7 +58,7 @@ Account names must be unique among your active accounts (capital letters do not 
     Free allows 2 active accounts, Plus allows 10, and Pro is unlimited. Deleted accounts do not count. If you go over a limit (for example after a downgrade), your **oldest** accounts stay open and the newer ones are locked until you upgrade or delete some: a locked account cannot be opened, edited or used in a transfer. Pinning or searching never changes which accounts are locked.
 
 !!! info "Balances are stored in the account's currency"
-    An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the **currency of an account is locked** as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or one-time big purchase). Change it only while the account is unused. If you later edit or delete such a transaction, the account gets back exactly the amount it took or gave at the time, even if the exchange rate has moved since.
+    An expense or income in another currency is converted into the account's currency when it is posted. Because of that, the **currency of an account is locked** as soon as it has any transaction (expense, income, transfer, goal contribution, loan repayment or big purchase). Change it only while the account is unused. If you later edit or delete such a transaction, the account gets back exactly the amount it took or gave at the time, even if the exchange rate has moved since.
 
 ## 3. Account Types Reference
 
@@ -127,7 +127,7 @@ Moving money between your own accounts is covered in [Transfers](../06-transfers
 
 ## 5. Reading Account Transaction History
 
-Click any account row to open its detail page. Below the balance and its trend chart is the account's full **Transaction History**: every expense, income, transfer in or out, goal contribution, loan repayment and one-time big purchase posted to that account.
+Click any account row to open its detail page. Below the balance and its trend chart is the account's full **Transaction History**: every expense, income, transfer in or out, goal contribution, loan repayment and big purchase posted to that account.
 
 
 ![An account with its balance trend and history](img/account-detail-desktop.webp){ loading=lazy }
@@ -138,10 +138,10 @@ The table looks and behaves like the [All Transactions](../03-transactions-expen
 | Column | What it shows |
 |---|---|
 | **Date** | When it happened |
-| **Type** | A coloured pill: Expense, Income, Transfer, Savings, Loan Repayment or one-time big purchase |
+| **Type** | A coloured pill: Expense, Income, Transfer, Savings, Loan Repayment or big purchase |
 | **Description** | Your note (long notes are cut short; hover to read all of it) |
-| **Category/Source** | The expense category, income source, the other account of a transfer ("To SBI Savings", "From HDFC"), the goal, the loan, or the one-time big purchase type |
-| **Amount** | Green with **+** when money came into this account, red with **-** when it left. A foreign-currency row also shows its value in your own currency underneath. A one-time big purchase you excluded from net worth never moved the balance, so it is shown in grey with no sign |
+| **Category/Source** | The expense category, income source, the other account of a transfer ("To SBI Savings", "From HDFC"), the goal, the loan, or the big purchase type |
+| **Amount** | Green with **+** when money came into this account, red with **-** when it left. A foreign-currency row also shows its value in your own currency underneath. A big purchase you excluded from net worth never moved the balance, so it is shown in grey with no sign |
 | **Actions** | Edit or delete the row (or open its goal or loan). After saving you land back on this page |
 
 Click the **Amount** heading to sort by amount, and again to flip the order. On a phone the rows become cards grouped by day.
@@ -174,7 +174,7 @@ Inactive (deleted) accounts are left out.
 
 ### Change this month and the trend
 
-The change shown on the Net Worth tile is what you **saved this month**: income minus spending, using the same definition as the savings rate. Repaying loan principal is not spending (your cash goes down and your debt goes down by the same amount), only the interest is. One-time big purchases count only when they are not excluded from averages.
+The change shown on the Net Worth tile is what you **saved this month**: income minus spending, using the same definition as the savings rate. Repaying loan principal is not spending (your cash goes down and your debt goes down by the same amount), only the interest is. Big purchases count only when they are not excluded from averages.
 
 The sparkline walks back from today's figure by each earlier month's savings, so it is an **estimate**. It does not know about market price changes, revaluations or money moved without being recorded, so use it for direction rather than for exact past values. A snapshot of your net worth is also saved each day for the record.
 

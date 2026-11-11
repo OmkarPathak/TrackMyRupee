@@ -1894,7 +1894,7 @@ def home_view(request):
                 capital_event_callout = {
                     'count': len(excluded_events),
                     'total': sum(float(e.base_amount) for e in excluded_events),
-                    'label': _('One-time big purchases'),
+                    'label': _('Big purchases'),
                     'regular_spent': float(total_expenses),
                     'events': excluded_events,
                 }
@@ -1908,17 +1908,17 @@ def home_view(request):
         if capital_event_callout['count'] == 1:
             ev = capital_event_callout['events'][0]
             if ev.note and ev.note.strip():
-                title_text = format_html(_("One-time big purchase: <b>{}</b> this month"), ev.note.strip())
+                title_text = format_html(_("Big purchase: <b>{}</b> this month"), ev.note.strip())
             else:
-                title_text = mark_safe(_("<b>One-time big purchase</b>"))
+                title_text = mark_safe(_("<b>Big purchase</b>"))
         else:
-            title_text = format_html(_("<b>{} one-time big purchases this month</b>"), capital_event_callout['count'])
+            title_text = format_html(_("<b>{} big purchases this month</b>"), capital_event_callout['count'])
         
         curr_symbol = capital_event_callout['events'][0].currency
         event_text = format_html(
             _("{title}"
               " You made a one-off payment of {curr}{total}. "
-              "<a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>View one-time big purchases &rarr;</a>"),
+              "<a href='{url}' class='text-primary fw-semibold text-decoration-none ms-1'>View big purchases &rarr;</a>"),
             title=title_text,
             curr=curr_symbol,
             total=compact_amount(capital_event_callout['total'], curr_symbol),
@@ -2156,7 +2156,7 @@ def home_view(request):
         'INVESTMENT': {'items': [], 'total': Decimal('0.00'), 'icon': '📈', 'label': _('Investments')},
         'TRANSFER': {'items': [], 'total': Decimal('0.00'), 'icon': '🔄', 'label': _('Transfers')},
         'LOAN': {'items': [], 'total': Decimal('0.00'), 'icon': '🏦', 'label': _('Loan Repayments')},
-        'CAPITAL': {'items': [], 'total': Decimal('0.00'), 'icon': '💼', 'label': _('One-time big purchases')},
+        'CAPITAL': {'items': [], 'total': Decimal('0.00'), 'icon': '💼', 'label': _('Big purchases')},
         'INSURANCE_PREMIUM': {'items': [], 'total': Decimal('0.00'), 'icon': '🛡️', 'label': _('Insurance Premiums')},
     }
     active_recurring = RecurringTransaction.objects.filter(user=request.user, is_active=True).select_related('account', 'from_account', 'to_account')

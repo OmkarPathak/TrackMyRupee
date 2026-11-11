@@ -61,7 +61,7 @@ state. File naming: `<page-slug>-<state>-desktop.png` /
 - `loan-detail-{desktop,mobile}.png` — a loan's repayment/amortization detail view
 
 ## 09-capital-events
-- `capital-events-empty-{desktop,mobile}.png` — empty state ("No one-time big purchases yet")
+- `capital-events-empty-{desktop,mobile}.png` — empty state ("No big purchases yet")
 - `add-capital-event-form-{desktop,mobile}.png` — the add-capital-event form
 
 ## 10-calendar

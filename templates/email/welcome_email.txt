@@ -21,7 +21,7 @@ See the whole picture
 - Transfers between accounts, which never count as spending.
 - Net worth: everything you own minus everything you owe, as it changes over time.
 - Loans: EMIs split into principal and interest, with the interest counted as the cost of borrowing.
-- One-time big purchases: one-off big items (a laptop, a wedding, a down payment) tracked separately, so one large purchase does not distort your monthly picture.
+- Big purchases: one-off big items (a laptop, a wedding, a down payment) tracked separately, so one large purchase does not distort your monthly picture.
 
 Stay in control
 - Budgets by category, with a progress bar and an alert when you get close.

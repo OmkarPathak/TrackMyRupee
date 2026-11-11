@@ -40,14 +40,14 @@ class LandingTourTests(TestCase):
         self.assertEqual(re.findall(r"'(\w+)'", order), TOUR_KEYS)
 
     def test_the_tour_and_the_page_use_the_current_feature_names(self):
-        """The tour draws a miniature of the app, so it follows the app's names: Guided Setup, One-time big
+        """The tour draws a miniature of the app, so it follows the app's names: Guided Setup, Big
         purchases, and Analytics under Insights."""
         js = Path(finders.find('js/landing_tour.js')).read_text(encoding='utf-8')
         for old in ('TMR Flows', 'Capital Events', 'Internal Transfer'):
             self.assertNotIn(old, js)
             self.assertNotIn(old, self.html)
         self.assertIn('Guided Setup', js)
-        self.assertIn('One-time big purchases', js)
+        self.assertIn('Big purchases', js)
         nav = re.search(r"var NAV=(.*?)\];\n", js, re.S).group(1)
         self.assertRegex(nav, r"\['Insights',\[\['analytics','Analytics'\]\]\]")
         self.assertNotRegex(nav, r"\['Overview',\[[^\]]*analytics")

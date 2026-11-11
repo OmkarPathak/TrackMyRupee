@@ -17,7 +17,7 @@ Navigate to **Sidebar → Analytics** on desktop, or go to **More → Analytics*
 Analytics uses the same filter bar as Expenses, Income and Transactions:
 
 - **Time period**: This month (or your salary cycle), Last month, Last 3 months, Last 6 months, This year, All time, or any **Custom range**. The page opens on **This year**.
-- **+ Filter**: narrow by **Category** or **Account**, or switch on **one-time big purchases** to count the one-off events you excluded from averages.
+- **+ Filter**: narrow by **Category** or **Account**, or switch on **big purchases** to count the one-off events you excluded from averages.
 
 The charts adapt to the period you pick: one bar per **day** for up to 35 days, per **week** up to about 6 months, per **month** up to about 2 years, and per **quarter** beyond that.
 
@@ -87,14 +87,14 @@ How far back you can look depends on your plan: **Free** shows the last 2 months
 
 Every place in TrackMyRupee that shows a savings rate uses the same formula: the **Dashboard** headline, the **Analytics** tiles and Health check, the **Net Remaining** tile on the Transactions page, and the **monthly email report**. They can differ only because they look at different time periods or filters, never because they calculate it differently.
 
-> **Savings** = Income − Expenses − Loan interest − one-time big purchases that count towards averages
+> **Savings** = Income − Expenses − Loan interest − big purchases that count towards averages
 >
 > **Savings rate** = Savings ÷ (Income − Cashback and Refund income) × 100
 
 A few rules sit behind that:
 
 - **Loan principal is not spending.** When you pay an EMI, only the **interest** part counts as money spent. The principal part is you repaying money you borrowed, so it does not reduce your savings.
-- **One-time big purchases count only if you chose so.** A one-time big purchase is left out by default (its **Exclude from Averages & Trends** setting is on), so one big purchase does not wreck the month. Turn that setting off on an event and it counts as spending. The **one-time big purchases** filter on the Analytics page temporarily adds the excluded ones.
+- **Big purchases count only if you chose so.** A big purchase is left out by default (its **Exclude from Averages & Trends** setting is on), so one big purchase does not wreck the month. Turn that setting off on an event and it counts as spending. The **big purchases** filter on the Analytics page temporarily adds the excluded ones.
 - **Cashback and Refunds are money in, but not part of the base.** Cashback and Rewards and Refund / Reimbursement income is added to your savings (the money really is yours), but it is left out of the amount your rate is measured against. Your rate is measured against what you *earned*, so a refund can only improve it, never dilute it.
 - **No income, no rate.** If the base is zero or less, the rate shows 0 instead of a misleading number. Spending more than you earn gives a negative rate.
 - **Everything is in your own currency.** Foreign amounts are converted when you save them.

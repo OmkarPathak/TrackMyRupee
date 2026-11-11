@@ -140,7 +140,7 @@ Then **0.005% stamp duty** is taken off the amount and the rest is divided by th
 Open the holding and click **Sell**. Enter the date and any two of **Units** sold, **Price / unit** and the **Amount** you received; the third is filled in. You cannot sell more units than you held on that date.
 
 - **The money stays in the account as cash.** It shows up as **Uninvested cash** on the account page and on the Holdings page, ready to be transferred out or reinvested. Move it to your bank with a normal [transfer](../06-transfers/index.md).
-- **The profit or loss is recorded for you.** The average cost of the units you sold is taken off what you received. A profit is added to the account as **Investment Returns** income, and a loss as a one-time big purchase, both on the date of the sale, so your net worth keeps the gain after the units are gone. A sale at your average cost records nothing.
+- **The profit or loss is recorded for you.** The average cost of the units you sold is taken off what you received. A profit is added to the account as **Investment Returns** income, and a loss as a big purchase, both on the date of the sale, so your net worth keeps the gain after the units are gone. A sale at your average cost records nothing.
 - The units and average cost of what is left are worked out again. Selling every unit closes the holding and removes it from the list.
 - Editing or deleting a sale updates or removes its profit or loss entry. Changing an earlier purchase's price also changes the profit of the sales after it.
 - Exit loads, brokerage and tax are not calculated: enter the amount you actually received.

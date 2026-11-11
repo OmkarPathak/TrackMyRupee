@@ -61,7 +61,7 @@
                         {% endif %}
                         {% if capital_event_count > 0 %}
                         <span class="text-nowrap">
-                            <span class="fw-bold text-secondary">{{ capital_event_count|translate_digits }}</span> {% trans "One-time big purchases" %} · <span class="fw-bold text-secondary">{{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}</span>
+                            <span class="fw-bold text-secondary">{{ capital_event_count|translate_digits }}</span> {% trans "Big purchases" %} · <span class="fw-bold text-secondary">{{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}</span>
                         </span>
                         {% endif %}
                     </div>
@@ -234,7 +234,7 @@
                                             {% if tx.type == 'EXPENSE' %}{% trans "Expense" %}
                                             {% elif tx.type == 'INCOME' %}{% trans "Income" %}
                                             {% elif tx.type == 'LOAN' %}{% trans "Loan Repayment" %}
-                                            {% elif tx.type == 'CAPITAL_EVENT' %}{% trans "One-time big purchase" %}
+                                            {% elif tx.type == 'CAPITAL_EVENT' %}{% trans "Big purchase" %}
                                             {% else %}{% trans "Transfer" %}{% endif %}
                                         </span>
                                     </td>
@@ -278,8 +278,8 @@
                                                     <li>
                                                         <form method="post" action="{% url 'expense-convert' tx.pk %}?next={{ request.get_full_path|urlencode }}">
                                                             {% csrf_token %}
-                                                            <button type="submit" class="dropdown-item py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a one-time big purchase?' %}')">
-                                                                <i class="bi bi-flag me-2"></i>{% trans "Convert to one-time big purchase" %}
+                                                            <button type="submit" class="dropdown-item py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a big purchase?' %}')">
+                                                                <i class="bi bi-flag me-2"></i>{% trans "Convert to big purchase" %}
                                                             </button>
                                                         </form>
                                                     </li>
@@ -292,7 +292,7 @@
                                                     <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-repayment-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this loan repayment?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
                                                 {% elif tx.type == 'CAPITAL_EVENT' %}
                                                     <li><a class="dropdown-item py-2" href="{% url 'capital-event-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                    <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'capital-event-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this one-time big purchase?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
+                                                    <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'capital-event-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this big purchase?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
                                                 {% else %}
                                                     <li><a class="dropdown-item py-2" href="{% url 'transfer-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
                                                     <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'transfer-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this transfer?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
@@ -357,8 +357,8 @@
                                                 <li>
                                                     <form method="post" action="{% url 'expense-convert' tx.pk %}?next={{ request.get_full_path|urlencode }}">
                                                         {% csrf_token %}
-                                                        <button type="submit" class="dropdown-item py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a one-time big purchase?' %}')">
-                                                            <i class="bi bi-flag me-2"></i>{% trans "Convert to one-time big purchase" %}
+                                                        <button type="submit" class="dropdown-item py-2 text-secondary btn-convert-capital" onclick="return confirm('{% trans 'Are you sure you want to convert this expense into a big purchase?' %}')">
+                                                            <i class="bi bi-flag me-2"></i>{% trans "Convert to big purchase" %}
                                                         </button>
                                                     </form>
                                                 </li>
@@ -371,7 +371,7 @@
                                                 <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-repayment-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this loan repayment?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
                                             {% elif tx.type == 'CAPITAL_EVENT' %}
                                                 <li><a class="dropdown-item py-2" href="{% url 'capital-event-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
-                                                <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'capital-event-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this one-time big purchase?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
+                                                <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'capital-event-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this big purchase?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
                                             {% else %}
                                                 <li><a class="dropdown-item py-2" href="{% url 'transfer-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
                                                 <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'transfer-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this transfer?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>

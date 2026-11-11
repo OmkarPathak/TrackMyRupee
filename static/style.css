@@ -1678,11 +1678,17 @@ a.btn-danger:active {
   color: var(--color-info-text, #165A9E) !important;
 }
  
-/* Override Bootstrap Dropdown Active State */
-.dropdown-item.active, 
-.dropdown-item:active {
+/* Override Bootstrap Dropdown Active State.
+   .active is a chosen item in a list of choices: solid brand fill. :active is only the moment of the press (a click
+   or tap on a menu link such as the Add menu): it must not flash a solid fill with coloured icons and text on it, so it
+   stays the same quiet tint as hover, a little deeper. */
+.dropdown-item.active {
     background-color: var(--bs-primary) !important;
     color: #fff !important;
+}
+.dropdown-item:active:not(.active) {
+    background-color: color-mix(in srgb, var(--bs-primary-bg-subtle) 82%, var(--bs-primary) 18%) !important;
+    color: var(--bs-body-color) !important;
 }
 
 .dropdown-item:focus {
@@ -1697,6 +1703,9 @@ a.btn-danger:active {
 
 [data-bs-theme="dark"] .dropdown-item:hover,
 [data-bs-theme="dark"] .dropdown-item:focus {
+    color: #fff !important;
+}
+[data-bs-theme="dark"] .dropdown-item:active:not(.active) {
     color: #fff !important;
 }
 
