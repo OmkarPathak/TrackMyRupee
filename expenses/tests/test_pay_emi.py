@@ -193,7 +193,7 @@ class MoveMoneyHintTests(LoanBase):
 
 
 class MoveMoneySwapTests(LoanBase):
-    def test_with_two_accounts_there_is_a_swap_link_and_no_decorative_arrow(self):
+    def test_with_two_accounts_there_is_a_swap_link_and_no_arrow(self):
         Account.objects.create(user=self.user, name='Savings', account_type='SAVINGS_ACCOUNT',
                                balance=D('500.00'), currency='₹')
         response = self.client.get(reverse('transfer-create'))
@@ -201,7 +201,8 @@ class MoveMoneySwapTests(LoanBase):
         self.assertNotContains(response, 'bi-arrow-down"')
 
     def test_with_one_account_there_is_nothing_to_swap(self):
-        self.assertNotContains(self.client.get(reverse('transfer-create')), 'id="swapAccounts"')
+        response = self.client.get(reverse('transfer-create'))
+        self.assertNotContains(response, 'id="swapAccounts"')
 
 
 class MoveMoneyQueryTests(LoanBase):
