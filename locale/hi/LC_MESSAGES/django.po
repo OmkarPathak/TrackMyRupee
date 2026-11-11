@@ -5539,6 +5539,14 @@ msgstr ""
 " इसी रफ़्तार से (साल की शुरुआत से अब तक के औसत के आधार पर), आप साल के अंत तक"
 " {proj} बचा सकते हैं।"
 
+#: templates/components/sidebar.html
+msgid "Big purchases"
+msgstr "बड़ी खरीदारी"
+
+#: templates/components/sidebar.html
+msgid "Add big purchase"
+msgstr "बड़ी खरीदारी जोड़ें"
+
 #: expenses/views/dashboard.py:1873 expenses/views/dashboard.py:2130
 #: expenses/views/dashboard.py:2878 templates/components/navbar.html:494
 #: templates/components/sidebar.html:171 templates/components/sidebar.html:173

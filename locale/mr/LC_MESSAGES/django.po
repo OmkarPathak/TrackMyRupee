@@ -5556,6 +5556,14 @@ msgstr ""
 " याच गतीने (वर्षाच्या सुरुवातीपासूनच्या सरासरीनुसार), तुम्ही वर्षाअखेरीस "
 "{proj} वाचवू शकता."
 
+#: templates/components/sidebar.html
+msgid "Big purchases"
+msgstr "मोठ्या खरेद्या"
+
+#: templates/components/sidebar.html
+msgid "Add big purchase"
+msgstr "मोठी खरेदी जोडा"
+
 #: expenses/views/dashboard.py:1873 expenses/views/dashboard.py:2130
 #: expenses/views/dashboard.py:2878 templates/components/navbar.html:494
 #: templates/components/sidebar.html:171 templates/components/sidebar.html:173

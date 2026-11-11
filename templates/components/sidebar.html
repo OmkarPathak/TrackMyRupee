@@ -165,11 +165,11 @@
 
             <!-- Capital Events -->
             <div class="d-flex align-items-center position-relative px-0">
-                <a href="{% url 'capital-event-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'capital-event' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'One-time big purchases' %}">
+                <a href="{% url 'capital-event-list' %}" class="nav-link d-flex align-items-center gap-3 rounded-3 flex-grow-1 {% if 'capital-event' in request.resolver_match.url_name %}active{% endif %}" title="{% trans 'Big purchases' %}">
                     <i class="bi bi-gem fs-5"></i>
-                    <span class="nav-text">{% trans "One-time big purchases" %}</span>
+                    <span class="nav-text">{% trans "Big purchases" %}</span>
                 </a>
-                <a href="{% url 'capital-event-create' %}" class="btn-sidebar-add nav-text me-2" title="{% trans 'Add one-time big purchase' %}">
+                <a href="{% url 'capital-event-create' %}" class="btn-sidebar-add nav-text me-2" title="{% trans 'Add big purchase' %}">
                     <i class="bi bi-plus-lg"></i>
                     <span>{% trans "Add" %}</span>
                 </a>
@@ -411,7 +411,7 @@
                     <a href="{% url 'capital-event-list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 border-0 rounded-3 py-2 px-3 search-page-item">
                         <i class="bi bi-gem fs-5 text-success"></i>
                         <div>
-                            <div class="fw-semibold text-body">{% trans "One-time big purchases" %}</div>
+                            <div class="fw-semibold text-body">{% trans "Big purchases" %}</div>
                             <small class="text-muted" style="font-size: 0.75rem;">{% trans "Large one-off payments, kept out of monthly averages" %}</small>
                         </div>
                         <i class="bi bi-arrow-return-left ms-auto text-muted small opacity-50"></i>
