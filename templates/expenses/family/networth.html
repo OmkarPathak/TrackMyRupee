@@ -6,7 +6,6 @@
 {% block content %}
 <div class="fam fade-in">
 {% include 'expenses/family/_styles.html' %}
-{% include 'expenses/family/_tabs.html' %}
 
 <div class="fam-head">
     <div class="fam-title">
@@ -14,6 +13,7 @@
         <p class="fam-sub">{% trans "Family view: the combined net worth of what your family has shared." %}</p>
     </div>
 </div>
+{% include 'expenses/family/_tabs.html' %}
 
 {% include 'expenses/family/_banner.html' %}
 
