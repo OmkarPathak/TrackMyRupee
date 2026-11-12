@@ -37,6 +37,7 @@ FONTS = {
     "deva": "NotoSansDevanagari-SemiBold.ttf",
     "pj": "PlusJakartaSans-Medium.ttf", "pjsb": "PlusJakartaSans-SemiBold.ttf", "pjxb": "PlusJakartaSans-ExtraBold.ttf",
     "mono": "DMMono-Medium.ttf",
+    "pji": "PlusJakartaSans-Italic.ttf", "pjmi": "PlusJakartaSans-MediumItalic.ttf",
 }
 C.update({"paper": "#FAF8F6", "tile": "#E9E6E1", "grey": "#8A8A86", "pill": "#2B2B2B", "input": "#ECEAE6"})
 

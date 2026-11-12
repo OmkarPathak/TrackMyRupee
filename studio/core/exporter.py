@@ -86,3 +86,23 @@ def zip_bytes(pkg):
             if a["content_id"] == pkg["id"] and Path(a["path"]).exists():
                 z.write(a["path"], f"{d.name}/uploads/{a['name']}")
     return buf.getvalue(), d.name
+
+
+def build_carousel_files(pkg):
+    pub = pkg["publishing"]; f = {}
+    f["carousel-copy.md"] = f"# {pkg['title']} ({pkg['language']})\n\n" + "".join(f"## Slide {s['n']} — {s['kind']}\n- **Headline:** {s['headline']}\n- **Text:** {s['body']}\n" for s in pkg["slides"])
+    f["slide-prompts.md"] = "# Slide visual notes\n\nNo AI image generation is used: slides are typographic and rendered by `render/carousel_rupee.py`.\n\n" + "".join(f"- **Slide {s['n']}** ({s['kind']}): {s['visual']}\n" for s in pkg["slides"])
+    f["design-instructions.md"] = ("# Design instructions\n- Canvas 1080×1350 (4:5), flat #FBF9F5\n- Margins: 120px left/right; handle '@trackmyrupee' bottom-left (#5A5A56, 32px)\n"
+        "- Headlines: Plus Jakarta Sans ExtraBold, 76px (cover 107px), tight tracking (-0.06em), line pitch 88px; ink #1A1A1A\n- Accent lines: Plus Jakarta Sans Italic 76px, coral #C23E26 (or green #0F7658)\n"
+        "- Body: Plus Jakarta Sans Medium 40px #4B4B46\n- Cards: white, 2px #E8E5DF border, radius 36; outline tag pills in coral\n- App icon tile #1D9F75; check circles #0F7658\n- Pill 'Rupee Minis': bg #E2F5EF, text #085041\n")
+    f["caption.txt"] = pub["caption"] + "\n\n" + " ".join(pub["hashtags_core"]) + "\n\n--- First line ---\n" + pub["caption_hook"] + "\n\n--- Pinned comment ---\n" + pub["pinned_comment"] + "\n\n--- Story text ---\n" + "\n".join(pub["story_text"]) + "\n\n--- Alt text ---\n" + pub["alt_text"] + "\n"
+    f["hashtags.txt"] = "CORE: " + " ".join(pub["hashtags_core"]) + "\nEXTENDED (pick ≤2): " + " ".join(pub["hashtags_extended"]) + "\n" + pub["hashtag_note"] + "\n"
+    f["qc-report.md"] = qc.markdown(qc.run(pkg))
+    return f
+
+
+def write_carousel_folder(pkg):
+    d = OUT / pkg["slug"]; d.mkdir(parents=True, exist_ok=True)
+    for name, text in build_carousel_files(pkg).items():
+        (d / name).write_text(text, "utf-8")
+    return d
