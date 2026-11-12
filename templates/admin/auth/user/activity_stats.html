@@ -1,0 +1,44 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a> &rsaquo;
+    <a href="{% url 'admin:app_list' app_label='auth' %}">Authentication and Authorization</a> &rsaquo;
+    <a href="{% url 'admin:auth_user_changelist' %}">Users</a> &rsaquo; Activity stats
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <table style="width: 100%">
+            <caption>Users active in the last 7, 15 and 30 days, out of {{ stats.total }} users</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Period</th>
+                    <th scope="col">Added at least one expense</th>
+                    <th scope="col">Signed in</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in stats.rows %}
+                <tr>
+                    <th scope="row">Last {{ row.days }} days</th>
+                    <td><strong>{{ row.expense_users }}</strong> <span class="quiet">({{ row.expense_pct }}%)</span></td>
+                    <td><strong>{{ row.login_users }}</strong> <span class="quiet">({{ row.login_pct }}%)</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="help" style="margin-top: 1rem">
+        Counted back from now ({{ stats.as_of|date:"j M Y, H:i" }}); each person is counted once.
+        The demo account is left out.
+    </p>
+    <ul class="help" style="margin-left: 1.5rem; list-style: disc">
+        <li><strong>Added an expense:</strong> by when it was added, not the date on the entry. Entries since deleted are not counted.</li>
+        <li><strong>Signed in:</strong> by each person's last sign-in. A session lasts two weeks, so someone who stays signed in on their phone is not counted again until they sign in. This undercounts people who keep using the app.</li>
+    </ul>
+</div>
+{% endblock %}
