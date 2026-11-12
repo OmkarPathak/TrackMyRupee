@@ -7,11 +7,11 @@ basis="views" (Instagram's reach and views are different numbers — don't mix t
 from collections import defaultdict
 import datetime as dt
 
-HOOK_STYLES = ["Question", "Number shock", "Confession / POV", "Contrarian", "Challenge", "Story"]
+HOOK_STYLES = ["Question", "Number shock", "Comparison / puzzle", "Confession / POV", "Contrarian", "Challenge", "Story", "Mascot first-person"]
 REQUIRED_ONE_OF = ("views", "reach")
 FIELDS = ["views", "reach", "likes", "comments", "shares", "reposts", "saves", "avg_watch_s", "profile_visits", "link_clicks", "registrations"]
-OPTIONAL = {"reach", "saves", "registrations", "reposts", "avg_watch_s"}   # blank allowed -> None
-EXTRA = ["followers_pct", "non_followers_pct", "age_groups", "notes"]
+OPTIONAL = {"reach", "saves", "registrations", "reposts", "avg_watch_s", "comments"}   # blank allowed -> None
+EXTRA = ["followers_pct", "non_followers_pct", "age_groups", "notes", "skip_rate_pct"]
 
 
 def _num(v, name, optional):
@@ -35,7 +35,7 @@ def normalize(d):
         row[k] = _num(d.get(k), k, k in OPTIONAL)
     if not (row["views"] or row["reach"]):
         raise ValueError("Enter views or reach (> 0) so rates can be computed")
-    for k in ("followers_pct", "non_followers_pct"):
+    for k in ("followers_pct", "non_followers_pct", "skip_rate_pct"):
         v = _num(d.get(k), k, True)
         if v is not None and v > 100:
             raise ValueError(f"{k} cannot exceed 100")
