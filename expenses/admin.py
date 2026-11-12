@@ -291,6 +291,30 @@ class UserAdmin(BaseUserAdmin):
     inlines = (EmailAddressInline,)
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'last_login', 'date_joined')
 
+    # A button on the Users list opens the activity numbers (who added an expense, who signed in, lately)
+    change_list_template = 'admin/auth/user/change_list.html'
+
+    def get_urls(self):
+        from django.urls import path
+        return [
+            path('activity/', self.admin_site.admin_view(self.activity_view), name='auth_user_activity'),
+        ] + super().get_urls()
+
+    def activity_view(self, request):
+        from django.core.exceptions import PermissionDenied
+        from django.template.response import TemplateResponse
+
+        from .admin_stats import activity_stats
+        if not self.has_view_permission(request):
+            raise PermissionDenied
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Activity stats',
+            'opts': self.model._meta,
+            'stats': activity_stats(),
+        }
+        return TemplateResponse(request, 'admin/auth/user/activity_stats.html', context)
+
     def get_queryset(self, request):
         return super().get_queryset(request).exclude(username='demo')
 
