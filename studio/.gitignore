@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 assets/models/*.onnx
 assets/models/*.bin
+assets/vo/*_user/
