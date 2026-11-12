@@ -1,0 +1,100 @@
+name: Tests
+
+# Runs on every pull request and on pushes to main.
+#   unit : the whole Django test suite (the browser tests in e2e/ are skipped here)
+#   e2e  : the browser tests (e2e/README.md): a real Chromium through the app
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  # Allow a manual run from the GitHub Actions tab
+  workflow_dispatch:
+
+# A newer push to the same branch cancels the run that is still going
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Not a real secret: the database is a throwaway SQLite file and nothing here talks to a live service
+  SECRET_KEY: ci-test-key-not-a-secret
+  DEBUG: "True"
+  PYTHON_VERSION: "3.12"        # the version the Dockerfile runs in production
+
+jobs:
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      # The translation tests need the compiled Hindi and Marathi catalogues
+      - name: Install gettext
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gettext
+
+      # polib is not an app dependency, but two translation tests skip themselves without it
+      - name: Install dependencies
+        run: pip install -r requirements.txt polib
+
+      - name: Compile translations
+        run: python manage.py compilemessages
+
+      - name: Run the test suite
+        run: python manage.py test --noinput --parallel 4
+
+  e2e:
+    name: Browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-e2e.txt
+
+      - name: Install gettext
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gettext
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-e2e.txt
+
+      - name: Compile translations
+        run: python manage.py compilemessages
+
+      - name: Install Chromium
+        run: playwright install --with-deps chromium
+
+      - name: Run the browser tests
+        env:
+          RUN_E2E: "1"
+        run: python manage.py test e2e --noinput
+
+      # A failing test saves a screenshot of each page it had open
+      - name: Keep the screenshots of failed tests
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: e2e/artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
