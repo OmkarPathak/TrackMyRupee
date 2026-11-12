@@ -33,3 +33,10 @@ Recorded on approval of **Reel 001 "Where does your ₹50,000 salary disappear?"
 - **Slide kinds available:** cover · list · statement · intro · checks · steps · example · cta.
 - **Shape of a good carousel:** cover with a curiosity promise → list/checklist slides (≤4 items per slide) → illustrative maths (labelled) → practical steps → product proof from verified features → CTA + teaser for the week's Reel.
 - **Workflow:** carousel Friday, Reel Sunday, same topic family; stats go in the tracker.
+
+## Voice & audio (approved with Reel 003)
+- **Director's own voice is the default for narrated Reels.** Workflow: Claude writes a per-line recording script (`recording-script.md` in the Reel folder) → director records one take with natural pauses on a phone voice memo (quiet room, ~15–20 cm) → `render/voice_prep.py` filters low rumble/noise, levels to ~-16 LUFS, splits at the pauses into scene clips, measures voiced segments → the video re-times to the delivery and the mascot's mouth follows the recording (`render/timeline_003.py` aligns on-screen beats to the speech).
+- **Synthetic voice (Kokoro)** remains the fallback/draft when a recording isn't available. Cloning the director's voice is possible only if an open, commercially-licensed model can be run (not tested; Hugging Face is blocked in the session).
+- **Music:** none baked in. Add licensed audio inside Instagram and set it to ~10–20% in the volume mixer so it stays under the voice; instrumental only.
+- **Raw recordings stay out of git** (`assets/vo/*_user/` is ignored); finished Reel files are committed.
+- **Length:** the 5-second average watch time (Reels 1–2) argues for ~35–40s cuts with the payoff by ~4s.

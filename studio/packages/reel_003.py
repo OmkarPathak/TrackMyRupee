@@ -98,3 +98,15 @@ def _windows():
 
 
 _windows()
+
+
+# ======================= APPROVED by the creative director (Reel 003, recorded voice) =======================
+PACKAGE["version"] = 2
+PACKAGE["status"] = "approved"
+PACKAGE["voiceover"]["tts_status"] = "Final cut uses the director's own recorded voice (cleaned + levelled); the Kokoro version is kept as a draft alternative."
+PACKAGE["learning_log"] = {"approved": True, "notes": [
+    "Director's own voice recording replaces the synthetic voice for narrated Reels (record the script, I clean/level/split/re-time)",
+    "Number-led hook on frame 0 (₹99 × 5 = ?), answer inside ~4s, ~40s total (shorter than Reels 1-2)",
+    "Real app captures (Subscriptions page: monthly/daily/yearly totals, Renewing Soon) as product proof",
+    "Music: add licensed audio in Instagram at ~10-20% under the voice",
+    "Full detail: studio/STYLE_GUIDE.md"]}

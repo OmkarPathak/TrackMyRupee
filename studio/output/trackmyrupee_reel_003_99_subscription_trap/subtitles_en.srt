@@ -1,23 +1,23 @@
 1
-00:00:00,200 --> 00:00:04,200
+00:00:00,200 --> 00:00:04,700
 Five plans. ₹99 each. So what's that a year?
 
 2
-00:00:04,500 --> 00:00:11,600
+00:00:05,000 --> 00:00:12,000
 ₹495 a month. ₹5,940 a year. All quietly renewing.
 
 3
-00:00:11,900 --> 00:00:16,200
+00:00:12,300 --> 00:00:16,800
 And one of them? You've probably forgotten it's still running.
 
 4
-00:00:16,500 --> 00:00:23,900
+00:00:17,100 --> 00:00:25,300
 Catch them in three steps. Scan last month's statement. List every recurring charge. Then note each renewal date.
 
 5
-00:00:24,200 --> 00:00:32,900
+00:00:25,600 --> 00:00:34,300
 In TrackMyRupee, add each one once. You see the monthly and yearly total, and get a reminder three days before it renews.
 
 6
-00:00:33,200 --> 00:00:38,200
+00:00:34,600 --> 00:00:39,800
 No bank login. No SMS access. Try the free demo — link in bio.
