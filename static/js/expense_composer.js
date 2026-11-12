@@ -298,6 +298,10 @@
   }
 
   // ── Defaults & reset ──────────────────────────────────────────────────────
+  // With only one category to pick from, it is the category (nothing to decide)
+  function onlyCategory() {
+    return S.data && S.data.categories.length === 1 ? S.data.categories[0] : '';
+  }
   function applyDefaults(onlyDefaults) {
     var d = S.data;
     function maybe(f, fn) { if (!onlyDefaults || !S.origin[f] || S.origin[f] === 'default') fn(); }
@@ -312,6 +316,11 @@
       S.v.accountId = d.default_account_id || '';
       S.origin.account = 'default';
       S.tag.account = d.default_account_source === 'last_used' ? 'lastused' : null;
+    });
+    maybe('category', function () {
+      var only = onlyCategory();
+      if (!only) return;
+      S.v.category = only; S.origin.category = 'default'; S.tag.category = null;
     });
     maybe('payment', function () {
       if (!d) return;
@@ -434,7 +443,7 @@
       S.v.amount = String(parseFloat(u.amount));
       S.v.currency = u.currency || S.v.currency;
       S.v.description = u.description;
-      S.v.category = S.data && S.data.categories.indexOf(u.category) >= 0 ? u.category : '';
+      S.v.category = S.data && S.data.categories.indexOf(u.category) >= 0 ? u.category : onlyCategory();
       if (u.account_id && S.data && S.data.accounts.some(function (a) { return a.id === u.account_id; })) S.v.accountId = u.account_id;
       S.v.payment = u.payment_method || S.v.payment;
       S.v.date = S.stickyDate || todayISO();
@@ -524,7 +533,8 @@
       if (r.category) {
         S.v.category = r.category; S.origin.category = 'parser';
         S.tag.category = checks.indexOf('category') >= 0 || conf.category === 'low' ? 'check' : 'auto';
-      } else { S.v.category = ''; S.origin.category = 'parser'; S.tag.category = 'check'; }
+      } else if (onlyCategory()) { S.v.category = onlyCategory(); S.origin.category = 'default'; S.tag.category = null; }
+      else { S.v.category = ''; S.origin.category = 'parser'; S.tag.category = 'check'; }
     }
     if (editable('account')) {
       if (r.account_id) {

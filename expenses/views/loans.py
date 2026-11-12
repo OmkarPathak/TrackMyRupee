@@ -13,6 +13,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
+from ..form_defaults import default_payer_account
 from ..forms import LoanForm, LoanInterestRateForm, LoanRepaymentForm
 from ..models import (
     CapitalEvent,
@@ -556,7 +557,7 @@ class PayEmiView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             form.fields['principal_portion'].initial = None
             form.fields['interest_portion'].initial = None
             form.fields['amount'].widget.attrs.pop('onchange', None)
-            default_account = self._default_account(form, loan)
+            default_account = default_payer_account(form.fields['from_account'].queryset, loan, request.user)
             if default_account:
                 form.fields['from_account'].initial = default_account.pk
         if not wanted:
@@ -568,22 +569,6 @@ class PayEmiView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             'form': form,
             'next_url': get_safe_redirect_url(request, request.GET.get('next'), ''),
         })
-
-    @staticmethod
-    def _default_account(form, loan):
-        """The account most likely to have paid: the one used for this loan's last EMI, else the first salary,
-        savings or current account, else the first account that is not a debt. Never a card or a loan."""
-        from ..account_types import is_liability
-        accounts = form.fields['from_account'].queryset
-        last = loan.repayments.order_by('-date', '-id').first()
-        if last and last.from_account_id:
-            used = accounts.filter(pk=last.from_account_id).first()
-            if used:
-                return used
-        usual = accounts.filter(account_type__in=('SALARY_ACCOUNT', 'SAVINGS_ACCOUNT', 'CURRENT_ACCOUNT')).first()
-        if usual:
-            return usual
-        return next((a for a in accounts if not is_liability(a.account_type)), None)
 
 
 class LoanInterestRateCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):

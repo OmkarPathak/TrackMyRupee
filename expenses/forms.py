@@ -20,6 +20,7 @@ from django_recaptcha.widgets import ReCaptchaV3
 from finance_tracker.plans import get_limit
 
 from .account_valuation import get_baseline, get_current
+from .form_defaults import default_payer_account, last_used_account, only_choice
 from .investing import is_investment_type
 from .models import (
     Account,
@@ -93,7 +94,14 @@ class PrimaryMoneyInput(MoneyInput):
 
 
 class SearchableSelectFormMixin:
-    """Mixin to automatically ensure all single-select fields have the 'searchable-select' CSS class."""
+    """Mixin to automatically ensure all single-select fields have the 'searchable-select' CSS class.
+
+    It also pre-selects the only choice: on a form for something new, a required dropdown with exactly one
+    option starts on that option. A form lists fields in `keep_empty_fields` to opt out (for example the
+    "To" account of a transfer, which must differ from the "From" account).
+    """
+    keep_empty_fields = ()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
@@ -101,6 +109,17 @@ class SearchableSelectFormMixin:
                 css_class = field.widget.attrs.get('class', '')
                 if 'searchable-select' not in css_class and 'django-multi-select' not in css_class:
                     field.widget.attrs['class'] = f"{css_class} searchable-select".strip()
+
+    def get_initial_for_field(self, field, field_name):
+        value = super().get_initial_for_field(field, field_name)
+        # Worked out when the field is drawn, because forms set their querysets after this mixin has run
+        if value not in (None, '') or self.is_bound or field_name in self.keep_empty_fields:
+            return value
+        instance = getattr(self, 'instance', None)
+        if instance is None or instance.pk:
+            return value        # editing something that exists (or a form with nothing to fill): leave it as saved
+        only = only_choice(field)
+        return value if only is None else only
 
 
 class AccountRequiredMixin:
@@ -329,9 +348,12 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
             else:
                 self.fields['account'].queryset = all_accounts
 
-            default_account = self.fields['account'].queryset.filter(name='Cash').first()
-            if default_account:
-                self.fields['account'].initial = default_account
+            if not self.instance.pk:
+                default_account = last_used_account(
+                    self.fields['account'].queryset, Income.objects.filter(user=self.user).order_by('-date', '-id'), 'account_id',
+                ) or self.fields['account'].queryset.filter(name='Cash').first()
+                if default_account:
+                    self.fields['account'].initial = default_account
         else:
             self.fields['account'].queryset = Account.objects.none()
         
@@ -998,6 +1020,11 @@ class GoalContributionForm(AccountRequiredMixin, SearchableSelectFormMixin, form
                 self.fields['account'].queryset = all_accounts.filter(id__in=unlocked_ids)
             else:
                 self.fields['account'].queryset = all_accounts
+            if not self.instance.pk:
+                last = last_used_account(self.fields['account'].queryset,
+                                         GoalContribution.objects.filter(goal__user=user).order_by('-date', '-id'), 'account_id')
+                if last:
+                    self.fields['account'].initial = last
         
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
@@ -1691,6 +1718,9 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                 )
 
 class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
+    # Moving money to the same account is an error, so "To" is never filled in just because it is the only account
+    keep_empty_fields = ('to_account',)
+
     @cached_property
     def has_two_accounts(self):
         """Whether there are enough accounts to move money between. Counted once per form, and not at all when
@@ -1735,6 +1765,14 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
 
             self.fields['from_account'].queryset = accounts_qs
             self.fields['to_account'].queryset = accounts_qs
+            if not self.instance.pk:
+                # Start from the last move: same From and To, when both can still be picked
+                last = Transfer.objects.filter(user=user).order_by('-date', '-id').first()
+                if last:
+                    ids = set(accounts_qs.filter(pk__in=[last.from_account_id, last.to_account_id]).values_list('pk', flat=True))
+                    if last.from_account_id in ids and last.to_account_id in ids:
+                        self.fields['from_account'].initial = last.from_account_id
+                        self.fields['to_account'].initial = last.to_account_id
             # {account id: currency}, for the currency segment next to the amount
             self.fields['from_account'].widget.attrs['data-currencies'] = json.dumps(
                 {str(pk): cur for pk, cur in accounts_qs.values_list('pk', 'currency')})
@@ -1892,10 +1930,10 @@ class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.M
             else:
                 self.fields['from_account'].queryset = all_accounts
 
-            # Default to the first account (likely 'Cash')
-            default_account = self.fields['from_account'].queryset.filter(name='Cash').first()
-            if default_account:
-                self.fields['from_account'].initial = default_account
+            if not self.instance.pk:
+                default_account = default_payer_account(self.fields['from_account'].queryset, loan, user)
+                if default_account:
+                    self.fields['from_account'].initial = default_account
         
         if loan:
             # Pre-calculate a suggested split, but the amount can be changed freely.
@@ -2060,6 +2098,14 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
                     unlocked_ids.append(self.instance.account_id)
                 all_accounts = all_accounts.filter(id__in=unlocked_ids)
             self.fields['account'].queryset = all_accounts.order_by('name')
+            if not self.instance.pk:
+                last = last_used_account(
+                    self.fields['account'].queryset, CapitalEvent.objects.filter(user=user).order_by('-date', '-id'), 'account_id',
+                ) or last_used_account(
+                    self.fields['account'].queryset, Expense.objects.filter(user=user, is_deleted=False).order_by('-date', '-id'), 'account_id',
+                )
+                if last:
+                    self.fields['account'].initial = last
             self.fields['linked_loan'].queryset = Loan.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['linked_loan'].required = False
             self.fields['linked_loan'].empty_label = _('— No linked loan —')
