@@ -15,7 +15,22 @@ from packages.reel_001 import PACKAGE
 from render.mix import ENDS, STARTS
 import re
 
+_ONES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]
+_TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+
+
+def num_words(n):
+    """Integers up to 99,99,999 in words (Indian grouping: lakh)."""
+    if n < 20: return _ONES[n]
+    if n < 100: return _TENS[n // 10] + ("-" + _ONES[n % 10] if n % 10 else "")
+    if n < 1000: return _ONES[n // 100] + " hundred" + (" " + num_words(n % 100) if n % 100 else "")
+    if n < 100000: return num_words(n // 1000) + " thousand" + (" " + num_words(n % 1000) if n % 1000 else "")
+    if n < 10000000: return num_words(n // 100000) + " lakh" + (" " + num_words(n % 100000) if n % 100000 else "")
+    return str(n)
+
+
 def spoken(t):
+    t = re.sub(r"₹\s?([\d,]+)", lambda m: num_words(int(m.group(1).replace(",", ""))) + " rupees", t)
     """Spell out initialisms the TTS would otherwise read as words (EMI -> 'Emmy')."""
     for a, b in ((r'\bEMIs?\b', 'E M I'), (r'\bFDs\b', 'F Ds'), (r'\bFD\b', 'F D'), (r'\bEPF\b', 'E P F'), (r'\bPPF\b', 'P P F'), (r'\bNPS\b', 'N P S'), (r'\bSMS\b', 'S M S'), (r'\bETFs?\b', 'E T F'), (r'\bSIPs?\b', 'S I P'), (r'\bOTT\b', 'O T T'), (r'\bUPI\b', 'U P I'), (r'\b(\d+|nine) ?pm\b', 'nine P M'), (r'\bPM\b', 'P M')):
         t = re.sub(a, b, t)

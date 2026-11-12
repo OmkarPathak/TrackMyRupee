@@ -25,6 +25,9 @@ def srt(pkg, key="vo_en"):
 def _illustrative(pkg):
     if pkg.get("illustrative_budget"):
         return "## Illustrative budget (labelled on screen)\n" + "".join(f"- {g['name']}: ₹{g['amount']:,}\n" for g in pkg["illustrative_budget"]["groups"])
+    m = pkg.get("illustrative_maths")
+    if m:
+        return f"## Illustrative maths (labelled on screen)\n- {m['plans']} plans × ₹{m['price']} = ₹{m['monthly']:,} a month\n- × 12 = **₹{m['yearly']:,} a year**\n"
     n = pkg.get("illustrative_networth")
     if n:
         return ("## Illustrative net worth (labelled on screen)\n" + "".join(f"- {a['name']}: ₹{a['amount']:,}\n" for a in n["assets"]) +

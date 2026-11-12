@@ -50,9 +50,13 @@ def run(pkg):
             pct = round(100 * mys[0]["amount"] / b["salary"])
             ok = f"{pct}%" in txt
             add("4b. Stated percentage matches", "pass" if ok else "warn", f"computed {pct}%")
-    elif not pkg.get("illustrative_networth"):
+    elif not pkg.get("illustrative_networth") and not pkg.get("illustrative_maths"):
         add("4. Numbers are mathematically correct", "warn", "No structured budget to verify — check by hand")
 
+    im = pkg.get("illustrative_maths")
+    if im:
+        ok = im["plans"] * im["price"] == im["monthly"] and im["monthly"] * 12 == im["yearly"]
+        add("4. Numbers are mathematically correct", "pass" if ok else "fail", f"{im['plans']} × ₹{im['price']} = ₹{im['plans']*im['price']:,}/month; × 12 = ₹{im['monthly']*12:,}/year (stated ₹{im['yearly']:,})")
     nw = pkg.get("illustrative_networth")
     if nw:
         a = sum(x["amount"] for x in nw["assets"]); l = sum(x["amount"] for x in nw["liabilities"])
