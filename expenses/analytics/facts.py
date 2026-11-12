@@ -16,8 +16,8 @@ from typing import NamedTuple
 
 from django.db.models import BooleanField, Case, Count, F, Q, Sum, Value, When
 
-from ..account_types import investment_codes
 from ..budgets import capital_report_name, normalize_category
+from ..investing import into_investments, out_of_investments
 from ..refunds import NET_EXPENSE, net_sum
 from ..savings import CASHBACK_REFUND_TYPES, LINKED_REFUND, LINKED_TO_EVENT, SavingsResult, calculate_savings
 
@@ -331,11 +331,21 @@ def load_facts(user, first: date, last: date, *, categories: Iterable[str] = (),
             facts.capital_counted[i] += amount
             facts._add(facts.capital_cats_counted, i, key, amount)
 
-    transfers = Transfer.objects.filter(user=user, to_account__account_type__in=list(investment_codes()), **window)
+    # Invested is money moved into investments minus money taken out (expenses/investing.py). Per account, what went
+    # in counts for the account it went into and what came out counts against the account it came from.
+    transfers = Transfer.objects.filter(user=user, **window)
     if account_ids:
         transfers = transfers.filter(Q(from_account_id__in=account_ids) | Q(to_account_id__in=account_ids))
-    for row in transfers.values('date', 'to_account_id', 'to_account__name').annotate(total=Sum('converted_amount')):
-        i, amount = facts.index(row['date']), row['total'] or ZERO
-        facts.invested[i] += amount
-        facts._add(facts.invested_dest, i, (row['to_account_id'], row['to_account__name']), amount)
+    # (one query: each row is one day between one pair of accounts, with what went in and what came out)
+    for row in (transfers.filter(into_investments() | out_of_investments()).order_by()
+                .values('date', 'to_account_id', 'to_account__name', 'from_account_id', 'from_account__name')
+                .annotate(inflow=Sum('converted_amount', filter=into_investments()),
+                          outflow=Sum('converted_amount', filter=out_of_investments()))):
+        i = facts.index(row['date'])
+        if row['inflow']:
+            facts.invested[i] += row['inflow']
+            facts._add(facts.invested_dest, i, (row['to_account_id'], row['to_account__name']), row['inflow'])
+        if row['outflow']:
+            facts.invested[i] -= row['outflow']
+            facts._add(facts.invested_dest, i, (row['from_account_id'], row['from_account__name']), -row['outflow'])
     return facts

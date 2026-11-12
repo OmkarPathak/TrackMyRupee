@@ -29,7 +29,7 @@ Use the period picker to switch to last month, the last 3 or 6 months, this year
 | **Spent** | Expenses (each one for what it really cost: its amount less any refunds linked to it), plus the **interest** part of loan repayments, plus any [big purchase](../09-capital-events/index.md) you chose to count in averages |
 | **Saved** | Income minus Spent |
 | **Savings rate** | Saved divided by income, leaving cashback and refunds out of the income used for the rate |
-| **Invested** | Money you moved by transfer into investment accounts. It is shown separately and is **not** taken off Saved |
+| **Invested** | Money you moved into investment accounts, minus money you took out of them. Moving money between two investment accounts does not count, so a matured FD that you renew is not counted twice. It shows a negative amount, with the words "More taken out than put in", when more came out than went in. It is shown separately and is **not** taken off Saved. See [Investing, Maturity and Renewals](../06-transfers/index.md#6-investing-maturity-and-renewals) |
 
 The loan principal you repay is not spending: your cash goes down and your debt goes down by the same amount, so only the interest reduces your savings. This is the same definition used everywhere else in the app. See [Analytics: Spending, Cashflow and Net Worth](../11-analytics-and-health/index.md) for a worked example.
 
