@@ -26,3 +26,10 @@ Recorded on approval of **Reel 001 "Where does your ₹50,000 salary disappear?"
 - **Rules:** content on frame 0 (no slow intro); voice starts at 0.1s; one question, no setup; numbers visible and labelled illustrative; caption pill must not cover key visuals (keep bars/cards above y≈1340).
 - **Narrated Reels:** mascot top-right (~190px), mouth from the voice audio; real product proof comes from local app captures (demo account), never mocked UI.
 - **Measurement:** log each post's stats in the (git-ignored) tracker. Compare average watch time and % of length against Reel 001 (5s, 10.4%) before drawing conclusions; one post is not a trend.
+
+## Carousels (approved with Carousel 003, "Yeh 10 kharche yaad hain?")
+- **Language:** Hinglish (Roman script) for carousels; English for Reels (director's call for engagement).
+- **Style:** match the posted "Rupee Minis" carousel exactly — measured values live in `render/carousel_rupee.py`: flat #FBF9F5, ink #1A1A1A, coral #C23E26, green #0F7658, grey #4B4B46; Plus Jakarta Sans ExtraBold headlines (76px, cover 107px, tight tracking, 88px pitch), Italic accent lines, Medium body 40px; white cards with 2px #E8E5DF border; outline coral tag pills; "@trackmyrupee" bottom-left; 120px side margins; 1080×1350.
+- **Slide kinds available:** cover · list · statement · intro · checks · steps · example · cta.
+- **Shape of a good carousel:** cover with a curiosity promise → list/checklist slides (≤4 items per slide) → illustrative maths (labelled) → practical steps → product proof from verified features → CTA + teaser for the week's Reel.
+- **Workflow:** carousel Friday, Reel Sunday, same topic family; stats go in the tracker.

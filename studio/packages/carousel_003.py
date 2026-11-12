@@ -76,3 +76,13 @@ PACKAGE = {
     "fact_check_flags": [],
     "learning_log": {"approved": False, "notes": []},
 }
+
+
+# ======================= APPROVED by the creative director =======================
+PACKAGE["version"] = 2
+PACKAGE["status"] = "approved"
+PACKAGE["learning_log"] = {"approved": True, "notes": [
+    "Carousels use the 'Rupee Minis' style of the posted carousel (flat #FBF9F5, Plus Jakarta Sans, coral/green italic accents, white bordered cards, @trackmyrupee handle)",
+    "Hinglish (Roman script) for carousels; English for Reels",
+    "List -> illustrative maths -> practical steps -> product proof (verified) -> CTA with Reel teaser",
+    "Full detail: studio/STYLE_GUIDE.md"]}
