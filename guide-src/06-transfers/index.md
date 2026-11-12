@@ -103,6 +103,38 @@ Every month, money automatically moves from your bank account balance into your 
 
 ---
 
+## 6. Investing, Maturity and Renewals
+
+Money moved into an investment or deposit account (an FD, RD, PPF, mutual funds and so on) counts as **invested**. Money moved back out to a bank, cash or card account counts against it. A move between two investment accounts is neither. So **Invested = money moved in, minus money taken out**, and it shows on the Dashboard's **Invested** tile and in Analytics.
+
+An FD that matures and is renewed is the common case. Here is what happens to the numbers:
+
+| Step | What you do | Effect on Invested |
+|---|---|---|
+| 1 | **Move Money** from ICICI Savings to FD 1: Rs. 1,00,000 | +1,00,000 |
+| 2 | The FD matures. **Add the interest** as income (Rs. 10,000) on the FD account | none (it is income, not investing) |
+| 3 | **Move Money** from FD 1 back to ICICI Savings: Rs. 1,10,000 | -1,10,000 |
+| 4 | **Move Money** from ICICI Savings to FD 2: Rs. 1,10,000 | +1,10,000 |
+| | **Invested for the period** | **Rs. 1,00,000** |
+
+Only the Rs. 1,00,000 you actually put in counts. The renewal does not count as new money, and the Rs. 10,000 interest shows as income.
+
+### When an FD matures
+
+Open the deposit's account page. When the maturity date is within a week, or has passed, a **When it matures** card lists the two steps, with a button for each:
+
+1. **Add interest** opens a new income entry for that account, with the source set to Investment Returns. Skip this step if the interest was paid straight into your bank account.
+2. **Move Money** opens the transfer form with the deposit as the From Account.
+
+If you renew into a new FD, move the money to the new deposit. It does not count as new investing.
+
+!!! tip "Move Money tells you what it will do"
+    Under the **To** account, a short note appears when an investment account is involved: whether the move counts as money invested, lowers Invested, or is not counted at all.
+
+If more was taken out of investments than put in during a period, **Invested** shows a negative amount, with the words "More taken out than put in".
+
+---
+
 ## Related Links
 - [Holdings and Mutual Funds Portfolio](../02-accounts/holdings.md)
 - [Accounts and Net Worth](../02-accounts/index.md)

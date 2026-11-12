@@ -316,6 +316,8 @@
         {% endif %}
     </div>
 
+    {% if account.is_deposit_type and not account.deposit_closed_date %}{% include 'expenses/partials/_maturity_card.html' %}{% endif %}
+
     <!-- Transaction History -->
     <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 pt-2 pb-3">
         <div>

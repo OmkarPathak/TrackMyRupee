@@ -20,6 +20,7 @@ from django_recaptcha.widgets import ReCaptchaV3
 from finance_tracker.plans import get_limit
 
 from .account_valuation import get_baseline, get_current
+from .investing import is_investment_type
 from .models import (
     Account,
     CapitalEvent,
@@ -1737,6 +1738,9 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
             # {account id: currency}, for the currency segment next to the amount
             self.fields['from_account'].widget.attrs['data-currencies'] = json.dumps(
                 {str(pk): cur for pk, cur in accounts_qs.values_list('pk', 'currency')})
+            # [ids of the investment and deposit accounts], so the page can say what a move does to "Invested"
+            self.fields['from_account'].widget.attrs['data-investment-ids'] = json.dumps(
+                [pk for pk, kind in accounts_qs.values_list('pk', 'account_type') if is_investment_type(kind)])
 
     def clean(self):
         cleaned_data = super().clean()

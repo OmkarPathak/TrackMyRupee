@@ -4579,3 +4579,26 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
     .tmr-tabs--stack .tmr-tab-short { display: inline; }
 }
 @media print { .tmr-tabs { display: none !important; } }
+
+/* ── Investing notes: what a move does to "Invested" (Move Money, the maturity card, adding a deposit) ── */
+.tmr-invest-note { display: flex; gap: .55rem; align-items: flex-start; margin-top: .6rem; padding: .55rem .75rem; border-radius: .7rem; font-size: .84rem; line-height: 1.4; color: var(--bs-body-color); background: color-mix(in srgb, var(--color-secondary, #0F7657) 12%, var(--bs-body-bg)); }
+.tmr-invest-note__icon { flex: none; font-weight: 700; color: var(--color-secondary, #0F7657); }
+.tmr-invest-note--out { background: color-mix(in srgb, var(--color-warning, #D4831A) 16%, var(--bs-body-bg)); }
+.tmr-invest-note--out .tmr-invest-note__icon { color: var(--color-warning-text, #8a5200); }
+.tmr-invest-note--between { background: var(--bs-tertiary-bg); }
+.tmr-invest-note--between .tmr-invest-note__icon { color: var(--color-muted-text, var(--bs-secondary-color)); }
+.tmr-invest-note.d-none { display: none !important; }
+
+/* The "When it matures" card on a deposit's page */
+.tmr-maturity { border: 1px solid var(--bs-border-color); border-radius: 1rem; background: var(--bs-body-bg); padding: 0 1rem; }
+.tmr-maturity[open] { border-color: color-mix(in srgb, var(--color-warning, #D4831A) 45%, var(--bs-border-color)); }
+.tmr-maturity > summary { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .8rem 0; cursor: pointer; list-style: none; font-weight: 600; font-size: .92rem; }
+.tmr-maturity > summary::-webkit-details-marker { display: none; }
+.tmr-maturity__title .bi { color: var(--color-secondary, #0F7657); margin-right: .35rem; }
+.tmr-maturity__pill { font-size: .75rem; font-weight: 700; padding: .15rem .6rem; border-radius: 99px; color: var(--color-warning-text, #8a5200); background: color-mix(in srgb, var(--color-warning, #D4831A) 16%, var(--bs-body-bg)); white-space: nowrap; }
+.tmr-maturity__body { padding: 0 0 1rem; display: flex; flex-direction: column; gap: .65rem; }
+.tmr-maturity__step { display: flex; align-items: center; gap: .75rem; }
+.tmr-maturity__n { flex: none; width: 1.55rem; height: 1.55rem; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; font-weight: 700; color: #fff; background: var(--color-secondary, #0F7657); }
+.tmr-maturity__what { flex: 1; min-width: 0; font-size: .9rem; }
+.tmr-maturity__what small { display: block; color: var(--color-muted-text, var(--bs-secondary-color)); font-size: .76rem; }
+.tmr-maturity__body .tmr-invest-note { margin-top: 0; }

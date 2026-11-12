@@ -24064,3 +24064,62 @@ msgstr "ईमेल से रिमाइंडर और अलर्ट"
 #: finance_tracker/plans.py
 msgid "Your yearly review, with the year in numbers"
 msgstr "आपकी सालाना समीक्षा, पूरे साल के आँकड़ों के साथ"
+
+msgid "Money you moved into investments, minus money you took out. Moving it between investments does not count."
+msgstr "निवेश में डाला गया पैसा, घटा निवेश से निकाला गया पैसा। एक निवेश से दूसरे निवेश में पैसे ले जाना इसमें नहीं गिना जाता।"
+
+msgid "More taken out than put in"
+msgstr "डाले गए पैसों से ज़्यादा निकाले गए"
+
+msgid "This counts as <b>money invested</b>."
+msgstr "यह <b>निवेश किया गया पैसा</b> गिना जाएगा।"
+
+msgid "Money coming back from an investment, for example at maturity. This <b>lowers Invested</b>. Add any interest you earned as income."
+msgstr "निवेश से वापस आ रहा पैसा, जैसे परिपक्वता पर। इससे <b>निवेश की राशि घटती है</b>। कमाया हुआ ब्याज आय के रूप में जोड़ें।"
+
+msgid "Moving between investments is <b>not counted as new investing</b>."
+msgstr "निवेशों के बीच पैसे ले जाना <b>नया निवेश नहीं गिना जाता</b>।"
+
+msgid "When it matures"
+msgstr "परिपक्व होने पर"
+
+msgid "What happens when it matures?"
+msgstr "परिपक्व होने पर क्या होता है?"
+
+msgid "Matured"
+msgstr "परिपक्व हो चुका"
+
+msgid "Matures today"
+msgstr "आज परिपक्व होगा"
+
+msgid "Add the interest you earned"
+msgstr "कमाया हुआ ब्याज जोड़ें"
+
+msgid "Skip this if the interest was already paid into your bank account."
+msgstr "अगर ब्याज सीधे आपके बैंक खाते में आ चुका है तो इसे छोड़ दें।"
+
+msgid "Add interest"
+msgstr "ब्याज जोड़ें"
+
+msgid "Move the money out"
+msgstr "पैसे बाहर ले जाएँ"
+
+msgid "Renewing? Move it to your new deposit. A renewal <b>doesn't count as new investing</b>."
+msgstr "नवीनीकरण कर रहे हैं? इसे अपने नए डिपॉज़िट में ले जाएँ। नवीनीकरण <b>नया निवेश नहीं गिना जाता</b>।"
+
+msgid "To put money in, use <b>Move Money</b> from your bank account. When it matures, move it back and add the interest as income."
+msgstr "पैसे डालने के लिए अपने बैंक खाते से <b>पैसे ट्रांसफ़र करें</b> का उपयोग करें। परिपक्व होने पर पैसे वापस ले आएँ और ब्याज को आय के रूप में जोड़ें।"
+
+msgid "To put money in, use <b>Move Money</b> from your bank account. To take money out, move it back to your bank account."
+msgstr "पैसे डालने के लिए अपने बैंक खाते से <b>पैसे ट्रांसफ़र करें</b> का उपयोग करें। पैसे निकालने के लिए उन्हें वापस अपने बैंक खाते में ले जाएँ।"
+
+msgid "An opening balance is not counted as invested."
+msgstr "शुरुआती शेष राशि को निवेश किया गया नहीं गिना जाता।"
+
+msgid "Interest earned on %(account)s"
+msgstr "%(account)s पर कमाया ब्याज"
+
+msgid "Matures in %(n)s day"
+msgid_plural "Matures in %(n)s days"
+msgstr[0] "%(n)s दिन में परिपक्व होगा"
+msgstr[1] "%(n)s दिनों में परिपक्व होगा"

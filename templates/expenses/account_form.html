@@ -389,7 +389,19 @@
                         </div>
                         {{ type_categories|json_script:"type-categories" }}
                         {% endif %}
+                        {% if investment_types %}{{ investment_types|json_script:"investment-types" }}{% endif %}
                         <div class="row g-3" id="accountBasicsFields">
+                            {% if investment_types %}
+                            <div class="col-12 d-none" id="investmentHintWrap">
+                                {# how money gets into and out of an investment or deposit, and what it does to "Invested" #}
+                                <div class="tmr-invest-note mt-0" id="investmentHint" role="note"
+                                     data-deposit="{% trans 'To put money in, use <b>Move Money</b> from your bank account. When it matures, move it back and add the interest as income.' %}"
+                                     data-market="{% trans 'To put money in, use <b>Move Money</b> from your bank account. To take money out, move it back to your bank account.' %}"
+                                     data-opening="{% trans 'An opening balance is not counted as invested.' %}">
+                                    <span class="tmr-invest-note__icon" aria-hidden="true">ⓘ</span><span class="tmr-invest-note__text"></span>
+                                </div>
+                            </div>
+                            {% endif %}
                             <div class="col-12 col-md-6">
                                 <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.name.id_for_label }}">{% trans "Account Name" %}</label>
                                 {{ form.name }}
@@ -907,4 +919,5 @@
     });
 </script>
 {% if type_chooser %}<script src="{% static 'js/account_type_chooser.js' %}?v=2"></script>{% endif %}
+{% if investment_types %}<script src="{% static 'js/investment_hint.js' %}?v=1"></script>{% endif %}
 {% endblock %}

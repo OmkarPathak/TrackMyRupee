@@ -278,6 +278,22 @@ class IncomeCreateView(LoginRequiredMixin, CreateView):
                                 'currency': event.currency, 'account': event.account_id})
                 if event.note:
                     initial['description'] = event.note[:200]
+        # "Add the interest you earned" on a deposit that has matured links with ?account=<account>&source_type=...
+        raw_account = self.request.GET.get('account')
+        if raw_account and 'refund_for_capital_event' not in initial:
+            from ..models import Account, Income
+            from .utils import get_object_by_uuid_or_pk
+            try:
+                account = get_object_by_uuid_or_pk(Account, raw_account, user=self.request.user)
+            except (Http404, ValueError, ValidationError):
+                account = None
+            if account is not None:
+                initial.update({'account': account.pk, 'currency': account.currency})
+            wanted = self.request.GET.get('source_type')
+            if wanted in dict(Income.SOURCE_TYPE_CHOICES):
+                initial['source_type'] = wanted
+            if account is not None and wanted == 'Investment Returns':
+                initial['description'] = str(_('Interest earned on %(account)s') % {'account': account.name})[:200]
         # ...and "Add refund" on an expense links with ?refund_for_expense=<expense>
         raw_expense = self.request.GET.get('refund_for_expense')
         if raw_expense and 'refund_for_capital_event' not in initial:

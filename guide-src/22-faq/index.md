@@ -54,6 +54,10 @@ Create the account once under one user's TrackMyRupee account and log all transa
 
 A transfer moves money between accounts you already own. It does not change your net worth. Logging it as Expense and Income double-counts it, inflating both your total income and total expense figures in Analytics. Always use **Add → Move Money** for account-to-account moves. See [Transfers](../06-transfers/index.md).
 
+### Why doesn't renewing my FD count as new investing?
+
+**Invested** is money moved into investments minus money taken out. When an FD matures you move the money back to your bank account (that lowers Invested), and when you put it into a new FD that raises it again, so a renewal nets out. Only genuinely new money counts, and the interest is recorded as income. A move between two investment accounts is not counted at all. See [Investing, Maturity and Renewals](../06-transfers/index.md#6-investing-maturity-and-renewals).
+
 ### Can I import transactions from a spreadsheet?
 
 The full walk-through is in [Importing a Statement](../03-transactions-expenses/importing.md). In short:

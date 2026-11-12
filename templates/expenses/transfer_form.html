@@ -57,6 +57,13 @@
                             {% if form.to_account.errors %}
                                 <div class="text-danger small mt-1">{{ form.to_account.errors.0 }}</div>
                             {% endif %}
+                            {# What this move does to "Invested": one line, only when an investment or deposit account is involved #}
+                            <div id="transferInvestNote" class="tmr-invest-note d-none" role="note"
+                                 data-into="{% trans 'This counts as <b>money invested</b>.' %}"
+                                 data-out="{% trans 'Money coming back from an investment, for example at maturity. This <b>lowers Invested</b>. Add any interest you earned as income.' %}"
+                                 data-between="{% trans 'Moving between investments is <b>not counted as new investing</b>.' %}">
+                                <span class="tmr-invest-note__icon" aria-hidden="true"></span><span class="tmr-invest-note__text"></span>
+                            </div>
                         </div>
 
                         <!-- Amount and date -->
@@ -296,6 +303,28 @@ document.addEventListener('DOMContentLoaded', function() {
             toSel.dispatchEvent(new Event('change', { bubbles: true }));
         });
     }
+})();
+(function() {
+    // The note under "To": into an investment, out of one (a maturity), or between two
+    const note = document.getElementById('transferInvestNote');
+    const fromSel = document.getElementById('{{ form.from_account.id_for_label }}');
+    const toSel = document.getElementById('{{ form.to_account.id_for_label }}');
+    if (!note || !fromSel || !toSel) return;
+    let investment = [];
+    try { investment = JSON.parse(fromSel.dataset.investmentIds || '[]').map(String); } catch (e) {}
+    const icon = note.querySelector('.tmr-invest-note__icon'), text = note.querySelector('.tmr-invest-note__text');
+    const ICONS = { into: '＋', out: '↩', between: '⇄' };
+    function refresh() {
+        const from = fromSel.value, to = toSel.value;
+        const fromInv = investment.indexOf(from) !== -1, toInv = investment.indexOf(to) !== -1;
+        const kind = !from || !to ? '' : (fromInv && toInv) ? 'between' : toInv ? 'into' : fromInv ? 'out' : '';
+        note.className = 'tmr-invest-note' + (kind ? ' tmr-invest-note--' + kind : ' d-none');
+        if (!kind) return;
+        text.innerHTML = note.dataset[kind];
+        icon.textContent = ICONS[kind];
+    }
+    [fromSel, toSel].forEach(el => el.addEventListener('change', refresh));
+    refresh();
 })();
 (function() {
     const btn = document.getElementById('moveMoneySubmit');
