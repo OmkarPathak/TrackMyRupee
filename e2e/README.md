@@ -30,11 +30,26 @@ Run one file or one test: `RUN_E2E=1 python manage.py test e2e.test_move_money -
 | File | Flows |
 |---|---|
 | `test_smoke.py` | Every main page opens for a person with real data (computer and phone), shows its heading, no server error, no script error |
+| `test_public_and_more.py` | The public pages (computer and phone), landing to sign-up and sign-in, signing out, adding income, the calendar, the first-visit tour |
+| `test_signup_onboarding.py` | Sign-up with the consent step, age confirmation, a taken username; the three-step welcome that creates the account, salary and first expense |
+| `test_accounts.py` | Sign in and out through the real form; wrong password; add an account by kind and type, and by typing; the deposit hint |
 | `test_add_expense.py` | Type an expense, add it, find it in the list and on the account; on a phone; "Add another" and Undo |
 | `test_move_money.py` | Balances change; the notes for money going into, out of and between investments; a renewed FD counts only the new money |
-| `test_accounts.py` | Sign in and out through the real form; add an account by kind and type, and by typing; the deposit hint |
 | `test_deposit_maturity.py` | The "When it matures" card: Add interest opens income for that account, Move Money opens from it |
+| `test_data_flows.py` | CSV import with preview and undo, a one-time big purchase from the composer hint, categories, renaming an account, deleting a transfer, profile settings, export, searching the list |
+| `test_planning.py` | A subscription (three-step form), a loan, a goal, a budget set from the page, the Guided Setup salary flow |
 | `test_everyday.py` | Edit and delete an expense, Pay EMI, goal contribution, language switch, Analytics tabs, the phone bottom bar and More sheet, the first-run redirect |
+| `test_accounts_and_family.py` | Deleting an account, deleting your own account, Family sharing and its tabs |
+
+## What fails a test, besides its own checks
+
+* An **uncaught script error** on any page.
+* A request the app answers with a **server error** (500), even one a page makes in the background.
+
+## In CI
+
+`.github/workflows/tests.yml` runs two jobs on every pull request and on pushes to `main`: the unit suite, and these
+browser tests (with the screenshots of any failure kept as a build artifact).
 
 ## Writing a new one
 
@@ -52,5 +67,6 @@ a failing test saves a screenshot of every page to `e2e/artifacts/` (not committ
 Prefer waiting for what you need (`page.wait_for_selector`, `page.wait_for_url`, `self.wait_until`) over fixed sleeps or
 "network idle": a page may hold requests open.
 
-Scripts loaded from a CDN (the tour, the confetti) are unreachable in some sandboxes; the errors that causes are listed in
-`IGNORED_ERRORS` in `e2e/base.py`.
+Scripts loaded from a CDN (the tour, the confetti) are unreachable in some sandboxes. The errors that causes are listed in
+`IGNORED_ERRORS` in `e2e/base.py`, and `E2E_CDN_DIR=/folder` serves files such as `driver.js.iife.js` and `driver.css`
+from a folder, so the tour test can run offline. Without a network and without that folder the tour test skips itself.

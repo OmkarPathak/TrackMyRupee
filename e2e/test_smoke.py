@@ -22,6 +22,7 @@ PAGES = [
     ('analytics-cashflow', 'Analytics'),
     ('analytics-networth', 'Analytics'),
     ('goal-list', 'Goals'),
+    ('holding-list', 'Holdings'),
     ('loan-list', 'Loans'),
     ('recurring-list', 'Subscriptions'),
     ('capital-event-list', 'Big purchases'),

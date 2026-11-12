@@ -69,6 +69,7 @@ class E2ETestCase(StaticLiveServerTestCase):
         super().setUp()
         self._contexts = []
         self.js_errors = []
+        self.server_errors = []
 
     def tearDown(self):
         if self._test_failed():
@@ -76,10 +77,13 @@ class E2ETestCase(StaticLiveServerTestCase):
         for context in self._contexts:
             context.close()
         super().tearDown()
-        # an uncaught script error is a bug even when the page looked right
+        # an uncaught script error, or a request the app answered with a server error, is a bug even when the page
+        # looked right
         errors = [e for e in self.js_errors if not any(ignored in e for ignored in IGNORED_ERRORS)]
         if errors and not self._test_failed():
             self.fail('The page threw script errors:\n' + '\n'.join(errors))
+        if self.server_errors and not self._test_failed():
+            self.fail('The app answered with a server error:\n' + '\n'.join(self.server_errors))
 
     def _test_failed(self):
         outcome = getattr(self, '_outcome', None)
@@ -109,6 +113,7 @@ class E2ETestCase(StaticLiveServerTestCase):
         # no cookie banner over the page
         context.add_init_script("try { localStorage.setItem('cookieConsent', 'declined'); } catch (e) {}")
         self._contexts.append(context)
+        self._serve_cdn_files(context)
         if user is not None:
             client = Client()
             client.force_login(user)
@@ -116,7 +121,31 @@ class E2ETestCase(StaticLiveServerTestCase):
             context.add_cookies([{'name': settings.SESSION_COOKIE_NAME, 'value': cookie.value, 'url': self.live_server_url}])
         page = context.new_page()
         page.on('pageerror', lambda error: self.js_errors.append(str(error)))
+        page.on('response', self._note_server_error)
         return page
+
+    def _note_server_error(self, response):
+        if response.status >= 500 and response.url.startswith(self.live_server_url):
+            self.server_errors.append(f'{response.status} {response.request.method} {response.url}')
+
+    def _serve_cdn_files(self, context):
+        """Where the network is blocked, serve the CDN files some pages need (the tour) from a folder instead.
+
+        Set E2E_CDN_DIR to a folder holding them (for driver.js: driver.js.iife.js and driver.css). Without it the
+        pages use the real CDN, as in CI.
+        """
+        folder = os.environ.get('E2E_CDN_DIR')
+        if not folder:
+            return
+
+        def serve(route):
+            name = route.request.url.split('?')[0].rsplit('/', 1)[-1]
+            local = Path(folder) / name
+            if local.exists():
+                route.fulfill(path=str(local))
+            else:
+                route.continue_()
+        context.route('https://cdn.jsdelivr.net/**', serve)
 
     def open(self, page, path):
         """Go to a path on the live server; the status must be a success."""
