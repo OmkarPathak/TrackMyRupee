@@ -87,12 +87,13 @@ PACKAGE = {
 def _windows():
     import json
     from pathlib import Path
-    f = Path(__file__).resolve().parents[1] / "assets" / "vo" / "reel_003" / "durations.json"
+    import os
+    f = Path(__file__).resolve().parents[1] / "assets" / "vo" / ("reel_003_user" if os.environ.get("REEL3_VO") == "user" else "reel_003") / "durations.json"
     if not f.exists():
         return
     mins = [4.2, 6.0, 4.6, 7.0, 9.0, 4.8]; t = 0.0
     for sc, d, m in zip(PACKAGE["scenes"], json.loads(f.read_text()), mins):
-        w = max(m, d + 0.55); sc["t"] = f"{t:.1f}–{t + w:.1f}"; t += w
+        w = max(m, d + (0.4 if os.environ.get("REEL3_VO") == "user" else 0.55)); sc["t"] = f"{t:.1f}–{t + w:.1f}"; t += w
     PACKAGE["strategy"]["duration"] = f"≈{t:.0f} seconds (6 scenes; deliberately short)"
 
 

@@ -18,7 +18,7 @@ from render.reel_001 import env, io, lerp, mix, pill, put_app, q, rise, txt  # n
 
 W, H, FPS, DUR = 1080, 1920, 60, T.DUR
 LM, S = 72, T.SCENES
-CUES_PATH = Path(__file__).resolve().parents[1] / "assets" / "vo" / "reel_003" / "cues.json"
+CUES_PATH = T.VO_DIR / "cues.json"
 _cues = None
 PRICE, PLANS = 99, 5
 MONTHLY, YEARLY = PRICE * PLANS, PRICE * PLANS * 12
