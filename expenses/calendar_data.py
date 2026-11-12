@@ -112,7 +112,8 @@ def pending_by_day(user, start: date, end: date, search: str = '') -> dict[date,
         if rt.transaction_type == 'INCOME':
             kind = 'in'
         elif rt.transaction_type == 'TRANSFER':
-            kind = 'invest' if rt.to_account and rt.to_account.account_type in invest else 'transfer'
+            kind = ('invest' if rt.to_account and rt.to_account.account_type in invest
+                    and not (rt.from_account and rt.from_account.account_type in invest) else 'transfer')
         else:
             kind = 'out'
         text = (rt.description or '').lower()
@@ -150,7 +151,9 @@ def _month_filters(user, year, month, search):
     incomes = Income.objects.filter(user=user, **window)
     loans = LoanRepayment.objects.filter(loan__user=user, **window)
     capital = CapitalEvent.objects.filter(user=user, **window)
-    invest = Transfer.objects.filter(user=user, to_account__account_type__in=list(investment_codes()), **window)
+    # (a move between two investments is not new investing: see expenses/investing.py)
+    invest = Transfer.objects.filter(user=user, to_account__account_type__in=list(investment_codes()), **window).exclude(
+        from_account__account_type__in=list(investment_codes()))
     if search:
         expenses = expenses.filter(Q(description__icontains=search) | Q(category__icontains=search))
         incomes = incomes.filter(Q(source__icontains=search) | Q(description__icontains=search)
@@ -268,7 +271,7 @@ def day_detail(user, day: date, today: date, search: str = '') -> dict:
                       'amount': _dec(c.base_amount), 'flow': 'out', 'created': c.created_at,
                       'url_name': 'capital-event-edit', 'key': c.uuid})
     for t in transfers:
-        into_investment = t.to_account.account_type in invest
+        into_investment = t.to_account.account_type in invest and t.from_account.account_type not in invest
         items.append({'kind': 'invest' if into_investment else 'transfer',
                       'title': t.description or f'{t.from_account.name} → {t.to_account.name}',
                       'detail': '', 'account': f'{t.from_account.name} → {t.to_account.name}',

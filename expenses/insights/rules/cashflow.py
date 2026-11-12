@@ -224,7 +224,7 @@ ZERO = D(0)
 def _flow(page):
     """(income, kept, shortfall) the way the Cashflow tab's flow chart works them out."""
     now = page.summary
-    needs = now.spending + now.invested
+    needs = now.spending + max(ZERO, now.invested)
     return now.income, max(ZERO, now.income - needs), max(ZERO, needs - now.income)
 
 
@@ -276,7 +276,7 @@ def invested_and_kept(ctx) -> list[Insight]:
     """How the income was split between investing and what was kept as cash (when it covered everything)."""
     page = ctx.page
     income, kept, shortfall = _flow(page)
-    if income <= 0 or shortfall > 0 or page.summary.spending - income > 0:
+    if income <= 0 or shortfall > 0 or page.summary.spending - income > 0 or page.summary.invested < 0:
         return []
     return [_takeaway('cashflow.invested_and_kept', 55, 'pie-chart', _('Where your income went'),
                       _('You invested %(invested)s and kept %(kept)s of your income as cash.') % {

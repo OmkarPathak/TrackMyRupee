@@ -136,7 +136,9 @@ class Page:
             diff = now.rate - before.rate
             rate_text = f"{'▲' if diff > 0 else '▼' if diff < 0 else '•'} {translate_digits(f'{abs(float(diff)):.0f}')} {_('pts')}"
             rate_class = 'flat' if diff == 0 else 'good' if diff > 0 else 'bad'
-        invested_share = (now.invested / now.income * 100) if now.income else None
+        invested_share = (now.invested / now.income * 100) if now.income and now.invested >= 0 else None
+        invested_note = ((_('%(pct)s of income') % {'pct': percent(invested_share)}) if invested_share is not None
+                         else _('More taken out than put in') if now.invested < 0 else '')
         investment_accounts = self._investment_account_ids()
         return [
             {'key': 'income', 'label': _('Income'), 'value': money.full(now.income), 'delta': income_text,
@@ -144,7 +146,7 @@ class Page:
             {'key': 'spending', 'label': _('Spending'), 'value': money.full(now.spending), 'delta': spend_text,
              'delta_class': spend_class, 'href': self.links.transactions(start, end, SPENDING_TYPES)},
             {'key': 'invested', 'label': _('Invested'), 'value': money.full(now.invested),
-             'delta': (_('%(pct)s of income') % {'pct': percent(invested_share)}) if invested_share is not None else '',
+             'delta': invested_note, 'help': _('Money you moved into investments, minus money you took out. Moving it between investments does not count.'),
              'delta_class': 'flat', 'href': self.links.transactions(start, end, [TRANSFER], accounts=investment_accounts)},
             {'key': 'rate', 'label': _('Savings rate'), 'value': percent(now.rate, 1), 'delta': rate_text,
              'delta_class': rate_class, 'href': self.links.transactions(start, end)},

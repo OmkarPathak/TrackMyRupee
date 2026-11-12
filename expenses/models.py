@@ -354,6 +354,13 @@ class Account(models.Model):
     def is_deposit_type(self) -> bool:
         return self.account_type in {'FD', 'RD', 'FIXED_DEPOSIT', 'SCSS', 'NSC', 'KVP'}
 
+    @property
+    def days_to_maturity(self) -> int | None:
+        """Days until a deposit matures (negative once it has), or None when it has no maturity date or is closed."""
+        if not self.is_deposit_type or not self.deposit_maturity_date or self.deposit_closed_date:
+            return None
+        return (self.deposit_maturity_date - timezone.localdate()).days
+
     class Meta:
         constraints = [
             models.UniqueConstraint(

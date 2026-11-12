@@ -36,7 +36,7 @@ def sankey(page: Page) -> dict:
     links = page.links
     income = now.income
     living = now.spending - now.savings.loan_interest
-    interest, invested = now.savings.loan_interest, now.invested
+    interest, invested = now.savings.loan_interest, max(ZERO, now.invested)       # (a net withdrawal is not income)
     needs = living + interest + invested
     kept = max(ZERO, income - needs)
     shortfall = max(ZERO, needs - income)
@@ -96,7 +96,7 @@ def sankey(page: Page) -> dict:
                       links.transactions(start, end, (EXPENSE, CAPITAL_EVENT))))
             flows.append({'source': 'living', 'target': 'cat:rest', 'value': float(rest)})
     if invested > 0 and now.invested_to:
-        ranked = sorted(now.invested_to.items(), key=lambda item: item[1], reverse=True)
+        ranked = sorted(((k, v) for k, v in now.invested_to.items() if v > 0), key=lambda item: item[1], reverse=True)
         for (account_id, name), amount in ranked[:SANKEY_ACCOUNTS]:
             add(_node(f'acc:{account_id}', name, amount, 2, 'invest', page, base,
                       links.transactions(start, end, (TRANSFER,), accounts=[account_id])))

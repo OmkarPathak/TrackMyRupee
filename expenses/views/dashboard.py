@@ -22,6 +22,7 @@ from django.views.generic import TemplateView
 from .. import prompts
 from ..account_types import investment_codes
 from ..filters import DASHBOARD_FILTERS
+from ..investing import into_investments, invested_totals, investing_transfers, is_investment_type, out_of_investments
 from ..ledger_read_service import LedgerReadService
 from ..models import (
     Account,
@@ -182,7 +183,8 @@ def home_view(request):
     expenses = Expense.objects.filter(user=request.user).select_related('account', 'category_fk').order_by('-date')
     
     # Wealth Growth (Investments) - Transfers to Investment accounts
-    investments = Transfer.objects.filter(user=request.user, to_account__account_type__in=list(investment_codes())).select_related('from_account', 'to_account')
+    # (money moved into investments, and money taken out of them: see expenses/investing.py)
+    investments = investing_transfers(Transfer.objects.filter(user=request.user)).select_related('from_account', 'to_account')
     
     # Logic for EOM projection
     now = timezone.localtime(timezone.now())
@@ -409,7 +411,8 @@ def home_view(request):
             incomes = incomes.filter(date__month__in=selected_months)
             investments = investments.filter(date__month__in=selected_months)
     
-    total_investments = sum_transfers_base(investments)
+    _invested = invested_totals(investments)
+    invested_in, invested_out, total_investments = _invested['inflow'], _invested['outflow'], _invested['net']
     
     # Fetch loan repayments for the selected period (moved up to fix UnboundLocalError)
     loan_repayments_selected = LoanRepayment.objects.filter(loan__user=request.user).select_related('loan')
@@ -737,6 +740,8 @@ def home_view(request):
             amt = float((t.amount * rate).quantize(Decimal('0.01')))
         else:
             amt = float(t.amount)
+        if t.from_account and is_investment_type(t.from_account.account_type):
+            amt = -amt              # money coming back out of an investment
         invest_map[p_key] = invest_map.get(p_key, 0.0) + amt
 
     # income that pays back a capital event is not income: it is left out here and taken off the (counted) event
@@ -849,9 +854,7 @@ def home_view(request):
             prev_incomes_qs = Income.objects.filter(user=request.user, **prev_window)
             prev_repayments_qs = LoanRepayment.objects.filter(loan__user=request.user, **prev_window)
             prev_capital_qs = CapitalEvent.objects.filter(user=request.user, **prev_window)
-            prev_investments_qs = Transfer.objects.filter(
-                user=request.user, to_account__account_type__in=list(investment_codes()), **prev_window
-            )
+            prev_investments_qs = investing_transfers(Transfer.objects.filter(user=request.user, **prev_window))
             if selected_accounts:
                 prev_expenses_all = prev_expenses_all.filter(account_id__in=selected_accounts)
                 prev_incomes_qs = prev_incomes_qs.filter(account_id__in=selected_accounts)
@@ -861,7 +864,7 @@ def home_view(request):
                     Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts)
                 )
 
-            prev_investments = sum_transfers_base(prev_investments_qs)
+            prev_investments = invested_totals(prev_investments_qs)['net']
             _prev = period_totals(prev_incomes_qs, prev_expenses_all, prev_repayments_qs, prev_capital_qs)
             prev_expenses_op = _prev['expenses'] or 0
             prev_income, prev_cb_rf = _prev['income'], _prev['cashback_refund']
@@ -2169,8 +2172,9 @@ def home_view(request):
         if due_date.year == v_year and due_date.month == v_month:
             rtype = rt.transaction_type
             # Determine if it's an investment
-            if rtype == 'TRANSFER' and rt.to_account and rt.to_account.account_type in investment_codes():
-                rtype = 'INVESTMENT'
+            if (rtype == 'TRANSFER' and rt.to_account and rt.to_account.account_type in investment_codes()
+                    and not (rt.from_account and rt.from_account.account_type in investment_codes())):
+                rtype = 'INVESTMENT'      # (a move between two investments is not new investing)
                 
             item = {
                 'id': rt.id,
@@ -2353,18 +2357,19 @@ def home_view(request):
     # Optimization: Calculate bento invested data in a single query instead of N+1
     if net_worth_history:
         bento_start_date = net_worth_history[0]['month'].replace(day=1)
-        investments_grouped = Transfer.objects.filter(
+        investments_grouped = investing_transfers(Transfer.objects.filter(
             user=request.user,
-            to_account__account_type__in=list(investment_codes()),
             date__gte=bento_start_date
-        ).annotate(
+        )).annotate(
             month_group=TruncMonth('date')
         ).values('month_group').annotate(
-            total=Sum('converted_amount')
+            inflow=Sum('converted_amount', filter=into_investments()),
+            outflow=Sum('converted_amount', filter=out_of_investments()),
         ).order_by('month_group')
-        
+
         investments_by_month = {
-            item['month_group'].strftime('%Y-%m') if item['month_group'] else '': item['total'] or Decimal('0.00')
+            item['month_group'].strftime('%Y-%m') if item['month_group'] else '':
+                (item['inflow'] or Decimal('0.00')) - (item['outflow'] or Decimal('0.00'))
             for item in investments_grouped
         }
         
@@ -2400,7 +2405,7 @@ def home_view(request):
         'total_income': total_income,
         'total_expenses': total_expenses,
         'savings': savings,
-        'remaining_savings': savings - total_investments,
+        'remaining_savings': savings - max(total_investments, Decimal('0.00')),     # money taken out of investments is not extra savings
         'categories': categories,
         'category_amounts': category_amounts,
         'category_bars': category_bars,
@@ -2458,6 +2463,8 @@ def home_view(request):
         'hero_metrics': hero_metrics,
         'smart_bullet_insights': smart_bullet_insights,
         'total_investments': total_investments,
+        'invested_in': invested_in,
+        'invested_out': invested_out,
         'trend_iso_dates': trend_iso_dates,
         'proj_labels': proj_labels,
         'proj_historical': proj_historical,

@@ -777,9 +777,11 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
         return initial
 
     def get_context_data(self, **kwargs):
-        from ..account_types import type_categories
+        from ..account_types import deposit_codes, market_linked_codes, type_categories
         context = super().get_context_data(**kwargs)
         context['type_categories'] = type_categories()
+        # which types are investments, for the line that explains how money gets in and out of them
+        context['investment_types'] = {'deposit': sorted(deposit_codes()), 'market': sorted(market_linked_codes())}
         # "What kind of account is it?" comes first for a new account. Not when the type is already settled: named in
         # the address, or the form came back with errors.
         context['type_chooser'] = not context['form'].is_bound and not self._preset_type()

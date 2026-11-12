@@ -24127,3 +24127,62 @@ msgstr "ईमेलद्वारे स्मरणपत्रे आणि 
 #: finance_tracker/plans.py
 msgid "Your yearly review, with the year in numbers"
 msgstr "तुमचा वार्षिक आढावा, वर्षाच्या आकड्यांसह"
+
+msgid "Money you moved into investments, minus money you took out. Moving it between investments does not count."
+msgstr "गुंतवणुकीत टाकलेले पैसे, वजा गुंतवणुकीतून काढलेले पैसे. एका गुंतवणुकीतून दुसऱ्या गुंतवणुकीत पैसे हलवणे यात मोजले जात नाही."
+
+msgid "More taken out than put in"
+msgstr "टाकलेल्या पैशांपेक्षा जास्त काढले"
+
+msgid "This counts as <b>money invested</b>."
+msgstr "हे <b>गुंतवलेले पैसे</b> म्हणून मोजले जातील."
+
+msgid "Money coming back from an investment, for example at maturity. This <b>lowers Invested</b>. Add any interest you earned as income."
+msgstr "गुंतवणुकीतून परत येणारे पैसे, उदा. मॅच्युरिटीच्या वेळी. यामुळे <b>गुंतवलेली रक्कम कमी होते</b>. मिळालेले व्याज उत्पन्न म्हणून जोडा."
+
+msgid "Moving between investments is <b>not counted as new investing</b>."
+msgstr "गुंतवणुकींमध्ये पैसे हलवणे <b>नवीन गुंतवणूक म्हणून मोजले जात नाही</b>."
+
+msgid "When it matures"
+msgstr "मॅच्युरिटीच्या वेळी"
+
+msgid "What happens when it matures?"
+msgstr "मॅच्युरिटी झाल्यावर काय होते?"
+
+msgid "Matured"
+msgstr "मॅच्युर झाले"
+
+msgid "Matures today"
+msgstr "आज मॅच्युर होईल"
+
+msgid "Add the interest you earned"
+msgstr "मिळालेले व्याज जोडा"
+
+msgid "Skip this if the interest was already paid into your bank account."
+msgstr "व्याज आधीच तुमच्या बँक खात्यात जमा झाले असेल तर हे वगळा."
+
+msgid "Add interest"
+msgstr "व्याज जोडा"
+
+msgid "Move the money out"
+msgstr "पैसे बाहेर हलवा"
+
+msgid "Renewing? Move it to your new deposit. A renewal <b>doesn't count as new investing</b>."
+msgstr "नूतनीकरण करत आहात? ते तुमच्या नवीन डिपॉझिटमध्ये हलवा. नूतनीकरण <b>नवीन गुंतवणूक म्हणून मोजले जात नाही</b>."
+
+msgid "To put money in, use <b>Move Money</b> from your bank account. When it matures, move it back and add the interest as income."
+msgstr "पैसे टाकण्यासाठी तुमच्या बँक खात्यातून <b>पैसे हस्तांतरित करा</b> वापरा. मॅच्युरिटीनंतर पैसे परत हलवा आणि व्याज उत्पन्न म्हणून जोडा."
+
+msgid "To put money in, use <b>Move Money</b> from your bank account. To take money out, move it back to your bank account."
+msgstr "पैसे टाकण्यासाठी तुमच्या बँक खात्यातून <b>पैसे हस्तांतरित करा</b> वापरा. पैसे काढण्यासाठी ते परत तुमच्या बँक खात्यात हलवा."
+
+msgid "An opening balance is not counted as invested."
+msgstr "सुरुवातीची शिल्लक गुंतवलेली म्हणून मोजली जात नाही."
+
+msgid "Interest earned on %(account)s"
+msgstr "%(account)s वरील मिळालेले व्याज"
+
+msgid "Matures in %(n)s day"
+msgid_plural "Matures in %(n)s days"
+msgstr[0] "%(n)s दिवसात मॅच्युर होईल"
+msgstr[1] "%(n)s दिवसात मॅच्युर होईल"

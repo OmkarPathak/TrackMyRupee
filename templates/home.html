@@ -1672,7 +1672,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <!-- ── Card 4: Total Invested ── -->
             <div class="card bento-metric-card" id="bento-card-invested">
                 <div class="bento-metric-title">
-                    <div class="d-flex align-items-center gap-1 cursor-help" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Total amount transferred to investment accounts within the selected period.' %}">
+                    <div class="d-flex align-items-center gap-1 cursor-help" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Money you moved into investments, minus money you took out. Moving it between investments does not count.' %}">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.1rem; margin-top: -2px;">
                             <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
                             <path d="M22 12A10 10 0 0 0 12 2v10z"/>
@@ -1683,6 +1683,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="bento-metric-value invested">
                     {{ currency_symbol }}{{ total_investments|compact_amount:currency_symbol|translate_digits }}
                 </div>
+                {% if invested_out > 0 %}
+                <div class="bento-metric-delta" id="bento-invested-inout">
+                    <span class="bento-comparison-label">{% if total_investments < 0 %}{% trans "More taken out than put in" %} · {% endif %}{{ currency_symbol }}{{ invested_in|compact_amount:currency_symbol|translate_digits }} {% trans "in" %} · {{ currency_symbol }}{{ invested_out|compact_amount:currency_symbol|translate_digits }} {% trans "out" %}</span>
+                </div>
+                {% endif %}
                 <div class="bento-metric-delta">
                     {% if prev_month_data %}
                         {% if prev_month_data.investments_diff_amount >= 0 %}
@@ -3335,7 +3340,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const incomeTotal = parseFloat("{{ total_income|stringformat:'f'|default:'0' }}");
             const lifestyleTotal = parseFloat("{{ total_expenses|stringformat:'f'|default:'0' }}");
-            const investmentTotal = parseFloat("{{ total_investments|stringformat:'f'|default:'0' }}");
+            const investmentTotal = Math.max(0, parseFloat("{{ total_investments|stringformat:'f'|default:'0' }}"));
             const remainingTotal = Math.max(0, incomeTotal - lifestyleTotal - investmentTotal);
             
             const flowLabels = ['{% trans "Lifestyle" %}', '{% trans "Investments" %}', '{% trans "Remaining" %}'];

@@ -5,7 +5,7 @@
     <div class="col-6 col-md-3">
         <a href="{{ tile.href }}" class="card h-100 border-0 shadow-sm anx-tile text-decoration-none text-body">
             <div class="card-body p-3 px-md-4 py-md-3">
-                <span class="anx-tile-label d-block">{{ tile.label }}</span>
+                <span class="anx-tile-label d-block">{{ tile.label }}{% if tile.help %} <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ tile.help }}" aria-label="{{ tile.help }}"></i>{% endif %}</span>
                 <div class="anx-tile-amount">{{ tile.value }}</div>
                 <small class="anx-delta anx-delta--{{ tile.delta_class }} fw-bold">{{ tile.delta|default:"&nbsp;" }}</small>
             </div>

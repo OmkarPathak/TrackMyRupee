@@ -1,0 +1,27 @@
+{% load i18n %}
+{# What to do when a deposit (FD, RD and similar) matures. Folded away until the maturity date is near. #}
+{% with days=account.days_to_maturity %}
+<details class="tmr-maturity mb-3" id="maturity-card" {% if days is not None and days <= 7 %}open{% endif %}>
+    <summary>
+        <span class="tmr-maturity__title"><i class="bi bi-hourglass-split" aria-hidden="true"></i> {% if days is not None and days <= 7 %}{% trans "When it matures" %}{% else %}{% trans "What happens when it matures?" %}{% endif %}</span>
+        {% if days is not None %}
+            {% if days < 0 %}<span class="tmr-maturity__pill">{% trans "Matured" %}</span>
+            {% elif days == 0 %}<span class="tmr-maturity__pill">{% trans "Matures today" %}</span>
+            {% elif days <= 7 %}<span class="tmr-maturity__pill">{% blocktrans count n=days %}Matures in {{ n }} day{% plural %}Matures in {{ n }} days{% endblocktrans %}</span>{% endif %}
+        {% endif %}
+    </summary>
+    <div class="tmr-maturity__body">
+        <div class="tmr-maturity__step">
+            <span class="tmr-maturity__n">1</span>
+            <div class="tmr-maturity__what">{% trans "Add the interest you earned" %}<small>{% trans "Skip this if the interest was already paid into your bank account." %}</small></div>
+            <a class="btn btn-action-outline btn-sm text-nowrap" href="{% url 'income-create' %}?account={{ account.uuid }}&amp;source_type=Investment%20Returns">{% trans "Add interest" %}</a>
+        </div>
+        <div class="tmr-maturity__step">
+            <span class="tmr-maturity__n">2</span>
+            <div class="tmr-maturity__what">{% trans "Move the money out" %}</div>
+            <a class="btn btn-action-outline btn-sm text-nowrap" href="{% url 'transfer-create' %}?from_account={{ account.uuid }}">{% trans "Move Money" %}</a>
+        </div>
+        <div class="tmr-invest-note tmr-invest-note--between" role="note"><span class="tmr-invest-note__icon" aria-hidden="true">↻</span><span class="tmr-invest-note__text">{% blocktrans %}Renewing? Move it to your new deposit. A renewal <b>doesn't count as new investing</b>.{% endblocktrans %}</span></div>
+    </div>
+</details>
+{% endwith %}
