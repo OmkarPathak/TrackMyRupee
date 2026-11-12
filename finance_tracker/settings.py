@@ -202,6 +202,11 @@ else:
             },
         }
     }
+    if os.environ.get('RUN_E2E') == '1':
+        # The browser tests (e2e/) run the app and the test on different threads. An in-memory SQLite database is one
+        # connection shared by all of them, which breaks under parallel requests; a file gives each its own.
+        import tempfile
+        DATABASES['default']['TEST'] = {'NAME': os.path.join(tempfile.gettempdir(), 'tmr_e2e_test.sqlite3')}
 
 
 # Password validation

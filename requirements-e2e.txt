@@ -1,0 +1,2 @@
+# Browser (end to end) tests: see e2e/README.md
+playwright>=1.45
