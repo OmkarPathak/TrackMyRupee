@@ -6,7 +6,7 @@ from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -227,6 +227,9 @@ class PagesTests(TestCase):
     def html(self):
         return self.client.get(reverse('settings-home')).content.decode()
 
+    # (the analytics snippet is only drawn when a Google Analytics id or PostHog key is configured, which these
+    # tests must not depend on the machine's environment for)
+    @override_settings(GOOGLE_ANALYTICS_ID='G-TEST')
     def test_the_cookie_choice_kept_on_the_account_is_applied_before_analytics_starts(self):
         profile = self.user.profile
         profile.prompt_state = {'cookie': {'choice': 'declined'}}
@@ -236,6 +239,7 @@ class PagesTests(TestCase):
         self.assertLess(html.index("localStorage.setItem('cookieConsent', 'declined')"), html.index('var GA_ID'))
         self.assertIn('data-server-choice="declined"', html)
 
+    @override_settings(GOOGLE_ANALYTICS_ID='G-TEST')
     def test_with_no_answer_yet_nothing_is_forced(self):
         html = self.html()
         self.assertNotIn("localStorage.setItem('cookieConsent'", html.split('var GA_ID')[0])
