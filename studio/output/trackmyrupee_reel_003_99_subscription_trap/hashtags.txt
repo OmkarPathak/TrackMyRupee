@@ -1,0 +1,3 @@
+CORE: #PersonalFinanceIndia #ExpenseTracker #Subscriptions #MoneyManagement #TrackMyRupee
+EXTENDED (pick ≤3): #BudgetingTips #IndianFinance #MoneyHabits
+Use the 5 core tags + at most 2 extended.

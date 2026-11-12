@@ -1,0 +1,23 @@
+DIRECTION
+Quick, wry, conversational. Land '₹5,940 a year' with a beat of silence before it. Initialisms and rupee amounts are expanded for the TTS (render/tts_kokoro.py).
+
+=== ENGLISH (Indian) ===
+Five plans. ₹99 each. So what's that a year?
+
+₹495 a month. ₹5,940 a year. All quietly renewing.
+
+And one of them? You've probably forgotten it's still running.
+
+Catch them in three steps. Scan last month's statement. List every recurring charge. Then note each renewal date.
+
+In TrackMyRupee, add each one once. You see the monthly and yearly total, and get a reminder three days before it renews.
+
+No bank login. No SMS access. Try the free demo — link in bio.
+
+=== HINGLISH ===
+(English for the Reel; Hinglish lives in the carousel.)
+
+=== HINDI ===
+(not requested)
+
+STATUS: Kokoro af_heart (draft quality).
