@@ -214,3 +214,4 @@ __marimo__/
 backup*
 # Private notes: infrastructure, runbooks, incidents, interview prep. Never committed.
 docs/private/
+e2e/artifacts/
