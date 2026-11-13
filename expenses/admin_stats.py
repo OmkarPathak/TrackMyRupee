@@ -17,8 +17,9 @@ def activity_stats(now=None) -> dict:
 
     * An expense counts when it was added (its creation time), not the date written on it, so a backdated entry
       counts for the day it was entered. Entries since deleted are left out.
-    * A sign-in is the user's last_login. Someone who stays signed in on their phone (a session lasts two weeks)
-      does not sign in again, so this undercounts people who simply keep using the app.
+    * A sign-in is the user's last_login. It is refreshed when someone signs in, and also once a day when a signed-in
+      person opens the app (the ping in base.html), so people who stay signed in on the PWA are counted too. It is the
+      last day they opened the app, not the exact time.
     """
     from .models import Expense
 

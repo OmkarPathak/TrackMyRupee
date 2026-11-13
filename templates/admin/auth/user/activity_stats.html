@@ -38,7 +38,7 @@
     </p>
     <ul class="help" style="margin-left: 1.5rem; list-style: disc">
         <li><strong>Added an expense:</strong> by when it was added, not the date on the entry. Entries since deleted are not counted.</li>
-        <li><strong>Signed in:</strong> by each person's last sign-in. A session lasts two weeks, so someone who stays signed in on their phone is not counted again until they sign in. This undercounts people who keep using the app.</li>
+        <li><strong>Signed in:</strong> by each person's last login. It is refreshed when they sign in, and also once a day when they open the app while already signed in (including the installed app on a phone), so it shows when each person last opened the app. It is a day's precision, not the exact time.</li>
     </ul>
 </div>
 {% endblock %}
