@@ -60,6 +60,14 @@ CRON_ALLOW_QUERY_SECRET = os.getenv('CRON_ALLOW_QUERY_SECRET', 'False').lower() 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in {'1', 'true', 'yes', 'on'}
 
+# Networks whose X-Forwarded-For entries are our own proxies (nginx, Docker, Cloudflare): the client address is the
+# first hop, reading from the right, that is not one of them (see finance_tracker/client_ip.py). Set
+# TRUSTED_PROXY_RANGES to a comma-separated list of CIDRs to add another proxy (for example a different CDN).
+from finance_tracker.client_ip import DEFAULT_TRUSTED_PROXY_RANGES  # noqa: E402
+
+TRUSTED_PROXY_RANGES = DEFAULT_TRUSTED_PROXY_RANGES + tuple(
+    r.strip() for r in os.getenv('TRUSTED_PROXY_RANGES', '').split(',') if r.strip())
+
 # Option to disable the admin panel url
 ENABLE_ADMIN_URL = os.getenv('ENABLE_ADMIN_URL', 'False').lower() in {'1', 'true', 'yes', 'on'}
 # The test suite exercises the admin, so it must not depend on the developer's .env.
@@ -125,6 +133,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 MIDDLEWARE = [
     'finance_tracker.server_timing.ServerTimingMiddleware',  # must stay first; no-op unless ENABLE_SERVER_TIMING
     'django.middleware.security.SecurityMiddleware',
+    'finance_tracker.security_headers.SecurityHeadersMiddleware',  # CSP baseline and Permissions-Policy on every response
     'django.middleware.gzip.GZipMiddleware', # Compress responses (~230KB HTML -> ~25KB); must stay high in the stack
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'finance_tracker.html_compact.CompactHtmlMiddleware',  # strips template indentation (~40% of page bytes); must stay below GZip
@@ -408,7 +417,9 @@ ACCOUNT_ADAPTER = 'expenses.adapters.CustomAccountAdapter'
 # Values are "<count>/<period>" where period is s/m/h/d.
 ACCOUNT_RATE_LIMITS = {
     "confirm_email": "3/d",    # resend confirmation: max 3 per day per IP
-    "login_failed": "5/5m",    # brute-force protection
+    # Brute-force protection: per address AND per account, so a script that changes address on every request still
+    # cannot keep guessing one password. (Overriding this with an address-only limit once dropped the per-account one.)
+    "login_failed": "5/5m/ip,5/5m/key",
     "signup": "3/h",           # registration spam protection
 }
 

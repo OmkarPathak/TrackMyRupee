@@ -16,6 +16,7 @@ Rules:
 from __future__ import annotations
 
 import json
+import re
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
@@ -44,6 +45,18 @@ class HoldingError(ValueError):
 
 def instrument_type_for(account) -> str:
     return INSTRUMENT_TYPES.get(account.account_type, 'OTHER')
+
+
+SCHEME_CODE = re.compile(r'[0-9]{1,12}')           # ASCII digits only (\d would also accept Devanagari or Arabic digits)
+
+
+def clean_scheme_code(value) -> str:
+    """The AMFI scheme code as typed ('' when none was given). Codes are plain numbers (101234); anything else is
+    refused here because the code is later put into a request URL to the NAV service."""
+    code = str(value or '').strip()
+    if code and not SCHEME_CODE.fullmatch(code):
+        raise HoldingError(_('A fund code is a number, for example 101234.'))
+    return code
 
 
 def _positive(value, label):
@@ -412,7 +425,7 @@ def create_holding(account, *, name, units=None, price=None, amount=None, date=N
     if account.account_type not in holdings_codes():
         raise HoldingError(_('Holdings can only be added to Mutual Fund, Demat, ETF, SGB, ULIP or Gold accounts.'))
     instrument_type = instrument_type_for(account)
-    scheme_code = (scheme_code or '').strip() or resolve_scheme_code(name, instrument_type)
+    scheme_code = clean_scheme_code(scheme_code) or resolve_scheme_code(name, instrument_type)
     purchase_date = _check_date(date)
     if estimate is None and wants_estimate(units, price, amount):
         estimate = estimate_purchase_terms(scheme_code, name, purchase_date, amount, before_cutoff)
@@ -467,7 +480,7 @@ def parse_allocations(raw, *, user, to_account, from_currency, transfer_amount, 
         elif not (item.get('name') or '').strip():
             raise HoldingError(_('Choose a fund or enter the name of a new one.'))
         name = holding.instrument_name if holding else (item.get('name') or '').strip()
-        scheme_code = holding.scheme_code if holding else (item.get('scheme_code') or '').strip()
+        scheme_code = holding.scheme_code if holding else clean_scheme_code(item.get('scheme_code'))
         before = item.get('cutoff') != 'after'
         row = {'holding': holding, 'name': name, 'scheme_code': scheme_code, 'isin': (item.get('isin') or '').strip(),
                'units': None, 'estimate': None}
@@ -527,7 +540,7 @@ def create_empty_holding(account, *, name, scheme_code='', isin=''):
         raise HoldingError(_('Holdings can only be added to Mutual Fund, Demat, ETF, SGB, ULIP or Gold accounts.'))
     return Holding.objects.create(
         account=account, instrument_name=name[:255], instrument_type=instrument_type_for(account),
-        units=Decimal('0'), avg_cost=None, currency=account.currency, scheme_code=(scheme_code or '').strip() or None,
+        units=Decimal('0'), avg_cost=None, currency=account.currency, scheme_code=clean_scheme_code(scheme_code) or None,
         isin=(isin or '').strip() or None, is_active=True,
     )
 
@@ -561,7 +574,7 @@ def parse_fund_splits(raw, *, user, from_account, to_account, amount, recurring=
         if part is None:
             raise HoldingError(_('Enter an amount for every fund.'))
         part = part.quantize(D2)
-        holding, name, code = None, (item.get('name') or '').strip(), (item.get('scheme_code') or '').strip()
+        holding, name, code = None, (item.get('name') or '').strip(), clean_scheme_code(item.get('scheme_code'))
         if item.get('holding_id') not in (None, '', 'new'):
             try:
                 holding = Holding.objects.get(pk=int(item['holding_id']), account=to_account, is_active=True)

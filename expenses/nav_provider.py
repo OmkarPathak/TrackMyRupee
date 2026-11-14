@@ -15,6 +15,14 @@ from .models import AMFIScheme, FundNAVCache, Holding, Valuation
 logger = logging.getLogger(__name__)
 
 
+def is_scheme_code(value) -> bool:
+    """AMFI scheme codes are plain numbers. A code goes straight into a request path to the NAV service, so anything
+    else (slashes, dots, a query string) is never sent; holdings refuse such a code when they are created, and this
+    is the second lock on the one place the URL is built."""
+    code = str(value or '').strip()
+    return code.isascii() and code.isdigit() and len(code) <= 12
+
+
 class BaseNAVProvider:
     """Abstract base class for NAV providers (SPEC §3a)."""
     name = 'BASE'
@@ -33,6 +41,9 @@ class MFAPIProvider(BaseNAVProvider):
 
     def fetch_latest(self, scheme_code: str) -> tuple[Decimal, date, str | None, str | None] | None:
         scheme_code = str(scheme_code).strip()
+        if not is_scheme_code(scheme_code):
+            logger.warning("Refusing to look up a NAV for a scheme code that is not a number")
+            return None
         url = f"https://api.mfapi.in/mf/{scheme_code}/latest"
         
         try:
@@ -82,6 +93,8 @@ class MFAPIProvider(BaseNAVProvider):
 
 def fetch_scheme_history(scheme_code: str) -> list[tuple[date, Decimal]] | None:
     """Every published NAV of a scheme from MFapi.in, newest first: [(date, nav)]. None if it cannot be had."""
+    if not is_scheme_code(scheme_code):
+        return None
     url = f"https://api.mfapi.in/mf/{str(scheme_code).strip()}"
     try:
         import requests

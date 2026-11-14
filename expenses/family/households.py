@@ -179,8 +179,8 @@ def accept_invitation(invitation, user, request=None):
 def _client_ip(request):
     if request is None:
         return None
-    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
-    return (forwarded.split(',')[0].strip() or request.META.get('REMOTE_ADDR')) or None
+    from finance_tracker.client_ip import client_ip
+    return client_ip(request)
 
 
 def leave(user):

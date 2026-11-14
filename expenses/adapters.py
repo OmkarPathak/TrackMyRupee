@@ -17,6 +17,12 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     3. DB-backed daily cap: Maximum 3 verification emails per 24-hour window per recipient.
     """
 
+    def get_client_ip(self, request):
+        """allauth keys its rate limits on this. Its own version reads the first X-Forwarded-For entry, which a caller
+        can choose, so every limit could be dodged by changing that header; use the trusted address instead."""
+        from finance_tracker.client_ip import client_ip
+        return client_ip(request) or super().get_client_ip(request)
+
     COOLDOWN_MINUTES = 15
     DAILY_LIMIT = 3
     # EmailLog has no "kind" column, so verification mails are recognised by their subject

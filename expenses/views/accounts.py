@@ -1,3 +1,4 @@
+import re
 import sys
 from collections import defaultdict
 from datetime import timedelta
@@ -1856,10 +1857,11 @@ class AccountDetailView(LoginRequiredMixin, View):
         return PseudoQS(all_tx)
 
 
-class RecordMaturityIncomeView(LoginRequiredMixin, UUIDOrIntLookupMixin, View):
+class RecordMaturityIncomeView(LoginRequiredMixin, View):
     """
     Action view to record accrued interest earned on an FD/RD account as an
-    Income entry under 'Investment Returns'.
+    Income entry under 'Investment Returns'. POST only: a GET answers 405 (it used to crash with a 500, because the
+    lookup mixin it carried expects a detail view's object and this view has none).
     """
     def post(self, request, *args, **kwargs):
         account = get_object_by_uuid_or_pk(Account, kwargs.get('pk') or kwargs.get('uuid'), user=request.user)
@@ -1926,6 +1928,40 @@ class RecordMaturityIncomeView(LoginRequiredMixin, UUIDOrIntLookupMixin, View):
         return redirect(redirect_url)
 
 
+_FUND_FILLER_WORDS = {'and', 'the', 'of', 'fund', 'plan', 'option'}
+_FUND_CAP_WORD = re.compile(r'^(large|mid|small|flexi|multi|micro)-?cap$')
+
+
+def fund_search_words(text, split_caps=False):
+    """The words of a fund search that carry meaning: "&" reads as "and", and filler words ("and", "fund") are dropped
+    because fund names write them differently ("Large & Mid Cap Fund", "Midcap Fund")."""
+    words = []
+    for word in re.split(r'[\s,/]+', text.lower().replace('&', ' and ')):
+        word = word.strip('.')
+        if not word or word in _FUND_FILLER_WORDS:
+            continue
+        match = _FUND_CAP_WORD.match(word)
+        if split_caps and match:
+            words.extend([match.group(1), 'cap'])
+        else:
+            words.append(word)
+    return words
+
+
+def fund_word_variants(word):
+    """Spellings a fund name may use for one typed word: "midcap" is also written "Mid Cap" and "Mid-Cap"."""
+    match = _FUND_CAP_WORD.match(word)
+    if match:
+        prefix = match.group(1)
+        return [f'{prefix}cap', f'{prefix} cap', f'{prefix}-cap']
+    return [word]
+
+
+def fund_name_matches(name, words):
+    lowered = name.lower().replace('&', ' and ')
+    return all(any(variant in lowered for variant in fund_word_variants(word)) for word in words)
+
+
 def search_amfi_schemes(request):
     """
     Search endpoint over local AMFIScheme search mirror with live MFapi fallback (SPEC §3a).
@@ -1940,12 +1976,15 @@ def search_amfi_schemes(request):
     
     from ..models import AMFIScheme
     results = []
-    
+
     # 1. Try local AMFIScheme table first
-    query_words = [w for w in q.split() if w]
+    query_words = fund_search_words(q) or [w for w in q.split() if w]
     scheme_filter = Q()
     for w in query_words:
-        scheme_filter &= Q(scheme_name__icontains=w)
+        word_filter = Q()
+        for variant in fund_word_variants(w):
+            word_filter |= Q(scheme_name__icontains=variant)
+        scheme_filter &= word_filter
 
     schemes = list(AMFIScheme.objects.filter(
         scheme_filter | Q(scheme_code__icontains=q)
@@ -1990,16 +2029,21 @@ def search_amfi_schemes(request):
             import urllib.parse
 
             import requests
-            encoded_q = urllib.parse.quote(q)
+            # The remote search matches words literally, so "large and midcap" finds nothing for "Large & Mid Cap".
+            # Ask with the words that carry meaning, then keep only names that match every word the person typed.
+            remote_q = ' '.join(fund_search_words(q, split_caps=True)) or q
+            encoded_q = urllib.parse.quote(remote_q)
             url = f"https://api.mfapi.in/mf/search?q={encoded_q}"
             resp = requests.get(url, headers={'User-Agent': 'TrackMyRupee/1.0'}, timeout=5)
             if resp.status_code == 200:
                 data = resp.json()
-                for item in data[:15]:
+                for item in data:
                     code = str(item.get('schemeCode'))
                     name = item.get('schemeName')
-                    if code and name:
+                    if code and name and fund_name_matches(name, query_words):
                         results.append({'scheme_code': code, 'scheme_name': name, 'isin': None})
+                    if len(results) >= 15:
+                        break
         except Exception:
             pass
             

@@ -108,7 +108,10 @@ class CalendarDayView(LoginRequiredMixin, TemplateView):
 
 # Limits on one import. A file is read whole into memory, so it must be small; the row cap is far above what
 # a month or a year of personal statements holds.
-MAX_XLSX_UNCOMPRESSED_BYTES = 30 * 1024 * 1024   # a spreadsheet is a zip: refuse one that expands enormously
+# A spreadsheet is a zip: refuse one that expands enormously. Loading one costs about 9.5 MB of memory for every MB of
+# XML it unpacks to (measured with openpyxl), and the server has 512 MB; a 5,000-row statement unpacks to about 2.5 MB.
+# So 10 MB leaves four times the room a real statement needs and keeps one hostile upload under about 100 MB.
+MAX_XLSX_UNCOMPRESSED_BYTES = 10 * 1024 * 1024
 IMPORT_BUDGET_SECONDS = 25                         # an import stops starting new work after this, well inside the 60 s a request gets
 
 
@@ -361,12 +364,8 @@ class ContactView(View):
         return True
 
     def _get_client_ip(self, request):
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
+        from finance_tracker.client_ip import client_ip
+        return client_ip(request) or request.META.get('REMOTE_ADDR')
 
     def _check_rate_limit(self, ip):
         hourly_key = f'contact_hourly_{ip}'
@@ -443,13 +442,15 @@ def dpdp_consent_view(request):
             profile.consent_version = 'v1.0'
             profile.save()
 
+            from finance_tracker.client_ip import client_ip
+
             from ..models import ConsentEvent
             ConsentEvent.objects.create(
                 user=request.user,
                 action='GRANTED',
                 purpose='Terms and Data Collection',
                 consent_version='v1.0',
-                ip_address=request.META.get('REMOTE_ADDR'),
+                ip_address=client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
 
@@ -605,7 +606,9 @@ def doh_handler_view(request):
                     is_dns_aid = True
                     domain = '.'.join(labels[idx + 1:])
 
-            if is_dns_aid:
+            # Only the Internet class has these records. A query in another class (CH, ANY...) gets an empty answer: it
+            # used to make rdata.from_text() raise, so anyone could produce a 500 with one request.
+            if is_dns_aid and qclass == dns.rdataclass.IN:
                 types_to_return = []
                 if qtype == dns.rdatatype.SVCB or qtype == 255:
                     types_to_return.append(dns.rdatatype.SVCB)
@@ -614,6 +617,12 @@ def doh_handler_view(request):
 
                 target_host = domain if domain.endswith('.') else f"{domain}."
                 for rdtype in types_to_return:
+                    rdata_text = f"1 {target_host} mandatory=alpn,port alpn=a2a port=443"
+                    try:
+                        rdata = dns.rdata.from_text(qclass, rdtype, rdata_text)
+                    except Exception:
+                        # A name that cannot be written as a target (odd characters): no data, not an error
+                        continue
                     rrset = response_msg.find_rrset(
                         response_msg.answer,
                         qname,
@@ -621,8 +630,6 @@ def doh_handler_view(request):
                         rdtype,
                         create=True
                     )
-                    rdata_text = f"1 {target_host} mandatory=alpn,port alpn=a2a port=443"
-                    rdata = dns.rdata.from_text(qclass, rdtype, rdata_text)
                     rrset.add(rdata, ttl=3600)
 
         response_wire = response_msg.to_wire()
