@@ -1081,6 +1081,28 @@
   font-size: 1.25rem;
 }
 
+/* The "How it works" button is a toolbar button like the period and Filter controls: same height, border, radius and
+   shadow, square, with the icon centred. */
+.dashboard-info-btn {
+  width: 38px;
+  min-width: 38px;
+  padding: 0;
+  justify-content: center;
+}
+.dashboard-info-btn .bi {
+  font-size: 1rem;
+  color: var(--bs-secondary-color);
+}
+
+/* "This month", "Filter" and the info button sit 8px apart: the toolbar already spaces its two buttons 8px, so the row's
+   16px gap before the info button is pulled in by 8px. */
+.dashboard-filter-slot + .dashboard-header-actions {
+  margin-left: -8px;
+}
+.dashboard-info-btn:hover .bi {
+  color: var(--bs-body-color);
+}
+
 /* Dashboard specific overrides for TMR Toolbar */
 #tmr-toolbar-dashboard {
   margin-bottom: 0 !important;

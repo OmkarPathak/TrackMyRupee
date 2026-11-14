@@ -1225,7 +1225,7 @@ def home_view(request):
                 'allow_share': False
             })
         
-    # --- "Where Did My Salary Go?" Data ---
+    # --- Salary-cycle breakdown (feeds the insights, spending pace and health cards) ---
     salary_breakdown = None
     
     if total_expenses > 0:
@@ -1761,79 +1761,6 @@ def home_view(request):
     if insights_shadow.should_compare(request.user):
         insights_shadow.compare(request.user, shadow_legacy)
     
-    # Layer 5: Monthly Story Generation
-    if len(selected_months) == 1 and len(selected_years) == 1:
-        story_month_name = calendar.month_name[int(selected_months[0])]
-    else:
-        story_month_name = _("This period")
-
-    # Calculate Future Growth (Total Surplus = Investments + Remaining Savings)
-    # savings is already (income - lifestyle_expenses) because total_expenses excludes investments
-    total_wealth_contribution = max(0, savings)
-    future_growth_pct = round(float(total_wealth_contribution) / float(total_income) * 100) if total_income > 0 else 0
-    lifestyle_pct = round(float(total_expenses) / float(total_income) * 100) if total_income > 0 else 0
-    
-    # Calculate one-off income for flagging in Monthly Story
-    one_off_income_agg = incomes.filter(source_type__in=['Investment Returns', 'Other']).aggregate(Sum('base_amount'))['base_amount__sum'] or Decimal('0.00')
-    
-    income_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(total_income, currency_symbol)}</b>")
-    if one_off_income_agg > 0:
-        one_off_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(one_off_income_agg, currency_symbol)}</b>")
-        income_bold = format_html(
-            _("{income} (including {one_off} in one-off/investment income)"),
-            income=income_bold,
-            one_off=one_off_bold
-        )
-    lifestyle_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(total_expenses, currency_symbol)}</b>")
-    invest_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(total_investments, currency_symbol)}</b>")
-    future_total_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(total_wealth_contribution, currency_symbol)}</b>")
-    
-    # Narrative Structure
-    if total_wealth_contribution > 0:
-        if total_investments > 0:
-            monthly_story = format_html(
-                _("In {month}, you earned {income}. You spent {lifestyle} ({life_pct}%) on lifestyle, and saved {future_total} ({future_pct}%) for your future (including {invest} invested)."),
-                month=story_month_name,
-                income=income_bold,
-                lifestyle=lifestyle_bold,
-                life_pct=lifestyle_pct,
-                future_total=future_total_bold,
-                future_pct=future_growth_pct,
-                invest=invest_bold
-            )
-        else:
-            monthly_story = format_html(
-                _("In {month}, you earned {income}. You spent {lifestyle} ({life_pct}%) on lifestyle, and saved {future_total} ({future_pct}%) for your future."),
-                month=story_month_name,
-                income=income_bold,
-                lifestyle=lifestyle_bold,
-                life_pct=lifestyle_pct,
-                future_total=future_total_bold,
-                future_pct=future_growth_pct
-            )
-    else:
-        if total_investments > 0:
-            monthly_story = format_html(
-                _("In {month}, you earned {income}. You spent {lifestyle} on lifestyle, and invested {invest} toward future wealth."),
-                month=story_month_name,
-                income=income_bold,
-                lifestyle=lifestyle_bold,
-                invest=invest_bold
-            )
-        else:
-            monthly_story = format_html(
-                _("In {month}, you earned {income}. You spent {lifestyle} on lifestyle."),
-                month=story_month_name,
-                income=income_bold,
-                lifestyle=lifestyle_bold
-            )
-    
-    if projected_savings > 0:
-        proj_bold = mark_safe(f"<b>{currency_symbol}{compact_amount(projected_savings, currency_symbol)}</b>")
-        monthly_story += format_html(
-            _(" At this pace (using your year-to-date average), you could save {proj} by year's end."),
-            proj=proj_bold
-        )
     # has_any_data was computed once at the very top of this view — no second query needed.
 
     # Logic for "Year in Review" Banner
@@ -2401,7 +2328,6 @@ def home_view(request):
         'is_new_user': not has_any_data,
         'actionable_alerts': actionable_alerts,
         'smart_insights': smart_insights,
-        'monthly_story': monthly_story,
         'total_income': total_income,
         'total_expenses': total_expenses,
         'savings': savings,

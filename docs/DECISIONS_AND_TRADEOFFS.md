@@ -234,7 +234,9 @@ How we found out: a `Server-Timing` middleware (`finance_tracker/server_timing.p
 - **Rejected.** Rendering a skeleton shell and loading the whole body after paint (improves first paint, not time to
   content, and every script that expects the elements at load would need re-initialising).
 - **Rejected.** Deferring the collapsed "Financial Intelligence" hub: it saves only about 10 queries and would make
-  opening it feel slow because it would recompute nearly everything.
+  opening it feel slow because it would recompute nearly everything. (The hub itself was removed on 14 November 2026:
+  its "Where Did My Salary Go?" card repeated figures shown elsewhere, and its other cards are replaced by the insights
+  panel.)
 
 ### 8.5 Net Worth and allocation load after the page paints
 - **Decision.** With the Insights Engine on, the page no longer reads the ledger. Net Worth and Asset Allocation show a

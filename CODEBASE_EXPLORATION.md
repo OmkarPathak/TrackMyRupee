@@ -158,7 +158,7 @@ ie_expense_data = [expenses + loan_interest for each period]
 ie_savings_data = [income - expenses - loan_principal for each period]
 ```
 
-**4. Salary Breakdown Analysis** ("Where Did My Salary Go?")
+**4. Salary Breakdown Analysis** (feeds the insights, spending pace and health cards; the "Where Did My Salary Go?" card was removed)
 **Location:** [expenses/views/dashboard.py](expenses/views/dashboard.py#L741-L950)
 
 The dashboard calculates:
@@ -354,7 +354,7 @@ Add `salary_date` and `salary_source` to UserProfile
 ✅ **Multi-currency Support** - Currency conversion with exchange rates  
 ✅ **Advanced Filters** - By date range, year/month, category  
 
-✅ **Salary Breakdown Analysis** - "Where Did My Salary Go?" visualization  
+✅ **Salary Breakdown Analysis** - the data behind the insights cards (the dedicated "Where Did My Salary Go?" card was removed)  
 ⚠️ **Salary Date Automation** - PARTIALLY implemented (recurring transactions only)
 
 ---

@@ -66,11 +66,10 @@
 
 /* ---- "In one line": the lead sentence on the Spending tab (brand green tint; the dark theme uses the page's own dark green) ---- */
 .anx-line { background: rgba(15, 118, 87, .09); border: 1px solid rgba(15, 118, 87, .25); }
-.anx-line-label { font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #0B6B4F; margin-bottom: .25rem; }
-.anx-line-text { font-size: 1.1rem; font-weight: 600; line-height: 1.45; color: var(--bs-body-color); }
+.anx-line-label { font-size: .72rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #0B6B4F; margin-bottom: .25rem; }
+.anx-line-text { font-size: .95rem; font-weight: 400; line-height: 1.45; color: var(--bs-body-color); }
 [data-bs-theme="dark"] .anx-line { background: rgba(79, 176, 142, .12); border-color: rgba(79, 176, 142, .32); }
 [data-bs-theme="dark"] .anx-line-label { color: #4FB08E; }
-@media (max-width: 575.98px) { .anx-line-text { font-size: 1rem; } }
 
 /* ---- card titles: the same as the dashboard cards (icon, bold 1.08rem title, 52px header) ---- */
 .anx .anx-head { min-height: 52px; padding-top: .72rem; padding-bottom: .72rem; }

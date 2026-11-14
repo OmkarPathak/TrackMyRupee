@@ -174,9 +174,10 @@ class DashboardSwitchTests(InsightBase):
         return self.client.get(reverse('home')).content.decode()
 
     @override_settings(INSIGHTS_ENGINE_MODE='off')
-    def test_off_keeps_the_legacy_cards(self):
+    def test_off_no_longer_shows_the_old_hub_cards(self):
         html = self.home()
-        self.assertIn('Actionable Alerts', html)
+        self.assertNotIn('Actionable Alerts', html)
+        self.assertNotIn('Money Flow Analysis', html)
         self.assertNotIn(reverse('insights-panel'), html)
 
     @ENGINE_ON
