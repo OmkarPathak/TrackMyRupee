@@ -1856,10 +1856,11 @@ class AccountDetailView(LoginRequiredMixin, View):
         return PseudoQS(all_tx)
 
 
-class RecordMaturityIncomeView(LoginRequiredMixin, UUIDOrIntLookupMixin, View):
+class RecordMaturityIncomeView(LoginRequiredMixin, View):
     """
     Action view to record accrued interest earned on an FD/RD account as an
-    Income entry under 'Investment Returns'.
+    Income entry under 'Investment Returns'. POST only: a GET answers 405 (it used to crash with a 500, because the
+    lookup mixin it carried expects a detail view's object and this view has none).
     """
     def post(self, request, *args, **kwargs):
         account = get_object_by_uuid_or_pk(Account, kwargs.get('pk') or kwargs.get('uuid'), user=request.user)
