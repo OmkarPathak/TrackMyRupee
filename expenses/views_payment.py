@@ -19,6 +19,10 @@ from .payment_emails import send_upgrade_thank_you
 
 logger = logging.getLogger(__name__)
 
+# What a person is told when a payment step fails. The cause is in the log, never in the response.
+PAYMENT_ERROR_MESSAGE = 'Something went wrong while processing your payment. Please try again, or contact support if it keeps happening.'
+CANCEL_ERROR_MESSAGE = 'We could not cancel your subscription just now. Please try again, or contact support.'
+
 @login_required
 def start_trial(request):
     if request.method == "POST":
@@ -149,9 +153,10 @@ def create_order(request):
                 'type': 'ORDER',
                 'customer_id': request.user.profile.razorpay_customer_id
             })
-        except Exception as e:
-            logger.error(f"Error creating order: {e}")
-            return JsonResponse({'error': str(e)}, status=500)
+        except Exception:
+            # The cause goes to the log; the buyer gets a plain message (exception text can name keys, URLs or fields)
+            logger.exception("Error creating order")
+            return JsonResponse({'error': PAYMENT_ERROR_MESSAGE}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
 
@@ -246,9 +251,9 @@ def verify_payment(request):
             return JsonResponse({'success': True})
         except PaymentHistory.DoesNotExist:
              return JsonResponse({'error': 'Order not found'}, status=404)
-        except Exception as e:
-            logger.error(f"Error verifying payment: {e}")
-            return JsonResponse({'error': str(e)}, status=500)
+        except Exception:
+            logger.exception("Error verifying payment")
+            return JsonResponse({'error': PAYMENT_ERROR_MESSAGE}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
 
@@ -450,7 +455,7 @@ def cancel_subscription(request):
                     })
                 # Other BadRequestErrors (e.g. invalid parameter)
                 logger.warning(f"Razorpay BadRequestError cancelling subscription {sub_id} for user {request.user.id}: {err_msg}")
-                return JsonResponse({'error': err_msg}, status=400)
+                return JsonResponse({'error': CANCEL_ERROR_MESSAGE}, status=400)
             except (razorpay.errors.GatewayError, razorpay.errors.ServerError) as e:
                 logger.warning(f"Razorpay gateway error cancelling subscription {sub_id} for user {request.user.id}: {e}")
                 return JsonResponse({'error': 'Payment gateway error. Please try again later.'}, status=502)
@@ -463,9 +468,9 @@ def cancel_subscription(request):
                 'success': True,
                 'message': 'Subscription cancelled successfully. You will have access until the end of your current cycle.'
             })
-        except Exception as e:
-            logger.error(f"Error cancelling subscription: {e}", exc_info=True)
-            return JsonResponse({'error': str(e)}, status=500)
+        except Exception:
+            logger.exception("Error cancelling subscription")
+            return JsonResponse({'error': CANCEL_ERROR_MESSAGE}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
 
