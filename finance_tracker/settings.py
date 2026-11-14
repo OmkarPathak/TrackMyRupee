@@ -60,6 +60,11 @@ CRON_ALLOW_QUERY_SECRET = os.getenv('CRON_ALLOW_QUERY_SECRET', 'False').lower() 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in {'1', 'true', 'yes', 'on'}
 
+# How many reverse proxies sit in front of the app (nginx, a platform load balancer, a CDN). The client address is
+# read from the end of X-Forwarded-For that many places in, never from what a client put at the front of it (see
+# finance_tracker/client_ip.py). 0 trusts only the connection's own address.
+TRUSTED_PROXY_COUNT = int(os.getenv('TRUSTED_PROXY_COUNT', '0' if DEBUG else '1'))
+
 # Option to disable the admin panel url
 ENABLE_ADMIN_URL = os.getenv('ENABLE_ADMIN_URL', 'False').lower() in {'1', 'true', 'yes', 'on'}
 # The test suite exercises the admin, so it must not depend on the developer's .env.
@@ -408,7 +413,9 @@ ACCOUNT_ADAPTER = 'expenses.adapters.CustomAccountAdapter'
 # Values are "<count>/<period>" where period is s/m/h/d.
 ACCOUNT_RATE_LIMITS = {
     "confirm_email": "3/d",    # resend confirmation: max 3 per day per IP
-    "login_failed": "5/5m",    # brute-force protection
+    # Brute-force protection: per address AND per account, so a script that changes address on every request still
+    # cannot keep guessing one password. (Overriding this with an address-only limit once dropped the per-account one.)
+    "login_failed": "5/5m/ip,5/5m/key",
     "signup": "3/h",           # registration spam protection
 }
 

@@ -361,12 +361,8 @@ class ContactView(View):
         return True
 
     def _get_client_ip(self, request):
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
+        from finance_tracker.client_ip import client_ip
+        return client_ip(request) or request.META.get('REMOTE_ADDR')
 
     def _check_rate_limit(self, ip):
         hourly_key = f'contact_hourly_{ip}'
@@ -443,13 +439,15 @@ def dpdp_consent_view(request):
             profile.consent_version = 'v1.0'
             profile.save()
 
+            from finance_tracker.client_ip import client_ip
+
             from ..models import ConsentEvent
             ConsentEvent.objects.create(
                 user=request.user,
                 action='GRANTED',
                 purpose='Terms and Data Collection',
                 consent_version='v1.0',
-                ip_address=request.META.get('REMOTE_ADDR'),
+                ip_address=client_ip(request),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')
             )
 

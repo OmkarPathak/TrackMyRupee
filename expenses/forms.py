@@ -899,13 +899,15 @@ class CustomSignupForm(forms.Form):
         profile.consent_version = 'v1.0'
         profile.save()
 
+        from finance_tracker.client_ip import client_ip
+
         from .models import ConsentEvent
         ConsentEvent.objects.create(
             user=user,
             action='GRANTED',
             purpose='Signup Data Collection',
             consent_version='v1.0',
-            ip_address=request.META.get('REMOTE_ADDR') if request else None,
+            ip_address=client_ip(request) if request else None,
             user_agent=request.META.get('HTTP_USER_AGENT', '') if request else ''
         )
 
