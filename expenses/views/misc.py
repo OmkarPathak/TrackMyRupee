@@ -108,7 +108,10 @@ class CalendarDayView(LoginRequiredMixin, TemplateView):
 
 # Limits on one import. A file is read whole into memory, so it must be small; the row cap is far above what
 # a month or a year of personal statements holds.
-MAX_XLSX_UNCOMPRESSED_BYTES = 30 * 1024 * 1024   # a spreadsheet is a zip: refuse one that expands enormously
+# A spreadsheet is a zip: refuse one that expands enormously. Loading one costs about 9.5 MB of memory for every MB of
+# XML it unpacks to (measured with openpyxl), and the server has 512 MB; a 5,000-row statement unpacks to about 2.5 MB.
+# So 10 MB leaves four times the room a real statement needs and keeps one hostile upload under about 100 MB.
+MAX_XLSX_UNCOMPRESSED_BYTES = 10 * 1024 * 1024
 IMPORT_BUDGET_SECONDS = 25                         # an import stops starting new work after this, well inside the 60 s a request gets
 
 
