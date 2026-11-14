@@ -606,7 +606,9 @@ def doh_handler_view(request):
                     is_dns_aid = True
                     domain = '.'.join(labels[idx + 1:])
 
-            if is_dns_aid:
+            # Only the Internet class has these records. A query in another class (CH, ANY...) gets an empty answer: it
+            # used to make rdata.from_text() raise, so anyone could produce a 500 with one request.
+            if is_dns_aid and qclass == dns.rdataclass.IN:
                 types_to_return = []
                 if qtype == dns.rdatatype.SVCB or qtype == 255:
                     types_to_return.append(dns.rdatatype.SVCB)
@@ -615,6 +617,12 @@ def doh_handler_view(request):
 
                 target_host = domain if domain.endswith('.') else f"{domain}."
                 for rdtype in types_to_return:
+                    rdata_text = f"1 {target_host} mandatory=alpn,port alpn=a2a port=443"
+                    try:
+                        rdata = dns.rdata.from_text(qclass, rdtype, rdata_text)
+                    except Exception:
+                        # A name that cannot be written as a target (odd characters): no data, not an error
+                        continue
                     rrset = response_msg.find_rrset(
                         response_msg.answer,
                         qname,
@@ -622,8 +630,6 @@ def doh_handler_view(request):
                         rdtype,
                         create=True
                     )
-                    rdata_text = f"1 {target_host} mandatory=alpn,port alpn=a2a port=443"
-                    rdata = dns.rdata.from_text(qclass, rdtype, rdata_text)
                     rrset.add(rdata, ttl=3600)
 
         response_wire = response_msg.to_wire()
