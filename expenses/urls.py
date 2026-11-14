@@ -253,8 +253,6 @@ urlpatterns = [
     path('.well-known/dns-query', views.doh_handler_view, name='dns-query-wellknown'),
     path('.well-known/dns-query/', views.doh_handler_view, name='dns-query-wellknown-slash'),
 
-    # Sentry Debug
-    path('sentry-debug/', lambda request: 1 / 0),
     # Capital Events
     path('capital-events/', views.CapitalEventListView.as_view(), name='capital-event-list'),
     path('capital-events/add/', views.CapitalEventCreateView.as_view(), name='capital-event-create'),
