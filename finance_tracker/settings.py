@@ -60,10 +60,13 @@ CRON_ALLOW_QUERY_SECRET = os.getenv('CRON_ALLOW_QUERY_SECRET', 'False').lower() 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() in {'1', 'true', 'yes', 'on'}
 
-# How many reverse proxies sit in front of the app (nginx, a platform load balancer, a CDN). The client address is
-# read from the end of X-Forwarded-For that many places in, never from what a client put at the front of it (see
-# finance_tracker/client_ip.py). 0 trusts only the connection's own address.
-TRUSTED_PROXY_COUNT = int(os.getenv('TRUSTED_PROXY_COUNT', '0' if DEBUG else '1'))
+# Networks whose X-Forwarded-For entries are our own proxies (nginx, Docker, Cloudflare): the client address is the
+# first hop, reading from the right, that is not one of them (see finance_tracker/client_ip.py). Set
+# TRUSTED_PROXY_RANGES to a comma-separated list of CIDRs to add another proxy (for example a different CDN).
+from finance_tracker.client_ip import DEFAULT_TRUSTED_PROXY_RANGES  # noqa: E402
+
+TRUSTED_PROXY_RANGES = DEFAULT_TRUSTED_PROXY_RANGES + tuple(
+    r.strip() for r in os.getenv('TRUSTED_PROXY_RANGES', '').split(',') if r.strip())
 
 # Option to disable the admin panel url
 ENABLE_ADMIN_URL = os.getenv('ENABLE_ADMIN_URL', 'False').lower() in {'1', 'true', 'yes', 'on'}
