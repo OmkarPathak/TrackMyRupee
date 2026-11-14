@@ -130,6 +130,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 MIDDLEWARE = [
     'finance_tracker.server_timing.ServerTimingMiddleware',  # must stay first; no-op unless ENABLE_SERVER_TIMING
     'django.middleware.security.SecurityMiddleware',
+    'finance_tracker.security_headers.SecurityHeadersMiddleware',  # CSP baseline and Permissions-Policy on every response
     'django.middleware.gzip.GZipMiddleware', # Compress responses (~230KB HTML -> ~25KB); must stay high in the stack
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'finance_tracker.html_compact.CompactHtmlMiddleware',  # strips template indentation (~40% of page bytes); must stay below GZip
