@@ -38,6 +38,7 @@ Run one file or one test: `RUN_E2E=1 python manage.py test e2e.test_move_money -
 | `test_deposit_maturity.py` | The "When it matures" card: Add interest opens income for that account, Move Money opens from it |
 | `test_data_flows.py` | CSV import with preview and undo, a one-time big purchase from the composer hint, categories, renaming an account, deleting a transfer, profile settings, export, searching the list |
 | `test_planning.py` | A subscription (three-step form), a loan, a goal, a budget set from the page, the Guided Setup salary flow |
+| `test_guided_setup.py` | Every Guided Setup flow (read from the registry) opens, walks to its review, and creates its records when confirmed; the landing list; a phone; the SIP Funds step (search, amounts, split saved, RD has no funds step) |
 | `test_everyday.py` | Edit and delete an expense, Pay EMI, goal contribution, language switch, Analytics tabs, the phone bottom bar and More sheet, the first-run redirect |
 | `test_accounts_and_family.py` | Deleting an account, deleting your own account, Family sharing and its tabs |
 
