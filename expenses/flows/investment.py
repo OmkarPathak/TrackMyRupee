@@ -134,8 +134,12 @@ class SipRdFlowForm(forms.Form):
         help_text=_('If start date is in the past, create past due entries immediately.'),
     )
 
+    # JSON built by the page: [{"name", "scheme_code", "amount"}], the funds each instalment buys (SIP only).
+    fund_splits = forms.CharField(required=False, label=_('Funds'), widget=forms.HiddenInput())
+
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = user
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
@@ -143,8 +147,26 @@ class SipRdFlowForm(forms.Form):
             if not accounts.exists():
                 self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
 
+    def _clean_fund_splits(self, cleaned_data):
+        """Check the funds now, against an account of the kind the flow will create, so a mistake is shown on the form
+        and not after the account exists."""
+        from ..holdings_service import HoldingError, parse_fund_splits
+
+        raw, from_account, amount = cleaned_data.get('fund_splits'), cleaned_data.get('from_account'), cleaned_data.get('amount')
+        if not raw or not self.user or not from_account or amount is None:
+            return
+        stand_in = Account(user=self.user, account_type='MUTUAL_FUND', currency=from_account.currency)
+        try:
+            parse_fund_splits(raw, user=self.user, from_account=from_account, to_account=stand_in, amount=amount)
+        except HoldingError as exc:
+            self.add_error('fund_splits', str(exc))
+
     def clean(self):
         cleaned_data = super().clean()
+        if cleaned_data.get('instrument_type') == 'SIP':
+            self._clean_fund_splits(cleaned_data)
+        else:
+            cleaned_data['fund_splits'] = ''                 # funds belong to a SIP; an RD buys none
         if cleaned_data.get('instrument_type') == 'RD':
             if cleaned_data.get('deposit_principal') is None:
                 self.add_error('deposit_principal', _('Deposit principal is required for recurring deposits.'))
@@ -368,6 +390,7 @@ class SipRdFlow(Flow):
     form_class = SipRdFlowForm
     wizard_steps = [
         FlowWizardStep('investment_basics', _('Investment Basics'), ['instrument_type', 'name', 'amount', 'frequency', 'deposit_start_date', 'end_date', 'from_account', 'create_historical_entries', 'is_pinned'], _('Tell us what you are investing in and how often it should repeat.')),
+        FlowWizardStep('sip_funds', _('Funds'), ['fund_splits'], _('Optional. Choose the funds each instalment buys and how much goes to each. Whatever you leave out stays as cash in the account, and you can change this later by editing the schedule.'), show_if="instrument_type === 'SIP'"),
         FlowWizardStep('deposit_rd_details', _('Recurring Deposit Details'), ['deposit_principal', 'deposit_rate', 'deposit_compounding', 'deposit_maturity_date', 'deposit_closed_date', 'rd_installment_day', 'show_accrued_balance', 'record_maturity_income'], _('Configure interest rate and maturity terms for your recurring deposit.'), show_if="instrument_type === 'RD'"),
     ]
 
@@ -450,6 +473,23 @@ class SipRdFlow(Flow):
         data['currency'] = data.get('currency') or (data['from_account'].currency if data.get('from_account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
         data['deposit_start_date'] = data.get('deposit_start_date') or timezone.localdate()
         return data
+
+    def after_create(self, user, data, created_by_key) -> None:
+        """Attach the chosen funds to the new schedule, so every instalment buys them. The account is new, so each
+        fund is created empty and gets its first purchase when the first instalment is posted."""
+        from django.core.exceptions import ValidationError
+
+        from ..holdings_service import HoldingError, apply_fund_splits, parse_fund_splits
+
+        raw = data.get('fund_splits')
+        if data.get('instrument_type') != 'SIP' or not raw:
+            return
+        try:
+            rows = parse_fund_splits(raw, user=user, from_account=data['from_account'],
+                                     to_account=created_by_key['account'], amount=data['amount'])
+            apply_fund_splits(created_by_key['transfer'], rows)
+        except HoldingError as exc:
+            raise ValidationError(str(exc)) from exc
 
     def preview(self, user, cleaned_data) -> dict:
         data = self.derive({**cleaned_data, 'user': user})
