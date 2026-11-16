@@ -883,7 +883,10 @@ def home_view(request):
             prev_savings = prev_result.savings
 
             def calc_pct(current, previous):
-                if previous == 0:
+                # A percentage change is only meaningful against a positive base. Against zero it is undefined, and
+                # against a negative one the sign flips (-59,772 to 65,228 would read as -209%), so the card shows
+                # just the change in money.
+                if previous is None or previous <= 0:
                     return None
                 return ((current - previous) / previous) * 100
 

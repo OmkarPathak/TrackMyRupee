@@ -1244,7 +1244,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <span class="ms-auto badge bg-secondary bg-opacity-10 text-success fw-bold cursor-help d-inline-flex align-items-center" style="font-size: 0.75rem; text-transform: none; letter-spacing: 0;" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'Saved / Remaining' %}">
                         <i class="bi bi-piggy-bank-fill me-1" style="font-size: 0.85rem; margin-top: -1px;"></i>
-                        <span>{{ currency_symbol }}{{ savings|compact_amount:currency_symbol|translate_digits }}</span>
+                        <span>{{ savings|compact_money:currency_symbol|translate_digits }}</span>
                     </span>
                 </div>
                 <div class="bento-metric-value income">
@@ -1348,7 +1348,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="bento-metric-value invested">
-                    {{ currency_symbol }}{{ total_investments|compact_amount:currency_symbol|translate_digits }}
+                    {{ total_investments|compact_money:currency_symbol|translate_digits }}
                 </div>
                 {% if invested_out > 0 %}
                 <div class="bento-metric-delta" id="bento-invested-inout">
