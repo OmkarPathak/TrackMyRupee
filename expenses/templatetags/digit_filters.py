@@ -76,6 +76,19 @@ def compact_amount(value, currency=''):
     return f"{sign}{res}"
 
 
+@register.filter
+def compact_money(value, currency='₹'):
+    """compact_amount with the currency symbol included and the sign in front of it: -₹59,772, ₹1.5L.
+
+    Writing the symbol and then compact_amount's own sign gives "₹-59,772", which reads wrongly."""
+    text = compact_amount(value, currency)
+    if not isinstance(text, str) or text is value:
+        return text                                  # not a number: handed back as it came
+    if text.startswith('-'):
+        return f"-{currency}{text[1:]}"
+    return f"{currency}{text}"
+
+
 def _exact_money(value, currency, plus=False):
     try:
         num = Decimal(str(value)).quantize(Decimal('0.01'))

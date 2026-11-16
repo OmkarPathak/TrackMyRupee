@@ -2,7 +2,7 @@
 {# The Net Worth card's figures and sparkline (the card itself, with its title and lock, is in home.html). #}
 {# Rendered inline when the figures are already known, else fetched after the page paints (dashboard-networth). #}
 <div class="bento-metric-value text-body-emphasis">
-    {{ currency_symbol }}{{ nw.net_worth|compact_amount:currency_symbol|translate_digits }}
+    {{ nw.net_worth|compact_money:currency_symbol|translate_digits }}
 </div>
 <div class="bento-metric-delta">
     {% if nw.net_worth_change >= 0 %}
