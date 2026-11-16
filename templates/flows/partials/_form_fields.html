@@ -4,7 +4,7 @@
     {% for field_name in step.fields %}
         {% with field=form|bound_field:field_name %}
         {% if field %}
-        <div class="col-12 col-md-6"
+        <div class="col-12{% if field_name != 'fund_splits' %} col-md-6{% endif %}"
              {% if flow.key == 'car' and field_name == 'loan_name' or flow.key == 'car' and field_name == 'annual_rate' or flow.key == 'car' and field_name == 'tenure_months' or flow.key == 'car' and field_name == 'loan_start_date' %}
              x-cloak x-show="isFinanced" x-transition
              {% elif flow.key == 'loan' and field_name == 'payment_account' or flow.key == 'loan' and field_name == 'repayment_amount' or flow.key == 'loan' and field_name == 'repayment_frequency' or flow.key == 'loan' and field_name == 'repayment_start_date' or flow.key == 'loan' and field_name == 'repayment_is_active' %}
@@ -15,7 +15,9 @@
              x-cloak x-show="includeDownPayment" x-transition
              {% endif %}>
             <div class="mb-0">
-                {% if field.field.widget.input_type == 'checkbox' %}
+                {% if field_name == 'fund_splits' %}
+                    {% include 'flows/partials/_fund_splits.html' %}
+                {% elif field.field.widget.input_type == 'checkbox' %}
                     <div class="form-check pt-3">
                         {{ field }}
                         <label class="form-check-label fw-bold" for="{{ field.id_for_label }}">{{ field.label }}</label>

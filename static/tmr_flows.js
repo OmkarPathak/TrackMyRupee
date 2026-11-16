@@ -111,6 +111,9 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
       if (stepKey === 'deposit_rd_details') {
         return this.instrumentType === 'RD';
       }
+      if (stepKey === 'sip_funds') {
+        return this.instrumentType === 'SIP';
+      }
       return true;
     },
 

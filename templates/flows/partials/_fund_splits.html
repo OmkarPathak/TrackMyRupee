@@ -1,0 +1,101 @@
+{% load i18n %}
+{# The funds each SIP instalment buys. Rows are built here and written to the hidden fund_splits field as JSON. #}
+<div class="border rounded-3 p-3" id="flowFundGroup">
+    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+        <div class="small text-muted">{% trans "Search for a fund, then say how much of each instalment buys it, for example 10,000 into one fund and 5,000 into another. Every instalment is recorded as a purchase of each fund, priced from its NAV." %}</div>
+        <button type="button" class="btn btn-action-outline btn-sm text-nowrap" id="flowSplitAdd"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% trans "Add fund" %}</button>
+    </div>
+    {{ field }}
+    <div id="flowSplitRows"></div>
+    <div class="small text-muted d-none" id="flowSplitSummary"></div>
+</div>
+<script>
+    (function () {
+        const hidden = document.getElementById('id_fund_splits');
+        const rowsBox = document.getElementById('flowSplitRows');
+        const summary = document.getElementById('flowSplitSummary');
+        const amountInput = document.querySelector('[name="amount"]');
+        if (!hidden || !rowsBox) return;
+        const esc = (v) => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        function collect() {
+            return Array.from(rowsBox.querySelectorAll('.split-row')).map(function (row) {
+                const q = (k) => row.querySelector('[data-f=' + k + ']');
+                return { holding_id: null, name: q('name').value.trim(), scheme_code: q('code').value, amount: q('amount').value };
+            }).filter((r) => r.amount || r.name);
+        }
+
+        function refresh() {
+            const rows = collect();
+            hidden.value = rows.length ? JSON.stringify(rows) : '';
+            const total = rows.reduce((t, r) => t + (parseFloat(r.amount) || 0), 0);
+            const instalment = parseFloat(amountInput && amountInput.value) || 0;
+            summary.classList.toggle('d-none', !rows.length);
+            if (rows.length) {
+                const left = instalment - total;
+                summary.textContent = total.toFixed(2) + ' {% trans "of" %} ' + instalment.toFixed(2) + ' {% trans "goes to funds" %} · ' +
+                    (left >= 0 ? left.toFixed(2) + ' {% trans "stays as cash" %}' : '{% trans "more than the instalment" %}');
+                summary.classList.toggle('text-danger', left < 0);
+                summary.classList.toggle('text-muted', left >= 0);
+            }
+        }
+
+        function addRow(prefill) {
+            prefill = prefill || {};
+            const row = document.createElement('div');
+            row.className = 'row g-2 align-items-end mb-2 split-row';
+            row.innerHTML =
+                '<div class="col-12 col-md-7 position-relative"><label class="form-label small text-muted fw-bold mb-1">{% trans "Fund" %}</label>' +
+                '<input type="text" class="form-control form-control-sm" data-f="name" autocomplete="off" maxlength="255" placeholder="{% trans "Type a fund name to search" %}">' +
+                '<input type="hidden" data-f="code">' +
+                '<div class="dropdown-menu shadow w-100 mt-1 overflow-auto" data-f="suggest" style="max-height: 220px; display: none; z-index: 1070;"></div></div>' +
+                '<div class="col-8 col-md-4"><label class="form-label small text-muted fw-bold mb-1">{% trans "Amount" %}</label>' +
+                '<input type="number" class="form-control form-control-sm" data-f="amount" step="0.01" min="0"></div>' +
+                '<div class="col-4 col-md-1 text-end"><button type="button" class="btn btn-link text-danger p-0" data-f="remove" aria-label="{% trans "Remove" %}"><i class="bi bi-x-lg"></i></button></div>';
+            rowsBox.appendChild(row);
+            const q = (k) => row.querySelector('[data-f=' + k + ']');
+            const name = q('name'), code = q('code'), box = q('suggest');
+            name.value = prefill.name || '';
+            code.value = prefill.scheme_code || '';
+            q('amount').value = prefill.amount || '';
+            let timer = null;
+            name.addEventListener('input', function () {
+                code.value = '';                       // typing again drops the pick until a result is chosen
+                const text = name.value.trim();
+                if (text.length < 2) { box.style.display = 'none'; refresh(); return; }
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    fetch('/api/amfi-schemes/search/?q=' + encodeURIComponent(text))
+                        .then((r) => r.json())
+                        .then(function (data) {
+                            const results = data.results || [];
+                            if (!results.length) { box.style.display = 'none'; return; }
+                            box.innerHTML = results.map((it) => '<a class="dropdown-item py-2 px-3 border-bottom text-wrap" style="cursor:pointer" data-code="' + esc(it.scheme_code) + '" data-name="' + esc(it.scheme_name) + '"><div class="fw-semibold small lh-sm">' + esc(it.scheme_name) + '</div><div class="text-muted" style="font-size:.72rem">Code: ' + esc(it.scheme_code) + '</div></a>').join('');
+                            box.style.display = 'block';
+                        })
+                        .catch(() => { box.style.display = 'none'; });
+                }, 300);
+                refresh();
+            });
+            box.addEventListener('click', function (e) {
+                const a = e.target.closest('a[data-code]');
+                if (!a) return;
+                name.value = a.dataset.name; code.value = a.dataset.code; box.style.display = 'none'; refresh();
+            });
+            q('remove').addEventListener('click', () => { row.remove(); refresh(); });
+            row.addEventListener('input', refresh);
+            refresh();
+        }
+
+        document.getElementById('flowSplitAdd').addEventListener('click', () => addRow());
+        document.addEventListener('click', function (e) {
+            rowsBox.querySelectorAll('[data-f=suggest]').forEach(function (box) { if (!box.contains(e.target)) box.style.display = 'none'; });
+        });
+        if (amountInput) amountInput.addEventListener('input', refresh);
+
+        // rows that were posted when the page came back with an error
+        try { JSON.parse(hidden.value || '[]').forEach(addRow); } catch (e) { hidden.value = ''; }
+        const form = hidden.closest('form');
+        if (form) form.addEventListener('submit', refresh);
+    })();
+</script>

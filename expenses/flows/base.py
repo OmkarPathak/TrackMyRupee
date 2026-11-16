@@ -138,6 +138,27 @@ class Flow:
     def derive(self, cleaned_data) -> dict:
         return dict(cleaned_data)
 
+    def after_create(self, user, data, created_by_key) -> None:
+        """Runs inside the flow's transaction once every planned object exists, for work that needs the saved objects
+        (not just one more row). `created_by_key` maps each CreateStep key to its object. Raise ValidationError to
+        undo the whole flow."""
+
+    @staticmethod
+    def _fund_split_rows(raw):
+        """The (name, amount) pairs of a posted fund split, or [] when it is empty or unreadable."""
+        import json
+        try:
+            rows = json.loads(raw or '[]')
+        except (TypeError, ValueError):
+            return []
+        pairs = []
+        for row in rows if isinstance(rows, list) else []:
+            try:
+                pairs.append((str(row.get('name') or '').strip(), Decimal(str(row.get('amount')))))
+            except Exception:
+                continue
+        return [(name, amount) for name, amount in pairs if name and amount > 0]
+
     def plan(self, data) -> list[CreateStep]:
         raise NotImplementedError
 
@@ -319,6 +340,13 @@ class Flow:
                 'title': _('Contribution schedule'),
                 'description': f"{currency}{format_indian_number(amount)} {freq}{desc_start}".strip(),
             })
+            funds = self._fund_split_rows(cleaned_data.get('fund_splits')) if inv_type == 'SIP' else []
+            if funds:
+                cards.append({
+                    'icon': 'bi-pie-chart',
+                    'title': _('Funds bought each time'),
+                    'description': ', '.join(f"{fund} {currency}{format_indian_number(part)}" for fund, part in funds),
+                })
         elif self.key == 'loan':
             name = cleaned_data.get('name') or _('Loan')
             loan_type = str(cleaned_data.get('loan_type', 'Loan')).title()
@@ -596,6 +624,11 @@ class Flow:
                 controller = self.conditional_fields.get(field_name)
                 if controller and not cleaned_data.get(controller):
                     continue
+                if field_name == 'fund_splits':
+                    from ..utils import format_indian_number
+                    items.extend({'label': fund, 'value': f"{currency}{format_indian_number(part)}", 'subvalue': None}
+                                 for fund, part in self._fund_split_rows(cleaned_data.get(field_name)))
+                    continue
                 value = cleaned_data.get(field_name)
                 if value in (None, '', []):
                     continue
@@ -722,6 +755,7 @@ class Flow:
                             content_object=instance,
                             step_key=step_key,
                         )
+                    self.after_create(user, data, created_by_key)
         except IntegrityError:
             existing = FinancialFlow.objects.filter(user=user, idempotency_key=idempotency_key).first()
             if existing:
