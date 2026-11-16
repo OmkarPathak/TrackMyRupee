@@ -359,6 +359,18 @@
                 </div>
                 <i class="bi bi-chevron-right text-muted opacity-50 small"></i>
             </a>
+
+            {# a loan, a SIP, a salary: where a phone user is about to add something that is easier done step by step #}
+            <a href="{% url 'tmr-flows' %}" class="drawer-action-item">
+                <div class="drawer-icon-badge bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">{% trans "Set up a loan, SIP or salary" %}</div>
+                    <small class="text-muted" style="font-size: 0.75rem;">{% trans "Step by step, in about a minute" %}</small>
+                </div>
+                <i class="bi bi-chevron-right text-muted opacity-50 small"></i>
+            </a>
         </div>
     </div>
 </div>

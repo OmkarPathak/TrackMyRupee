@@ -8650,6 +8650,14 @@ msgstr "अपने खातों के बीच पैसे ट्रा�
 msgid "Log earnings, salary, or incoming funds"
 msgstr "कमाई, वेतन या आने वाली रकम दर्ज करें"
 
+#: templates/components/navbar.html
+msgid "Set up a loan, SIP or salary"
+msgstr "लोन, SIP या वेतन सेट करें"
+
+#: templates/components/navbar.html
+msgid "Step by step, in about a minute"
+msgstr "एक-एक कदम में, करीब एक मिनट में"
+
 #: templates/components/navbar.html:411 templates/components/sidebar.html:61
 msgid "Cash Flow"
 msgstr "नकदी प्रवाह"
