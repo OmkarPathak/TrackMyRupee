@@ -8671,6 +8671,14 @@ msgstr "तुमच्या खात्यांमध्ये पैसे 
 msgid "Log earnings, salary, or incoming funds"
 msgstr "कमाई, पगार किंवा येणारी रक्कम नोंदवा"
 
+#: templates/components/navbar.html
+msgid "Set up a loan, SIP or salary"
+msgstr "कर्ज, SIP किंवा पगार सेट करा"
+
+#: templates/components/navbar.html
+msgid "Step by step, in about a minute"
+msgstr "एकेक पायरीने, सुमारे एका मिनिटात"
+
 #: templates/components/navbar.html:411 templates/components/sidebar.html:61
 msgid "Cash Flow"
 msgstr "रोख प्रवाह"
