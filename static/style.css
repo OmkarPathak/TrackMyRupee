@@ -3984,6 +3984,153 @@ main p a:not(.btn):not(.nav-link):not(.badge):not(.category-title-link) {
   margin: 0 0 14px;
   line-height: 1.5;
 }
+/* Guided Setup on a phone: one tappable row per setup, progress as a strip, the rest folded away */
+.tmr-flow-progress {
+  margin: -6px 0 16px;
+}
+.tmr-flow-progress-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--bs-secondary-color, #595855);
+  margin-bottom: 6px;
+}
+.tmr-flow-progress .progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bs-tertiary-bg, #faf8f5);
+}
+.tmr-flow-progress .progress-bar {
+  background-color: var(--color-secondary, #0F7657);
+  border-radius: 999px;
+}
+.tmr-flow-done-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 20px;
+  padding: 0 4px;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--bs-border-color, rgba(0, 0, 0, 0.1));
+  color: var(--bs-secondary-color, #595855);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.gstart {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(15, 118, 87, 0.12);
+  color: var(--color-secondary, #0F7657);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+[data-bs-theme="dark"] .gstart {
+  background: rgba(95, 212, 168, 0.14);
+  color: #5fd4a8;
+}
+@media (max-width: 767.98px) {
+  .tmr-flow-cats {
+    margin-bottom: 16px;
+  }
+  .tmr-flow-grid {
+    gap: 10px;
+  }
+  /* a to-do setup: icon, title and two lines of text, a chevron; the whole row is the link */
+  .gcard:not(.gcard--done) {
+    display: grid;
+    grid-template-columns: 44px 1fr 18px;
+    grid-template-rows: auto auto auto;
+    column-gap: 12px;
+    align-items: center;
+    padding: 14px 14px 12px;
+    min-height: 76px;
+  }
+  .gcard:not(.gcard--done) .gicon {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    margin: 0;
+    width: 44px;
+    height: 44px;
+  }
+  /* three levels: the title (strong, full colour), the line under it (regular, softer), the time (small, quietest) */
+  .gcard:not(.gcard--done) h3 {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0 0 3px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: var(--bs-emphasis-color, var(--bs-body-color));
+  }
+  .gcard:not(.gcard--done) p {
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--bs-secondary-color, #595855);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .gcard:not(.gcard--done) .gchev {
+    grid-column: 3;
+    grid-row: 1 / span 3;
+    color: var(--bs-secondary-color, #595855);
+    opacity: .6;
+  }
+  .gcard:not(.gcard--done) .tags,
+  .gcard:not(.gcard--done) .gbtn {
+    display: none;
+  }
+  .gcard:not(.gcard--done) .gfoot {
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 2px;
+  }
+  .gcard:not(.gcard--done) .time {
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: .01em;
+    color: var(--bs-tertiary-color, #8a8782);
+    display: inline-flex;
+    align-items: center;                  /* the clock and the words share one centre line */
+    line-height: 1;
+  }
+  .gcard:not(.gcard--done) .time .bi {
+    font-size: 12px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
+  .gcard:not(.gcard--done) .gfoot {
+    margin-top: 5px;
+  }
+  .gcard:hover {
+    transform: none;
+  }
+  /* a setup that is done: smaller, its two links stay */
+  .gcard--done {
+    padding: 14px;
+  }
+  .gcard--done .tags {
+    display: none;
+  }
+  .gcard--done .gicon {
+    margin-bottom: 8px;
+  }
+}
 .side > * + * {
   margin-top: 16px;
 }

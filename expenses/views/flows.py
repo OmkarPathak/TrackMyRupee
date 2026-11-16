@@ -121,7 +121,10 @@ class FlowLandingView(LoginRequiredMixin, TemplateView):
             {'key': 'assets', 'label': _('Assets')},
         ]
 
-        curated_keys = {'salary', 'rentbill', 'creditcard', 'loan', 'sip'}
+        # What most people set up first, in the order that pays off soonest. Setups still to do come first in this order,
+        # then the rest as registered; the first three still to do are marked as the place to start.
+        curated_order = ['salary', 'loan', 'sip', 'creditcard', 'rentbill']
+        curated_keys = set(curated_order)
         snapshot = FlowSnapshot.for_user(self.request.user)
 
         flow_items = []
@@ -146,6 +149,13 @@ class FlowLandingView(LoginRequiredMixin, TemplateView):
                 'setup_url': reverse('flow-detail', kwargs={'key': flow.key}),
                 'edit_url': flow.get_edit_url(self.request.user),
             })
+
+        rank = {key: index for index, key in enumerate(curated_order)}
+        flow_items.sort(key=lambda f: (f['is_configured'], rank.get(f['key'], len(rank))))    # (a stable sort)
+        for item in flow_items:
+            item['is_suggested'] = False
+        for item in [f for f in flow_items if not f['is_configured'] and f['is_curated']][:3]:
+            item['is_suggested'] = True
 
         if any(f['category'] == 'family' for f in flow_items):
             categories.append({'key': 'family', 'label': _('Family')})
