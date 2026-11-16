@@ -24194,3 +24194,11 @@ msgid "Matures in %(n)s day"
 msgid_plural "Matures in %(n)s days"
 msgstr[0] "%(n)s दिवसात मॅच्युर होईल"
 msgstr[1] "%(n)s दिवसात मॅच्युर होईल"
+
+#: templates/flows/landing.html
+msgid "Start here"
+msgstr "इथून सुरू करा"
+
+#: templates/flows/landing.html
+msgid "%(configured_count)s of %(total_count)s set up"
+msgstr "%(total_count)s पैकी %(configured_count)s सेट अप"
