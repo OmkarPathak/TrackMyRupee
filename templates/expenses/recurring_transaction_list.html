@@ -181,4 +181,35 @@
         </div>
     </div>
 </div>
+
+{# The funds of a recurring transfer: a modal on a computer, a bottom sheet on a phone (static/js/recurring_funds.js) #}
+<div class="modal fade" id="fundSplitsModal" tabindex="-1" aria-labelledby="fundSplitsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold" id="fundSplitsModalLabel" data-fund-title></h5>
+                    <div class="text-muted small">{% trans "Funds bought each time" %}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+            </div>
+            <div class="modal-body" data-fund-body></div>
+        </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-bottom mobile-bottom-sheet d-md-none" tabindex="-1" id="fundSplitsSheet" aria-labelledby="fundSplitsSheetLabel">
+    <div class="drawer-handle-pill"></div>
+    <div class="offcanvas-header border-bottom-0 pt-2 pb-2 px-3 w-100 d-flex align-items-center justify-content-between">
+        <div class="min-width-0">
+            <h5 class="offcanvas-title fw-bold mb-0 text-truncate" id="fundSplitsSheetLabel" data-fund-title></h5>
+            <div class="text-muted small">{% trans "Funds bought each time" %}</div>
+        </div>
+        <button type="button" class="btn-close-drawer ms-auto" data-bs-dismiss="offcanvas" aria-label="{% trans 'Close' %}">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="offcanvas-body p-3 pt-0" data-fund-body></div>
+</div>
+<script defer src="{% static 'js/recurring_funds.js' %}"></script>
 {% endblock %}

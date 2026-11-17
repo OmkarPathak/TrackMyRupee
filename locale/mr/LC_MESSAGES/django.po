@@ -24310,3 +24310,25 @@ msgstr "आधी मिळालेले payout नोंदवा"
 #: expenses/flows/investment.py
 msgid "If the deposit started in the past, also record the payouts that fell due since. They are added to the account that receives the interest, so leave this off if its balance already includes them."
 msgstr "ठेव आधी सुरू झाली असल्यास तेव्हापासूनचे देय payout सुद्धा नोंदवा. ते व्याज मिळणाऱ्या खात्यात जमा होतात, म्हणून त्याच्या शिलकीत ते आधीच असतील तर हे बंद ठेवा."
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "Stays as cash in the account"
+msgstr "खात्यात रोख राहते"
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "From %(source)s to %(target)s"
+msgstr "%(source)s कडून %(target)s मध्ये"
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "Next on %(date)s"
+msgstr "पुढची तारीख %(date)s"
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "Change funds"
+msgstr "फंड बदला"
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "%(n)s fund"
+msgid_plural "%(n)s funds"
+msgstr[0] "%(n)s फंड"
+msgstr[1] "%(n)s फंड"

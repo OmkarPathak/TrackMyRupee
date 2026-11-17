@@ -24247,3 +24247,25 @@ msgstr "पहले मिल चुके भुगतान दर्ज क�
 #: expenses/flows/investment.py
 msgid "If the deposit started in the past, also record the payouts that fell due since. They are added to the account that receives the interest, so leave this off if its balance already includes them."
 msgstr "अगर डिपॉज़िट पहले शुरू हुआ था, तो तब से देय भुगतान भी दर्ज करें। वे ब्याज पाने वाले खाते में जुड़ते हैं, इसलिए अगर उसकी शेष राशि में वे पहले से शामिल हैं तो इसे बंद रखें।"
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "Stays as cash in the account"
+msgstr "खाते में नकद रहता है"
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "From %(source)s to %(target)s"
+msgstr "%(source)s से %(target)s में"
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "Next on %(date)s"
+msgstr "अगली तारीख %(date)s"
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "Change funds"
+msgstr "फंड बदलें"
+
+#: templates/expenses/partials/_recurring_fund_link.html
+msgid "%(n)s fund"
+msgid_plural "%(n)s funds"
+msgstr[0] "%(n)s फंड"
+msgstr[1] "%(n)s फंड"

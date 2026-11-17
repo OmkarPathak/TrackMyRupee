@@ -1802,6 +1802,16 @@ class RecurringTransaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def fund_split_total(self) -> Decimal:
+        """What the fund rows add up to each time (uses the prefetched splits, so a list of schedules costs no queries)."""
+        return sum((split.amount for split in self.fund_splits.all()), Decimal('0.00'))
+
+    @property
+    def fund_cash_remainder(self) -> Decimal:
+        """The part of each transfer the funds leave out: it stays as cash in the investment account."""
+        return max(Decimal(self.amount or 0) - self.fund_split_total, Decimal('0.00'))
+
     def clean(self):
         super().clean()
         if getattr(self, 'source_fk_id', None):
