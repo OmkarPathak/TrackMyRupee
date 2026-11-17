@@ -191,11 +191,16 @@
                 bar.classList.remove('active');
             }
             document.querySelectorAll('.tmr-busy').forEach(function (el) { el.classList.remove('tmr-busy'); });
-            // Prevent mobile/PWA soft keyboard auto-opening on HTMX swaps/settles (except inside the New Expense composer)
-            if (document.activeElement && 
-                (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') && 
-                !document.activeElement.closest('#tmr-composer')) {
-                document.activeElement.blur();
+            // Prevent mobile/PWA soft keyboard auto-opening on HTMX swaps/settles (except inside the New Expense composer).
+            // Not for a field that opens a native picker (date, time, colour...): a request that was started by the
+            // previous field's change can settle just after the picker opened, and blurring would close it again.
+            const active = document.activeElement;
+            const opensPicker = active && active.tagName === 'INPUT' &&
+                ['date', 'time', 'datetime-local', 'month', 'week', 'color', 'file'].indexOf(active.type) !== -1;
+            if (active && !opensPicker &&
+                (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') &&
+                !active.closest('#tmr-composer')) {
+                active.blur();
             }
         };
 
