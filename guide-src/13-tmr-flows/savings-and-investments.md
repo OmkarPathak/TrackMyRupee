@@ -144,6 +144,7 @@ Does your bank pay the interest out to you, for example every month, instead of 
 | **Interest paid** | *At maturity* (the default) adds the interest to the deposit. *Every month*, *Every 3 months* or *Every year* means the bank pays it out to you. |
 | **Payout goes to** | Optional. The account that receives the interest. Leave it empty to use the funding account. |
 | **Amount each time** | Optional. Left empty, it is worked out from the rate. Enter your bank's figure if it differs. |
+| **Record the payouts already received** | Off by default. If the FD started in the past, turn on to also record the payouts that have fallen due since. They are added to the account that receives the interest, so leave it off if that account's balance already includes them. |
 
 **Step 4: Reporting**
 

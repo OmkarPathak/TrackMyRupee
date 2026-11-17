@@ -24239,3 +24239,11 @@ msgstr "हर साल"
 #: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
 msgid "If the bank pays the interest out to you, the deposit stays at its principal. Record each payout as income in the account that receives it."
 msgstr "अगर बैंक ब्याज आपको देता है, तो डिपॉज़िट अपनी मूल राशि पर रहता है। हर भुगतान को उस खाते में आय के रूप में दर्ज करें जिसमें वह आता है।"
+
+#: expenses/flows/investment.py
+msgid "Record the payouts already received"
+msgstr "पहले मिल चुके भुगतान दर्ज करें"
+
+#: expenses/flows/investment.py
+msgid "If the deposit started in the past, also record the payouts that fell due since. They are added to the account that receives the interest, so leave this off if its balance already includes them."
+msgstr "अगर डिपॉज़िट पहले शुरू हुआ था, तो तब से देय भुगतान भी दर्ज करें। वे ब्याज पाने वाले खाते में जुड़ते हैं, इसलिए अगर उसकी शेष राशि में वे पहले से शामिल हैं तो इसे बंद रखें।"

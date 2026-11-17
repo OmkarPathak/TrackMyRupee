@@ -236,6 +236,13 @@ class FdFlowForm(forms.Form):
         label=_('Amount each time'),
         help_text=_('Optional. Leave it empty to work it out from the rate. Enter your bank\'s figure if it differs.'),
     )
+    create_historical_entries = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label=_('Record the payouts already received'),
+        help_text=_('If the deposit started in the past, also record the payouts that fell due since. They are added to the account that receives the interest, so leave this off if its balance already includes them.'),
+    )
     show_accrued_balance = forms.BooleanField(
         required=False,
         initial=True,
@@ -293,6 +300,7 @@ class FdFlowForm(forms.Form):
             # Without a payout schedule the two payout fields mean nothing.
             cleaned_data['payout_account'] = None
             cleaned_data['payout_amount'] = None
+            cleaned_data['create_historical_entries'] = False
         return cleaned_data
 
 
@@ -570,7 +578,7 @@ class FdFlow(Flow):
     wizard_steps = [
         FlowWizardStep('fd_basics', _('Deposit Basics'), ['name', 'principal', 'annual_rate', 'from_account', 'custom_note'], _('Core deposit details and funding account.')),
         FlowWizardStep('fd_terms', _('Deposit Terms'), ['deposit_start_date', 'maturity_date', 'deposit_compounding', 'deposit_closed_date'], _('When the deposit begins, ends, and how it compounds.')),
-        FlowWizardStep('fd_payout', _('Interest payout'), ['interest_payout', 'payout_account', 'payout_amount'], _('Does the bank pay the interest out to you? If so, each payout is recorded as income and the deposit stays at its principal.')),
+        FlowWizardStep('fd_payout', _('Interest payout'), ['interest_payout', 'payout_account', 'payout_amount', 'create_historical_entries'], _('Does the bank pay the interest out to you? If so, each payout is recorded as income and the deposit stays at its principal.')),
         FlowWizardStep('fd_reporting', _('Reporting'), ['show_accrued_balance', 'record_maturity_income', 'is_pinned'], _('Controls whether users see accruals and whether maturity interest is auto-recorded.')),
     ]
 
@@ -635,8 +643,9 @@ class FdFlow(Flow):
                     'frequency': frequency,
                     'start_date': first,
                     'end_date': data['maturity_date'],
-                    # Payouts that fell due before today are not backfilled (the setup records a deposit from now on).
-                    'last_processed_date': RecurringService.last_due_before_today(first, frequency),
+                    # Payouts that fell due before today are recorded only when asked for; otherwise the schedule starts
+                    # from the next one due.
+                    'last_processed_date': None if data.get('create_historical_entries') else RecurringService.last_due_before_today(first, frequency),
                     'description': _('Interest payout: %(name)s') % {'name': data['name']},
                     'is_active': True,
                 },
@@ -658,6 +667,7 @@ class FdFlow(Flow):
         data['currency'] = data.get('currency') or (data['from_account'].currency if data.get('from_account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
         payout = data.get('interest_payout') or None
         data['interest_payout'] = payout
+        data['create_historical_entries'] = bool(payout and data.get('create_historical_entries'))
         if payout:
             data['payout_account'] = data.get('payout_account') or data.get('from_account')
             data['payout_amount'] = (Decimal(str(data['payout_amount'])) if data.get('payout_amount')

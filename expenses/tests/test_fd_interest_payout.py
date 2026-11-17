@@ -6,6 +6,7 @@ as well would count it twice in net worth. The FD setup records the payouts as a
 from datetime import date
 from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -14,9 +15,10 @@ from expenses.account_valuation import get_baseline, get_current
 from expenses.account_types import get_fields_for_account_type
 from expenses.flows.registry import FlowRegistry
 from expenses.forms import AccountForm
-from expenses.models import Account, CapitalEvent, RecurringTransaction
+from expenses.models import Account, CapitalEvent, Income, RecurringTransaction
 from expenses.services_recurring import RecurringService
 from expenses.tests.test_flows_end_to_end import FlowTestBase
+from expenses.views.mixins import process_user_recurring_transactions
 
 D = Decimal
 
@@ -211,3 +213,72 @@ class FlowTests(FlowTestBase):
         form = self.valid_form('fd', self.payload(interest_payout='', payout_account=''))
         titles = [str(card['title']) for card in flow.get_what_we_create(self.user, form.cleaned_data)]
         self.assertNotIn('Interest payout', titles)
+
+
+class BackfillTests(FlowTestBase):
+    """An FD booked in the past can record the payouts it has already made."""
+
+    def setUp(self):
+        super().setUp()
+        # Booked three months and five days ago: three monthly payouts have fallen due since.
+        self.start = timezone.localdate() - relativedelta(months=3, days=5)
+
+    def payload(self, **overrides):
+        data = dict(name='Old FD', principal='1200000', annual_rate='7.5', deposit_start_date=self.start.isoformat(),
+                    maturity_date=(self.start + relativedelta(years=3)).isoformat(), deposit_compounding='QUARTERLY',
+                    from_account=self.cash, interest_payout='MONTHLY', payout_account=self.bank)
+        data.update(overrides)
+        return data
+
+    def interest_entries(self):
+        return Income.objects.filter(user=self.user, account=self.bank, source='Interest Income')
+
+    def run_and_process(self, **overrides):
+        self.run_flow('fd', self.payload(**overrides))
+        process_user_recurring_transactions(self.user)
+
+    def test_backfilling_records_every_payout_that_has_fallen_due(self):
+        self.run_and_process(create_historical_entries='on')
+        self.assertEqual(self.interest_entries().count(), 3)
+        self.assertEqual({entry.amount for entry in self.interest_entries()}, {D('7500.00')})
+
+    def test_the_backfilled_payouts_are_dated_on_their_due_dates(self):
+        self.run_and_process(create_historical_entries='on')
+        dates = sorted(entry.date for entry in self.interest_entries())
+        self.assertEqual(dates, [self.start + relativedelta(months=n) for n in (1, 2, 3)])
+
+    def test_without_the_option_no_past_payout_is_recorded(self):
+        self.run_and_process()
+        self.assertEqual(self.interest_entries().count(), 0)
+
+    def test_without_the_option_the_schedule_starts_from_the_next_payout(self):
+        result = self.run_flow('fd', self.payload())
+        schedule = [obj for obj in result.created if isinstance(obj, RecurringTransaction)][0]
+        self.assertEqual(schedule.last_processed_date, self.start + relativedelta(months=3))
+
+    def test_the_option_without_a_payout_is_ignored(self):
+        result = self.run_flow('fd', self.payload(interest_payout='', create_historical_entries='on'))
+        self.assertEqual([obj for obj in result.created if isinstance(obj, RecurringTransaction)], [])
+
+    def test_a_deposit_that_starts_today_has_nothing_to_backfill(self):
+        today = timezone.localdate()
+        self.run_and_process(create_historical_entries='on', deposit_start_date=today.isoformat(),
+                             maturity_date=(today + relativedelta(years=1)).isoformat())
+        self.assertEqual(self.interest_entries().count(), 0)
+
+    def test_payouts_are_not_recorded_past_maturity(self):
+        today = timezone.localdate()
+        self.run_and_process(create_historical_entries='on',
+                             deposit_start_date=(today - relativedelta(months=10)).isoformat(),
+                             maturity_date=(today - relativedelta(months=7)).isoformat())
+        self.assertEqual(self.interest_entries().count(), 3)
+
+    def test_running_the_catch_up_again_does_not_duplicate_payouts(self):
+        self.run_and_process(create_historical_entries='on')
+        process_user_recurring_transactions(self.user)
+        self.assertEqual(self.interest_entries().count(), 3)
+
+    def test_the_setup_page_offers_the_option(self):
+        html = self.client.get(reverse('flow-detail', kwargs={'key': 'fd'})).content.decode()
+        self.assertIn('name="create_historical_entries"', html)
+        self.assertIn('Record the payouts already received', html)

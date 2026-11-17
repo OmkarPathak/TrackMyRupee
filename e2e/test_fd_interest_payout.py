@@ -24,15 +24,16 @@ class Base(E2ETestCase):
         page.locator('#tmr-flow-form-fd button:has-text("Next") >> visible=true').first.click()
         page.wait_for_timeout(400)
 
-    def fill_fd(self, page, payout=None, *, payout_account=None, amount=None):
+    def fill_fd(self, page, payout=None, *, payout_account=None, amount=None, start=None, backfill=False):
         """Fill the FD setup from its first step to its review step."""
         page.fill('input[name="name"]', 'Big FD')
         page.fill('input[name="principal"]', '2500000')
         page.fill('input[name="annual_rate"]', '7.1')
         self.set_select(page, 'select[name="from_account"]', str(self.funding.pk))
         self.next_step(page)
-        page.fill('input[name="deposit_start_date"]', self.today.isoformat())
-        page.fill('input[name="maturity_date"]', (self.today + timedelta(days=3 * 365)).isoformat())
+        start = start or self.today
+        page.fill('input[name="deposit_start_date"]', start.isoformat())
+        page.fill('input[name="maturity_date"]', (start + timedelta(days=3 * 365)).isoformat())
         self.next_step(page)
         if payout:
             self.set_select(page, 'select[name="interest_payout"]', payout)
@@ -40,6 +41,8 @@ class Base(E2ETestCase):
             self.set_select(page, 'select[name="payout_account"]', str(payout_account.pk))
         if amount:
             page.fill('input[name="payout_amount"]', amount)
+        if backfill:
+            page.check('input[name="create_historical_entries"]')
         self.next_step(page)                                  # -> Reporting
         self.next_step(page)                                  # -> Review
         page.wait_for_selector('#tmr-review-fd', state='visible')
@@ -107,6 +110,30 @@ class FlowTests(Base):
                         'the deposit was not created', seconds=15)
         self.assertIsNone(self.created_fd().deposit_payout)
         self.assertFalse(self.payout_schedules().exists())
+
+    def interest_entries(self):
+        from expenses.models import Income
+        return Income.objects.filter(user=self.user, account=self.interest_account, source='Interest Income')
+
+    def test_an_old_deposit_can_record_the_payouts_it_has_already_made(self):
+        page = self.new_page(self.user)
+        self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
+        self.fill_fd(page, 'MONTHLY', payout_account=self.interest_account, start=self.today - timedelta(days=100),
+                     backfill=True)
+        self.confirm(page)
+        self.wait_until(lambda: self.payout_schedules().exists(), 'no interest schedule was created', seconds=15)
+        self.open(page, reverse('account-list'))                 # opening a page records what has fallen due
+        self.wait_until(lambda: self.interest_entries().count() == 3, 'the past payouts were not recorded', seconds=15)
+
+    def test_an_old_deposit_without_the_option_records_no_past_payout(self):
+        page = self.new_page(self.user)
+        self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
+        self.fill_fd(page, 'MONTHLY', payout_account=self.interest_account, start=self.today - timedelta(days=100))
+        self.confirm(page)
+        self.wait_until(lambda: self.payout_schedules().exists(), 'no interest schedule was created', seconds=15)
+        self.open(page, reverse('account-list'))
+        page.wait_for_timeout(1000)
+        self.assertEqual(self.interest_entries().count(), 0)
 
     def test_the_whole_setup_works_on_a_phone(self):
         page = self.new_page(self.user, phone=True)
