@@ -1,0 +1,44 @@
+{% load i18n digit_filters %}{% comment %}
+  The "3 funds" link of a recurring transfer that buys funds. A click opens the funds in a modal (computer) or a bottom
+  sheet (phone): see static/js/recurring_funds.js. `emit_content` also writes the funds themselves, once per
+  schedule, in a <template> the script copies from.
+{% endcomment %}{% with splits=sub.fund_splits.all %}{% if sub.transaction_type == 'TRANSFER' and splits %}
+<button type="button" class="btn btn-link btn-sm p-0 text-decoration-none d-inline-flex align-items-center gap-1 align-middle lh-1 tmr-fund-link{% if not mobile %} ms-1{% else %} mt-1{% endif %}" data-fund-open="{{ sub.pk }}" aria-haspopup="dialog" style="font-size: {% if mobile %}0.7rem{% else %}0.8rem{% endif %};">
+    <i class="bi bi-pie-chart lh-1" aria-hidden="true"></i><span>{% blocktrans count n=splits|length %}{{ n }} fund{% plural %}{{ n }} funds{% endblocktrans %}</span>
+</button>
+{% if emit_content %}
+<template data-fund-content="{{ sub.pk }}" data-title="{{ sub.description }}">
+    <div class="tmr-fund-rows">
+        {% for split in splits %}
+        <div class="d-flex justify-content-between align-items-start gap-3 py-2 border-bottom">
+            <div class="min-width-0 fw-semibold" style="overflow-wrap: anywhere;">{{ split.holding.instrument_name }}</div>
+            <div class="fw-semibold text-nowrap">{{ split.amount|money_exact:sub.currency }}</div>
+        </div>
+        {% endfor %}
+        {% if sub.fund_cash_remainder > 0 %}
+        <div class="d-flex justify-content-between align-items-start gap-3 py-2 border-bottom text-muted">
+            <div>{% trans "Stays as cash in the account" %}</div>
+            <div class="text-nowrap">{{ sub.fund_cash_remainder|money_exact:sub.currency }}</div>
+        </div>
+        {% endif %}
+        <div class="d-flex justify-content-between align-items-start gap-3 py-2">
+            <div class="fw-bold">{{ sub.get_frequency_display }}</div>
+            <div class="fw-bold text-nowrap">{{ sub.amount|money_exact:sub.currency }}</div>
+        </div>
+    </div>
+    <div class="text-muted small mt-2">
+        {% if sub.from_account and sub.to_account %}
+        <div>{% blocktrans with source=sub.from_account.name target=sub.to_account.name %}From {{ source }} to {{ target }}{% endblocktrans %}</div>
+        {% endif %}
+        {% if sub.annotated_next_date %}
+        <div>{% blocktrans with date=sub.annotated_next_date|date:"d M Y" %}Next on {{ date }}{% endblocktrans %}</div>
+        {% endif %}
+    </div>
+    {% if not sub.is_locked %}
+    <div class="mt-3">
+        <a class="btn btn-action-outline btn-sm" href="{% url 'recurring-edit' sub.uuid %}?next={{ request.path }}">{% trans "Change funds" %}</a>
+    </div>
+    {% endif %}
+</template>
+{% endif %}
+{% endif %}{% endwith %}
