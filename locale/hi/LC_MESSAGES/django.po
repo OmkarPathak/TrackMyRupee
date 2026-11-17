@@ -24159,3 +24159,91 @@ msgstr "किसी फंड को खोजें और बताएं क
 #: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
 msgid "more than the instalment"
 msgstr "किस्त से ज़्यादा"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest payout"
+msgstr "ब्याज भुगतान"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Does the bank pay the interest out to you? If so, each payout is recorded as income and the deposit stays at its principal."
+msgstr "क्या बैंक ब्याज आपको भुगतान करता है? अगर हां, तो हर भुगतान आय के रूप में दर्ज होता है और डिपॉज़िट अपनी मूल राशि पर रहता है।"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest paid"
+msgstr "ब्याज कब मिलता है"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "At maturity (added to the deposit)"
+msgstr "परिपक्वता पर (डिपॉज़िट में जुड़ता है)"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Choose how often the bank pays the interest out to you. The deposit then stays at its principal."
+msgstr "चुनें कि बैंक कितनी बार आपको ब्याज देता है। तब डिपॉज़िट अपनी मूल राशि पर रहता है।"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Payout goes to"
+msgstr "भुगतान किस खाते में जाता है"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Optional. The account that receives the interest. Leave it empty to use the funding account."
+msgstr "वैकल्पिक। जिस खाते में ब्याज आता है। खाली छोड़ने पर फंडिंग खाता इस्तेमाल होगा।"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Amount each time"
+msgstr "हर बार की राशि"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Optional. Leave it empty to work it out from the rate. Enter your bank's figure if it differs."
+msgstr "वैकल्पिक। खाली छोड़ने पर यह दर से निकाली जाएगी। अगर आपके बैंक की राशि अलग है तो वही लिखें।"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Every year"
+msgstr "हर साल"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Every 3 months"
+msgstr "हर 3 महीने"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest Payout"
+msgstr "ब्याज भुगतान"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest payout schedule (if the bank pays interest out)"
+msgstr "ब्याज भुगतान शेड्यूल (अगर बैंक ब्याज देता है)"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Enter the interest rate, or the amount each payout, for a deposit that pays interest out."
+msgstr "ब्याज देने वाले डिपॉज़िट के लिए ब्याज दर या हर भुगतान की राशि लिखें।"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest payout: %(name)s"
+msgstr "ब्याज भुगतान: %(name)s"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Creates a lump-sum fixed deposit that stays at its principal"
+msgstr "एक मुश्त फिक्स्ड डिपॉज़िट बनाता है जो अपनी मूल राशि पर रहता है"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Records %(amount)s of interest %(every)s in %(account)s until maturity"
+msgstr "परिपक्वता तक %(account)s में %(every)s %(amount)s का ब्याज दर्ज करता है"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "every 3 months"
+msgstr "हर 3 महीने"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "every year"
+msgstr "हर साल"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "If the bank pays the interest out to you, the deposit stays at its principal. Record each payout as income in the account that receives it."
+msgstr "अगर बैंक ब्याज आपको देता है, तो डिपॉज़िट अपनी मूल राशि पर रहता है। हर भुगतान को उस खाते में आय के रूप में दर्ज करें जिसमें वह आता है।"
+
+#: expenses/flows/investment.py
+msgid "Record the payouts already received"
+msgstr "पहले मिल चुके भुगतान दर्ज करें"
+
+#: expenses/flows/investment.py
+msgid "If the deposit started in the past, also record the payouts that fell due since. They are added to the account that receives the interest, so leave this off if its balance already includes them."
+msgstr "अगर डिपॉज़िट पहले शुरू हुआ था, तो तब से देय भुगतान भी दर्ज करें। वे ब्याज पाने वाले खाते में जुड़ते हैं, इसलिए अगर उसकी शेष राशि में वे पहले से शामिल हैं तो इसे बंद रखें।"

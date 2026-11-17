@@ -1270,7 +1270,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         fields = [
             'name', 'account_type', 'balance', 'currency', 'is_pinned',
             'linked_loan', 'linked_physical_asset',
-            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'show_accrued_balance', 'record_maturity_income',
+            'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'deposit_payout', 'show_accrued_balance', 'record_maturity_income',
             'rd_installment_amount', 'rd_installment_day', 'credit_limit', 'credit_card_billing_day',
             'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',
             'policy_number', 'premium_amount', 'premium_frequency', 'policy_start_date', 'sum_assured',
@@ -1285,6 +1285,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'record_maturity_income': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'deposit_payout': forms.Select(attrs={'class': 'form-select'}),
             'credit_limit': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'credit_card_billing_day': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '31'}),
         }
@@ -1315,6 +1316,8 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         self._hide_legacy_account_types()
+        self.fields['deposit_payout'].choices = [('', _('At maturity (added to the deposit)'))] + list(Account.PAYOUT_CHOICES)
+        self.fields['deposit_payout'].label = _('Interest paid')
         if self.user:
             self.fields['currency'].initial = self.user.profile.currency
             self.fields['linked_loan'].queryset = Loan.objects.filter(
@@ -1492,7 +1495,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         # Null out stray/irrelevant fields not belonging to this account_type strategy
         strategy_fields = {
             'deposit_principal', 'deposit_rate', 'deposit_start_date',
-            'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding',
+            'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'deposit_payout',
             'rd_installment_amount', 'rd_installment_day', 'credit_limit', 'credit_card_billing_day',
             'linked_loan', 'linked_physical_asset',
             'create_new_asset', 'asset_name', 'acquisition_cost', 'acquisition_date',

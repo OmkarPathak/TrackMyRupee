@@ -37,6 +37,25 @@ class RecurringService:
         period_days = RecurringService.PERIOD_DAYS.get(frequency, 30)
         return RecurringService.calculate_interest_for_days(principal, annual_rate, period_days)
 
+    # A deposit's payout setting (Account.deposit_payout) -> the recurring schedule that records it, and payouts a year.
+    PAYOUT_FREQUENCY = {'MONTHLY': 'MONTHLY', 'QUARTERLY': 'QUARTERLY', 'ANNUAL': 'YEARLY'}
+    PAYOUTS_PER_YEAR = {'MONTHLY': 12, 'QUARTERLY': 4, 'ANNUAL': 1}
+
+    @staticmethod
+    def payout_amount(principal, annual_rate, payout: str) -> Decimal:
+        """One payout of a deposit that pays its interest out: simple interest, split evenly over the year."""
+        per_year = RecurringService.PAYOUTS_PER_YEAR.get(payout)
+        principal_dec = Decimal(str(principal or 0))
+        rate_dec = Decimal(str(annual_rate or 0))
+        if not per_year or principal_dec <= 0 or rate_dec <= 0:
+            return Decimal('0.00')
+        return (principal_dec * rate_dec / Decimal('100') / Decimal(per_year)).quantize(Decimal('0.01'))
+
+    @staticmethod
+    def first_payout_date(start_date: date, payout: str) -> date:
+        """The first payout falls one period after the deposit is booked."""
+        return RecurringTransaction.get_next_date(start_date, RecurringService.PAYOUT_FREQUENCY[payout], start_date)
+
     MONTH_STEPS = {'MONTHLY': 1, 'QUARTERLY': 3, 'SEMIANNUALLY': 6, 'YEARLY': 12}
 
     @staticmethod
