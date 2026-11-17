@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from finance_tracker.plans import get_limit
 
 from ..models import Account, CapitalEvent, Loan, LoanInterestRate, RecurringTransaction
+from ..forms import MoneyInput
 from ..services import LoanService
 from ..services_recurring import RecurringService
 from .base import CreateStep, Flow, FlowAddon, FlowSnapshot, FlowWizardStep
@@ -22,22 +23,22 @@ class NewLoanFlowForm(forms.Form):
     loan_type = forms.ChoiceField(choices=Loan.LOAN_TYPES, required=False, initial='PERSONAL', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Choose the loan category so reports and reminders stay consistent.'))
     repayment_type = forms.ChoiceField(choices=Loan.REPAYMENT_TYPE_CHOICES, initial='EMI', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Choose how loan repayments are calculated.'))
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('A clear label for this loan in dashboards and reports.'))
-    principal = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('The original amount borrowed.'))
+    principal = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('The original amount borrowed.'))
     annual_rate = forms.DecimalField(min_value=Decimal('0.00'), max_digits=7, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Nominal annual interest rate for EMI estimation.'))
     tenure_months = forms.IntegerField(min_value=1, widget=forms.NumberInput(attrs={'class': 'form-control'}), help_text=_('How long the repayment runs in months.'))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), help_text=_('The date the loan tracking starts.'))
     create_repayment_schedule = forms.BooleanField(required=False, initial=True, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Create a recurring repayment schedule for this loan.'))
     payment_account = forms.ModelChoiceField(queryset=Account.objects.none(), required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('The account that will be used for loan repayments.'))
-    repayment_amount = forms.DecimalField(required=False, min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Optional override amount per repayment. Leave blank to use calculated EMI.'))
+    repayment_amount = forms.DecimalField(required=False, min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Optional override amount per repayment. Leave blank to use calculated EMI.'))
     repayment_frequency = forms.ChoiceField(choices=RecurringTransaction.FREQUENCY_CHOICES, required=False, initial='MONTHLY', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('How often the repayment should be posted.'))
     repayment_start_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), help_text=_('Optional repayment start date. Defaults to first EMI date or loan start date.'))
     create_historical_entries = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('If start date is in the past, create past due entries immediately.'))
     repayment_is_active = forms.BooleanField(required=False, initial=True, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Keep this schedule active for auto-posting.'))
     mid_tenure = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Enable if this loan already had principal repaid before you start tracking.'))
-    opening_paid_principal = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Principal already paid before tracking begins.'))
+    opening_paid_principal = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Principal already paid before tracking begins.'))
     first_emi_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), help_text=_('Optional EMI start date if the first repayment is not on the loan start date.'))
     include_down_payment = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Enable if you made a down payment at purchase time.'))
-    down_payment_amount = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Cash paid upfront toward the purchase.'))
+    down_payment_amount = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Cash paid upfront toward the purchase.'))
     down_payment_account = forms.ModelChoiceField(queryset=Account.objects.none(), required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('The account from which the down payment was made.'))
     custom_note = forms.CharField(max_length=255, required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Optional custom note for the down payment event.'))
 

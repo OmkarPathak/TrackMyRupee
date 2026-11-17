@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
 from ..models import Account, AssetValuation, CapitalEvent, Holding, Loan, PhysicalAsset, RecurringTransaction
+from ..forms import MoneyInput
 from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .loan import NewLoanFlow
 from .registry import register_flow
@@ -16,7 +17,7 @@ from .registry import register_flow
 
 class CarFlowForm(forms.Form):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    purchase_price = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
+    purchase_price = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}))
     acquisition_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     from_account = forms.ModelChoiceField(queryset=Account.objects.none(), widget=forms.Select(attrs={'class': 'form-select'}))
     is_pinned = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Pin vehicle account.'))
@@ -50,7 +51,7 @@ class CarFlowForm(forms.Form):
 class GoldFlowForm(forms.Form):
     route = forms.ChoiceField(choices=[('physical', _('Physical')), ('digital', _('Digital SGB'))], widget=forms.Select(attrs={'class': 'form-select'}))
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
+    amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}))
     acquisition_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     from_account = forms.ModelChoiceField(queryset=Account.objects.none(), required=False, widget=forms.Select(attrs={'class': 'form-select'}))
     is_pinned = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Pin gold account.'))

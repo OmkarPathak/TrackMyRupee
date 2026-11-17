@@ -10,14 +10,15 @@ from django.utils.translation import gettext_lazy as _
 from finance_tracker.plans import get_limit
 
 from ..models import SavingsGoal
+from ..forms import MoneyInput
 from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
 class SavingsGoalFlowForm(forms.Form):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Name of the savings goal.'))
-    target_amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Total amount you want to save.'))
-    current_amount = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, initial=Decimal('0.00'), widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Amount already saved toward this goal.'))
+    target_amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Total amount you want to save.'))
+    current_amount = forms.DecimalField(required=False, min_value=Decimal('0.00'), max_digits=15, decimal_places=2, initial=Decimal('0.00'), widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Amount already saved toward this goal.'))
     target_months = forms.IntegerField(min_value=1, widget=forms.NumberInput(attrs={'class': 'form-control'}), help_text=_('How many months you want to reach the goal in.'))
     icon = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Optional icon or emoji to personalize the goal.'))
     color = forms.ChoiceField(choices=[('primary', _('Blue')), ('success', _('Green')), ('danger', _('Red')), ('warning', _('Yellow')), ('info', _('Light Blue'))], widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Visual color used for the goal card.'))

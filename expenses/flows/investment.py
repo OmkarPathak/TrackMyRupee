@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from ..models import Account, CapitalEvent, Holding, RecurringTransaction
+from ..forms import MoneyInput
 from ..services_recurring import RecurringService
 from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
@@ -44,7 +45,7 @@ class SipRdFlowForm(forms.Form):
         min_value=Decimal('0.01'),
         max_digits=15,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
         help_text=_('Monthly contribution amount. For RD, this is the installment amount.'),
     )
     frequency = forms.ChoiceField(
@@ -64,7 +65,7 @@ class SipRdFlowForm(forms.Form):
         min_value=Decimal('0.01'),
         max_digits=15,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
         help_text=_('Principal used for deposit valuation and accrued-balance calculations.'),
     )
     deposit_rate = forms.DecimalField(
@@ -189,7 +190,7 @@ class FdFlowForm(forms.Form):
         min_value=Decimal('0.01'),
         max_digits=15,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
         help_text=_('Original amount placed into the deposit.'),
     )
     annual_rate = forms.DecimalField(
@@ -232,7 +233,7 @@ class FdFlowForm(forms.Form):
         min_value=Decimal('0.01'),
         max_digits=15,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'inputmode': 'decimal'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01', 'inputmode': 'decimal'}),
         label=_('Amount each time'),
         help_text=_('Optional. Leave it empty to work it out from the rate. Enter your bank\'s figure if it differs.'),
     )
@@ -318,14 +319,14 @@ class PpfEpfNpsFlowForm(forms.Form):
         min_value=Decimal('0.01'),
         max_digits=15,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
         help_text=_('The recurring annual contribution amount.'),
     )
     deposit_principal = forms.DecimalField(
         min_value=Decimal('0.00'),
         max_digits=15,
         decimal_places=2,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
         help_text=_('Opening principal for accrual tracking.'),
     )
     deposit_rate = forms.DecimalField(
