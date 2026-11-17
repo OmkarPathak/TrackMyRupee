@@ -444,6 +444,17 @@ class Flow:
                     'title': _('Maturity date'),
                     'description': _('Matures on %(date)s') % {'date': d_str},
                 })
+            payout = cleaned_data.get('interest_payout')
+            if payout:
+                from ..services_recurring import RecurringService
+                each = cleaned_data.get('payout_amount') or RecurringService.payout_amount(
+                    cleaned_data.get('principal'), cleaned_data.get('annual_rate'), payout)
+                every = {'MONTHLY': _('every month'), 'QUARTERLY': _('every 3 months'), 'ANNUAL': _('every year')}.get(payout, '')
+                cards.append({
+                    'icon': 'bi-cash-coin',
+                    'title': _('Interest payout'),
+                    'description': f"{currency}{format_indian_number(each)} {every}",
+                })
         elif self.key == 'ppfepfnps':
             name = cleaned_data.get('name') or _('Retirement')
             st = str(cleaned_data.get('scheme_type') or 'PPF')

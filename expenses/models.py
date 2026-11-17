@@ -252,6 +252,19 @@ class Account(models.Model):
         null=True, blank=True,
         verbose_name=_('Deposit Maturity Date'),
     )
+    # How often a fixed deposit pays its interest out to another account. Empty (the default) means the interest is
+    # added to the deposit and paid at maturity. A deposit that pays out stays worth its principal.
+    PAYOUT_CHOICES = [
+        ('MONTHLY', _('Every month')),
+        ('QUARTERLY', _('Every 3 months')),
+        ('ANNUAL', _('Every year')),
+    ]
+    deposit_payout = models.CharField(
+        max_length=10,
+        choices=PAYOUT_CHOICES,
+        null=True, blank=True,
+        verbose_name=_('Interest Payout'),
+    )
     show_accrued_balance = models.BooleanField(
         default=True,
         verbose_name=_('Show Accrued Balance'),

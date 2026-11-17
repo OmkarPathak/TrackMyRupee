@@ -169,6 +169,7 @@
             depositStartDate: '{{ form.deposit_start_date.value|date:"Y-m-d"|default:"" }}',
             depositMaturityDate: '{{ form.deposit_maturity_date.value|date:"Y-m-d"|default:"" }}',
             depositCompounding: '{{ form.deposit_compounding.value|default:"QUARTERLY" }}',
+            depositPayout: '{{ form.deposit_payout.value|default:"" }}',
 
             step2Title() {
                 if (!this.accountType || !this.fieldsMap[this.accountType]) return '{% trans "Additional Details" %}';
@@ -186,7 +187,9 @@
                 const s = document.getElementById('id_deposit_start_date');
                 const m = document.getElementById('id_deposit_maturity_date');
                 const c = document.getElementById('id_deposit_compounding');
+                const o = document.getElementById('id_deposit_payout');
 
+                if (o && o.value !== undefined) this.depositPayout = o.value;
                 if (p && p.value !== undefined) this.depositPrincipal = p.value;
                 if (r && r.value !== undefined) this.depositRate = r.value;
                 if (s && s.value !== undefined) this.depositStartDate = s.value;
@@ -221,8 +224,13 @@
                 const rate = ratePct / 100;
                 const comp = this.depositCompounding || 'QUARTERLY';
 
+                const paysOut = !!this.depositPayout && this.fieldsMap[this.accountType] && this.fieldsMap[this.accountType].includes('deposit_payout');
+
                 let maturityAmount = 0;
-                if (comp === 'SIMPLE') {
+                if (paysOut) {
+                    // The interest is paid out as it falls due: the deposit itself is worth its principal at maturity.
+                    maturityAmount = principal;
+                } else if (comp === 'SIMPLE') {
                     maturityAmount = principal * (1 + rate * years);
                 } else if (comp === 'QUARTERLY') {
                     const n = 4;
@@ -234,7 +242,7 @@
                     maturityAmount = principal * Math.pow(1 + rate, years);
                 }
 
-                const interestEarned = maturityAmount - principal;
+                const interestEarned = paysOut ? principal * rate * years : maturityAmount - principal;
                 const yieldPct = ((interestEarned / principal) * 100).toFixed(2);
 
                 const formattedMaturity = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 }).format(maturityAmount);
@@ -501,6 +509,15 @@
                                     <div class="form-text">{% trans "Interest compounding schedule." %}</div>
                                     {% if form.deposit_compounding.errors %}
                                         <div class="text-danger small mt-1">{{ form.deposit_compounding.errors|first }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-12 col-sm-6" x-show="fieldsMap[accountType] && fieldsMap[accountType].includes('deposit_payout')" x-cloak>
+                                    <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.deposit_payout.id_for_label }}">{% trans "Interest paid" %}</label>
+                                    {{ form.deposit_payout }}
+                                    <div class="form-text">{% trans "If the bank pays the interest out to you, the deposit stays at its principal. Record each payout as income in the account that receives it." %}</div>
+                                    {% if form.deposit_payout.errors %}
+                                        <div class="text-danger small mt-1">{{ form.deposit_payout.errors|first }}</div>
                                     {% endif %}
                                 </div>
 

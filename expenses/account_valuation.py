@@ -276,6 +276,11 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
     if principal is None or principal == Decimal('0.00'):
         return ledger_balance
 
+    if account.deposit_payout:
+        # The interest is paid out to another account as it falls due, so the deposit itself stays at its principal.
+        # Accruing it here as well would count the same interest twice in net worth.
+        return Decimal(principal).quantize(Decimal('0.01'))
+
     return _calculate_fd_current(
         principal=principal,
         rate_pct=account.deposit_rate,

@@ -24222,3 +24222,83 @@ msgstr "एखादा फंड शोधा आणि प्रत्ये�
 #: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
 msgid "more than the instalment"
 msgstr "हप्त्यापेक्षा जास्त"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest payout"
+msgstr "व्याज payout"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Does the bank pay the interest out to you? If so, each payout is recorded as income and the deposit stays at its principal."
+msgstr "बँक तुम्हाला व्याज देते का? देत असल्यास प्रत्येक payout उत्पन्न म्हणून नोंदवला जातो आणि ठेव तिच्या मूळ रकमेवर राहते."
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest paid"
+msgstr "व्याज केव्हा मिळते"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "At maturity (added to the deposit)"
+msgstr "मुदतपूर्तीला (ठेवीत जमा होते)"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Choose how often the bank pays the interest out to you. The deposit then stays at its principal."
+msgstr "बँक किती वेळा व्याज देते ते निवडा. तेव्हा ठेव तिच्या मूळ रकमेवर राहते."
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Payout goes to"
+msgstr "payout कोणत्या खात्यात जातो"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Optional. The account that receives the interest. Leave it empty to use the funding account."
+msgstr "पर्यायी. ज्या खात्यात व्याज येते. रिकामे सोडल्यास फंडिंग खाते वापरले जाईल."
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Amount each time"
+msgstr "प्रत्येक वेळची रक्कम"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Optional. Leave it empty to work it out from the rate. Enter your bank's figure if it differs."
+msgstr "पर्यायी. रिकामे सोडल्यास दरावरून काढली जाईल. तुमच्या बँकेची रक्कम वेगळी असल्यास तीच लिहा."
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Every year"
+msgstr "दर वर्षी"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Every 3 months"
+msgstr "दर 3 महिन्यांनी"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest Payout"
+msgstr "व्याज payout"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest payout schedule (if the bank pays interest out)"
+msgstr "व्याज payout वेळापत्रक (बँक व्याज देत असल्यास)"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Enter the interest rate, or the amount each payout, for a deposit that pays interest out."
+msgstr "व्याज देणाऱ्या ठेवीसाठी व्याजदर किंवा प्रत्येक payout ची रक्कम लिहा."
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Interest payout: %(name)s"
+msgstr "व्याज payout: %(name)s"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Creates a lump-sum fixed deposit that stays at its principal"
+msgstr "एकरकमी मुदत ठेव तयार करते जी तिच्या मूळ रकमेवर राहते"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "Records %(amount)s of interest %(every)s in %(account)s until maturity"
+msgstr "मुदतपूर्तीपर्यंत %(account)s मध्ये %(every)s %(amount)s व्याज नोंदवते"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "every 3 months"
+msgstr "दर 3 महिन्यांनी"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "every year"
+msgstr "दर वर्षी"
+
+#: expenses/flows/investment.py templates/expenses/account_form.html expenses/models.py
+msgid "If the bank pays the interest out to you, the deposit stays at its principal. Record each payout as income in the account that receives it."
+msgstr "बँक व्याज तुम्हाला देत असल्यास ठेव तिच्या मूळ रकमेवर राहते. प्रत्येक payout ज्या खात्यात येतो त्यात उत्पन्न म्हणून नोंदवा."

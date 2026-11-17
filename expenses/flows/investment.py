@@ -213,6 +213,29 @@ class FdFlowForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'}),
         help_text=_('How frequently interest should be compounded.'),
     )
+    interest_payout = forms.ChoiceField(
+        required=False,
+        choices=[('', _('At maturity (added to the deposit)'))] + list(Account.PAYOUT_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label=_('Interest paid'),
+        help_text=_('Choose how often the bank pays the interest out to you. The deposit then stays at its principal.'),
+    )
+    payout_account = forms.ModelChoiceField(
+        queryset=Account.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label=_('Payout goes to'),
+        help_text=_('Optional. The account that receives the interest. Leave it empty to use the funding account.'),
+    )
+    payout_amount = forms.DecimalField(
+        required=False,
+        min_value=Decimal('0.01'),
+        max_digits=15,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'inputmode': 'decimal'}),
+        label=_('Amount each time'),
+        help_text=_('Optional. Leave it empty to work it out from the rate. Enter your bank\'s figure if it differs.'),
+    )
     show_accrued_balance = forms.BooleanField(
         required=False,
         initial=True,
@@ -253,6 +276,7 @@ class FdFlowForm(forms.Form):
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
+            self.fields['payout_account'].queryset = accounts
             self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
             if not accounts.exists():
                 self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
@@ -261,6 +285,14 @@ class FdFlowForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         _validate_deposit_dates(self, cleaned_data, 'deposit_start_date', 'maturity_date', 'deposit_closed_date')
+        if cleaned_data.get('interest_payout'):
+            rate = cleaned_data.get('annual_rate')
+            if rate is not None and rate <= 0 and not cleaned_data.get('payout_amount'):
+                self.add_error('annual_rate', _('Enter the interest rate, or the amount each payout, for a deposit that pays interest out.'))
+        else:
+            # Without a payout schedule the two payout fields mean nothing.
+            cleaned_data['payout_account'] = None
+            cleaned_data['payout_amount'] = None
         return cleaned_data
 
 
@@ -531,12 +563,14 @@ class FdFlow(Flow):
         _('Fixed deposit account'),
         _('One-time funding transfer'),
         _('Maturity tracking'),
+        _('Interest payout schedule (if the bank pays interest out)'),
     ]
-    limit_map = {'accounts': Account}
+    limit_map = {'accounts': Account, 'recurring_transactions': RecurringTransaction}
     form_class = FdFlowForm
     wizard_steps = [
         FlowWizardStep('fd_basics', _('Deposit Basics'), ['name', 'principal', 'annual_rate', 'from_account', 'custom_note'], _('Core deposit details and funding account.')),
         FlowWizardStep('fd_terms', _('Deposit Terms'), ['deposit_start_date', 'maturity_date', 'deposit_compounding', 'deposit_closed_date'], _('When the deposit begins, ends, and how it compounds.')),
+        FlowWizardStep('fd_payout', _('Interest payout'), ['interest_payout', 'payout_account', 'payout_amount'], _('Does the bank pay the interest out to you? If so, each payout is recorded as income and the deposit stays at its principal.')),
         FlowWizardStep('fd_reporting', _('Reporting'), ['show_accrued_balance', 'record_maturity_income', 'is_pinned'], _('Controls whether users see accruals and whether maturity interest is auto-recorded.')),
     ]
 
@@ -563,6 +597,7 @@ class FdFlow(Flow):
                 'deposit_compounding': data['deposit_compounding'],
                 'deposit_maturity_date': data['maturity_date'],
                 'deposit_closed_date': data.get('deposit_closed_date'),
+                'deposit_payout': data.get('interest_payout') or None,
                 'show_accrued_balance': data['show_accrued_balance'],
                 'record_maturity_income': data['record_maturity_income'],
                 'is_pinned': bool(data.get('is_pinned', False)),
@@ -583,7 +618,31 @@ class FdFlow(Flow):
             },
             key='capital',
         )
-        return [account, capital]
+        steps = [account, capital]
+        payout = data.get('interest_payout')
+        if payout:
+            frequency = RecurringService.PAYOUT_FREQUENCY[payout]
+            first = data['first_payout_date']
+            steps.append(CreateStep(
+                RecurringTransaction,
+                {
+                    'user': data['user'],
+                    'transaction_type': 'INCOME',
+                    'amount': data['payout_amount'],
+                    'currency': data['currency'],
+                    'account': data['payout_account'],
+                    'source': 'Interest Income',
+                    'frequency': frequency,
+                    'start_date': first,
+                    'end_date': data['maturity_date'],
+                    # Payouts that fell due before today are not backfilled (the setup records a deposit from now on).
+                    'last_processed_date': RecurringService.last_due_before_today(first, frequency),
+                    'description': _('Interest payout: %(name)s') % {'name': data['name']},
+                    'is_active': True,
+                },
+                key='payout',
+            ))
+        return steps
 
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)
@@ -597,6 +656,13 @@ class FdFlow(Flow):
         data['record_maturity_income'] = bool(data.get('record_maturity_income', False))
         user = data.get('user')
         data['currency'] = data.get('currency') or (data['from_account'].currency if data.get('from_account') else (user.profile.currency if user and hasattr(user, 'profile') else '₹'))
+        payout = data.get('interest_payout') or None
+        data['interest_payout'] = payout
+        if payout:
+            data['payout_account'] = data.get('payout_account') or data.get('from_account')
+            data['payout_amount'] = (Decimal(str(data['payout_amount'])) if data.get('payout_amount')
+                                     else RecurringService.payout_amount(data['principal'], data['annual_rate'], payout))
+            data['first_payout_date'] = RecurringService.first_payout_date(data['deposit_start_date'], payout)
         return data
 
 
@@ -604,6 +670,16 @@ class FdFlow(Flow):
         data = self.derive({**cleaned_data, 'user': user})
         steps = self.plan(data)
         warnings = self.check_limits(user, steps)
+        if data['interest_payout']:
+            # The interest goes to another account as it falls due, so the deposit stays at its principal.
+            account_name = data['payout_account'].name if data.get('payout_account') else ''
+            every = {'MONTHLY': _('every month'), 'QUARTERLY': _('every 3 months'), 'ANNUAL': _('every year')}[data['interest_payout']]
+            bullets = [
+                _('Creates a lump-sum fixed deposit that stays at its principal'),
+                _('Records %(amount)s of interest %(every)s in %(account)s until maturity') % {
+                    'amount': f"{data['currency']}{data['payout_amount']:,.2f}", 'every': every, 'account': account_name},
+            ]
+            return {'headline': float(data['principal']), 'bullets': bullets, 'warnings': warnings}
         days = max((data['maturity_date'] - data['deposit_start_date']).days, 1)
         interest = RecurringService.calculate_interest_for_days(data['principal'], data['annual_rate'], days)
         headline = float(data['principal'] + interest)

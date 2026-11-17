@@ -135,7 +135,17 @@ Use it when you book a new fixed deposit. It takes about a minute.
 | **Deposit compounding** | Simple, Quarterly, Monthly, or Annual. Quarterly is the most common for bank FDs. |
 | **Deposit closed date** | Optional. Only needed if you broke the FD early. |
 
-**Step 3: Reporting**
+**Step 3: Interest payout**
+
+Does your bank pay the interest out to you, for example every month, instead of adding it to the deposit? Say so here.
+
+| Field | What to enter |
+|---|---|
+| **Interest paid** | *At maturity* (the default) adds the interest to the deposit. *Every month*, *Every 3 months* or *Every year* means the bank pays it out to you. |
+| **Payout goes to** | Optional. The account that receives the interest. Leave it empty to use the funding account. |
+| **Amount each time** | Optional. Left empty, it is worked out from the rate. Enter your bank's figure if it differs. |
+
+**Step 4: Reporting**
 
 
 ![Reporting step](img/fd-step3-desktop.webp){ loading=lazy width="560" }
@@ -159,6 +169,7 @@ The last tab summarises what will be created, with the headline figure at the to
 - A **fixed deposit account** with the rate, dates, and compounding you entered
 - A **one-time funding entry**, recorded as a big purchase of type *Investment Lump Sum*, taking the principal out of the funding account on the start date
 - **Maturity tracking**, so you can see what it will be worth, and when
+- A **recurring interest income**, if the bank pays interest out. It records each payout in the account you chose, until maturity, and the FD stays at its principal so the same interest is never counted twice
 
 The Review screen shows a quick estimate of the amount you will receive at maturity, such as *₹5,35,000 at maturity*.
 

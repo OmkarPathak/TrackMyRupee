@@ -306,6 +306,8 @@ FIELD_GROUPS_BY_STRATEGY: dict[STRATEGY, list[str]] = {
 
 ACCOUNT_TYPE_EXTRA_FIELDS: dict[str, list[str]] = {
     'RD': ['rd_installment_amount', 'rd_installment_day'],
+    'FD': ['deposit_payout'],
+    'FIXED_DEPOSIT': ['deposit_payout'],
 }
 
 
