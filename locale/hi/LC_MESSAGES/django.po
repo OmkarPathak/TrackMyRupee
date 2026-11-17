@@ -24139,3 +24139,23 @@ msgstr "यहाँ से शुरू करें"
 #: templates/flows/landing.html
 msgid "%(configured_count)s of %(total_count)s set up"
 msgstr "%(total_count)s में से %(configured_count)s सेट अप"
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "Funds bought each time"
+msgstr "हर बार खरीदे जाने वाले फंड"
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "Funds"
+msgstr "फंड"
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "Optional. Choose the funds each instalment buys and how much goes to each. Whatever you leave out stays as cash in the account, and you can change this later by editing the schedule."
+msgstr "वैकल्पिक। चुनें कि हर किस्त किन फंड को खरीदेगी और हर एक में कितना जाएगा। जो आप छोड़ देंगे वह खाते में नकद रहेगा, और इसे बाद में शेड्यूल एडिट करके बदल सकते हैं।"
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "Search for a fund and enter how much of each instalment buys it. Every instalment is recorded as a purchase of each fund, priced from its NAV."
+msgstr "किसी फंड को खोजें और बताएं कि हर किस्त का कितना हिस्सा उसे खरीदता है। हर किस्त हर फंड की खरीद के रूप में दर्ज होती है, जो उसके NAV के भाव पर होती है।"
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "more than the instalment"
+msgstr "किस्त से ज़्यादा"
