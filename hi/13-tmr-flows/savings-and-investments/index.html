@@ -1735,6 +1735,27 @@
 </tr>
 </tbody>
 </table>
+<p><strong>चरण 2: Funds</strong> (केवल तब दिखता है जब आप <strong>SIP</strong> चुनते हैं; वैकल्पिक)</p>
+<p>चुनें कि हर किस्त किन फंड को खरीदेगी। अगर अभी सिर्फ़ खाता और शेड्यूल चाहिए तो इसे छोड़ दें; बाद में शेड्यूल एडिट करके फंड जोड़ सकते हैं।</p>
+<table>
+<thead>
+<tr>
+<th>फ़ील्ड</th>
+<th>क्या दर्ज करें</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fund</strong></td>
+<td>नाम लिखें और खोज के नतीजों से फंड चुनें, जैसे "ICICI Prudential Large and midcap fund direct growth"। खोज "and" को "&amp;" और "midcap" को "Mid Cap" की तरह समझती है।</td>
+</tr>
+<tr>
+<td><strong>Amount</strong></td>
+<td>हर किस्त का कितना हिस्सा इस फंड को खरीदता है।</td>
+</tr>
+</tbody>
+</table>
+<p>हर अतिरिक्त फंड के लिए <strong>Add fund</strong> दबाएं। पंक्तियों के नीचे की लाइन बताती है कि किस्त का कितना हिस्सा फंड में जाता है और कितना नकद रहता है। रकमों का योग किस्त से कम हो सकता है, ज़्यादा कभी नहीं, और एक फंड सिर्फ़ एक बार आ सकता है।</p>
 <p><strong>चरण 2: Recurring Deposit Details</strong> (केवल तब दिखता है जब आप <strong>RD</strong> चुनते हैं)</p>
 <table>
 <thead>
@@ -1781,6 +1802,7 @@
 <ul>
 <li>एक <strong>निवेश खाता</strong>: SIP के लिए Mutual Funds खाता, या आवर्ती जमा के लिए RD खाता</li>
 <li>आपके बैंक खाते से उसमें एक <strong>आवर्ती मासिक हस्तांतरण</strong></li>
+<li>अगर आपने फंड चुने हैं: शेड्यूल उन्हें खरीदने के लिए सेट हो जाता है। हर फंड नए खाते में बिना यूनिट के जुड़ता है, और पहली किस्त उसकी पहली यूनिट खरीदती है, उसके NAV के भाव पर</li>
 </ul>
 <p>Review स्क्रीन पर सबसे ऊपर मासिक रकम दिखती है, और उसके बाद सरल भाषा की एक पंक्ति, जैसे <em>"SIP into Nifty 50 Index Fund from HDFC Salary, starting 15 Oct 2026."</em></p>
 <div class="admonition example">
@@ -1791,7 +1813,7 @@
 <h3 id="_5">ध्यान रखें<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
 <div class="admonition tip">
 <p class="admonition-title">फंड का असली मूल्य</p>
-<p>यह Flow केवल वह पैसा दर्ज करता है जो आपने डाला। फंड की असली यूनिट और उनका मौजूदा मूल्य ट्रैक करने के लिए बाद में अपनी होल्डिंग्स जोड़ें, और हर किस्त को उस फंड से जोड़ें जिसमें वह लगी, <strong>Buy more → Paid by transfer</strong> से। देखें <a href="../../02-accounts/holdings/">होल्डिंग्स और म्यूचुअल फंड</a> और <a href="../../02-accounts/accrued-vs-invested/">Accrued बनाम Invested व्यू</a>।</p>
+<p>यह Flow केवल वह पैसा दर्ज करता है जो आपने डाला। अगर आपने चरण 2 में फंड चुने हैं, तो हर किस्त उन फंड को भी खरीदती है, इसलिए उनकी यूनिट और मूल्य पहली किस्त से ही ट्रैक होते हैं। अगर आपने वह चरण छोड़ा, तो बाद में अपनी होल्डिंग्स जोड़ें, और हर किस्त को उस फंड से जोड़ें जिसमें वह लगी, <strong>Buy more → Paid by transfer</strong> से। देखें <a href="../../02-accounts/holdings/">होल्डिंग्स और म्यूचुअल फंड</a> और <a href="../../02-accounts/accrued-vs-invested/">Accrued बनाम Invested व्यू</a>।</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">SIP और RD एक जैसी चीज़ें नहीं हैं</p>

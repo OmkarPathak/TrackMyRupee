@@ -1735,6 +1735,27 @@
 </tr>
 </tbody>
 </table>
+<p><strong>पायरी 2: Funds</strong> (फक्त <strong>SIP</strong> निवडल्यावरच दिसते; ऐच्छिक)</p>
+<p>प्रत्येक हप्ता कोणते फंड खरेदी करेल ते निवडा. आत्ता फक्त खाते आणि शेड्यूल हवे असेल तर ही पायरी सोडा; नंतर शेड्यूल एडिट करून फंड जोडता येतात.</p>
+<table>
+<thead>
+<tr>
+<th>फील्ड</th>
+<th>काय भरायचे</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fund</strong></td>
+<td>नाव टाइप करा आणि शोध निकालांतून फंड निवडा, उदा. "ICICI Prudential Large and midcap fund direct growth". शोध "and" ला "&amp;" आणि "midcap" ला "Mid Cap" असे समजतो.</td>
+</tr>
+<tr>
+<td><strong>Amount</strong></td>
+<td>प्रत्येक हप्त्यातील किती रक्कम या फंडात जाते.</td>
+</tr>
+</tbody>
+</table>
+<p>प्रत्येक अतिरिक्त फंडासाठी <strong>Add fund</strong> दाबा. ओळींखालील ओळ सांगते की हप्त्यातील किती रक्कम फंडांत जाते आणि किती रोख राहते. रकमांची बेरीज हप्त्यापेक्षा कमी असू शकते, जास्त कधीच नाही, आणि एक फंड फक्त एकदाच येऊ शकतो.</p>
 <p><strong>पायरी 2: Recurring Deposit Details</strong> (फक्त <strong>RD</strong> निवडल्यावरच दिसते)</p>
 <table>
 <thead>
@@ -1781,6 +1802,7 @@
 <ul>
 <li>एक <strong>गुंतवणूक खाते</strong>: SIP साठी Mutual Funds खाते, किंवा आवर्ती ठेवीसाठी RD खाते</li>
 <li>तुमच्या बँक खात्यातून त्यात एक <strong>आवर्ती मासिक हस्तांतरण</strong></li>
+<li>तुम्ही फंड निवडले असतील तर: शेड्यूल ते खरेदी करण्यासाठी सेट होते. प्रत्येक फंड नवीन खात्यात युनिटशिवाय जोडला जातो, आणि पहिला हप्ता त्याचे पहिले युनिट खरेदी करतो, त्याच्या NAV च्या भावाने</li>
 </ul>
 <p>Review स्क्रीनवर सर्वात वर मासिक रक्कम दिसते, आणि त्यानंतर सोप्या भाषेतील एक ओळ, उदा. <em>"SIP into Nifty 50 Index Fund from HDFC Salary, starting 15 Oct 2026."</em></p>
 <div class="admonition example">
@@ -1791,7 +1813,7 @@
 <h3 id="_5">लक्षात ठेवा<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
 <div class="admonition tip">
 <p class="admonition-title">फंडाचे खरे मूल्य</p>
-<p>हा Flow फक्त तुम्ही टाकलेले पैसे नोंदवतो. फंडाचे प्रत्यक्ष युनिट आणि त्यांचे सध्याचे मूल्य ट्रॅक करण्यासाठी नंतर तुमच्या होल्डिंग्स जोडा, आणि प्रत्येक हप्ता ज्या फंडात गेला त्याच्याशी <strong>Buy more → Paid by transfer</strong> वापरून जोडा. पहा <a href="../../02-accounts/holdings/">होल्डिंग्स आणि म्युच्युअल फंड</a> आणि <a href="../../02-accounts/accrued-vs-invested/">Accrued विरुद्ध Invested व्ह्यू</a>.</p>
+<p>हा Flow फक्त तुम्ही टाकलेले पैसे नोंदवतो. तुम्ही पायरी 2 मध्ये फंड निवडले असतील तर प्रत्येक हप्ता ते फंडही खरेदी करतो, त्यामुळे त्यांचे युनिट आणि मूल्य पहिल्या हप्त्यापासूनच ट्रॅक होतात. ती पायरी सोडली असेल तर नंतर तुमच्या होल्डिंग्स जोडा, आणि प्रत्येक हप्ता ज्या फंडात गेला त्याच्याशी <strong>Buy more → Paid by transfer</strong> वापरून जोडा. पहा <a href="../../02-accounts/holdings/">होल्डिंग्स आणि म्युच्युअल फंड</a> आणि <a href="../../02-accounts/accrued-vs-invested/">Accrued विरुद्ध Invested व्ह्यू</a>.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">SIP आणि RD सारख्या गोष्टी नाहीत</p>

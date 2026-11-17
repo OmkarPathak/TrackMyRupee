@@ -1735,6 +1735,27 @@
 </tr>
 </tbody>
 </table>
+<p><strong>Step 2: Funds</strong> (appears only when you choose <strong>SIP</strong>; optional)</p>
+<p>Choose which funds each instalment buys. Skip it if you only want the account and the schedule for now; you can add funds later by editing the schedule.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What to enter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fund</strong></td>
+<td>Type a name and pick the fund from the search results, for example "ICICI Prudential Large and midcap fund direct growth". The search understands "and" for "&amp;" and "midcap" for "Mid Cap".</td>
+</tr>
+<tr>
+<td><strong>Amount</strong></td>
+<td>How much of each instalment buys this fund.</td>
+</tr>
+</tbody>
+</table>
+<p>Press <strong>Add fund</strong> for each extra fund. The line under the rows shows how much of the instalment goes to funds and how much stays as cash. The amounts can add up to less than the instalment, never more, and a fund can appear only once.</p>
 <p><strong>Step 2: Recurring Deposit Details</strong> (appears only when you choose <strong>RD</strong>)</p>
 <table>
 <thead>
@@ -1781,6 +1802,7 @@
 <ul>
 <li>An <strong>investment account</strong>: a Mutual Funds account for a SIP, or an RD account for a recurring deposit</li>
 <li>A <strong>recurring monthly transfer</strong> from your bank account into it</li>
+<li>If you chose funds: the schedule is set to buy them. Each fund is added to the new account with no units yet, and the first instalment buys its first units, priced from its NAV</li>
 </ul>
 <p>On the Review screen the headline is the monthly amount, followed by a plain-English line such as <em>"SIP into Nifty 50 Index Fund from HDFC Salary, starting 15 Oct 2026."</em></p>
 <div class="admonition example">
@@ -1791,7 +1813,7 @@
 <h3 id="watch-out-for">Watch out for<a class="headerlink" href="#watch-out-for" title="Permanent link">&para;</a></h3>
 <div class="admonition tip">
 <p class="admonition-title">The fund's actual value</p>
-<p>The Flow records the money you put in. To track the actual number of fund units and their current value, add your holdings afterwards, and tie each instalment to the fund it bought with <strong>Buy more → Paid by transfer</strong>. See <a href="../../02-accounts/holdings/">Holdings and Mutual Funds</a> and <a href="../../02-accounts/accrued-vs-invested/">Accrued vs Invested View</a>.</p>
+<p>The Flow records the money you put in. If you chose funds in step 2, each instalment also buys those funds, so their units and value are tracked from the first instalment. If you skipped that step, add your holdings afterwards, and tie each instalment to the fund it bought with <strong>Buy more → Paid by transfer</strong>. See <a href="../../02-accounts/holdings/">Holdings and Mutual Funds</a> and <a href="../../02-accounts/accrued-vs-invested/">Accrued vs Invested View</a>.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">SIP and RD are not the same thing</p>
