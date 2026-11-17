@@ -86,6 +86,7 @@ class FlowTests(Base):
         self.wait_until(lambda: self.payout_schedules().exists(), 'no interest schedule was created', seconds=15)
         from expenses.account_valuation import get_current
         self.assertEqual(get_current(self.created_fd()), Decimal('2500000.00'))
+        page.wait_for_url(lambda url: '/flows/' not in url)        # (the setup sends you on to the dashboard)
         self.open(page, reverse('account-list'))
         self.assertIn('Big FD', page.inner_text('body'))
 
@@ -122,6 +123,7 @@ class FlowTests(Base):
                      backfill=True)
         self.confirm(page)
         self.wait_until(lambda: self.payout_schedules().exists(), 'no interest schedule was created', seconds=15)
+        page.wait_for_url(lambda url: '/flows/' not in url)        # (the setup sends you on to the dashboard)
         self.open(page, reverse('account-list'))                 # opening a page records what has fallen due
         self.wait_until(lambda: self.interest_entries().count() == 3, 'the past payouts were not recorded', seconds=15)
 
@@ -131,6 +133,7 @@ class FlowTests(Base):
         self.fill_fd(page, 'MONTHLY', payout_account=self.interest_account, start=self.today - timedelta(days=100))
         self.confirm(page)
         self.wait_until(lambda: self.payout_schedules().exists(), 'no interest schedule was created', seconds=15)
+        page.wait_for_url(lambda url: '/flows/' not in url)        # (the setup sends you on to the dashboard)
         self.open(page, reverse('account-list'))
         page.wait_for_timeout(1000)
         self.assertEqual(self.interest_entries().count(), 0)
