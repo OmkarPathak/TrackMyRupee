@@ -1,13 +1,11 @@
 {% load i18n %}
 {# The funds each SIP instalment buys. Rows are built here and written to the hidden fund_splits field as JSON. #}
 <div class="border rounded-3 p-3" id="flowFundGroup">
-    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
-        <div class="small text-muted">{% trans "Search for a fund, then say how much of each instalment buys it, for example 10,000 into one fund and 5,000 into another. Every instalment is recorded as a purchase of each fund, priced from its NAV." %}</div>
-        <button type="button" class="btn btn-action-outline btn-sm text-nowrap" id="flowSplitAdd"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% trans "Add fund" %}</button>
-    </div>
+    <div class="small text-muted mb-3">{% trans "Search for a fund and enter how much of each instalment buys it. Every instalment is recorded as a purchase of each fund, priced from its NAV." %}</div>
     {{ field }}
     <div id="flowSplitRows"></div>
-    <div class="small text-muted d-none" id="flowSplitSummary"></div>
+    <button type="button" class="btn btn-action-outline btn-sm" id="flowSplitAdd"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{% trans "Add fund" %}</button>
+    <div class="small text-muted d-none mt-2" id="flowSplitSummary"></div>
 </div>
 <script>
     (function () {
@@ -43,24 +41,27 @@
         function addRow(prefill) {
             prefill = prefill || {};
             const row = document.createElement('div');
-            row.className = 'row g-2 align-items-end mb-2 split-row';
+            row.className = 'row g-2 align-items-end pb-3 mb-3 border-bottom split-row';
             row.innerHTML =
                 '<div class="col-12 col-md-7 position-relative"><label class="form-label small text-muted fw-bold mb-1">{% trans "Fund" %}</label>' +
                 '<input type="text" class="form-control form-control-sm" data-f="name" autocomplete="off" maxlength="255" placeholder="{% trans "Type a fund name to search" %}">' +
                 '<input type="hidden" data-f="code">' +
+                '<div class="small text-muted mt-1 d-none" data-f="full"></div>' +
                 '<div class="dropdown-menu shadow w-100 mt-1 overflow-auto" data-f="suggest" style="max-height: 220px; display: none; z-index: 1070;"></div></div>' +
                 '<div class="col-8 col-md-4"><label class="form-label small text-muted fw-bold mb-1">{% trans "Amount" %}</label>' +
                 '<input type="number" class="form-control form-control-sm" data-f="amount" step="0.01" min="0"></div>' +
                 '<div class="col-4 col-md-1 text-end"><button type="button" class="btn btn-link text-danger p-0" data-f="remove" aria-label="{% trans "Remove" %}"><i class="bi bi-x-lg"></i></button></div>';
             rowsBox.appendChild(row);
             const q = (k) => row.querySelector('[data-f=' + k + ']');
-            const name = q('name'), code = q('code'), box = q('suggest');
+            const name = q('name'), code = q('code'), box = q('suggest'), full = q('full');
+            const showFull = () => { full.textContent = code.value ? name.value : ''; full.classList.toggle('d-none', !code.value); };
             name.value = prefill.name || '';
             code.value = prefill.scheme_code || '';
             q('amount').value = prefill.amount || '';
+            showFull();
             let timer = null;
             name.addEventListener('input', function () {
-                code.value = '';                       // typing again drops the pick until a result is chosen
+                code.value = ''; showFull();           // typing again drops the pick until a result is chosen
                 const text = name.value.trim();
                 if (text.length < 2) { box.style.display = 'none'; refresh(); return; }
                 clearTimeout(timer);
@@ -80,7 +81,7 @@
             box.addEventListener('click', function (e) {
                 const a = e.target.closest('a[data-code]');
                 if (!a) return;
-                name.value = a.dataset.name; code.value = a.dataset.code; box.style.display = 'none'; refresh();
+                name.value = a.dataset.name; code.value = a.dataset.code; box.style.display = 'none'; showFull(); refresh();
             });
             q('remove').addEventListener('click', () => { row.remove(); refresh(); });
             row.addEventListener('input', refresh);

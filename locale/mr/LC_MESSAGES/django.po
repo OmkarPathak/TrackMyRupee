@@ -24202,3 +24202,23 @@ msgstr "इथून सुरू करा"
 #: templates/flows/landing.html
 msgid "%(configured_count)s of %(total_count)s set up"
 msgstr "%(total_count)s पैकी %(configured_count)s सेट अप"
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "Funds bought each time"
+msgstr "प्रत्येक वेळी खरेदी होणारे फंड"
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "Funds"
+msgstr "फंड"
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "Optional. Choose the funds each instalment buys and how much goes to each. Whatever you leave out stays as cash in the account, and you can change this later by editing the schedule."
+msgstr "ऐच्छिक. प्रत्येक हप्ता कोणते फंड खरेदी करेल आणि प्रत्येकात किती जाईल ते निवडा. जे तुम्ही सोडाल ते खात्यात रोख राहील, आणि हे नंतर शेड्यूल एडिट करून बदलता येईल."
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "Search for a fund and enter how much of each instalment buys it. Every instalment is recorded as a purchase of each fund, priced from its NAV."
+msgstr "एखादा फंड शोधा आणि प्रत्येक हप्त्यातील किती रक्कम तो खरेदी करते ते सांगा. प्रत्येक हप्ता प्रत्येक फंडाची खरेदी म्हणून नोंदवला जातो, त्याच्या NAV च्या भावाने."
+
+#: expenses/flows/investment.py templates/flows/partials/_fund_splits.html
+msgid "more than the instalment"
+msgstr "हप्त्यापेक्षा जास्त"
