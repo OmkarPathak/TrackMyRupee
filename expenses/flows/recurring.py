@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from ..models import Account, CURRENCY_CHOICES, RecurringTransaction
+from ..forms import MoneyInput
 from ..services_recurring import RecurringService
 from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
@@ -14,7 +15,7 @@ from .registry import register_flow
 
 class RentBillFlowForm(forms.Form):
     description = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Short description that appears on the recurring transaction.'))
-    amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('The amount that repeats on each occurrence.'))
+    amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('The amount that repeats on each occurrence.'))
     category = forms.CharField(max_length=255, required=False, initial='Rent', widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Category for this bill (e.g. Rent, Utilities).'))
     currency = forms.ChoiceField(choices=CURRENCY_CHOICES, required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Currency used for the recurring entry.'))
     frequency = forms.ChoiceField(choices=RecurringTransaction.FREQUENCY_CHOICES, initial='MONTHLY', widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('How often the bill or rent should repeat.'))

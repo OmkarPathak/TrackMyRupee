@@ -13,13 +13,14 @@ from django.db.models import Q
 from django.urls import reverse
 
 from ..models import Account, CURRENCY_CHOICES, FinancialFlow, Income, RecurringTransaction, UserProfile
+from ..forms import MoneyInput
 from ..services_recurring import RecurringService
 from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
 
 class SalaryFlowForm(forms.Form):
-    amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Monthly salary amount.'))
+    amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Monthly salary amount.'))
     currency = forms.ChoiceField(choices=CURRENCY_CHOICES, required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Currency used for salary tracking.'))
     account = forms.ModelChoiceField(queryset=Account.objects.none(), widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Account where salary is received.'))
     salary_date = forms.IntegerField(min_value=1, max_value=31, widget=forms.NumberInput(attrs={'class': 'form-control'}), help_text=_('Day of the month salary is usually received.'))

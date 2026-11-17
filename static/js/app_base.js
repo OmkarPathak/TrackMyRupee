@@ -197,7 +197,12 @@
             const active = document.activeElement;
             const opensPicker = active && active.tagName === 'INPUT' &&
                 ['date', 'time', 'datetime-local', 'month', 'week', 'color', 'file'].indexOf(active.type) !== -1;
-            if (active && !opensPicker &&
+            // Only a field inside what was swapped can have been re-focused by the swap. A field outside it (the one
+            // the person has just clicked into while a request for the previous field was in flight) is left alone,
+            // or it would lose focus a moment after being tapped, in every form that sends requests as you go.
+            const swapped = e && e.target && e.target.nodeType === 1 ? e.target : null;
+            const insideSwap = !swapped || swapped === document.body || swapped.contains(active);
+            if (active && !opensPicker && insideSwap &&
                 (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA') &&
                 !active.closest('#tmr-composer')) {
                 active.blur();

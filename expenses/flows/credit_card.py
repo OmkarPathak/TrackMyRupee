@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from ..models import Account, CURRENCY_CHOICES
+from ..forms import MoneyInput
 from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
 from .registry import register_flow
 
@@ -15,9 +16,9 @@ from .registry import register_flow
 class CreditCardFlowForm(forms.Form):
     existing_account = forms.ModelChoiceField(queryset=Account.objects.none(), required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Choose an existing card to update, or leave blank to create a new one.'))
     name = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('The card label shown in the app.'))
-    balance = forms.DecimalField(min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Current amount owed on the card.'))
+    balance = forms.DecimalField(min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Current amount owed on the card.'))
     currency = forms.ChoiceField(choices=CURRENCY_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Currency used for the card balance and limit.'))
-    credit_limit = forms.DecimalField(min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Maximum available credit line.'))
+    credit_limit = forms.DecimalField(min_value=Decimal('0.00'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Maximum available credit line.'))
     billing_day = forms.IntegerField(min_value=1, max_value=31, widget=forms.NumberInput(attrs={'class': 'form-control'}), help_text=_('Day of month the statement is generated.'))
     is_pinned = forms.BooleanField(required=False, initial=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Pin this card account.'))
 
