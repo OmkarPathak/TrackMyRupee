@@ -1889,7 +1889,35 @@
 </tr>
 </tbody>
 </table>
-<p><strong>पायरी 3: Reporting</strong></p>
+<p><strong>पायरी 3: व्याज payout (Interest payout)</strong></p>
+<p>तुमची बँक व्याज ठेवीत जमा करण्याऐवजी तुम्हाला देते का, उदा. दर महिन्याला? ते इथे सांगा.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>काय भरायचे</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interest paid</strong></td>
+<td><em>At maturity</em> (डिफॉल्ट) मध्ये व्याज ठेवीत जमा होते. <em>Every month</em>, <em>Every 3 months</em> किंवा <em>Every year</em> म्हणजे बँक ते तुम्हाला देते.</td>
+</tr>
+<tr>
+<td><strong>Payout goes to</strong></td>
+<td>पर्यायी. ज्या खात्यात व्याज येते. रिकामे सोडल्यास फंडिंग खाते वापरले जाईल.</td>
+</tr>
+<tr>
+<td><strong>Amount each time</strong></td>
+<td>पर्यायी. रिकामे सोडल्यास दरावरून काढली जाते. तुमच्या बँकेची रक्कम वेगळी असल्यास तीच लिहा.</td>
+</tr>
+<tr>
+<td><strong>Record the payouts already received</strong></td>
+<td>डिफॉल्टनुसार बंद. FD आधी सुरू झाली असल्यास चालू केल्यावर तेव्हापासूनचे देय payout सुद्धा नोंदवले जातात. ते व्याज मिळणाऱ्या खात्यात जमा होतात, म्हणून त्या खात्याच्या शिलकीत ते आधीच असतील तर हे बंद ठेवा.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>पायरी 4: Reporting</strong></p>
 <p><img alt="Reporting पायरी" loading="lazy" src="../../../13-tmr-flows/img/fd-step3-desktop.webp" width="560" /></p>
 <table>
 <thead>
@@ -1921,6 +1949,7 @@
 <li>तुम्ही भरलेला दर, तारखा आणि compounding असलेले एक <strong>फिक्स्ड डिपॉझिट खाते</strong></li>
 <li>एक <strong>एकरकमी फंडिंग नोंद</strong>, जी <em>Investment Lump Sum</em> प्रकारचा Capital Event म्हणून नोंदवली जाते आणि सुरुवातीच्या तारखेला फंडिंग खात्यातून मुद्दल वजा करते</li>
 <li><strong>मुदतपूर्ती ट्रॅकिंग</strong>, ज्यामुळे तिची किंमत किती होईल आणि कधी, ते दिसते</li>
+<li><strong>आवर्ती व्याज उत्पन्न</strong>, बँक व्याज देत असल्यास. ते मुदतपूर्तीपर्यंत तुम्ही निवडलेल्या खात्यात प्रत्येक payout नोंदवते, आणि FD तिच्या मूळ रकमेवर राहते म्हणजे तेच व्याज दोनदा मोजले जात नाही</li>
 </ul>
 <p>Review स्क्रीनवर मुदतपूर्तीला मिळणाऱ्या रकमेचा झटपट अंदाज दिसतो, उदा. <em>₹5,35,000 at maturity</em>.</p>
 <div class="admonition example">

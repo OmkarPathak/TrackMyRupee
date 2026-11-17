@@ -1889,7 +1889,35 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Step 3: Reporting</strong></p>
+<p><strong>Step 3: Interest payout</strong></p>
+<p>Does your bank pay the interest out to you, for example every month, instead of adding it to the deposit? Say so here.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What to enter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interest paid</strong></td>
+<td><em>At maturity</em> (the default) adds the interest to the deposit. <em>Every month</em>, <em>Every 3 months</em> or <em>Every year</em> means the bank pays it out to you.</td>
+</tr>
+<tr>
+<td><strong>Payout goes to</strong></td>
+<td>Optional. The account that receives the interest. Leave it empty to use the funding account.</td>
+</tr>
+<tr>
+<td><strong>Amount each time</strong></td>
+<td>Optional. Left empty, it is worked out from the rate. Enter your bank's figure if it differs.</td>
+</tr>
+<tr>
+<td><strong>Record the payouts already received</strong></td>
+<td>Off by default. If the FD started in the past, turn on to also record the payouts that have fallen due since. They are added to the account that receives the interest, so leave it off if that account's balance already includes them.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Step 4: Reporting</strong></p>
 <p><img alt="Reporting step" loading="lazy" src="../img/fd-step3-desktop.webp" width="560" /></p>
 <table>
 <thead>
@@ -1921,6 +1949,7 @@
 <li>A <strong>fixed deposit account</strong> with the rate, dates, and compounding you entered</li>
 <li>A <strong>one-time funding entry</strong>, recorded as a big purchase of type <em>Investment Lump Sum</em>, taking the principal out of the funding account on the start date</li>
 <li><strong>Maturity tracking</strong>, so you can see what it will be worth, and when</li>
+<li>A <strong>recurring interest income</strong>, if the bank pays interest out. It records each payout in the account you chose, until maturity, and the FD stays at its principal so the same interest is never counted twice</li>
 </ul>
 <p>The Review screen shows a quick estimate of the amount you will receive at maturity, such as <em>₹5,35,000 at maturity</em>.</p>
 <div class="admonition example">

@@ -1889,7 +1889,35 @@
 </tr>
 </tbody>
 </table>
-<p><strong>चरण 3: Reporting</strong></p>
+<p><strong>चरण 3: ब्याज भुगतान (Interest payout)</strong></p>
+<p>क्या आपका बैंक ब्याज डिपॉज़िट में जोड़ने के बजाय आपको देता है, जैसे हर महीने? यहां बताएं।</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>क्या भरें</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interest paid</strong></td>
+<td><em>At maturity</em> (डिफ़ॉल्ट) में ब्याज डिपॉज़िट में जुड़ता है। <em>Every month</em>, <em>Every 3 months</em> या <em>Every year</em> का मतलब है कि बैंक उसे आपको देता है।</td>
+</tr>
+<tr>
+<td><strong>Payout goes to</strong></td>
+<td>वैकल्पिक। जिस खाते में ब्याज आता है। खाली छोड़ने पर फंडिंग खाता इस्तेमाल होगा।</td>
+</tr>
+<tr>
+<td><strong>Amount each time</strong></td>
+<td>वैकल्पिक। खाली छोड़ने पर यह दर से निकाली जाती है। अगर आपके बैंक की राशि अलग है तो वही लिखें।</td>
+</tr>
+<tr>
+<td><strong>Record the payouts already received</strong></td>
+<td>डिफ़ॉल्ट रूप से बंद। अगर FD पहले शुरू हुई थी, तो चालू करने पर तब से देय भुगतान भी दर्ज होते हैं। वे ब्याज पाने वाले खाते में जुड़ते हैं, इसलिए अगर उस खाते की शेष राशि में वे पहले से शामिल हैं तो इसे बंद रखें।</td>
+</tr>
+</tbody>
+</table>
+<p><strong>चरण 4: Reporting</strong></p>
 <p><img alt="Reporting चरण" loading="lazy" src="../../../13-tmr-flows/img/fd-step3-desktop.webp" width="560" /></p>
 <table>
 <thead>
@@ -1921,6 +1949,7 @@
 <li>आपके दर्ज किए दर, तारीखों और compounding के साथ एक <strong>फिक्स्ड डिपॉज़िट खाता</strong></li>
 <li>एक <strong>एकमुश्त फंडिंग प्रविष्टि</strong>, जो <em>Investment Lump Sum</em> प्रकार के Capital Event के रूप में दर्ज होती है और शुरू होने की तारीख को फंडिंग खाते से मूलधन घटाती है</li>
 <li><strong>परिपक्वता ट्रैकिंग</strong>, ताकि आप देख सकें कि इसकी कीमत कितनी होगी, और कब</li>
+<li>एक <strong>आवर्ती ब्याज आय</strong>, अगर बैंक ब्याज देता है। यह परिपक्वता तक आपके चुने खाते में हर भुगतान दर्ज करती है, और FD अपनी मूल राशि पर रहती है ताकि वही ब्याज दो बार न गिना जाए</li>
 </ul>
 <p>Review स्क्रीन पर परिपक्वता पर मिलने वाली रकम का एक त्वरित अनुमान दिखता है, जैसे <em>₹5,35,000 at maturity</em>।</p>
 <div class="admonition example">
