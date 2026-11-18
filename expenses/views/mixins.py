@@ -72,7 +72,7 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
     profile = user.profile
     recurring_txs = (
         RecurringTransaction.objects.filter(user=user, is_active=True)
-        .select_related('account', 'from_account', 'to_account', 'loan')
+        .select_related('account', 'from_account', 'to_account', 'loan', 'payout_for')
         .prefetch_related('fund_splits__holding')
         .order_by('created_at', 'id')
     )
@@ -131,7 +131,8 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                 (rt.account and not rt.account.is_active) or
                 (rt.from_account and not rt.from_account.is_active) or
                 (rt.to_account and not rt.to_account.is_active) or
-                (rt.physical_asset and not rt.physical_asset.is_active)
+                (rt.physical_asset and not rt.physical_asset.is_active) or
+                (rt.payout_for and not rt.payout_for.is_active)
             ):
                 rt.is_active = False
                 rt.save(update_fields=['is_active'])

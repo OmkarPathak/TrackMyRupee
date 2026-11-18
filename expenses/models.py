@@ -1774,6 +1774,9 @@ class RecurringTransaction(models.Model):
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('Account'))
     loan = models.ForeignKey('Loan', on_delete=models.CASCADE, null=True, blank=True, related_name='recurring_schedules', verbose_name=_('Loan'))
     physical_asset = models.ForeignKey('PhysicalAsset', on_delete=models.CASCADE, null=True, blank=True, related_name='recurring_schedules', verbose_name=_('Insurance Policy'))
+    # The fixed deposit whose interest this schedule records (set by the FD setup). The schedule follows the deposit:
+    # it ends when the deposit is closed or matures, and goes with it when the deposit is deleted.
+    payout_for = models.ForeignKey(Account, on_delete=models.CASCADE, null=True, blank=True, related_name='payout_schedules', verbose_name=_('Pays out interest of'))
 
     # Capital event-specific fields
     capital_subtype = models.CharField(

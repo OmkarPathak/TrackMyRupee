@@ -282,3 +282,199 @@ class BackfillTests(FlowTestBase):
         html = self.client.get(reverse('flow-detail', kwargs={'key': 'fd'})).content.decode()
         self.assertIn('name="create_historical_entries"', html)
         self.assertIn('Record the payouts already received', html)
+
+
+class FollowsTheDepositTests(FlowTestBase):
+    """The payout schedule is tied to its deposit: it ends when the deposit is closed or matures, follows a changed
+    maturity date, stops when the deposit stops paying out, and goes when the deposit does."""
+
+    def setUp(self):
+        super().setUp()
+        self.today = timezone.localdate()
+        self.start = self.today - relativedelta(months=5, days=3)
+        self.maturity = self.start + relativedelta(years=2)
+
+    def payload(self, **overrides):
+        data = dict(name='Linked FD', principal='1200000', annual_rate='7.5', deposit_start_date=self.start.isoformat(),
+                    maturity_date=self.maturity.isoformat(), deposit_compounding='QUARTERLY', from_account=self.cash,
+                    interest_payout='MONTHLY', payout_account=self.bank)
+        data.update(overrides)
+        return data
+
+    def make(self, **overrides):
+        result = self.run_flow('fd', self.payload(**overrides))
+        fd = [obj for obj in result.created if isinstance(obj, Account)][0]
+        schedule = [obj for obj in result.created if isinstance(obj, RecurringTransaction)][0]
+        return fd, schedule
+
+    def edit(self, fd, **changes):
+        from expenses.forms import AccountForm
+        data = {'name': fd.name, 'account_type': 'FD', 'balance': '0', 'currency': '₹',
+                'deposit_principal': str(fd.deposit_principal), 'deposit_rate': str(fd.deposit_rate),
+                'deposit_start_date': fd.deposit_start_date.isoformat(),
+                'deposit_maturity_date': fd.deposit_maturity_date.isoformat(),
+                'deposit_compounding': fd.deposit_compounding, 'deposit_payout': fd.deposit_payout or ''}
+        if fd.deposit_closed_date:
+            data['deposit_closed_date'] = fd.deposit_closed_date.isoformat()
+        data.update(changes)
+        form = AccountForm(data=data, instance=fd, user=self.user)
+        self.assertTrue(form.is_valid(), dict(form.errors))
+        form.save()
+        fd.refresh_from_db()
+
+    def test_the_schedule_is_linked_to_its_deposit(self):
+        fd, schedule = self.make()
+        self.assertEqual(schedule.payout_for, fd)
+        self.assertEqual(list(fd.payout_schedules.all()), [schedule])
+
+    def test_a_deposit_booked_as_already_closed_pays_out_until_then(self):
+        closed = self.today - relativedelta(months=2)
+        _fd, schedule = self.make(deposit_closed_date=closed.isoformat())
+        self.assertEqual(schedule.end_date, closed)
+
+    def test_closing_the_deposit_early_ends_its_schedule_that_day(self):
+        fd, schedule = self.make()
+        closed = self.today + relativedelta(months=1)
+        self.edit(fd, deposit_closed_date=closed.isoformat())
+        schedule.refresh_from_db()
+        self.assertEqual(schedule.end_date, closed)
+        self.assertTrue(schedule.is_active)
+
+    def test_no_payout_is_recorded_after_the_day_it_was_closed(self):
+        fd, schedule = self.make(create_historical_entries='on')
+        closed = self.start + relativedelta(months=2, days=10)         # two payouts were due before it
+        self.edit(fd, deposit_closed_date=closed.isoformat())
+        process_user_recurring_transactions(self.user)
+        dates = sorted(Income.objects.filter(user=self.user, source='Interest Income').values_list('date', flat=True))
+        self.assertEqual(dates, [self.start + relativedelta(months=1), self.start + relativedelta(months=2)])
+        schedule.refresh_from_db()
+        self.assertFalse(schedule.is_active)
+
+    def test_payouts_due_before_the_closing_day_are_still_recorded(self):
+        fd, _schedule = self.make(create_historical_entries='on')
+        self.edit(fd, deposit_closed_date=(self.today - relativedelta(days=1)).isoformat())
+        process_user_recurring_transactions(self.user)
+        self.assertEqual(Income.objects.filter(user=self.user, source='Interest Income').count(), 5)
+
+    def test_a_longer_maturity_date_moves_the_end_of_the_schedule(self):
+        fd, schedule = self.make()
+        later = self.maturity + relativedelta(years=1)
+        self.edit(fd, deposit_maturity_date=later.isoformat())
+        schedule.refresh_from_db()
+        self.assertEqual(schedule.end_date, later)
+
+    def test_a_schedule_that_had_run_out_starts_again_when_the_deposit_is_renewed(self):
+        fd, schedule = self.make()
+        RecurringTransaction.objects.filter(pk=schedule.pk).update(
+            end_date=self.today - relativedelta(days=5), is_active=False)
+        self.edit(fd, deposit_maturity_date=(self.today + relativedelta(years=1)).isoformat())
+        schedule.refresh_from_db()
+        self.assertTrue(schedule.is_active)
+        self.assertEqual(schedule.end_date, self.today + relativedelta(years=1))
+
+    def test_a_deposit_that_stops_paying_out_stops_its_schedule(self):
+        fd, schedule = self.make()
+        self.edit(fd, deposit_payout='')
+        schedule.refresh_from_db()
+        self.assertFalse(schedule.is_active)
+
+    def test_paying_out_again_starts_the_schedule_again(self):
+        fd, schedule = self.make()
+        self.edit(fd, deposit_payout='')
+        self.edit(fd, deposit_payout='MONTHLY')
+        schedule.refresh_from_db()
+        self.assertTrue(schedule.is_active)
+
+    def test_a_schedule_the_person_paused_stays_paused_when_something_else_is_edited(self):
+        fd, schedule = self.make()
+        RecurringTransaction.objects.filter(pk=schedule.pk).update(is_active=False)
+        self.edit(fd, name='Renamed FD')
+        schedule.refresh_from_db()
+        self.assertFalse(schedule.is_active)
+
+    def test_another_deposits_schedule_is_left_alone(self):
+        fd, _schedule = self.make()
+        other, other_schedule = self.make(name='Other FD')
+        self.edit(fd, deposit_closed_date=(self.today + relativedelta(months=1)).isoformat())
+        other_schedule.refresh_from_db()
+        self.assertEqual(other_schedule.end_date, self.maturity)
+
+    def test_a_deposit_that_does_not_pay_out_is_unaffected_by_edits(self):
+        result = self.run_flow('fd', self.payload(interest_payout='', payout_account='', name='Plain FD'))
+        fd = [obj for obj in result.created if isinstance(obj, Account)][0]
+        self.edit(fd, deposit_closed_date=(self.today + relativedelta(months=1)).isoformat())
+        self.assertEqual(fd.payout_schedules.count(), 0)
+
+    def test_deleting_the_deposit_deletes_its_schedule(self):
+        fd, schedule = self.make()
+        fd.delete()
+        self.assertFalse(RecurringTransaction.objects.filter(pk=schedule.pk).exists())
+
+    def test_a_deactivated_deposit_stops_its_schedule_and_records_nothing(self):
+        fd, schedule = self.make(create_historical_entries='on')
+        Account.objects.filter(pk=fd.pk).update(is_active=False)
+        process_user_recurring_transactions(self.user)
+        schedule.refresh_from_db()
+        self.assertFalse(schedule.is_active)
+        self.assertEqual(Income.objects.filter(user=self.user, source='Interest Income').count(), 0)
+
+
+class MigrationLinkTests(FlowTestBase):
+    """Schedules made before the link existed are tied to the deposit they were named after."""
+
+    def setUp(self):
+        super().setUp()
+        import importlib
+        self.link = importlib.import_module(
+            'expenses.migrations.0140_recurringtransaction_payout_for').link_existing_payout_schedules
+
+    def deposit(self, name='Old FD'):
+        return Account.objects.create(user=self.user, name=name, account_type='FD', balance=D('0'), currency='₹',
+                                      deposit_payout='MONTHLY')
+
+    def schedule(self, description):
+        return RecurringTransaction.objects.create(
+            user=self.user, transaction_type='INCOME', amount=D('1000'), currency='₹', account=self.bank,
+            source='Interest Income', description=description, frequency='MONTHLY', start_date=date(2026, 1, 1),
+            is_active=True)
+
+    def run_link(self):
+        from django.apps import apps
+        self.link(apps, None)
+
+    def test_an_old_schedule_is_linked_to_the_deposit_it_was_named_after(self):
+        fd, schedule = self.deposit(), self.schedule('Interest payout: Old FD')
+        self.run_link()
+        schedule.refresh_from_db()
+        self.assertEqual(schedule.payout_for, fd)
+
+    def test_the_hindi_and_marathi_names_are_linked_too(self):
+        hindi, marathi = self.deposit('हिंदी FD'), self.deposit('मराठी FD')
+        a, b = self.schedule('ब्याज भुगतान: हिंदी FD'), self.schedule('व्याज payout: मराठी FD')
+        self.run_link()
+        a.refresh_from_db()
+        b.refresh_from_db()
+        self.assertEqual((a.payout_for, b.payout_for), (hindi, marathi))
+
+    def test_a_schedule_named_after_nothing_is_left_alone(self):
+        self.deposit()
+        schedule = self.schedule('Interest payout: Some other FD')
+        self.run_link()
+        schedule.refresh_from_db()
+        self.assertIsNone(schedule.payout_for)
+
+    def test_other_income_schedules_are_left_alone(self):
+        self.deposit()
+        salary = RecurringTransaction.objects.create(
+            user=self.user, transaction_type='INCOME', amount=D('50000'), currency='₹', account=self.bank,
+            source='Salary', description='Interest payout: Old FD', frequency='MONTHLY', start_date=date(2026, 1, 1))
+        self.run_link()
+        salary.refresh_from_db()
+        self.assertIsNone(salary.payout_for)
+
+    def test_a_deposit_that_does_not_pay_out_is_not_linked(self):
+        Account.objects.create(user=self.user, name='Old FD', account_type='FD', balance=D('0'), currency='₹')
+        schedule = self.schedule('Interest payout: Old FD')
+        self.run_link()
+        schedule.refresh_from_db()
+        self.assertIsNone(schedule.payout_for)
