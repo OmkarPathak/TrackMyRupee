@@ -640,10 +640,12 @@ class FdFlow(Flow):
                     'amount': data['payout_amount'],
                     'currency': data['currency'],
                     'account': data['payout_account'],
+                    'payout_for': '$account',
                     'source': 'Interest Income',
                     'frequency': frequency,
                     'start_date': first,
-                    'end_date': data['maturity_date'],
+                    # (a deposit booked as already closed pays out until that day)
+                    'end_date': data.get('deposit_closed_date') or data['maturity_date'],
                     # Payouts that fell due before today are recorded only when asked for; otherwise the schedule starts
                     # from the next one due.
                     'last_processed_date': None if data.get('create_historical_entries') else RecurringService.last_due_before_today(first, frequency),

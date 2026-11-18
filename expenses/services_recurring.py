@@ -56,6 +56,34 @@ class RecurringService:
         """The first payout falls one period after the deposit is booked."""
         return RecurringTransaction.get_next_date(start_date, RecurringService.PAYOUT_FREQUENCY[payout], start_date)
 
+    @staticmethod
+    def sync_deposit_payouts(account, payout_changed: bool = False) -> None:
+        """Make a deposit's payout schedules follow the deposit.
+
+        The schedule ends on the day the deposit is closed, or else on its maturity date, so closing early or renewing
+        for longer moves it. A deposit that no longer pays out stops its schedule. One that starts paying out again,
+        or whose end moved past today after the schedule had run out, starts it again. Payouts that fell due before
+        the end are still recorded the next time recurring items are processed."""
+        today = timezone.localdate()
+        end = account.deposit_closed_date or account.deposit_maturity_date
+        for schedule in account.payout_schedules.all():
+            changed = []
+            if not account.deposit_payout:
+                if schedule.is_active:
+                    schedule.is_active = False
+                    changed.append('is_active')
+            else:
+                was_over = schedule.end_date is not None and schedule.end_date < today
+                if schedule.end_date != end:
+                    schedule.end_date = end
+                    changed.append('end_date')
+                comes_back = payout_changed or (was_over and (end is None or end >= today))
+                if comes_back and not schedule.is_active and (end is None or end >= today):
+                    schedule.is_active = True
+                    changed.append('is_active')
+            if changed:
+                schedule.save(update_fields=changed)
+
     MONTH_STEPS = {'MONTHLY': 1, 'QUARTERLY': 3, 'SEMIANNUALLY': 6, 'YEARLY': 12}
 
     @staticmethod

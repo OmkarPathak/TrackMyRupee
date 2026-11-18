@@ -190,3 +190,55 @@ class AccountFormTests(Base):
         paying = page.inner_text('.maturity-estimate-card')
         self.assertIn('1,00,000.00', paying)
         self.assertIn('7,99', paying)                                        # 7,994.52 of interest over the year, paid out
+
+
+class ClosingTheDepositTests(Base):
+    """Closing or renewing an FD on the account form moves the end of its payout schedule."""
+
+    def setUp(self):
+        super().setUp()
+        from expenses.models import Account, RecurringTransaction
+        start = self.today - timedelta(days=60)
+        self.fd = Account.objects.create(
+            user=self.user, name='Paying FD', account_type='FD', balance=Decimal('0'), currency='₹',
+            deposit_principal=Decimal('1200000'), deposit_rate=Decimal('7.5'), deposit_start_date=start,
+            deposit_maturity_date=start + timedelta(days=730), deposit_compounding='QUARTERLY', deposit_payout='MONTHLY')
+        self.schedule = RecurringTransaction.objects.create(
+            user=self.user, transaction_type='INCOME', amount=Decimal('7500'), currency='₹',
+            account=self.interest_account, payout_for=self.fd, source='Interest Income', description='Interest payout: Paying FD',
+            frequency='MONTHLY', start_date=start + timedelta(days=30), end_date=start + timedelta(days=730), is_active=True,
+            last_processed_date=start + timedelta(days=30))
+
+    def edit_terms(self, page, **fields):
+        self.open(page, reverse('account-edit', kwargs={'pk': self.fd.pk}))
+        page.click('#nextBtn')
+        page.wait_for_timeout(300)
+        for name, value in fields.items():
+            page.fill(f'#id_{name}', value)
+        page.locator('form button[type="submit"]:visible').first.click()
+        page.wait_for_url(lambda url: '/edit/' not in url)
+
+    def test_closing_the_deposit_on_the_account_form_ends_its_schedule_that_day(self):
+        page = self.new_page(self.user)
+        closed = self.today + timedelta(days=20)
+        self.edit_terms(page, deposit_closed_date=closed.isoformat())
+        self.schedule.refresh_from_db()
+        self.assertEqual(self.schedule.end_date, closed)
+
+    def test_renewing_for_longer_moves_the_end_of_the_schedule(self):
+        page = self.new_page(self.user)
+        later = self.today + timedelta(days=900)
+        self.edit_terms(page, deposit_maturity_date=later.isoformat())
+        self.schedule.refresh_from_db()
+        self.assertEqual(self.schedule.end_date, later)
+
+    def test_choosing_to_have_the_interest_added_instead_stops_the_schedule(self):
+        page = self.new_page(self.user)
+        self.open(page, reverse('account-edit', kwargs={'pk': self.fd.pk}))
+        page.click('#nextBtn')
+        page.wait_for_timeout(300)
+        self.set_select(page, '#id_deposit_payout', '')
+        page.locator('form button[type="submit"]:visible').first.click()
+        page.wait_for_url(lambda url: '/edit/' not in url)
+        self.schedule.refresh_from_db()
+        self.assertFalse(self.schedule.is_active)
