@@ -11,22 +11,22 @@
     <div class="tmr-fund-rows">
         {% for split in splits %}
         <div class="d-flex justify-content-between align-items-start gap-3 py-2 border-bottom">
-            <div class="min-width-0 fw-semibold" style="overflow-wrap: anywhere;">{{ split.holding.instrument_name }}</div>
-            <div class="fw-semibold text-nowrap">{{ split.amount|money_exact:sub.currency }}</div>
+            <div class="tmr-fund-name min-width-0 fw-medium" style="overflow-wrap: anywhere;">{{ split.holding.instrument_name }}</div>
+            <div class="tmr-fund-amount fw-semibold text-nowrap">{{ split.amount|money_exact:sub.currency }}</div>
         </div>
         {% endfor %}
         {% if sub.fund_cash_remainder > 0 %}
         <div class="d-flex justify-content-between align-items-start gap-3 py-2 border-bottom text-muted">
-            <div>{% trans "Stays as cash in the account" %}</div>
-            <div class="text-nowrap">{{ sub.fund_cash_remainder|money_exact:sub.currency }}</div>
+            <div class="tmr-fund-cash">{% trans "Stays as cash in the account" %}</div>
+            <div class="tmr-fund-cash text-nowrap">{{ sub.fund_cash_remainder|money_exact:sub.currency }}</div>
         </div>
         {% endif %}
         <div class="d-flex justify-content-between align-items-start gap-3 py-2">
-            <div class="fw-bold">{{ sub.get_frequency_display }}</div>
-            <div class="fw-bold text-nowrap">{{ sub.amount|money_exact:sub.currency }}</div>
+            <div class="tmr-fund-total-label fw-semibold">{{ sub.get_frequency_display }}</div>
+            <div class="tmr-fund-total fw-bold text-nowrap">{{ sub.amount|money_exact:sub.currency }}</div>
         </div>
     </div>
-    <div class="text-muted small mt-2">
+    <div class="tmr-fund-meta text-muted mt-2">
         {% if sub.from_account and sub.to_account %}
         <div>{% blocktrans with source=sub.from_account.name target=sub.to_account.name %}From {{ source }} to {{ target }}{% endblocktrans %}</div>
         {% endif %}

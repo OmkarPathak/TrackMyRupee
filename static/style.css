@@ -4749,3 +4749,22 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
 .tmr-maturity__what { flex: 1; min-width: 0; font-size: .9rem; }
 .tmr-maturity__what small { display: block; color: var(--color-muted-text, var(--bs-secondary-color)); font-size: .76rem; }
 .tmr-maturity__body .tmr-invest-note { margin-top: 0; }
+
+/* The funds of a recurring transfer (modal on a computer, bottom sheet on a phone): see _recurring_fund_link.html */
+.tmr-fund-name { font-size: 0.9rem; }
+.tmr-fund-amount { font-size: 0.9rem; }
+.tmr-fund-cash { font-size: 0.85rem; }
+.tmr-fund-total-label { font-size: 0.9rem; }
+.tmr-fund-total { font-size: 0.95rem; }
+.tmr-fund-meta { font-size: 0.8rem; }
+@media (max-width: 767.98px) {
+  #fundSplitsSheet .offcanvas-title { font-size: 1rem; }
+  #fundSplitsSheet .offcanvas-header .small { font-size: 0.72rem; }
+  #fundSplitsSheet .tmr-fund-name,
+  #fundSplitsSheet .tmr-fund-amount,
+  #fundSplitsSheet .tmr-fund-total-label { font-size: 0.8rem; }
+  #fundSplitsSheet .tmr-fund-cash { font-size: 0.75rem; }
+  #fundSplitsSheet .tmr-fund-total { font-size: 0.85rem; }
+  #fundSplitsSheet .tmr-fund-meta { font-size: 0.72rem; }
+  #fundSplitsSheet .btn-action-outline.btn-sm { font-size: 0.78rem; }
+}
