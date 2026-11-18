@@ -101,7 +101,7 @@ class EveryFlowTests(Base):
             try:
                 self.open(page, reverse('flow-detail', kwargs={'key': flow.key}))
                 self.walk_to_review(page, flow.key)
-                self.assertIn('WHAT WE', page.inner_text(f'#tmr-review-{flow.key}').upper(), flow.key)
+                self.review_text(page, flow.key, 'WHAT WE')
                 self.confirm(page)
                 self.wait_until(lambda key=flow.key: FinancialFlow.objects.filter(user=self.user, flow_key=key).exists(),
                                 f'{flow.key} created nothing', seconds=15)
@@ -163,7 +163,7 @@ class SipFundsTests(Base):
         form.locator('button:has-text("Next") >> visible=true').first.click()
 
         page.wait_for_selector('#tmr-review-sip', state='visible')
-        review = page.inner_text('#tmr-review-sip')
+        review = self.review_text(page, 'sip', 'ICICI Prudential Large & Mid Cap Fund', 'UTI Nifty 50 Index Fund')
         self.assertIn('ICICI Prudential Large & Mid Cap Fund', review)
         self.assertIn('UTI Nifty 50 Index Fund', review)
         self.confirm(page)
