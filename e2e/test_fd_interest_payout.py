@@ -64,7 +64,7 @@ class FlowTests(Base):
         page = self.new_page(self.user)
         self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
         self.fill_fd(page, 'MONTHLY', payout_account=self.interest_account)
-        review = page.inner_text('#tmr-review-fd')
+        review = self.review_text(page, 'fd', '14,792', 'Interest Account', 'every month')
         self.assertIn('14,792', review)
         self.assertIn('Interest Account', review)
         self.assertIn('every month', review)
@@ -94,7 +94,7 @@ class FlowTests(Base):
         page = self.new_page(self.user)
         self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
         self.fill_fd(page, 'QUARTERLY', amount='44000')
-        self.assertIn('44,000', page.inner_text('#tmr-review-fd'))
+        self.assertIn('44,000', self.review_text(page, 'fd', '44,000'))
         self.confirm(page)
         self.wait_until(lambda: self.payout_schedules().exists(), 'no interest schedule was created', seconds=15)
         schedule = self.payout_schedules().get()
@@ -104,7 +104,7 @@ class FlowTests(Base):
         page = self.new_page(self.user)
         self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
         self.fill_fd(page)
-        self.assertNotIn('every month', page.inner_text('#tmr-review-fd'))
+        self.assertNotIn('every month', self.review_text(page, 'fd', 'Fixed deposit account'))
         self.confirm(page)
         from expenses.models import Account
         self.wait_until(lambda: Account.objects.filter(user=self.user, name='Big FD').exists(),
@@ -142,7 +142,7 @@ class FlowTests(Base):
         page = self.new_page(self.user, phone=True)
         self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
         self.fill_fd(page, 'MONTHLY', payout_account=self.interest_account)
-        self.assertIn('14,792', page.inner_text('#tmr-review-fd'))
+        self.assertIn('14,792', self.review_text(page, 'fd', '14,792'))
         self.confirm(page)
         self.wait_until(lambda: self.payout_schedules().exists(), 'no interest schedule was created', seconds=15)
 

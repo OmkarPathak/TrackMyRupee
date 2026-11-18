@@ -161,6 +161,20 @@ class E2ETestCase(StaticLiveServerTestCase):
             """([selector, value]) => { const s = document.querySelector(selector); s.value = value;
                s.dispatchEvent(new Event('change', { bubbles: true })); }""", [selector, value])
 
+    def review_text(self, page, key, *expected):
+        """The text of a Guided Setup's review, once it shows everything in `expected`.
+
+        The review box is visible the moment the last step is left, but it still holds the previous answer from the
+        server until the new one arrives: on a slow machine a test that read it straight away saw the older one."""
+        selector = f'#tmr-review-{key}'
+        page.wait_for_function(
+            """([selector, expected]) => {
+                 const el = document.querySelector(selector);
+                 const text = el ? el.innerText.toUpperCase() : '';
+                 return expected.every(part => text.includes(part.toUpperCase()));
+               }""", arg=[selector, list(expected)])
+        return page.inner_text(selector)
+
     def wait_until(self, check, message='the condition was never met', seconds=10):
         """Poll `check()` (it may read the database) until it is true: the app saves a moment after a click."""
         import time
