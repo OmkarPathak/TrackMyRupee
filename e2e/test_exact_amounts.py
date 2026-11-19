@@ -133,3 +133,31 @@ class PhoneTests(Base):
         page.wait_for_timeout(400)
         page.mouse.click(10, 300)
         page.wait_for_selector(TIP, state='detached')
+
+
+class WholeRupeeTests(E2ETestCase):
+    """A whole-rupee amount whose paise are left out shows them in the tooltip too."""
+
+    def setUp(self):
+        super().setUp()
+        self.user = make_user('paise')
+        make_account(self.user, 'Paise Bank', 'SAVINGS_ACCOUNT', Decimal('14791.67'))
+
+    def first_with(self, page, text):
+        return page.locator('.tmr-amt:visible', has_text=text).first
+
+    def test_a_balance_with_paise_shows_them_on_click(self):
+        page = self.new_page(self.user)
+        self.open(page, reverse('account-list'))
+        page.wait_for_selector('.tmr-amt', state='attached')
+        self.first_with(page, '14,792').click()
+        page.wait_for_selector(TIP)
+        self.assertEqual(page.inner_text(TIP).strip(), '₹14,791.67')
+
+    def test_a_balance_with_paise_shows_them_on_a_tap_on_a_phone(self):
+        page = self.new_page(self.user, phone=True)
+        self.open(page, reverse('account-list'))
+        page.wait_for_selector('.tmr-amt', state='attached')
+        self.first_with(page, '14,792').tap()
+        page.wait_for_selector(TIP)
+        self.assertEqual(page.inner_text(TIP).strip(), '₹14,791.67')

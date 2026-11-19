@@ -34,7 +34,6 @@ def translate_digits(value):
         return mark_safe(''.join(parts))
     return utils_translate_digits(value)
 
-@register.filter
 def ind_comma(value, currency_symbol='₹'):
     """
     Formats a number with localized commas based on currency.
@@ -109,21 +108,29 @@ def compact_money(value, currency='₹'):
     return f"{currency}{text}"
 
 
+def _paise_hidden(number: float) -> bool:
+    """True when the amount has paise that a whole-rupee display leaves out."""
+    return round(abs(number) * 100) % 100 != 0
+
+
 def _is_rounded(number: float) -> bool:
     """True when the compact form hides part of the amount: it is abbreviated (1,00,000 and up) or has paise."""
     magnitude = abs(number)
     return magnitude >= 100000 or round(magnitude * 100) % 100 != 0
 
 
-def with_exact_tip(text, value, currency=''):
+def with_exact_tip(text, value, currency='', whole_amount=False):
     """`text` (an amount as shown), wrapped so that a tap or click shows the exact amount, when `text` is rounded.
 
-    An amount that is shown in full stays plain text. static/js/exact_amounts.js shows the tooltip."""
+    `whole_amount` is for a display that always shows every digit but drops the paise (1,00,000 is already exact):
+    it is wrapped only when there are paise. An amount that is shown in full stays plain text.
+    static/js/exact_amounts.js shows the tooltip."""
     try:
         number = float(value)
     except (ValueError, TypeError):
         return text
-    if not math.isfinite(number) or not _is_rounded(number) or not isinstance(text, str):
+    rounded = _paise_hidden(number) if whole_amount and math.isfinite(number) else (math.isfinite(number) and _is_rounded(number))
+    if not rounded or not isinstance(text, str):
         return text
     exact = _exact_money(value, currency)
     if not isinstance(exact, str):
@@ -140,9 +147,16 @@ def compact_money_tip(value, currency='₹'):
     return with_exact_tip(compact_money(value, currency), value, currency)
 
 
+def ind_comma_tip(value, currency_symbol='₹'):
+    return with_exact_tip(ind_comma(value, currency_symbol), value, currency_symbol, whole_amount=True)
+
+
 # In templates the amount filters give the tooltip form; Python code keeps the plain functions above.
+# (ind_comma_plain is for the few places that cannot hold markup, such as the text of an <option>.)
 register.filter('compact_amount', compact_amount_tip)
 register.filter('compact_money', compact_money_tip)
+register.filter('ind_comma', ind_comma_tip)
+register.filter('ind_comma_plain', ind_comma)
 
 
 def _exact_money(value, currency, plus=False):

@@ -331,7 +331,7 @@
                         <label class="form-label fw-semibold">{% trans "Investment Account" %}</label>
                         <select name="account_id" class="form-select rounded-3" required>
                             {% for acc in user_accounts %}
-                                <option value="{{ acc.pk }}">{{ acc.name }} ({{ acc.currency }}{{ acc.balance|ind_comma:acc.currency|translate_digits }})</option>
+                                <option value="{{ acc.pk }}">{{ acc.name }} ({{ acc.currency }}{{ acc.balance|ind_comma_plain:acc.currency|translate_digits }})</option>
                             {% endfor %}
                         </select>
                     </div>

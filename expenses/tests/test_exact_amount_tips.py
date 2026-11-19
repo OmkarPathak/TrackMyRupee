@@ -15,7 +15,7 @@ from django.utils import timezone, translation
 from django.utils.safestring import SafeData
 
 from expenses.models import Account, Expense, Income, UserProfile
-from expenses.templatetags.digit_filters import compact_amount, compact_money, with_exact_tip
+from expenses.templatetags.digit_filters import compact_amount, compact_money, ind_comma, with_exact_tip
 
 D = Decimal
 
@@ -112,18 +112,19 @@ class DigitTests(SimpleTestCase):
 
 
 class TemplateAuditTests(SimpleTestCase):
-    """The amount filters now give markup, which only works in the text of a page: never inside a tag's attribute or a
-    script, where it would break the page."""
+    """The amount filters now give markup, which only works in the text of a page: never inside a tag's attribute, a
+    script or the text of an <option> (use ind_comma_plain there)."""
 
     def test_no_amount_filter_is_used_inside_a_tag_or_a_script(self):
         wrong = []
         for path in glob.glob(str(Path(settings.BASE_DIR) / 'templates' / '**' / '*.html'), recursive=True):
             source = Path(path).read_text(encoding='utf-8')
-            for match in re.finditer(r'\|\s*compact_(amount|money)\b', source):
+            for match in re.finditer(r'\|\s*(compact_amount|compact_money|ind_comma)\b', source):
                 before = re.sub(r'\{\{.*?\}\}|\{%.*?%\}|\{#.*?#\}', '', source[:match.start()], flags=re.S)
                 in_tag = before.rfind('<') > before.rfind('>')
                 in_script = max(before.rfind('<script'), before.rfind('<style')) > max(before.rfind('</script'), before.rfind('</style'))
-                if in_tag or in_script:
+                in_option = before.rfind('<option') > before.rfind('</option')      # (a browser drops tags inside an option)
+                if in_tag or in_script or in_option:
                     wrong.append(f'{Path(path).name}:{source.count(chr(10), 0, match.start()) + 1}')
         self.assertEqual(wrong, [], 'these would put markup inside an attribute or a script: ' + ', '.join(wrong))
 
@@ -181,3 +182,70 @@ class PageTests(TestCase):
         self.spend('231233')
         html = self.client.get(reverse('all-transactions')).content.decode()
         self.assertIn('data-exact="₹२,३१,२३३"', html)
+
+
+class WholeRupeeTests(SimpleTestCase):
+    """ind_comma shows every digit but drops the paise: it carries the exact value only when there are paise."""
+
+    def test_paise_that_are_not_shown_are_in_the_tooltip(self):
+        self.assertEqual(render('{{ v|ind_comma:"₹" }}', v=D('14791.67')), tip('₹14,791.67', '14,792'))
+
+    def test_a_big_amount_shown_in_full_stays_plain(self):
+        self.assertEqual(render('{{ v|ind_comma:"₹" }}', v=231233), '2,31,233')
+        self.assertEqual(render('{{ v|ind_comma:"₹" }}', v=D('231233.00')), '2,31,233')
+
+    def test_a_big_amount_with_paise_has_its_exact_value(self):
+        self.assertEqual(render('{{ v|ind_comma:"₹" }}', v=D('231233.50')), tip('₹2,31,233.50', '2,31,234'))
+
+    def test_a_small_whole_amount_stays_plain(self):
+        self.assertEqual(render('{{ v|ind_comma:"₹" }}', v=4500), '4,500')
+
+    def test_a_negative_amount_with_paise(self):
+        self.assertEqual(render('{{ v|ind_comma:"₹" }}', v=D('-59772.40')), tip('-₹59,772.40', '-59,772'))
+
+    def test_other_currencies(self):
+        self.assertEqual(render('{{ v|ind_comma:"$" }}', v=D('1234567.89')), tip('$1,234,567.89', '1,234,568'))
+
+    def test_what_is_not_a_number_is_left_alone(self):
+        self.assertEqual(render('{{ v|ind_comma:"₹" }}', v='n/a'), 'n/a')
+
+    def test_python_callers_and_the_plain_filter_get_plain_text(self):
+        self.assertEqual(ind_comma(D('14791.67'), '₹'), '14,792')
+        self.assertNotIsInstance(ind_comma(D('14791.67'), '₹'), SafeData)
+        self.assertEqual(render('{{ v|ind_comma_plain:"₹" }}', v=D('14791.67')), '14,792')
+
+    def test_it_works_inside_a_translated_sentence(self):
+        html = render('{% load i18n %}{% blocktrans with a=v|ind_comma:"₹" %}Over budget by {{ a }}.{% endblocktrans %}',
+                      v=D('450.60'))
+        self.assertEqual(html, 'Over budget by ' + tip('₹450.60', '451') + '.')
+
+    def test_hindi_digits_in_a_sentence_and_in_the_exact_value(self):
+        with translation.override('hi'):
+            html = render('{{ v|ind_comma:"₹"|translate_digits }}', v=D('14791.67'))
+        self.assertIn('data-exact="₹१४,७९१.६७"', html)
+        self.assertIn('>१४,७९२</span>', html)
+
+
+class WholeRupeePageTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('tips2', password='pw')
+        UserProfile.objects.filter(user=self.user).update(tier='PRO', has_seen_tutorial=True, consent_granted=True,
+                                                          currency='₹')
+        self.client.force_login(self.user)
+        self.bank = Account.objects.create(user=self.user, name='Paise Bank', account_type='SAVINGS_ACCOUNT',
+                                           balance=D('14791.67'), currency='₹')
+
+    def test_the_account_list_shows_the_exact_balance_when_it_has_paise(self):
+        html = self.client.get(reverse('account-list')).content.decode()
+        self.assertIn('data-exact="₹14,791.67"', html)
+
+    def test_a_balance_in_a_dropdown_stays_plain_text(self):
+        html = self.client.get(reverse('income-list')).content.decode()
+        options = re.findall(r'<option[^>]*>[^<]*(?:<[^/][^>]*>[^<]*)*?</option>', html)
+        for option in options:
+            self.assertNotIn('tmr-amt', option)
+
+    def test_a_whole_balance_stays_plain(self):
+        Account.objects.filter(pk=self.bank.pk).update(balance=D('231233'))
+        html = self.client.get(reverse('account-list')).content.decode()
+        self.assertNotIn('data-exact="₹2,31,233"', html)

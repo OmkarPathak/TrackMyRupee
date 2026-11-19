@@ -209,7 +209,7 @@
                         <select name="transfer" id="purchaseTransfer" class="form-select rounded-3">
                             <option value="">{% trans "Not linked to a transfer" %}</option>
                             {% for f in funding %}
-                                <option value="{{ f.transfer.uuid }}">{{ f.transfer.date|date:"d M Y" }} &middot; {% blocktrans with name=f.transfer.from_account.name %}from {{ name }}{% endblocktrans %} &middot; {{ holding.currency }}{{ f.left|ind_comma:holding.currency }} {% trans "left" %}</option>
+                                <option value="{{ f.transfer.uuid }}">{{ f.transfer.date|date:"d M Y" }} &middot; {% blocktrans with name=f.transfer.from_account.name %}from {{ name }}{% endblocktrans %} &middot; {{ holding.currency }}{{ f.left|ind_comma_plain:holding.currency }} {% trans "left" %}</option>
                             {% endfor %}
                         </select>
                     </div>
