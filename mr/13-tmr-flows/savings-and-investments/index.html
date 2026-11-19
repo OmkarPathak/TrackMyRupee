@@ -1917,7 +1917,39 @@
 </tr>
 </tbody>
 </table>
-<p><strong>पायरी 4: Reporting</strong></p>
+<p><strong>पायरी 4: रिकरिंग डिपॉझिट (Recurring deposit)</strong></p>
+<p>हे फक्त व्याज <strong>दर महिन्याला</strong> मिळत असेल तेव्हाच दिसते. तुम्ही प्रत्येक payout, तो ज्या दिवशी येतो त्या दिवशी, नवीन रिकरिंग डिपॉझिट (RD) मध्ये टाकू शकता, म्हणजे व्याजावरही व्याज मिळते.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>काय भरायचे</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Put each payout into a recurring deposit (RD)</strong></td>
+<td>डिफॉल्टनुसार बंद. चालू केल्यास RD आणि ती भरणारे मासिक ट्रान्सफर तयार होते.</td>
+</tr>
+<tr>
+<td><strong>RD name</strong></td>
+<td>पर्यायी. रिकामे सोडल्यास नाव ठेवीच्या नावावरून दिले जाते, उदा. "SBI FD interest RD".</td>
+</tr>
+<tr>
+<td><strong>RD interest rate (% a year)</strong></td>
+<td>तुमची बँक RD वर जो दर देते.</td>
+</tr>
+<tr>
+<td><strong>RD tenure (months)</strong></td>
+<td>RD किती महिने चालते. प्रत्येक payout एक हप्ता आहे.</td>
+</tr>
+<tr>
+<td><strong>RD compounding</strong></td>
+<td>डिफॉल्टनुसार तिमाही, जसे बँका RD चे व्याज जोडतात.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>पायरी 5: Reporting</strong></p>
 <p><img alt="Reporting पायरी" loading="lazy" src="../../../13-tmr-flows/img/fd-step3-desktop.webp" width="560" /></p>
 <table>
 <thead>
@@ -1950,7 +1982,12 @@
 <li>एक <strong>एकरकमी फंडिंग नोंद</strong>, जी <em>Investment Lump Sum</em> प्रकारचा Capital Event म्हणून नोंदवली जाते आणि सुरुवातीच्या तारखेला फंडिंग खात्यातून मुद्दल वजा करते</li>
 <li><strong>मुदतपूर्ती ट्रॅकिंग</strong>, ज्यामुळे तिची किंमत किती होईल आणि कधी, ते दिसते</li>
 <li><strong>आवर्ती व्याज उत्पन्न</strong>, बँक व्याज देत असल्यास. ते मुदतपूर्तीपर्यंत तुम्ही निवडलेल्या खात्यात प्रत्येक payout नोंदवते, आणि FD तिच्या मूळ रकमेवर राहते म्हणजे तेच व्याज दोनदा मोजले जात नाही</li>
+<li>एक <strong>रिकरिंग डिपॉझिट</strong> आणि त्यात एक <strong>मासिक ट्रान्सफर</strong>, तुम्ही payout RD मध्ये टाकायचे निवडल्यास. ट्रान्सफर प्रत्येक payout ज्या खात्यात येतो त्यातून, तो येतो त्या दिवशी, RD मध्ये टाकते आणि RD ची मुदतपूर्ती होण्याआधी थांबते</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">payout चे वेळापत्रक FD सोबत चालते</p>
+<p>तुम्ही FD मुदतीआधी बंद केल्यास (तिची बंद केल्याची तारीख टाकल्यास), व्याज आणि RD चे ट्रान्सफर त्याच दिवशी थांबतात. तुम्ही ती आणखी वाढवल्यास (मुदतपूर्तीची तारीख बदलल्यास), ते नवीन तारखेपर्यंत चालतात, आणि RD चे ट्रान्सफर तरीही RD ची मुदतपूर्ती होण्याआधी थांबते. तुम्ही FD "At maturity" वर केल्यास किंवा ती हटवल्यास तेही थांबतात. मुद्दल किंवा दर बदलल्यास, दरावरून काढलेली payout ची रक्कम पुन्हा काढली जाते. तुम्ही स्वतः लिहिलेली रक्कम तशीच राहते.</p>
+</div>
 <p>Review स्क्रीनवर मुदतपूर्तीला मिळणाऱ्या रकमेचा झटपट अंदाज दिसतो, उदा. <em>₹5,35,000 at maturity</em>.</p>
 <div class="admonition example">
 <p class="admonition-title">प्रत्यक्ष वापराचे उदाहरण</p>
