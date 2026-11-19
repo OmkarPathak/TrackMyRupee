@@ -1,16 +1,37 @@
 import math
+import re
 from decimal import Decimal, InvalidOperation
 
 from django import template
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.utils.html import format_html
+from django.utils.safestring import SafeData, mark_safe
+from django.utils.translation import get_language
 
 from ..utils import format_indian_number
 from ..utils import translate_digits as utils_translate_digits
 
 register = template.Library()
 
+_MARKUP_TAG = re.compile(r'(<[^>]+>)')
+_SHOWN_IN_TAG = re.compile(r'(data-exact|aria-label)="([^"]*)"')
+
+
 @register.filter
 def translate_digits(value):
+    """Digits in Devanagari for Hindi and Marathi. Markup that is already safe (an amount with its exact-value tooltip)
+    stays markup: only the text between tags and the exact value in its attributes are translated, never the tags."""
+    if isinstance(value, SafeData):
+        if get_language() not in ('hi', 'mr'):
+            return value
+        parts = []
+        for part in _MARKUP_TAG.split(str(value)):
+            if part.startswith('<'):
+                part = _SHOWN_IN_TAG.sub(lambda m: f'{m.group(1)}="{utils_translate_digits(m.group(2))}"', part)
+            else:
+                part = utils_translate_digits(part)
+            parts.append(part)
+        return mark_safe(''.join(parts))
     return utils_translate_digits(value)
 
 @register.filter
@@ -34,8 +55,8 @@ def ind_comma(value, currency_symbol='₹'):
     # Default to international 3-digit comma grouping (integers only)
     return intcomma(f"{int(round(num)):,d}")
 
-@register.filter
 def compact_amount(value, currency=''):
+    """Plain text, for Python code that builds sentences (the template filter of the same name adds the tooltip)."""
     try:
         num = float(value)
     except (ValueError, TypeError):
@@ -76,7 +97,6 @@ def compact_amount(value, currency=''):
     return f"{sign}{res}"
 
 
-@register.filter
 def compact_money(value, currency='₹'):
     """compact_amount with the currency symbol included and the sign in front of it: -₹59,772, ₹1.5L.
 
@@ -87,6 +107,42 @@ def compact_money(value, currency='₹'):
     if text.startswith('-'):
         return f"-{currency}{text[1:]}"
     return f"{currency}{text}"
+
+
+def _is_rounded(number: float) -> bool:
+    """True when the compact form hides part of the amount: it is abbreviated (1,00,000 and up) or has paise."""
+    magnitude = abs(number)
+    return magnitude >= 100000 or round(magnitude * 100) % 100 != 0
+
+
+def with_exact_tip(text, value, currency=''):
+    """`text` (an amount as shown), wrapped so that a tap or click shows the exact amount, when `text` is rounded.
+
+    An amount that is shown in full stays plain text. static/js/exact_amounts.js shows the tooltip."""
+    try:
+        number = float(value)
+    except (ValueError, TypeError):
+        return text
+    if not math.isfinite(number) or not _is_rounded(number) or not isinstance(text, str):
+        return text
+    exact = _exact_money(value, currency)
+    if not isinstance(exact, str):
+        return text
+    return format_html(
+        '<span class="tmr-amt" data-exact="{0}" aria-label="{0}" tabindex="0" role="button">{1}</span>', exact, text)
+
+
+def compact_amount_tip(value, currency=''):
+    return with_exact_tip(compact_amount(value, currency), value, currency)
+
+
+def compact_money_tip(value, currency='₹'):
+    return with_exact_tip(compact_money(value, currency), value, currency)
+
+
+# In templates the amount filters give the tooltip form; Python code keeps the plain functions above.
+register.filter('compact_amount', compact_amount_tip)
+register.filter('compact_money', compact_money_tip)
 
 
 def _exact_money(value, currency, plus=False):

@@ -1109,6 +1109,12 @@ html[data-bs-theme="dark"],
   border: 1px solid rgba(15, 118, 87, 0.18);
 }
 
+/* A rounded amount: a tap or click shows the exact one (static/js/exact_amounts.js) */
+.tmr-amt { cursor: pointer; }
+.tmr-amt:hover { text-decoration: underline dotted; text-underline-offset: 3px; }
+.tmr-amt:focus-visible { outline: 2px solid var(--color-success-text, #0F7657); outline-offset: 2px; border-radius: 3px; }
+.tmr-amt-tip .tooltip-inner { font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.6rem; }
+
 [data-bs-theme="dark"] .badge-soft-primary {
   background-color: rgba(15, 118, 87, 0.15);
   color: #9FE1CB;
