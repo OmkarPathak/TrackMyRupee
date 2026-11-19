@@ -5,6 +5,7 @@ from decimal import Decimal
 import math
 
 
+from dateutil.relativedelta import relativedelta
 from django import forms
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -244,6 +245,45 @@ class FdFlowForm(forms.Form):
         label=_('Record the payouts already received'),
         help_text=_('If the deposit started in the past, also record the payouts that fell due since. They are added to the account that receives the interest, so leave this off if its balance already includes them.'),
     )
+    payout_to_rd = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label=_('Put each payout into a recurring deposit (RD)'),
+        help_text=_('Each monthly payout is moved on the same day into a new RD, so the interest earns interest too.'),
+    )
+    rd_name = forms.CharField(
+        required=False,
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        label=_('RD name'),
+        help_text=_('Optional. Leave it empty to name it after the deposit.'),
+    )
+    rd_rate = forms.DecimalField(
+        required=False,
+        min_value=Decimal('0.01'),
+        max_digits=7,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        label=_('RD interest rate (% a year)'),
+        help_text=_('The rate your bank gives on the RD.'),
+    )
+    rd_tenure_months = forms.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=120,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '1'}),
+        label=_('RD tenure (months)'),
+        help_text=_('How many months the RD runs. Each payout is one instalment.'),
+    )
+    rd_compounding = forms.ChoiceField(
+        required=False,
+        choices=Account.COMPOUNDING_CHOICES,
+        initial='QUARTERLY',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label=_('RD compounding'),
+        help_text=_('Banks compound RD interest every quarter.'),
+    )
     show_accrued_balance = forms.BooleanField(
         required=False,
         initial=True,
@@ -281,6 +321,7 @@ class FdFlowForm(forms.Form):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = user
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
@@ -302,6 +343,22 @@ class FdFlowForm(forms.Form):
             cleaned_data['payout_account'] = None
             cleaned_data['payout_amount'] = None
             cleaned_data['create_historical_entries'] = False
+
+        if cleaned_data.get('payout_to_rd') and cleaned_data.get('interest_payout') == 'MONTHLY':
+            if not cleaned_data.get('rd_rate'):
+                self.add_error('rd_rate', _('Enter the interest rate of the RD.'))
+            if not cleaned_data.get('rd_tenure_months'):
+                self.add_error('rd_tenure_months', _('Enter how many months the RD runs.'))
+            name = (cleaned_data.get('rd_name') or '').strip()
+            if name:
+                if name.lower() == (cleaned_data.get('name') or '').strip().lower():
+                    self.add_error('rd_name', _('Give the RD a different name from the deposit.'))
+                elif self.user and Account.objects.filter(user=self.user, name__iexact=name).exists():
+                    self.add_error('rd_name', _('You already have an account with this name.'))
+        else:
+            # The RD is for monthly payouts only: with any other choice its fields mean nothing.
+            for field in ('payout_to_rd', 'rd_name', 'rd_rate', 'rd_tenure_months'):
+                cleaned_data[field] = None if field != 'payout_to_rd' else False
         return cleaned_data
 
 
@@ -573,6 +630,7 @@ class FdFlow(Flow):
         _('One-time funding transfer'),
         _('Maturity tracking'),
         _('Interest payout schedule (if the bank pays interest out)'),
+        _('Recurring deposit funded by each payout (optional)'),
     ]
     limit_map = {'accounts': Account, 'recurring_transactions': RecurringTransaction}
     form_class = FdFlowForm
@@ -580,6 +638,7 @@ class FdFlow(Flow):
         FlowWizardStep('fd_basics', _('Deposit Basics'), ['name', 'principal', 'annual_rate', 'from_account', 'custom_note'], _('Core deposit details and funding account.')),
         FlowWizardStep('fd_terms', _('Deposit Terms'), ['deposit_start_date', 'maturity_date', 'deposit_compounding', 'deposit_closed_date'], _('When the deposit begins, ends, and how it compounds.')),
         FlowWizardStep('fd_payout', _('Interest payout'), ['interest_payout', 'payout_account', 'payout_amount', 'create_historical_entries'], _('Does the bank pay the interest out to you? If so, each payout is recorded as income and the deposit stays at its principal.')),
+        FlowWizardStep('fd_rd', _('Recurring deposit'), ['payout_to_rd', 'rd_name', 'rd_rate', 'rd_tenure_months', 'rd_compounding'], _('Optional. Move each monthly payout into a recurring deposit so the interest earns interest too.')),
         FlowWizardStep('fd_reporting', _('Reporting'), ['show_accrued_balance', 'record_maturity_income', 'is_pinned'], _('Controls whether users see accruals and whether maturity interest is auto-recorded.')),
     ]
 
@@ -654,6 +713,46 @@ class FdFlow(Flow):
                 },
                 key='payout',
             ))
+            if data.get('payout_to_rd'):
+                payout_end = data.get('deposit_closed_date') or data['maturity_date']
+                steps.append(CreateStep(
+                    Account,
+                    {
+                        'user': data['user'],
+                        'name': data['rd_name'],
+                        'account_type': 'RD',
+                        'balance': Decimal('0.00'),
+                        'currency': data['currency'],
+                        'deposit_rate': data['rd_rate'],
+                        'deposit_start_date': first,
+                        'deposit_compounding': data['rd_compounding'],
+                        'deposit_maturity_date': data['rd_maturity_date'],
+                        'show_accrued_balance': True,
+                        'rd_installment_amount': data['payout_amount'],
+                        'rd_installment_day': min(first.day, 28),
+                    },
+                    key='rd',
+                ))
+                steps.append(CreateStep(
+                    RecurringTransaction,
+                    {
+                        'user': data['user'],
+                        'transaction_type': 'TRANSFER',
+                        'amount': data['payout_amount'],
+                        'currency': data['currency'],
+                        'from_account': data['payout_account'],
+                        'to_account': '$rd',
+                        'payout_for': '$account',
+                        'frequency': 'MONTHLY',
+                        'start_date': first,
+                        # the last instalment falls before the RD matures, and the funding stops with the payouts
+                        'end_date': min(payout_end, data['rd_maturity_date'] - timedelta(days=1)),
+                        'last_processed_date': None if data.get('create_historical_entries') else RecurringService.last_due_before_today(first, 'MONTHLY'),
+                        'description': _('Interest into RD: %(name)s') % {'name': data['rd_name']},
+                        'is_active': True,
+                    },
+                    key='rd_transfer',
+                ))
         return steps
 
     def derive(self, cleaned_data) -> dict:
@@ -676,6 +775,13 @@ class FdFlow(Flow):
             data['payout_amount'] = (Decimal(str(data['payout_amount'])) if data.get('payout_amount')
                                      else RecurringService.payout_amount(data['principal'], data['annual_rate'], payout))
             data['first_payout_date'] = RecurringService.first_payout_date(data['deposit_start_date'], payout)
+        data['payout_to_rd'] = bool(payout == 'MONTHLY' and data.get('payout_to_rd'))
+        if data['payout_to_rd']:
+            data['rd_name'] = (data.get('rd_name') or '').strip() or str(_('%(name)s interest RD') % {'name': data['name']})[:100]
+            data['rd_rate'] = Decimal(str(data.get('rd_rate') or 0))
+            data['rd_tenure_months'] = int(data.get('rd_tenure_months') or 1)
+            data['rd_compounding'] = data.get('rd_compounding') or 'QUARTERLY'
+            data['rd_maturity_date'] = data['first_payout_date'] + relativedelta(months=data['rd_tenure_months'])
         return data
 
 
@@ -692,6 +798,9 @@ class FdFlow(Flow):
                 _('Records %(amount)s of interest %(every)s in %(account)s until maturity') % {
                     'amount': f"{data['currency']}{data['payout_amount']:,.2f}", 'every': every, 'account': account_name},
             ]
+            if data['payout_to_rd']:
+                bullets.append(_('Moves each payout into a new recurring deposit, %(name)s, for %(months)s months') % {
+                    'name': data['rd_name'], 'months': data['rd_tenure_months']})
             return {'headline': float(data['principal']), 'bullets': bullets, 'warnings': warnings}
         days = max((data['maturity_date'] - data['deposit_start_date']).days, 1)
         interest = RecurringService.calculate_interest_for_days(data['principal'], data['annual_rate'], days)

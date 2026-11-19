@@ -115,6 +115,9 @@
     [data-bs-theme="dark"] .wizard-step-tab.active .wizard-step-title {
         color: var(--bs-body-color) !important;
     }
+    /* The review shows the previous answer until the server's answer for the form as it is now arrives */
+    [id^="tmr-review-"] { transition: opacity 0.15s ease; }
+    [id^="tmr-review-"].tmr-review-loading { opacity: 0.4; pointer-events: none; }
     [data-bs-theme="dark"] .tmr-review-card,
     [data-bs-theme="dark"] .tmr-create-card {
         background-color: var(--bs-card-bg, #1f2937) !important;
@@ -159,6 +162,35 @@
         .wizard-step-title {
             font-size: 0.82rem;
         }
+    }
+
+    /* On a phone the tabs have no room for their names, so the steps are numbered circles and only the current step's
+       name is written out, underneath. Tablets and computers keep the tabs. */
+    .wizard-dots { display: none; }
+    .wizard-dots-row { display: flex; align-items: center; width: 100%; }
+    .wizard-dot-item { display: flex; align-items: center; flex: 1 1 0; min-width: 0; }
+    .wizard-dot-item:last-child { flex: 0 0 auto; }
+    .wizard-dot {
+        width: 28px; height: 28px; flex: 0 0 auto; padding: 0;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 50%; border: 2px solid #d1d5db; background: transparent;
+        color: var(--bs-secondary-color, #6c757d); font-size: 0.78rem; font-weight: 700; line-height: 1;
+        transition: all 0.2s ease;
+    }
+    .wizard-dot.completed { background: var(--color-secondary, #0F7657); border-color: var(--color-secondary, #0F7657); color: #fff; }
+    .wizard-dot.active { border-color: var(--color-secondary, #0F7657); color: var(--color-secondary, #0F7657); box-shadow: 0 0 0 3px rgba(15, 118, 87, 0.15); }
+    .wizard-dot:disabled { cursor: default; opacity: 1; }
+    .wizard-dot-line { flex: 1 1 auto; height: 2px; margin: 0 0.35rem; border-radius: 2px; background: #e5e7eb; transition: background-color 0.25s ease; }
+    .wizard-dot-line.completed { background: var(--color-secondary, #0F7657); }
+    .wizard-dots-title { margin-top: 0.6rem; font-size: 0.95rem; font-weight: 700; color: var(--bs-body-color); }
+    [data-bs-theme="dark"] .wizard-dot { border-color: #4b5563; }
+    [data-bs-theme="dark"] .wizard-dot.completed { border-color: var(--color-secondary, #0F7657); }
+    [data-bs-theme="dark"] .wizard-dot.active { border-color: #5fd4a8; color: #5fd4a8; box-shadow: 0 0 0 3px rgba(95, 212, 168, 0.18); }
+    [data-bs-theme="dark"] .wizard-dot-line { background: #374151; }
+    [data-bs-theme="dark"] .wizard-dot-line.completed { background: var(--color-secondary, #0F7657); }
+    @media (max-width: 575.98px) {
+        .wizard-steps-tabs-row { display: none; }
+        .wizard-dots { display: block; }
     }
 </style>
 
@@ -205,6 +237,35 @@
                                 <div class="wizard-tab-line rounded-pill"></div>
                             </div>
                         </div>
+
+                        <div class="wizard-dots" aria-label="{% trans 'Steps' %}">
+                            <div class="wizard-dots-row">
+                                {% for step in flow.get_wizard_steps %}
+                                <div class="wizard-dot-item" x-cloak x-show="isStepVisible('{{ step.key }}')">
+                                    <button type="button" class="wizard-dot" data-step="{{ forloop.counter }}" data-title="{{ step.title }}"
+                                            :class="stepTabClass({{ forloop.counter }})"
+                                            :disabled="currentStep <= {{ forloop.counter }}"
+                                            :aria-current="currentStep === {{ forloop.counter }} ? 'step' : null"
+                                            aria-label="{{ step.title }}"
+                                            @click="goToStep({{ forloop.counter }})">
+                                        <i class="bi bi-check-lg" x-show="currentStep > {{ forloop.counter }}"></i>
+                                        <span x-show="currentStep <= {{ forloop.counter }}" x-text="visibleOrdinal({{ forloop.counter }})"></span>
+                                    </button>
+                                    <span class="wizard-dot-line" :class="{ completed: currentStep > {{ forloop.counter }} }"></span>
+                                </div>
+                                {% endfor %}
+                                <div class="wizard-dot-item">
+                                    <button type="button" class="wizard-dot" data-step="{{ flow.get_wizard_steps|length|add:1 }}" data-title="{% trans 'Review' %}"
+                                            :class="stepTabClass({{ flow.get_wizard_steps|length|add:1 }})"
+                                            disabled
+                                            :aria-current="isReviewStep() ? 'step' : null"
+                                            aria-label="{% trans 'Review' %}">
+                                        <span x-text="visibleStepsCount()"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="wizard-dots-title" x-text="stepTitle()"></div>
+                        </div>
                     </div>
 
                     <form id="tmr-flow-form-{{ flow.key }}"
@@ -239,7 +300,7 @@
                              x-cloak
                              x-show="isReviewStep()"
                              x-transition>
-                            <div id="tmr-review-{{ flow.key }}">
+                            <div id="tmr-review-{{ flow.key }}" :class="{ 'tmr-review-loading': reviewLoading }" :aria-busy="reviewLoading ? 'true' : 'false'">
                                 {% if preview %}
                                     {% include 'flows/partials/_review.html' %}
                                 {% else %}
@@ -282,8 +343,8 @@
                                         class="btn tmr-confirm-btn"
                                         x-cloak
                                         x-show="isReviewStep()"
-                                        :class="{ 'd-none': !isReviewStep(), 'disabled opacity-50': hasWarnings }"
-                                        :disabled="hasWarnings"
+                                        :class="{ 'd-none': !isReviewStep(), 'disabled opacity-50': hasWarnings || reviewLoading }"
+                                        :disabled="hasWarnings || reviewLoading"
                                         :title="hasWarnings ? '{% trans "Plan limit reached. Please upgrade to create." %}' : ''"
                                         data-confirm-btn
                                         hx-post="{% url 'flow-commit' key=flow.key %}"
@@ -302,8 +363,8 @@
                                     class="btn tmr-confirm-btn w-100 py-2 fw-bold"
                                     x-cloak
                                     x-show="isReviewStep()"
-                                    :class="{ 'd-none': !isReviewStep(), 'disabled opacity-50': hasWarnings }"
-                                    :disabled="hasWarnings"
+                                    :class="{ 'd-none': !isReviewStep(), 'disabled opacity-50': hasWarnings || reviewLoading }"
+                                    :disabled="hasWarnings || reviewLoading"
                                     :title="hasWarnings ? '{% trans "Plan limit reached. Please upgrade to create." %}' : ''"
                                     data-confirm-btn
                                     hx-post="{% url 'flow-commit' key=flow.key %}"

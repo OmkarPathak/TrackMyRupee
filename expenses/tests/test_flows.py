@@ -2346,7 +2346,7 @@ class TestFlowLimitMessagingAndUI(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse('flow-detail', kwargs={'key': 'loan'}))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, ':disabled="hasWarnings"')
+        self.assertContains(response, ':disabled="hasWarnings || reviewLoading"')      # (held at the plan limit and while the review loads)
         self.assertContains(response, 'tmrFlowWizard(')
         self.assertContains(response, 'wizard-tab-line')
 

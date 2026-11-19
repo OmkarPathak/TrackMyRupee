@@ -123,10 +123,10 @@
     {% endif %}
 </div>
 
-{% for field in form.visible_fields %}
-<div id="field-errors-{{ field.name }}" hx-swap-oob="true">
-    {% for error in field.errors %}
-        <div class="text-danger small">{{ error }}</div>
+{% for name, messages in field_error_rows %}
+<div id="field-errors-{{ name }}" hx-swap-oob="true">
+    {% for message in messages %}
+        <div class="text-danger small">{{ message }}</div>
     {% endfor %}
 </div>
 {% endfor %}
