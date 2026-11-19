@@ -88,9 +88,9 @@ class SavingTests(Base):
         page.click('input[name="payout_amount"]')
         page.keyboard.type('14500', delay=20)
         self.assertEqual(self.shown(page, 'input[name="payout_amount"]'), '14,500')
-        form.locator('button:has-text("Next") >> visible=true').first.click()
-        page.wait_for_timeout(300)
-        form.locator('button:has-text("Next") >> visible=true').first.click()
+        for _step in range(3):                                   # -> the RD step -> Reporting -> Review
+            form.locator('button:has-text("Next") >> visible=true').first.click()
+            page.wait_for_timeout(300)
         page.wait_for_selector('#tmr-review-fd', state='visible')
         page.locator('[data-confirm-btn] >> visible=true').first.click()
         self.wait_until(lambda: Account.objects.filter(user=self.user, name='Big FD').exists(),

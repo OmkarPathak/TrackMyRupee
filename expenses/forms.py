@@ -1680,7 +1680,10 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
                 account.save()
                 if account.pk and account.is_deposit_type:
                     # A deposit that pays its interest out has a schedule that follows its closing and maturity dates
-                    RecurringService.sync_deposit_payouts(account, payout_changed='deposit_payout' in self.changed_data)
+                    RecurringService.sync_deposit_payouts(
+                        account, payout_changed='deposit_payout' in self.changed_data,
+                        previous={'principal': self.initial.get('deposit_principal'), 'rate': self.initial.get('deposit_rate'),
+                                  'payout': self.initial.get('deposit_payout')})
                 if self.cleaned_data.get('record_maturity_income'):
                     self._record_maturity_income(account)
         return account

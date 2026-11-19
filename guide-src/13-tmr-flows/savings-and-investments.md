@@ -146,7 +146,19 @@ Does your bank pay the interest out to you, for example every month, instead of 
 | **Amount each time** | Optional. Left empty, it is worked out from the rate. Enter your bank's figure if it differs. |
 | **Record the payouts already received** | Off by default. If the FD started in the past, turn on to also record the payouts that have fallen due since. They are added to the account that receives the interest, so leave it off if that account's balance already includes them. |
 
-**Step 4: Reporting**
+**Step 4: Recurring deposit**
+
+Shown only when the interest is paid out **every month**. You can move each payout, on the day it arrives, into a new recurring deposit (RD), so the interest earns interest too.
+
+| Field | What to enter |
+|---|---|
+| **Put each payout into a recurring deposit (RD)** | Off by default. Turn on to create the RD and the monthly transfer that feeds it. |
+| **RD name** | Optional. Left empty, it is named after the deposit, for example "SBI FD interest RD". |
+| **RD interest rate (% a year)** | The rate your bank gives on the RD. |
+| **RD tenure (months)** | How many months the RD runs. Each payout is one instalment. |
+| **RD compounding** | Quarterly by default, which is how banks compound RD interest. |
+
+**Step 5: Reporting**
 
 
 ![Reporting step](img/fd-step3-desktop.webp){ loading=lazy width="560" }
@@ -171,6 +183,10 @@ The last tab summarises what will be created, with the headline figure at the to
 - A **one-time funding entry**, recorded as a big purchase of type *Investment Lump Sum*, taking the principal out of the funding account on the start date
 - **Maturity tracking**, so you can see what it will be worth, and when
 - A **recurring interest income**, if the bank pays interest out. It records each payout in the account you chose, until maturity, and the FD stays at its principal so the same interest is never counted twice
+- A **recurring deposit** and a **monthly transfer** into it, if you chose to put the payouts into an RD. The transfer moves each payout from the account that receives it, on the day it arrives, and stops before the RD matures
+
+!!! note "The payout schedule follows the FD"
+    If you close the FD early (set its closed date), the interest and the RD transfer stop on that day. If you renew it for longer (change its maturity date), they run to the new date, and the RD transfer still stops before the RD matures. If you switch the FD to "At maturity", or delete it, they stop too. If you change the principal or the rate, a payout amount that was worked out from the rate is recalculated. An amount you typed yourself is left as it is.
 
 The Review screen shows a quick estimate of the amount you will receive at maturity, such as *₹5,35,000 at maturity*.
 

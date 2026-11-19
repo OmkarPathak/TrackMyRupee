@@ -455,6 +455,14 @@ class Flow:
                     'title': _('Interest payout'),
                     'description': f"{currency}{format_indian_number(each)} {every}",
                 })
+                if payout == 'MONTHLY' and cleaned_data.get('payout_to_rd'):
+                    months = cleaned_data.get('rd_tenure_months') or 1
+                    cards.append({
+                        'icon': 'bi-piggy-bank',
+                        'title': _('Recurring deposit'),
+                        'description': _('%(amount)s for %(months)s months') % {
+                            'amount': f"{currency}{format_indian_number(each)}", 'months': months},
+                    })
         elif self.key == 'ppfepfnps':
             name = cleaned_data.get('name') or _('Retirement')
             st = str(cleaned_data.get('scheme_type') or 'PPF')

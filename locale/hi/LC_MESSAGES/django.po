@@ -24269,3 +24269,91 @@ msgid "%(n)s fund"
 msgid_plural "%(n)s funds"
 msgstr[0] "%(n)s फंड"
 msgstr[1] "%(n)s फंड"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Put each payout into a recurring deposit (RD)"
+msgstr "हर भुगतान को रिकरिंग डिपॉज़िट (RD) में डालें"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Each monthly payout is moved on the same day into a new RD, so the interest earns interest too."
+msgstr "हर मासिक भुगतान उसी दिन एक नई RD में चला जाता है, ताकि ब्याज पर भी ब्याज मिले।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "RD name"
+msgstr "RD का नाम"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Optional. Leave it empty to name it after the deposit."
+msgstr "वैकल्पिक। खाली छोड़ने पर नाम डिपॉज़िट के नाम पर रखा जाएगा।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "RD interest rate (% a year)"
+msgstr "RD की ब्याज दर (% सालाना)"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "The rate your bank gives on the RD."
+msgstr "आपका बैंक RD पर जो दर देता है।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "RD tenure (months)"
+msgstr "RD की अवधि (महीने)"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "How many months the RD runs. Each payout is one instalment."
+msgstr "RD कितने महीने चलती है। हर भुगतान एक किस्त है।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "RD compounding"
+msgstr "RD का कंपाउंडिंग"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Banks compound RD interest every quarter."
+msgstr "बैंक RD का ब्याज हर तिमाही जोड़ते हैं।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Enter the interest rate of the RD."
+msgstr "RD की ब्याज दर लिखें।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Enter how many months the RD runs."
+msgstr "RD कितने महीने चलती है, यह लिखें।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Give the RD a different name from the deposit."
+msgstr "RD को डिपॉज़िट से अलग नाम दें।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "You already have an account with this name."
+msgstr "इस नाम का खाता आपके पास पहले से है।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Optional. Move each monthly payout into a recurring deposit so the interest earns interest too."
+msgstr "वैकल्पिक। हर मासिक भुगतान को रिकरिंग डिपॉज़िट में डालें ताकि ब्याज पर भी ब्याज मिले।"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Recurring deposit funded by each payout (optional)"
+msgstr "हर भुगतान से भरी जाने वाली रिकरिंग डिपॉज़िट (वैकल्पिक)"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "%(name)s interest RD"
+msgstr "%(name)s ब्याज RD"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Interest into RD: %(name)s"
+msgstr "RD में ब्याज: %(name)s"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Moves each payout into a new recurring deposit, %(name)s, for %(months)s months"
+msgstr "हर भुगतान को %(months)s महीने की नई रिकरिंग डिपॉज़िट, %(name)s, में डालता है"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "%(amount)s for %(months)s months"
+msgstr "%(months)s महीनों के लिए %(amount)s"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Steps"
+msgstr "चरण"
+
+#: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
+msgid "Pays out interest of"
+msgstr "का ब्याज देता है"

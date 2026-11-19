@@ -24,8 +24,8 @@ class Base(E2ETestCase):
         page.locator('#tmr-flow-form-fd button:has-text("Next") >> visible=true').first.click()
         page.wait_for_timeout(400)
 
-    def fill_fd(self, page, payout=None, *, payout_account=None, amount=None, start=None, backfill=False):
-        """Fill the FD setup from its first step to its review step."""
+    def fill_fd(self, page, payout=None, *, payout_account=None, amount=None, start=None, backfill=False, rd=None):
+        """Fill the FD setup from its first step to its review step. `rd` = (rate, tenure months) puts the payouts into an RD."""
         page.fill('input[name="name"]', 'Big FD')
         page.fill('input[name="principal"]', '2500000')
         page.fill('input[name="annual_rate"]', '7.1')
@@ -43,7 +43,13 @@ class Base(E2ETestCase):
             page.fill('input[name="payout_amount"]', amount)
         if backfill:
             page.check('input[name="create_historical_entries"]')
-        self.next_step(page)                                  # -> Reporting
+        self.next_step(page)                                  # -> the RD step (monthly payouts only) or Reporting
+        if payout == 'MONTHLY':
+            if rd:
+                page.check('input[name="payout_to_rd"]')
+                page.fill('input[name="rd_rate"]', str(rd[0]))
+                page.fill('input[name="rd_tenure_months"]', str(rd[1]))
+            self.next_step(page)                              # -> Reporting
         self.next_step(page)                                  # -> Review
         page.wait_for_selector('#tmr-review-fd', state='visible')
 
@@ -242,3 +248,78 @@ class ClosingTheDepositTests(Base):
         page.wait_for_url(lambda url: '/edit/' not in url)
         self.schedule.refresh_from_db()
         self.assertFalse(self.schedule.is_active)
+
+
+class RdFromPayoutTests(Base):
+    """Each monthly payout can go straight into a recurring deposit."""
+
+    def rd_records(self):
+        from expenses.models import Account, RecurringTransaction
+        rd = Account.objects.filter(user=self.user, account_type='RD').first()
+        transfer = RecurringTransaction.objects.filter(user=self.user, transaction_type='TRANSFER').first()
+        return rd, transfer
+
+    def test_the_payouts_go_into_a_new_rd_from_the_first_step_to_the_confirmed_records(self):
+        page = self.new_page(self.user)
+        self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
+        self.fill_fd(page, 'MONTHLY', payout_account=self.interest_account, rd=('6.5', 36))
+        review = self.review_text(page, 'fd', 'Recurring deposit', 'for 36 months')
+        self.assertIn('₹14,792 for 36 months', review)
+        self.confirm(page)
+        self.wait_until(lambda: self.rd_records()[1] is not None, 'the RD transfer was not created', seconds=15)
+        rd, transfer = self.rd_records()
+        self.assertEqual((rd.name, rd.deposit_rate, rd.account_type), ('Big FD interest RD', Decimal('6.50'), 'RD'))
+        self.assertEqual((transfer.from_account, transfer.to_account, transfer.frequency, transfer.amount),
+                         (self.interest_account, rd, 'MONTHLY', Decimal('14791.67')))
+
+    def test_the_rd_step_appears_only_for_monthly_payouts(self):
+        page = self.new_page(self.user)
+        self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
+        total = lambda: int(__import__('re').search(r'of (\d+)', page.inner_text('#stepCounterBadge')).group(1))
+        without = total()
+        self.set_select(page, 'select[name="interest_payout"]', 'QUARTERLY')
+        page.wait_for_timeout(300)
+        self.assertEqual(total(), without)
+        self.set_select(page, 'select[name="interest_payout"]', 'MONTHLY')
+        page.wait_for_timeout(300)
+        self.assertEqual(total(), without + 1)
+
+    def test_without_choosing_an_rd_none_is_created(self):
+        page = self.new_page(self.user)
+        self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
+        self.fill_fd(page, 'MONTHLY', payout_account=self.interest_account)
+        self.confirm(page)
+        self.wait_until(lambda: self.rd_records()[0] is None and self.payout_schedule_exists(), 'no payout schedule', seconds=15)
+        self.assertIsNone(self.rd_records()[1])
+
+    def payout_schedule_exists(self):
+        from expenses.models import RecurringTransaction
+        return RecurringTransaction.objects.filter(user=self.user, source='Interest Income').exists()
+
+    def test_the_rd_setup_works_on_a_phone(self):
+        page = self.new_page(self.user, phone=True)
+        self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
+        self.fill_fd(page, 'MONTHLY', payout_account=self.interest_account, rd=('6.5', 24))
+        self.assertIn('for 24 months', self.review_text(page, 'fd', 'Recurring deposit'))
+        self.confirm(page)
+        self.wait_until(lambda: self.rd_records()[1] is not None, 'the RD transfer was not created', seconds=15)
+
+    def test_the_phone_circles_gain_one_for_the_rd_step_and_the_numbers_stay_in_order(self):
+        page = self.new_page(self.user, phone=True)
+        self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
+        DOTS = '.wizard-dot:visible'
+        before = page.locator(DOTS).count()
+        self.set_select(page, 'select[name="interest_payout"]', 'MONTHLY')
+        page.wait_for_timeout(300)
+        self.assertEqual(page.locator(DOTS).count(), before + 1)
+        numbers = [page.locator(DOTS).nth(i).inner_text().strip() for i in range(before + 1)]
+        self.assertEqual(numbers, [str(i + 1) for i in range(before + 1)])
+
+    def test_six_circles_fit_inside_a_phone_screen(self):
+        page = self.new_page(self.user, phone=True)
+        self.open(page, reverse('flow-detail', kwargs={'key': 'fd'}))
+        self.set_select(page, 'select[name="interest_payout"]', 'MONTHLY')
+        page.wait_for_timeout(300)
+        box = page.locator('.wizard-dots-row').bounding_box()
+        self.assertLessEqual(box['x'] + box['width'], page.viewport_size['width'])
+        self.assertFalse(page.evaluate('document.documentElement.scrollWidth > document.documentElement.clientWidth'))
