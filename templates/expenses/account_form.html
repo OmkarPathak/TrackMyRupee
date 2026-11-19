@@ -932,6 +932,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // A save the server refused comes back on step 1. When the mistake is in the details on step 2, open that
+        // step, so the message is in view instead of hidden behind it.
+        if (document.querySelector('#step2Content .text-danger') && !document.querySelector('#step1Content .text-danger')) {
+            currentStep = 2;
+        }
         updateWizardUI();
     });
 </script>

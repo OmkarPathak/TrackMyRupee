@@ -1437,12 +1437,20 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             if deposit_principal is None and (not self.instance.pk or self.instance.account_type != account_type):
                 self.add_error('deposit_principal', _('Deposit principal is required for deposit accounts.'))
 
-            if cleaned_data.get('deposit_rate') is None:
-                self.add_error('deposit_rate', _('Interest rate is required for deposit accounts.'))
-
             start_date = cleaned_data.get('deposit_start_date')
-            if not start_date:
-                self.add_error('deposit_start_date', _('Start date is required for deposit accounts.'))
+            if account_type == 'NPS':
+                # NPS returns follow the market, so a rate is only an optional assumption. Without one the account
+                # is worth what has been paid into it; with one, it needs the date to count from.
+                has_rate = cleaned_data.get('deposit_rate') is not None
+                if has_rate and not start_date:
+                    self.add_error('deposit_start_date', _('Enter the start date, or clear the rate.'))
+                elif start_date and not has_rate:
+                    self.add_error('deposit_rate', _('Enter the assumed rate, or clear the start date.'))
+            else:
+                if cleaned_data.get('deposit_rate') is None:
+                    self.add_error('deposit_rate', _('Interest rate is required for deposit accounts.'))
+                if not start_date:
+                    self.add_error('deposit_start_date', _('Start date is required for deposit accounts.'))
 
             maturity_date = cleaned_data.get('deposit_maturity_date')
             if start_date and maturity_date and maturity_date <= start_date:

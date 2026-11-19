@@ -2128,6 +2128,7 @@ class TestFlowLandingPageAndConfiguredStatus(TestCase):
         for key, flow in all_flows.items():
             self.assertTrue(flow.is_configured(self.user, final_snapshot), f"Flow '{key}' should now be configured")
 
+    @override_settings(FAMILY_ENABLED=False)
     def test_landing_page_zero_configured(self):
         clean_user = User.objects.create_user(username='clean-user', password='pass')
         UserProfile.objects.get_or_create(user=clean_user, defaults={'currency': '₹'})
@@ -2145,6 +2146,7 @@ class TestFlowLandingPageAndConfiguredStatus(TestCase):
         self.assertContains(response, "What one form creates")
         self.assertNotContains(response, "Already set up")
 
+    @override_settings(FAMILY_ENABLED=False)
     def test_landing_page_all_configured(self):
         # Configure all 11 flows for self.user
         Account.objects.create(user=self.user, name='Visa', account_type='CREDIT_CARD', is_active=True)
@@ -2197,6 +2199,7 @@ class TestFlowLandingPageAndConfiguredStatus(TestCase):
         self.assertEqual(response.context['total_count'], 12)
         self.assertEqual([c['key'] for c in response.context['categories']][-1], 'family')
 
+    @override_settings(FAMILY_ENABLED=False)
     def test_landing_page_categories_and_metadata(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse('flow-landing'))
