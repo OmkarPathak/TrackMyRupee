@@ -59,14 +59,21 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
     totalSteps,
     hasWarnings: Boolean(initialHasWarnings),
     instrumentType: 'SIP',
+    interestPayout: '',
     isFinanced: false,
     createRepaymentSchedule: true,
     midTenure: false,
     includeDownPayment: false,
+    // True from the moment the review step is opened until the server's answer for the form as it is now has been
+    // swapped in: the review box holds the previous answer until then, so it is shown faded and Confirm is held.
+    reviewLoading: false,
+    reviewTimer: null,
+    freshRequests: new WeakSet(),
 
     init() {
       this.syncFormState();
       this.checkWarnings();
+      this.watchReviewRequests();
 
       const form = document.querySelector('form[hx-post]');
       if (form) {
@@ -79,10 +86,41 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
       });
     },
 
+    watchReviewRequests() {
+      // A request that was already on its way when the review opened carries the old form: only the ones sent after
+      // count (htmx sends the one queued behind it, with the current values, as soon as it has finished).
+      document.addEventListener('htmx:beforeRequest', (event) => {
+        if (this.reviewLoading && event.detail && event.detail.xhr) this.freshRequests.add(event.detail.xhr);
+      });
+      const finished = (event) => {
+        if (this.reviewLoading && event.detail && event.detail.xhr && this.freshRequests.has(event.detail.xhr)) {
+          this.endReviewLoading();
+        }
+      };
+      ['htmx:afterSwap', 'htmx:responseError', 'htmx:sendError', 'htmx:timeout', 'htmx:swapError'].forEach((name) => {
+        document.addEventListener(name, finished);
+      });
+    },
+
+    startReviewLoading() {
+      this.reviewLoading = true;
+      clearTimeout(this.reviewTimer);
+      this.reviewTimer = setTimeout(() => this.endReviewLoading(), 10000);   // never leave Confirm held
+    },
+
+    endReviewLoading() {
+      this.reviewLoading = false;
+      clearTimeout(this.reviewTimer);
+    },
+
     syncFormState() {
       const instInput = document.querySelector('[name="instrument_type"]');
       if (instInput) {
         this.instrumentType = instInput.value || 'SIP';
+      }
+      const payoutInput = document.querySelector('[name="interest_payout"]');
+      if (payoutInput) {
+        this.interestPayout = payoutInput.value || '';
       }
       const finInput = document.querySelector('[name="financed"]');
       if (finInput) {
@@ -113,6 +151,9 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
       }
       if (stepKey === 'sip_funds') {
         return this.instrumentType === 'SIP';
+      }
+      if (stepKey === 'fd_rd') {
+        return this.interestPayout === 'MONTHLY';      // (an RD is funded monthly: only monthly payouts can feed one)
       }
       return true;
     },
@@ -206,6 +247,7 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
         this.checkWarnings();
         const form = document.querySelector('form[hx-post]');
         if (form && window.htmx) {
+          this.startReviewLoading();
           window.htmx.trigger(form, 'tmr-preview');
         }
       }
@@ -221,6 +263,23 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
 
     progressWidth() {
       return `${Math.round((this.currentVisibleStepNumber() / this.visibleStepsCount()) * 100)}%`;
+    },
+
+    // The number written in a step's circle on a phone: its place among the steps that are showing
+    visibleOrdinal(stepNumber) {
+      let count = 0;
+      for (let i = 1; i <= stepNumber; i++) {
+        const stepEl = document.querySelector(`.wizard-step-content[data-step="${i}"]`);
+        const stepKey = stepEl ? stepEl.dataset.stepKey : null;
+        if (!stepKey || this.isStepVisible(stepKey)) count++;
+      }
+      return count;
+    },
+
+    // The name of the current step (the circles carry it as data-title)
+    stepTitle() {
+      const dot = document.querySelector(`.wizard-dot[data-step="${this.currentStep}"]`);
+      return dot ? dot.dataset.title : '';
     },
 
     stepCounterLabel() {

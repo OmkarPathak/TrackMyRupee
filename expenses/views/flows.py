@@ -74,7 +74,23 @@ class FlowBaseView(LoginRequiredMixin):
                             continue
         return data
 
-    def render_review(self, request, form, preview, status=200):
+    @staticmethod
+    def field_error_rows(form, confirming):
+        """[(field name, [messages])] for the page's error spots.
+
+        While the person is still filling the form (a preview, sent whenever a field changes) a field that is empty
+        is not an error yet: "This field is required" appears under every field they have not reached. Those are
+        shown only when they confirm. Every other error (an invalid value, dates in the wrong order) shows at once."""
+        rows = []
+        for field in form.visible_fields():
+            messages = []
+            for error in field.errors.as_data():
+                if confirming or error.code != 'required':
+                    messages.extend(error.messages)
+            rows.append((field.name, messages))
+        return rows
+
+    def render_review(self, request, form, preview, status=200, confirming=False):
         preview_data = self.get_preview_data(form)
         review = self.flow.review_context(request.user, form, preview_data)
         return render(
@@ -86,6 +102,7 @@ class FlowBaseView(LoginRequiredMixin):
                 'preview': preview,
                 'review': review,
                 'idempotency_key': self.get_idempotency_key(),
+                'field_error_rows': self.field_error_rows(form, confirming),
             },
             status=status,
         )
@@ -247,7 +264,7 @@ class FlowCommitView(FlowBaseView, View):
                 preview = self.flow.preview(request.user, preview_data)
             except Exception:
                 preview = {'headline': 0, 'bullets': []}
-            return self.render_review(request, form, preview, status=200)
+            return self.render_review(request, form, preview, status=200, confirming=True)
 
         raw_key = request.POST.get('idempotency_key') or ''
         try:
@@ -262,7 +279,7 @@ class FlowCommitView(FlowBaseView, View):
         except ValidationError as exc:
             preview = self.flow.preview(request.user, form.cleaned_data)
             preview['warnings'] = list(exc.messages)
-            return self.render_review(request, form, preview, status=200)
+            return self.render_review(request, form, preview, status=200, confirming=True)
 
         # Allow subsequent runs of the same flow in the same session.
         self.rotate_idempotency_key()
