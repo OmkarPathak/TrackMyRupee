@@ -4768,3 +4768,26 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
   #fundSplitsSheet .tmr-fund-meta { font-size: 0.72rem; }
   #fundSplitsSheet .btn-action-outline.btn-sm { font-size: 0.78rem; }
 }
+
+/* An account name in a list that leads to that account's page */
+.tmr-account-link { color: var(--color-success-text, #0F7657); text-decoration: none; }
+.tmr-account-link:hover, .tmr-account-link:focus-visible { color: #0A5A43; text-decoration: underline; }
+[data-bs-theme="dark"] .tmr-account-link { color: #9FE1CB; }
+[data-bs-theme="dark"] .tmr-account-link:hover, [data-bs-theme="dark"] .tmr-account-link:focus-visible { color: #C7F0E0; }
+
+/* On a phone card an account link is a chip, so it reads as something to tap (the desktop table keeps a plain link) */
+.tmr-tx-accounts { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.4rem; }
+.tmr-tx-accounts .tmr-account-link {
+  display: inline-flex; align-items: center; gap: 0.3rem; max-width: 100%;
+  padding: 0.2rem 0.55rem; border-radius: 50rem;
+  background-color: rgba(15, 118, 87, 0.08); border: 1px solid rgba(15, 118, 87, 0.18);
+  color: var(--color-success-text, #0F7657);
+  font-size: 0.64rem; font-weight: 500; line-height: 1.2; text-decoration: none;
+}
+.tmr-tx-accounts .tmr-account-link:hover, .tmr-tx-accounts .tmr-account-link:focus-visible { color: var(--color-success-text, #0F7657); text-decoration: none; }
+.tmr-tx-accounts .tmr-account-link:active { background-color: rgba(15, 118, 87, 0.18); }
+.tmr-tx-accounts .tmr-account-to { display: inline-flex; align-items: center; gap: 0.4rem; max-width: 100%; }
+.tmr-tx-accounts .tmr-account-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-bs-theme="dark"] .tmr-tx-accounts .tmr-account-link {
+  background-color: rgba(15, 118, 87, 0.15); border-color: rgba(15, 118, 87, 0.25); color: #9FE1CB;
+}

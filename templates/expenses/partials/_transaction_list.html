@@ -261,7 +261,7 @@
                                         {% endif %}
                                     </td>
                                     <td class="small text-muted">
-                                        <div class="text-truncate tx-account" title="{{ tx.acc }}">{{ tx.acc }}</div>
+                                        <div class="text-truncate tx-account" title="{{ tx.acc }}">{% include 'expenses/partials/_tx_account.html' %}</div>
                                     </td>
                                     <td class="text-end fw-bold tmr-amount amount-{{ tx.type|lower }} signed-amount">
                                         {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}&minus;{% elif tx.type == 'INCOME' %}+{% endif %}
@@ -335,7 +335,7 @@
                                 </div>
                                 <div class="flex-grow-1 min-width-0">
                                     <div class="fw-semibold mb-1" style="font-size: 0.93rem;">{{ tx.tx_description|default:tx.cat }}</div>
-                                    <div class="text-muted" style="font-size: 0.65rem;">{{ tx.acc|truncatechars:40 }}</div>
+                                    <div class="text-muted tmr-tx-accounts" style="font-size: 0.65rem;">{% include 'expenses/partials/_tx_account.html' %}</div>
                                     {% if tx.cc_balance_after_payment is not None %}
                                         <div class="text-muted mt-1" style="font-size: 0.65rem;">
                                             {{ tx.to_account_name }} · {% trans "Balance after payment" %}: {{ tx.to_account_currency }}{{ tx.cc_balance_after_payment|compact_amount:tx.to_account_currency|translate_digits }}
