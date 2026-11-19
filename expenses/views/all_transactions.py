@@ -329,6 +329,15 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
 
         # Convert transactions to list and calculate CC running balance
         tx_list = list(context.get('transactions', []))
+
+        # The accounts the rows name, so the list can link each one to its page (one query for the whole page)
+        account_ids = {tx.get(key) for tx in tx_list for key in ('source_account_id', 'target_account_id') if tx.get(key)}
+        accounts_by_id = {
+            row['id']: row for row in Account.objects.filter(user=user, id__in=account_ids).values('id', 'uuid', 'name')
+        }
+        for tx in tx_list:
+            tx['source_account'] = accounts_by_id.get(tx.get('source_account_id'))
+            tx['target_account'] = accounts_by_id.get(tx.get('target_account_id'))
         
         # 1. Identify CREDIT_CARD accounts of this user
         cc_accounts = Account.objects.filter(user=user, account_type='CREDIT_CARD')
