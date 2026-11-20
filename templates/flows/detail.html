@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static i18n %}
+{% load static i18n help_tags %}
 
 {% block title %}{{ flow.label }} | {% trans "Guided Setup" %}{% endblock %}
 
@@ -204,6 +204,7 @@
                             <h1 class="h4 mb-1 fw-bold text-body">{{ flow.label|default:flow.title }}</h1>
                             <p class="text-muted small mb-0" x-show="isReviewStep()">{% trans "Check everything, then confirm." %}</p>
                             <p class="text-muted small mb-0" x-show="!isReviewStep()">{{ flow.description }}</p>
+                            <p class="small mb-0 mt-1" x-show="!isReviewStep()">{% trans "How this setup works" as how_label %}{% docs_help help_page.path how_label 'flow-detail' %}</p>
                         </div>
                         <span class="badge rounded-pill px-3 py-2 fw-semibold tmr-step-counter-badge" id="stepCounterBadge" x-text="stepCounterLabel()"></span>
                     </div>
