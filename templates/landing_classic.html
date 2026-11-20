@@ -98,11 +98,6 @@
           }
         ],
         "description": "Your salary has a story. TrackMyRupee tells you the whole thing. Watch your net worth grow and spot spending leaks without bank logins or SMS access.",
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "4.8",
-          "ratingCount": "500"
-        },
         "author": {
             "@type": "Person",
             "name": "Omkar Pathak"
@@ -2597,7 +2592,7 @@
 <section class="founder-section" style="background: var(--tmr-ink-900); padding: var(--space-10) 0;">
     <div class="container text-center">
         <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--tmr-teal-200, #5DCAA5); margin-bottom: var(--space-4);">{% trans "Built with purpose, not VC pressure" %}</div>
-        <img src="https://github.com/OmkarPathak.png" alt="Omkar Pathak" class="founder-avatar rounded-circle mb-4" width="80" height="80" loading="lazy">
+        <img src="{% static 'img/founder-omkar-pathak.jpg' %}" alt="Omkar Pathak" class="founder-avatar rounded-circle mb-4" width="80" height="80" loading="lazy">
         <div class="founder-quote mx-auto mb-4" style="max-width: 800px; font-size: clamp(18px, 3vw, 24px); color: white; line-height: 1.4; opacity: 0.9;">
             {% blocktrans %}I'm Omkar and I built TrackMyRupee after a month where I earned well, invested on time, and still couldn't account for ₹40,000 of my salary. Every app I tried wanted my bank access to solve a problem I had created myself. So I built something that doesn't.{% endblocktrans %}
         </div>

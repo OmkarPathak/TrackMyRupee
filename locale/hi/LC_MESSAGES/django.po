@@ -23297,12 +23297,12 @@ msgid "Everything is entered by you, never pulled from your bank or phone. No ad
 msgstr "सब कुछ आप खुद दर्ज करते हैं, आपके बैंक या फ़ोन से कुछ नहीं खींचा जाता। कभी विज्ञापन नहीं। बैंक या SMS की अनुमति कभी नहीं।"
 
 #: templates/landing.html
-msgid "Your entire financial life."
-msgstr "आपकी पूरी वित्तीय ज़िंदगी।"
+msgid "Track expenses and net worth."
+msgstr "खर्च और नेटवर्थ ट्रैक करें।"
 
 #: templates/landing.html
-msgid "One powerful place."
-msgstr "एक दमदार जगह।"
+msgid "Keep your bank login private."
+msgstr "अपना बैंक लॉगिन निजी रखें।"
 
 #: templates/landing.html
 msgid "From your first savings account to a portfolio spanning mutual funds, stocks, FDs, PPF, NPS, gold, real estate and more — track everything you own, see your complete net worth, and understand how your money is growing."
