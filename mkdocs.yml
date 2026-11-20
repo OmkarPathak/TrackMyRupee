@@ -12,6 +12,10 @@ site_dir: site
 not_in_nav: |
   screenshots/MANIFEST.md
 
+# (notes for whoever updates the screenshots; not part of the guide, so not in search or the sitemap)
+exclude_docs: |
+  screenshots/MANIFEST*.md
+
 validation:
   nav:
     omitted_files: ignore

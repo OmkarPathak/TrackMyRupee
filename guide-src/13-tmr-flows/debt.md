@@ -1,3 +1,7 @@
+---
+description: "Set up a loan or a credit card in TrackMyRupee with its linked accounts and repayment schedule in one go, using the Debt guided setups."
+---
+
 # Debt Flows
 
 Two Flows live in the **Debt** category: **I took a loan** and **I got a credit card**.

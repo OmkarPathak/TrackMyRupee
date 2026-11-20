@@ -1,3 +1,7 @@
+---
+description: "गाइडेड सेटअप से TrackMyRupee में SIP, फ़िक्स्ड डिपॉज़िट, PPF, EPF या NPS योगदान और बचत लक्ष्य सेट करें, FD के ब्याज भुगतान सहित।"
+---
+
 # बचत और निवेश Flows (Savings and Investments Flows)
 
 चार Flows आपको पैसा अलग रखने और बढ़ाने में मदद करते हैं: **I started a SIP**, **I booked an FD**, **I contribute to PPF / EPF / NPS** और **I'm saving for something**।

@@ -1,3 +1,7 @@
+---
+description: "TrackMyRupee को अपने iPhone पर नेटिव ऐप की तरह इंस्टॉल करें और चलाएँ, जो Capacitor से बने लाइव वेब ऐप को लपेटता है।"
+---
+
 # मोबाइल ऐप (iOS)
 
 Capacitor का उपयोग करके अपने iPhone पर TrackMyRupee को एक नेटिव ऐप के रूप में इंस्टॉल करें और चलाएं।

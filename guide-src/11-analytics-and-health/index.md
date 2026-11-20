@@ -1,3 +1,7 @@
+---
+description: "Understand your savings rate, where your money goes and how your net worth moves with TrackMyRupee analytics: spending, cashflow and net worth."
+---
+
 # Analytics: Spending, Cashflow and Net Worth
 
 Understand your savings rate, where your money goes, and how your net worth moves, with summaries you can click through to the transactions behind them.

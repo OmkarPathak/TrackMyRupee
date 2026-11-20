@@ -1,3 +1,7 @@
+---
+description: "Import a bank, UPI or credit card statement into TrackMyRupee instead of typing each row. Preview before anything is saved, and undo any import."
+---
+
 # Importing a Statement
 
 Bring in a bank, UPI or credit card statement instead of typing each row. Nothing is saved until you have seen a preview, and every import can be undone.

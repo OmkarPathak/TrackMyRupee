@@ -1,3 +1,7 @@
+---
+description: "TrackMyRupee तुमच्या iPhone वर नेटिव्ह ॲप म्हणून इन्स्टॉल करा आणि चालवा, जे Capacitor ने बनवलेले लाइव्ह वेब ॲप गुंडाळते."
+---
+
 # मोबाइल ॲप (iOS)
 
 Capacitor चा वापर करून तुमच्या iPhone वर TrackMyRupee नेटिव्ह ॲप म्हणून इन्स्टॉल करा.

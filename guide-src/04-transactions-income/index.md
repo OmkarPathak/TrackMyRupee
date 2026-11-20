@@ -1,3 +1,7 @@
+---
+description: "How to log income in TrackMyRupee so your savings rate, analytics and net worth stay accurate, whatever money you receive."
+---
+
 # Adding Income
 
 Log every payment you receive so your savings rate, analytics, and net worth stay accurate.

@@ -1,3 +1,8 @@
+---
+seo_title: "TrackMyRupee User Guide: personal finance tracking for India"
+description: "Step-by-step guide to TrackMyRupee, the privacy-first finance tracker for India: accounts, expenses, budgets, loans, goals, net worth and Guided Setup. No bank sync, no SMS access."
+---
+
 # Welcome to TrackMyRupee Docs
 
 **TrackMyRupee** is a privacy-first personal finance tracker built for India. No bank sync, no SMS access, just honest numbers from your own entries.

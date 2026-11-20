@@ -1,3 +1,7 @@
+---
+description: "Set up a car or a gold purchase in TrackMyRupee as an asset you own, with its value tracked over time, using the Assets guided setups."
+---
+
 # Assets Flows
 
 Some purchases are not spending, they are **owning**. A car and a piece of gold are still worth money after you buy them. The two Flows in the **Assets** category, **I bought a car** and **I bought gold**, make sure those things show up in your net worth instead of vanishing from your picture the day you pay for them.

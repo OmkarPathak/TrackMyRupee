@@ -1,3 +1,7 @@
+---
+description: "Set up a new job's salary, your rent and an insurance policy in TrackMyRupee, with the recurring entries behind each, using guided setups."
+---
+
 # Income and Bills Flows
 
 Three Flows cover the money that comes in and the bills that go out on a schedule: **I started a new job**, **I pay rent**, and **I bought insurance**.

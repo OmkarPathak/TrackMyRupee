@@ -1,3 +1,7 @@
+---
+description: "Move money between your own accounts in TrackMyRupee without double-counting it as income or an expense."
+---
+
 # Transfers
 
 Move money between your own accounts without double-counting it as income or an expense.

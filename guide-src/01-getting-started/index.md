@@ -1,3 +1,7 @@
+---
+description: "Set up your accounts, configure your salary cycle and establish your financial baseline in TrackMyRupee. Log your first transaction in under five minutes."
+---
+
 # Getting Started
 
 Set up your accounts, configure your salary cycle, and establish your financial baseline in TrackMyRupee.

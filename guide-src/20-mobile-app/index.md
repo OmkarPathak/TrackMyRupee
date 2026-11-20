@@ -1,3 +1,7 @@
+---
+description: "Install and run TrackMyRupee on your iPhone as a native app that wraps the live web app, built with Capacitor."
+---
+
 # Mobile App (iOS)
 
 Install and run TrackMyRupee on your iPhone as a native app using Capacitor, which wraps the live web app.
