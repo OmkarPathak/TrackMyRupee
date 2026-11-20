@@ -70,7 +70,7 @@ class GuideUrlTests(TestCase):
         self.assertEqual(self.render("{% docs_url 'x/' %}"), 'http://localhost:8001/x/')
 
     def test_a_help_link_goes_to_the_guide_in_a_new_tab(self):
-        html = self.render("{% docs_help '07-budgets/' 'How budgets work' 'budgets-page' 'Budgets' %}")
+        html = self.render("{% docs_help '07-budgets/' 'How budgets work' 'budgets-page' %}")
         self.assertIn('data-docs-path="07-budgets/"', html)
         self.assertIn('data-docs-src="budgets-page"', html)
         self.assertIn('href="https://docs.trackmyrupee.com/07-budgets/"', html)
@@ -130,3 +130,38 @@ class UntrackedGuideLinksTests(TestCase):
                 if 'data-docs-path' not in tag:
                     bare.append(f'{path.relative_to(templates)}: {tag[:90]}')
         self.assertEqual(bare, [])
+
+
+class GuideLinksWhereHelpIsNeededTests(TestCase):
+    """A person with nothing yet, or a failed import, or a question for support, is pointed at the guide."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('newcomer', 'n@example.com', 'pw')
+        self.client.force_login(self.user)
+
+    def page(self, name):
+        return self.client.get(reverse(name)).content.decode()
+
+    def test_the_empty_pages_point_at_their_guide(self):
+        for name, source, path in (('goal-list', 'goals-empty', '12-goals/'),
+                                   ('transfer-list', 'transfers-empty', '06-transfers/'),
+                                   ('capital-event-list', 'capital-events-empty', '09-capital-events/'),
+                                   ('recurring-list', 'recurring-empty', '05-transactions-recurring/')):
+            html = self.page(name)
+            self.assertIn(f'data-docs-path="{path}" data-docs-src="{source}"', html, name)
+
+    def test_the_contact_page_offers_quick_answers_first(self):
+        html = self.client.get(reverse('contact')).content.decode()
+        for path in ('22-faq/', '01-getting-started/', '03-transactions-expenses/importing/', '23-plans-and-billing/'):
+            self.assertIn(f'data-docs-path="{path}" data-docs-src="contact"', html)
+        self.assertLess(html.index('Quick answers first'), html.index('Send us a message'))
+
+    def test_a_failed_import_points_at_what_can_be_imported(self):
+        from django.template.loader import render_to_string
+        html = render_to_string('expenses/partials/_import_preview.html', {'error': 'Could not read that file.'})
+        self.assertIn('data-docs-path="03-transactions-expenses/importing/" data-docs-src="import-error"', html)
+
+    def test_a_good_import_preview_has_no_guide_link(self):
+        from django.template.loader import render_to_string
+        html = render_to_string('expenses/partials/_import_preview.html', {'rows': [], 'error': ''})
+        self.assertNotIn('import-error', html)

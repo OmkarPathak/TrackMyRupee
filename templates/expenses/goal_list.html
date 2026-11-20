@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n digit_filters humanize %}
+{% load help_tags %}
 
 {% block content %}
 <div class="fade-in">
@@ -159,6 +160,7 @@
             {% else %}
             <a href="{% url 'pricing' %}" class="btn btn-warning shadow">{% trans "Upgrade to Create More Goals" %}</a>
             {% endif %}
+            <p class="small mt-3 mb-0">{% trans "How savings goals work" as how_label %}{% docs_help '12-goals/' how_label 'goals-empty' %}</p>
         </div>
         {% endfor %}
     </div>

@@ -4803,6 +4803,7 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
 .tmr-help-btn { color: var(--bs-secondary-color); }
 .tmr-help-btn:hover, .tmr-help-btn:focus-visible { color: var(--bs-primary); }
 .tmr-help-link { color: var(--bs-primary); text-decoration: none; font-size: .85rem; white-space: nowrap; }
+.tmr-help-link > i { line-height: 1; }
 .tmr-help-link:hover { text-decoration: underline; }
 
 /* The desktop top bar's actions (Add, Help): an outlined green icon and a bold label of one size, with a light chevron

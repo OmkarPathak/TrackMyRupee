@@ -59,6 +59,9 @@ FLOW_PAGES = {
     'fd': ('13-tmr-flows/savings-and-investments/', _('Guided Setup: Fixed deposit')),
     'sip': ('13-tmr-flows/savings-and-investments/', _('Guided Setup: SIP')),
     'savingsgoal': ('13-tmr-flows/savings-and-investments/', _('Guided Setup: Savings goal')),
+    'ppfepfnps': ('13-tmr-flows/savings-and-investments/', _('Guided Setup: PPF, EPF and NPS')),
+    'insurance': ('13-tmr-flows/income-and-bills/', _('Guided Setup: Insurance')),
+    'family': ('24-family-sharing/', _('Guided Setup: Family')),
     'car': ('13-tmr-flows/assets/', _('Guided Setup: Car')),
     'gold': ('13-tmr-flows/assets/', _('Guided Setup: Gold')),
 }
