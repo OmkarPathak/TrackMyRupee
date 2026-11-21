@@ -215,3 +215,6 @@ backup*
 # Private notes: infrastructure, runbooks, incidents, interview prep. Never committed.
 docs/private/
 e2e/artifacts/
+
+# Installed by `npm install` in mobile/ (the Capacitor project); package-lock.json pins the versions
+node_modules/
