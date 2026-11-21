@@ -20,7 +20,7 @@ from django_recaptcha.widgets import ReCaptchaV3
 from finance_tracker.plans import get_limit
 
 from .account_valuation import get_baseline, get_current
-from .form_defaults import default_payer_account, last_used_account, only_choice
+from .form_defaults import default_account, default_payer_account, last_used_account, most_used_account, only_choice
 from .investing import is_investment_type
 from .models import (
     Account,
@@ -204,7 +204,6 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
             account_cache = getattr(user, '_expense_form_account_cache', None)
             if account_cache and account_cache.get('tier') == active_tier:
                 accounts_qs = account_cache.get('queryset')
-                default_account_id = account_cache.get('default_account_id')
                 account_map = account_cache.get('account_map', {})
             else:
                 all_accounts = Account.objects.filter(user=user, is_active=True).order_by('created_at', 'id')
@@ -217,11 +216,9 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
                     accounts_qs = all_accounts
 
                 account_map = {acc.id: acc for acc in loaded}
-                default_account_id = next((acc.id for acc in loaded if acc.name == 'Cash'), None)
                 user._expense_form_account_cache = {
                     'tier': active_tier,
                     'queryset': accounts_qs,
-                    'default_account_id': default_account_id,
                     'account_map': account_map,
                 }
 
@@ -236,9 +233,13 @@ class ExpenseForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFo
                 widget=existing_field.widget,
             )
 
-            # Default to the first account (likely 'Cash')
-            if default_account_id:
-                self.fields['account'].initial = default_account_id
+            # Start on the account they last paid from, else the one they use most, else Cash (see form_defaults).
+            # Worked out from the accounts already loaded, and only when the form is drawn (not on a POST).
+            if not self.is_bound:
+                found_default = default_account(
+                    list(account_map.values()), Expense.objects.filter(user=user, is_deleted=False).order_by('-date', '-id'), 'account_id')
+                if found_default:
+                    self.fields['account'].initial = found_default.id
         else:
             self.fields['category'].widget = forms.TextInput(attrs={'class': 'form-control'})
             self.fields['account'].queryset = Account.objects.none()
@@ -348,12 +349,11 @@ class IncomeForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelFor
             else:
                 self.fields['account'].queryset = all_accounts
 
-            if not self.instance.pk:
-                default_account = last_used_account(
-                    self.fields['account'].queryset, Income.objects.filter(user=self.user).order_by('-date', '-id'), 'account_id',
-                ) or self.fields['account'].queryset.filter(name='Cash').first()
-                if default_account:
-                    self.fields['account'].initial = default_account
+            if not self.instance.pk and not self.is_bound:
+                found = default_account(
+                    self.fields['account'].queryset, Income.objects.filter(user=self.user).order_by('-date', '-id'), 'account_id')
+                if found:
+                    self.fields['account'].initial = found
         else:
             self.fields['account'].queryset = Account.objects.none()
         
@@ -558,6 +558,12 @@ class RecurringTransactionForm(SearchableSelectFormMixin, forms.ModelForm):
             self.fields['account'].queryset = accounts_qs
             self.fields['from_account'].queryset = accounts_qs
             self.fields['to_account'].queryset = accounts_qs
+            if not self.is_bound and not self.instance.pk:
+                # A new schedule starts on what the last one used, else the account they use most
+                usual = default_account(accounts_qs, RecurringTransaction.objects.filter(user=user, account__isnull=False).order_by('-created_at', '-id'), 'account_id',
+                                         cash=False)
+                if usual:
+                    self.fields['account'].initial = usual
             self.fields['loan'].queryset = Loan.objects.filter(user=user, is_active=True).order_by('-created_at')
             self.fields['physical_asset'].queryset = (
                 PhysicalAsset.objects.filter(user=user, is_active=True, asset_class='INSURANCE')
@@ -1022,9 +1028,10 @@ class GoalContributionForm(AccountRequiredMixin, SearchableSelectFormMixin, form
                 self.fields['account'].queryset = all_accounts.filter(id__in=unlocked_ids)
             else:
                 self.fields['account'].queryset = all_accounts
-            if not self.instance.pk:
-                last = last_used_account(self.fields['account'].queryset,
-                                         GoalContribution.objects.filter(goal__user=user).order_by('-date', '-id'), 'account_id')
+            if not self.instance.pk and not self.is_bound:
+                last = default_account(self.fields['account'].queryset,
+                                       GoalContribution.objects.filter(goal__user=user).order_by('-date', '-id'), 'account_id',
+                                       cash=False)
                 if last:
                     self.fields['account'].initial = last
         
@@ -1792,6 +1799,10 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
                     if last.from_account_id in ids and last.to_account_id in ids:
                         self.fields['from_account'].initial = last.from_account_id
                         self.fields['to_account'].initial = last.to_account_id
+                elif not self.is_bound:
+                    busiest = most_used_account(accounts_qs)       # no earlier move: pay from the account they use most
+                    if busiest:
+                        self.fields['from_account'].initial = busiest.pk
             # {account id: currency}, for the currency segment next to the amount
             self.fields['from_account'].widget.attrs['data-currencies'] = json.dumps(
                 {str(pk): cur for pk, cur in accounts_qs.values_list('pk', 'currency')})
@@ -2117,11 +2128,12 @@ class CapitalEventForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.Mo
                     unlocked_ids.append(self.instance.account_id)
                 all_accounts = all_accounts.filter(id__in=unlocked_ids)
             self.fields['account'].queryset = all_accounts.order_by('name')
-            if not self.instance.pk:
+            if not self.instance.pk and not self.is_bound:
                 last = last_used_account(
                     self.fields['account'].queryset, CapitalEvent.objects.filter(user=user).order_by('-date', '-id'), 'account_id',
-                ) or last_used_account(
+                ) or default_account(
                     self.fields['account'].queryset, Expense.objects.filter(user=user, is_deleted=False).order_by('-date', '-id'), 'account_id',
+                    cash=False,
                 )
                 if last:
                     self.fields['account'].initial = last

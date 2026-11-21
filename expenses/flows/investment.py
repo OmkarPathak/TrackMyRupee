@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from ..models import Account, CapitalEvent, Holding, RecurringTransaction
 from ..forms import MoneyInput
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, default_funding_account
 from .registry import register_flow
 
 
@@ -145,7 +145,8 @@ class SipRdFlowForm(forms.Form):
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
-            self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            if not self.is_bound:           # (a POST does not need the starting value)
+                self.fields['from_account'].initial = default_funding_account(accounts)
             if not accounts.exists():
                 self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
 
@@ -326,7 +327,8 @@ class FdFlowForm(forms.Form):
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
             self.fields['payout_account'].queryset = accounts
-            self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            if not self.is_bound:           # (a POST does not need the starting value)
+                self.fields['from_account'].initial = default_funding_account(accounts)
             if not accounts.exists():
                 self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
 
@@ -453,7 +455,8 @@ class PpfEpfNpsFlowForm(forms.Form):
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
-            self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            if not self.is_bound:           # (a POST does not need the starting value)
+                self.fields['from_account'].initial = default_funding_account(accounts)
             if not accounts.exists():
                 self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
 

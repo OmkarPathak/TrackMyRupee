@@ -16,6 +16,7 @@ from django.utils import timezone
 from finance_tracker.plans import get_limit
 
 from .background import run_after_response
+from .form_defaults import most_used_account
 from .forms import ExpenseForm, form_category_names
 from .models import (
     CURRENCY_CHOICES,
@@ -163,7 +164,8 @@ def build_payload(user):
     if last and last['account_id'] in account_ids:
         default_account_id, account_source = last['account_id'], 'last_used'
     elif accounts:
-        default_account_id, account_source = accounts[0].id, 'first'
+        busiest = most_used_account(Account.objects.filter(pk__in=account_ids))
+        default_account_id, account_source = (busiest.id, 'most_used') if busiest else (accounts[0].id, 'first')
 
     return {
         'categories': categories,

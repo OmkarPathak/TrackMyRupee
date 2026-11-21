@@ -1485,10 +1485,11 @@ class TestFlowEdgeCases(FlowTestBase):
         self.assertErrorOn('salary', data, 'account')
 
     def test_picker_defaults_to_cash_then_first_account(self):
-        form = self.form('salary', {})
-        self.assertEqual(form.fields['account'].initial, self.cash)
+        # (the form as it is drawn: a form that is being posted needs no starting value)
+        form_class = FlowRegistry.get('salary').form_class
+        self.assertEqual(form_class(user=self.user).fields['account'].initial, self.cash)
         self.cash.delete()
-        self.assertEqual(self.form('salary', {}).fields['account'].initial, self.bank)
+        self.assertEqual(form_class(user=self.user).fields['account'].initial, self.bank)
 
     def test_unknown_registry_key_raises(self):
         with self.assertRaises(KeyError):

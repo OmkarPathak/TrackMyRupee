@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from ..models import Account, PhysicalAsset, RecurringTransaction
 from ..forms import MoneyInput
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, default_funding_account
 from .registry import register_flow
 
 
@@ -29,7 +29,8 @@ class InsuranceFlowForm(forms.Form):
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['premium_payment_account'].queryset = accounts
-            self.fields['premium_payment_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            if not self.is_bound:           # (a POST does not need the starting value)
+                self.fields['premium_payment_account'].initial = default_funding_account(accounts)
             if not accounts.exists():
                 self.fields['premium_payment_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
 
