@@ -24,6 +24,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models.signals import post_save
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from finance_tracker.plans import get_limit
@@ -36,8 +37,17 @@ from ..models import (
     PhysicalAsset,
     RecurringTransaction,
 )
+from ..form_defaults import most_used_account
 from ..cache_utils import suppress_dashboard_cache_invalidation
 from ..signals import _DASHBOARD_CACHE_MODELS, invalidate_dashboard_cache
+
+
+def default_funding_account(accounts):
+    """The account a setup should offer first: the cash or bank account the person uses most (see
+    form_defaults.most_used_account); with no history yet, the one called Cash, else the first."""
+    accounts = list(accounts)
+    return most_used_account(accounts) or next((a for a in accounts if a.name == 'Cash'), None) or (accounts[0] if accounts else None)
+
 
 
 @dataclass(frozen=True)

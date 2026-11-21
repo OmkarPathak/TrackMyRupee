@@ -15,7 +15,7 @@ from ..models import Account, CapitalEvent, Loan, LoanInterestRate, RecurringTra
 from ..forms import MoneyInput
 from ..services import LoanService
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowAddon, FlowSnapshot, FlowWizardStep
+from .base import CreateStep, Flow, FlowAddon, FlowSnapshot, FlowWizardStep, default_funding_account
 from .registry import register_flow
 
 
@@ -51,9 +51,10 @@ class NewLoanFlowForm(forms.Form):
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['payment_account'].queryset = accounts
             self.fields['down_payment_account'].queryset = accounts
-            cash_default = accounts.filter(name='Cash').first() or accounts.first()
-            self.fields['payment_account'].initial = cash_default
-            self.fields['down_payment_account'].initial = cash_default
+            if not self.is_bound:           # (a POST does not need the starting value)
+                cash_default = default_funding_account(accounts)
+                self.fields['payment_account'].initial = cash_default
+                self.fields['down_payment_account'].initial = cash_default
             if not accounts.exists():
                 self.fields['payment_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
         else:

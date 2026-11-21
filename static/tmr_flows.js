@@ -71,6 +71,7 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
     freshRequests: new WeakSet(),
 
     init() {
+      this.setKeyboards();
       this.syncFormState();
       this.checkWarnings();
       this.watchReviewRequests();
@@ -83,6 +84,17 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
 
       document.addEventListener('htmx:afterSwap', () => {
         this.checkWarnings();
+      });
+    },
+
+    setKeyboards() {
+      // A phone shows its number pad for a number field, but the plain one has punctuation and letters a rate or a
+      // tenure never needs: a whole number (tenure, day of month) gets the digit pad, a rate the one with a point.
+      // The amounts (data-money) are set by the money input itself.
+      document.querySelectorAll('form[hx-post] input[type="number"]:not([data-money])').forEach((input) => {
+        if (input.hasAttribute('inputmode')) return;
+        const step = input.getAttribute('step');
+        input.setAttribute('inputmode', !step || step === '1' ? 'numeric' : 'decimal');
       });
     },
 

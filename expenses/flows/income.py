@@ -15,7 +15,7 @@ from django.urls import reverse
 from ..models import Account, CURRENCY_CHOICES, FinancialFlow, Income, RecurringTransaction, UserProfile
 from ..forms import MoneyInput
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, default_funding_account
 from .registry import register_flow
 
 
@@ -33,7 +33,8 @@ class SalaryFlowForm(forms.Form):
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['account'].queryset = accounts
-            self.fields['account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            if not self.is_bound:           # (a POST does not need the starting value)
+                self.fields['account'].initial = default_funding_account(accounts)
             if not accounts.exists():
                 self.fields['account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
             self.fields['currency'].initial = user.profile.currency

@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from ..models import Account, AssetValuation, CapitalEvent, Holding, Loan, PhysicalAsset, RecurringTransaction
 from ..forms import MoneyInput
-from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, default_funding_account
 from .loan import NewLoanFlow
 from .registry import register_flow
 
@@ -34,7 +34,8 @@ class CarFlowForm(forms.Form):
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
-            self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            if not self.is_bound:           # (a POST does not need the starting value)
+                self.fields['from_account'].initial = default_funding_account(accounts)
             if not accounts.exists():
                 self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
 
@@ -62,7 +63,8 @@ class GoldFlowForm(forms.Form):
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
-            self.fields['from_account'].initial = accounts.filter(name='Cash').first() or accounts.first()
+            if not self.is_bound:           # (a POST does not need the starting value)
+                self.fields['from_account'].initial = default_funding_account(accounts)
             if not accounts.exists():
                 self.fields['from_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a> or leave blank.')
 
