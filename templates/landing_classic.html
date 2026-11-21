@@ -1979,7 +1979,7 @@
                 </div>
                 <div class="mt-4 d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
                     <a href="{% url 'features' %}#family" class="btn-primary-landing">{% trans "How family sharing works" %} <i class="bi bi-arrow-right"></i></a>
-                    <a href="https://docs.trackmyrupee.com/24-family-sharing/" class="btn-secondary-landing">{% trans "Read the guide" %}</a>
+                    <a href="https://docs.trackmyrupee.com/24-family-sharing/" data-docs-path="24-family-sharing/" data-docs-src="landing-family" class="btn-secondary-landing">{% trans "Read the guide" %}</a>
                 </div>
             </div>
             <div class="col-lg-6 order-lg-1">
@@ -2874,5 +2874,6 @@
         });
     </script>
     {% include 'components/cookie_consent.html' %}
+    <script defer src="{% static 'js/guide_links.js' %}?v=1.0"></script>
 </body>
 </html>

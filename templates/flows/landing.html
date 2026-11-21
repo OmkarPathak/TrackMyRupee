@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static i18n %}
+{% load static i18n help_tags %}
 
 {% block title %}{% trans "Guided Setup" %}{% endblock %}
 
@@ -13,6 +13,7 @@
     <div class="mb-4">
         <h1 class="h2 fw-bold mb-1">{% trans "Guided Setup" %}</h1>
         <p class="tmr-flow-sub mb-0">{% trans "Tell us what happened in your life. We'll set up everything linked behind it, in one form." %}</p>
+        <p class="small mb-0 mt-1">{% trans "How Guided Setup works" as how_label %}{% docs_help help_page.path how_label 'flows-landing' %}</p>
     </div>
 
     {# phones: the progress sits here, because the side panels are hidden below the cards #}

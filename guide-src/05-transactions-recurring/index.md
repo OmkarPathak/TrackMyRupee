@@ -1,3 +1,7 @@
+---
+description: "Automate repeating payments in TrackMyRupee: subscriptions, bills and salary. Never miss a due date or forget to log a regular transaction."
+---
+
 # Recurring Transactions and Subscriptions
 
 Automate repeating transactions so you never miss a due date or forget to log a regular payment.

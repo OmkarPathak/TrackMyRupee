@@ -1,7 +1,7 @@
 ---
-title: TrackMyRupee कडून येणारे ईमेल (Emails from TrackMyRupee)
-description: TrackMyRupee पाठवत असलेला प्रत्येक ईमेल: पुष्टी, स्वागत, सुरुवातीच्या टिप्स, अलर्ट डायजेस्ट, मासिक अहवाल. ते केव्हा येतात, आणि मासिक अहवालातील आकडे कसे काढले जातात.
-keywords: TrackMyRupee emails, monthly report, verification email, welcome email, email digest
+title: "TrackMyRupee कडून येणारे ईमेल (Emails from TrackMyRupee)"
+description: "TrackMyRupee पाठवत असलेला प्रत्येक ईमेल: पुष्टी, स्वागत, सुरुवातीच्या टिप्स, अलर्ट डायजेस्ट, मासिक अहवाल. ते केव्हा येतात, आणि मासिक अहवालातील आकडे कसे काढले जातात."
+keywords: "TrackMyRupee emails, monthly report, verification email, welcome email, email digest"
 ---
 
 # TrackMyRupee कडून येणारे ईमेल (Emails from TrackMyRupee)

@@ -1,3 +1,7 @@
+---
+description: "Set up a SIP, a fixed deposit, PPF, EPF or NPS contributions and savings goals in TrackMyRupee with guided setups, including FD interest payouts."
+---
+
 # Savings and Investments Flows
 
 Four Flows help you set aside and grow money: **I started a SIP**, **I booked an FD**, **I contribute to PPF / EPF / NPS**, and **I'm saving for something**.

@@ -1,3 +1,7 @@
+---
+description: "Set a spending limit for each category in TrackMyRupee, see how much you can safely spend today, and get alerted before you overshoot your budget."
+---
+
 # Budgets
 
 Set a spending limit for each category, see how much you can safely spend today, and get alerted before you overshoot.

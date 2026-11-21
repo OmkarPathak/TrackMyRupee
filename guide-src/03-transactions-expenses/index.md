@@ -1,3 +1,7 @@
+---
+description: "How to log expenses in TrackMyRupee so your budget, analytics and net worth stay accurate: amount, category, account, date, notes and bulk actions."
+---
+
 # Adding Expenses
 
 Log every outgoing payment so your budget, analytics, and net worth stay accurate.

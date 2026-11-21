@@ -1,3 +1,7 @@
+---
+description: "Tell TrackMyRupee what happened in your life and it sets up everything connected in one go: loans, salary, SIPs, FDs and more, with Guided Setup."
+---
+
 # Guided Setup
 
 Tell TrackMyRupee what happened in your life, and it sets up everything connected to it in one go.

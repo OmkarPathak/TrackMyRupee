@@ -1,3 +1,7 @@
+---
+description: "Record large one-time payments in TrackMyRupee as big purchases so they do not distort your regular monthly spending analytics."
+---
+
 # Big purchases
 
 Record large, one-time payments without distorting your regular monthly expense analytics.

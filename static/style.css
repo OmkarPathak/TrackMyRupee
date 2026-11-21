@@ -4797,3 +4797,21 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
 [data-bs-theme="dark"] .tmr-tx-accounts .tmr-account-link {
   background-color: rgba(15, 118, 87, 0.15); border-color: rgba(15, 118, 87, 0.25); color: #9FE1CB;
 }
+
+
+/* the guide links: quiet, like the other icon controls; the text form is a plain link action */
+.tmr-help-btn { color: var(--bs-secondary-color); }
+.tmr-help-btn:hover, .tmr-help-btn:focus-visible { color: var(--bs-primary); }
+.tmr-help-link { color: var(--bs-primary); text-decoration: none; font-size: .85rem; white-space: nowrap; }
+.tmr-help-link > i { line-height: 1; }
+.tmr-help-link:hover { text-decoration: underline; }
+
+/* The desktop top bar's actions (Add, Help): an outlined green icon and a bold label of one size, with a light chevron
+   where there is a menu; the bell beside them carries no caret. */
+.navbar .tmr-topbar-action { font-size: 1.1rem; font-weight: 700; }
+.navbar .tmr-topbar-action > i { font-size: 1.35rem; line-height: 1; }
+.navbar .tmr-topbar-action.dropdown-toggle::after {
+  border: 0; margin-left: .15rem; vertical-align: 0; line-height: 1;
+  font-family: "bootstrap-icons"; content: "\f282"; font-size: .7rem; font-weight: 400; color: var(--bs-secondary-color);
+}
+.navbar .no-arrow::after { display: none; }

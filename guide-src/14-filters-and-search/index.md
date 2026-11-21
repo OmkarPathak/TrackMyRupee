@@ -1,3 +1,7 @@
+---
+description: "Find the exact transactions you need in TrackMyRupee with search, filters and sorting, and see the totals for just those transactions."
+---
+
 # Searching, Filtering and Sorting
 
 Find the exact transactions you are looking for, and see the totals for just those.

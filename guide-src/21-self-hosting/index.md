@@ -1,3 +1,7 @@
+---
+description: "Run your own private TrackMyRupee instance on any Linux server with Docker in about ten minutes, with your data staying on your server."
+---
+
 # Self-Hosting with Docker
 
 Run your own private instance of TrackMyRupee on any Linux server in about 10 minutes.

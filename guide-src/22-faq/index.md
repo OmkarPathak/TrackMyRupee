@@ -1,3 +1,8 @@
+---
+seo_title: "TrackMyRupee FAQ: answers to common questions"
+description: "Answers to common questions about TrackMyRupee: privacy, bank sync and SMS, plans and pricing, imports, data export and how the numbers are calculated."
+---
+
 # FAQ
 
 Answers to the most common questions about TrackMyRupee.

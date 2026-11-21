@@ -1,6 +1,7 @@
-{% load i18n digit_filters %}
+{% load i18n digit_filters help_tags %}
 {% if error %}
 <div class="alert alert-danger border-0 small mb-0" role="alert"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</div>
+<p class="small mt-2 mb-0">{% trans "Which statements can be imported" as how_label %}{% docs_help '03-transactions-expenses/importing/' how_label 'import-error' %}</p>
 {% else %}
 <div class="card border-0 shadow-sm fade-in">
     <div class="card-body">

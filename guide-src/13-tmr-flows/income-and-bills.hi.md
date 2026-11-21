@@ -1,3 +1,7 @@
+---
+description: "गाइडेड सेटअप से TrackMyRupee में नई नौकरी की सैलरी, किराया और बीमा पॉलिसी सेट करें, हर एक की आवर्ती एंट्री के साथ।"
+---
+
 # आय और बिल फ्लो (Income and Bills Flows)
 
 तीन Flow उस पैसे को संभालते हैं जो आता है और उन बिलों को जो तय समय पर जाते हैं: **I started a new job**, **I pay rent** और **I bought insurance**।

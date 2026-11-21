@@ -1,3 +1,8 @@
+---
+seo_title: "Philosophy: why TrackMyRupee works the way it does"
+description: "The design decisions behind TrackMyRupee: honest numbers from your own entries, no bank sync or SMS reading, and how that shapes the way it tracks money."
+---
+
 # Philosophy
 
 Understand the core design decisions and mental models behind TrackMyRupee.

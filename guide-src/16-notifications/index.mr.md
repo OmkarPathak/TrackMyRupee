@@ -1,7 +1,7 @@
 ---
-title: सूचना आणि रिमाइंडर (Notifications and Reminders)
-description: TrackMyRupee तुम्हाला कशाबद्दल, केव्हा सूचित करते आणि ते कसे नियंत्रित करायचे: बेल, पुश नोटिफिकेशन, ईमेल डायजेस्ट आणि दैनिक रिमाइंडर.
-keywords: TrackMyRupee notifications, reminders, push notifications, budget alerts, goal milestones
+title: "सूचना आणि रिमाइंडर (Notifications and Reminders)"
+description: "TrackMyRupee तुम्हाला कशाबद्दल, केव्हा सूचित करते आणि ते कसे नियंत्रित करायचे: बेल, पुश नोटिफिकेशन, ईमेल डायजेस्ट आणि दैनिक रिमाइंडर."
+keywords: "TrackMyRupee notifications, reminders, push notifications, budget alerts, goal milestones"
 ---
 
 # सूचना आणि रिमाइंडर (Notifications and Reminders)

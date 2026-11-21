@@ -1,11 +1,28 @@
 {% extends "base.html" %}
 
 {% block htmltitle %}
-  <title>{% if page and page.title %}{{ page.title }} | {{ config.site_name }}{% else %}{{ config.site_name }}{% endif %}</title>
+  {# A page can set a longer, search-friendly title (seo_title); the front page's already names the guide, so it is not suffixed again #}
+  {% set seo_title = page.meta.seo_title if page and page.meta and page.meta.seo_title else None %}
+  <title>{% if seo_title %}{{ seo_title }}{% if not page.is_homepage and not seo_title.startswith('TrackMyRupee User Guide') and not seo_title.startswith('TrackMyRupee यूज़र') and not seo_title.startswith('TrackMyRupee वापरकर्ता') %} | {{ config.site_name }}{% endif %}{% elif page and page.title %}{{ page.title }} | {{ config.site_name }}{% else %}{{ config.site_name }}{% endif %}</title>
 {% endblock %}
 
 {% block site_name %}
   <span class="md-header__topic">
     <span class="md-ellipsis brand-text">TrackMyRupee</span>
   </span>
+{% endblock %}
+
+{% block extrahead %}
+  {{ super() }}
+  {# What a link to a guide page looks like when it is shared, and its own description in search results #}
+  {% set page_title = page.meta.seo_title if page and page.meta and page.meta.seo_title else (page.title if page and page.title else config.site_name) %}
+  {% set page_description = page.meta.description if page and page.meta and page.meta.description else config.site_description %}
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:title" content="{{ page_title }}">
+  <meta property="og:description" content="{{ page_description }}">
+  {% if page and page.canonical_url %}<meta property="og:url" content="{{ page.canonical_url }}">{% endif %}
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ page_title }}">
+  <meta name="twitter:description" content="{{ page_description }}">
 {% endblock %}

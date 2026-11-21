@@ -1,4 +1,5 @@
 {% load i18n digit_filters humanize filter_tags %}
+{% load help_tags %}
 
 <div id="recurring-list-shell">
     <!-- Mobile Header -->
@@ -338,6 +339,7 @@
                             <i class="bi bi-plus-lg me-2"></i>{% trans "Add your first subscription" %}
                         </a>
                     {% endif %}
+                    <p class="small mt-3 mb-0">{% trans "How recurring items work" as how_label %}{% docs_help '05-transactions-recurring/' how_label 'recurring-empty' %}</p>
                 </div>
             {% endif %}
         </div>
