@@ -121,8 +121,8 @@ class UntrackedGuideLinksTests(TestCase):
         """The app's own pages mark their guide links (data-docs-path, data-docs-src) so their use can be counted."""
         import re
         templates = Path(__file__).resolve().parents[2] / 'templates'
-        skip = ('landing', 'marketing', 'public_', 'email', 'blog', 'help_', 'about', 'alternative')
-        bare = []   # (links on public pages are not counted)
+        skip = ('email',)          # (an email cannot run the script that counts the click)
+        bare = []   
         for path in templates.rglob('*.html'):
             if any(word in str(path) for word in skip):
                 continue
@@ -165,3 +165,23 @@ class GuideLinksWhereHelpIsNeededTests(TestCase):
         from django.template.loader import render_to_string
         html = render_to_string('expenses/partials/_import_preview.html', {'rows': [], 'error': ''})
         self.assertNotIn('import-error', html)
+
+
+class GuideLinkTrackingTests(TestCase):
+    """The script that counts guide-link clicks and marks the visit is on every kind of page that has guide links."""
+
+    def test_it_is_on_the_app_pages(self):
+        user = User.objects.create_user('counter', 'c@example.com', 'pw')
+        self.client.force_login(user)
+        self.assertIn('js/guide_links.js', self.client.get(reverse('budget')).content.decode())
+
+    def test_it_is_on_the_public_pages(self):
+        for name in ('landing', 'contact', 'about'):
+            self.assertIn('js/guide_links.js', self.client.get(reverse(name)).content.decode(), name)
+
+    def test_the_script_sends_only_the_page_and_where_the_link_sits(self):
+        script = (Path(__file__).resolve().parents[2] / 'static' / 'js' / 'guide_links.js').read_text()
+        self.assertIn("posthog.capture('docs_link_clicked', { page: page, source: source })", script)
+        self.assertIn("localStorage.getItem('cookieConsent') === 'accepted'", script)
+        for word in ('email', 'username', 'amount'):
+            self.assertNotIn(word, script.split('*/', 1)[1])
