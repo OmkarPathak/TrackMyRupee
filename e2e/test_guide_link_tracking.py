@@ -23,7 +23,8 @@ class Base(E2ETestCase):
 
     def click_help(self, page):
         self.open(page, reverse('budget'))
-        page.evaluate(CAPTURE)                    # (after the page's own analytics snippet has put its queue in place)
+        page.wait_for_load_state('networkidle')   # (the page's own analytics snippet puts its queue in place once loaded)
+        page.evaluate(CAPTURE)
         with page.context.expect_page() as guide:
             page.click('a[data-docs-src="topbar"]')
         guide.value.wait_for_load_state()
