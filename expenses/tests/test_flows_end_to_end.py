@@ -81,9 +81,11 @@ class FlowTestBase(TestCase):
         return form
 
     def run_flow(self, key, data, idem=None):
-        """Validate through the real form, then commit. Returns FlowResult."""
-        form = self.valid_form(key, data)
-        return FlowRegistry.get(key).commit(self.user, form.cleaned_data, idem or uuid.uuid4())
+        """Validate through the real form, then commit. Returns FlowResult. (The browser posts the submission key
+        with the form, so the form is given it too.)"""
+        idem = idem or uuid.uuid4()
+        form = self.valid_form(key, {**data, 'idempotency_key': str(idem)})
+        return FlowRegistry.get(key).commit(self.user, form.cleaned_data, idem)
 
     def created(self, result, model):
         return [obj for obj in result.created if isinstance(obj, model)]
@@ -268,10 +270,12 @@ class TestFlowEngine(FlowTestBase):
 
     def test_model_validation_failure_rolls_back_earlier_steps(self):
         """Car creates asset -> valuation -> vehicle account; a name clash on the account must undo the asset."""
+        form = self.valid_form('car', valid_payloads(self)['car'])
+        # (the form refuses a name that is already taken, so the clash comes in between the check and the commit)
         Account.objects.create(user=self.user, name='Honda City', account_type='VEHICLE', balance=Decimal('1'), currency='₹')
         before = PhysicalAsset.objects.count()
         with self.assertRaises(ValidationError):
-            self.run_flow('car', valid_payloads(self)['car'])
+            FlowRegistry.get('car').commit(self.user, form.cleaned_data, uuid.uuid4())
         self.assertEqual(PhysicalAsset.objects.count(), before)
         self.assertEqual(AssetValuation.objects.count(), 0)
         self.assertEqual(FinancialFlow.objects.count(), 0)
@@ -830,9 +834,10 @@ class TestInsuranceFlowEndToEnd(FlowTestBase):
         self.assertEqual(self.one(result, PhysicalAsset).currency, '₹')
 
     def test_insurance_account_name_clash_rolls_back_the_policy(self):
+        form = self.valid_form('insurance', self.payload())
         Account.objects.create(user=self.user, name='Term Plan', account_type='LIFE_INSURANCE', balance=0, currency='₹')
         with self.assertRaises(ValidationError):
-            self.run_flow('insurance', self.payload())
+            FlowRegistry.get('insurance').commit(self.user, form.cleaned_data, uuid.uuid4())
         self.assertFalse(PhysicalAsset.objects.filter(user=self.user, asset_class='INSURANCE').exists())
         self.assertFalse(RecurringTransaction.objects.filter(user=self.user).exists())
 

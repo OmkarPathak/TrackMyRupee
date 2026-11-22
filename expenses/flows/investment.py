@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from ..models import Account, CapitalEvent, Holding, RecurringTransaction
 from ..forms import MoneyInput
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, default_funding_account
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, UniqueAccountNameMixin, default_funding_account
 from .registry import register_flow
 
 
@@ -32,7 +32,7 @@ def _validate_deposit_dates(form, cleaned, start_key, maturity_key=None, closed_
             form.add_error(key, message)
 
 
-class SipRdFlowForm(forms.Form):
+class SipRdFlowForm(UniqueAccountNameMixin, forms.Form):
     instrument_type = forms.ChoiceField(
         choices=[('SIP', 'SIP'), ('RD', 'RD')],
         widget=forms.Select(attrs={'class': 'form-select'}),
@@ -183,7 +183,7 @@ class SipRdFlowForm(forms.Form):
         return cleaned_data
 
 
-class FdFlowForm(forms.Form):
+class FdFlowForm(UniqueAccountNameMixin, forms.Form):
     name = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'form-control'}),
         help_text=_('Display name for the fixed deposit account.'),
@@ -364,7 +364,7 @@ class FdFlowForm(forms.Form):
         return cleaned_data
 
 
-class PpfEpfNpsFlowForm(forms.Form):
+class PpfEpfNpsFlowForm(UniqueAccountNameMixin, forms.Form):
     scheme_type = forms.ChoiceField(
         choices=[('PPF', 'PPF'), ('EPF', 'EPF'), ('NPS', 'NPS')],
         widget=forms.Select(attrs={'class': 'form-select'}),
@@ -452,6 +452,7 @@ class PpfEpfNpsFlowForm(forms.Form):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = user
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts

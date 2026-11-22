@@ -42,6 +42,39 @@ from ..cache_utils import suppress_dashboard_cache_invalidation
 from ..signals import _DASHBOARD_CACHE_MODELS, invalidate_dashboard_cache
 
 
+class PlanLimitError(ValidationError):
+    """The setup would go past what the person's plan allows (the review offers the plans), as opposed to any other
+    problem found while creating it."""
+
+
+class UniqueAccountNameMixin:
+    """For a setup form that opens an account named by one of its fields: an active account of the same person cannot
+    share that name, so the form says so on the field instead of the setup failing when it is confirmed."""
+
+    account_name_fields = ('name',)
+
+    def _already_committed(self, user) -> bool:
+        """A submission that was already confirmed (a double tap, a retry after a dropped connection) carries the same
+        key again and must be answered as the setup it made, not refused because the account it created now exists."""
+        raw = (getattr(self, 'data', None) or {}).get('idempotency_key')
+        try:
+            key = uuid.UUID(str(raw))
+        except (ValueError, TypeError):
+            return False
+        return FinancialFlow.objects.filter(user=user, idempotency_key=key).exists()
+
+    def clean(self):
+        cleaned = super().clean()
+        user = getattr(self, 'user', None)        # (the form keeps the person it was built for as self.user)
+        if user is None or self._already_committed(user):
+            return cleaned
+        for field in self.account_name_fields:
+            name = (cleaned.get(field) or '').strip()
+            if name and field not in self.errors and Account.objects.filter(user=user, is_active=True, name__iexact=name).exists():
+                self.add_error(field, _('You already have an account called "%(name)s". Choose another name.') % {'name': name})
+        return cleaned
+
+
 def default_funding_account(accounts):
     """The account a setup should offer first: the cash or bank account the person uses most (see
     form_defaults.most_used_account); with no history yet, the one called Cash, else the first."""
@@ -732,7 +765,7 @@ class Flow:
         steps = self.plan(data)
         warnings = self.check_limits(user, steps)
         if warnings:
-            raise ValidationError(warnings)
+            raise PlanLimitError(warnings)
 
         spec = self._serialize_value(data)
 

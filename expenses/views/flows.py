@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView, View
 
 from ..flows import *  # noqa: F403
-from ..flows.base import FlowSnapshot
+from ..flows.base import FlowSnapshot, PlanLimitError
 from ..flows.registry import FlowRegistry
 
 
@@ -278,7 +278,8 @@ class FlowCommitView(FlowBaseView, View):
                 process_user_recurring_transactions(request.user, force=True)
         except ValidationError as exc:
             preview = self.flow.preview(request.user, form.cleaned_data)
-            preview['warnings'] = list(exc.messages)
+            # Only a plan limit is a reason to offer the plans; any other problem is shown as the error it is
+            preview['warnings' if isinstance(exc, PlanLimitError) else 'errors'] = list(exc.messages)
             return self.render_review(request, form, preview, status=200, confirming=True)
 
         # Allow subsequent runs of the same flow in the same session.
