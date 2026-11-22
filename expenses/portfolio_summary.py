@@ -22,7 +22,7 @@ from django.utils.translation import gettext as _
 
 from .account_types import STRATEGY, investment_codes, is_liability, strategy_for
 from .ledger_read_service import LedgerReadService
-from .models import Account, Holding, Loan, RecurringTransaction
+from .models import Account, FundNAVCache, Holding, Loan, RecurringTransaction
 from .services import LoanService, annotate_loan_principal_totals
 
 ZERO = Decimal('0.00')
@@ -72,16 +72,28 @@ def _holding_rows(user, accounts, balances, rate_for):
     for holding in holdings:
         by_account[holding.account_id].append(holding)
 
+    # Net worth values a holding with no recorded valuation at its fund's latest cached NAV, so the report does too
+    codes = {h.scheme_code for rows in by_account.values() for h in rows if h.scheme_code}
+    navs = dict(FundNAVCache.objects.filter(scheme_code__in=codes).values_list('scheme_code', 'latest_nav')) if codes else {}
+
     blocks, invested, tracked_current = [], ZERO, ZERO
     for account in accounts:
         rows, listed, block_cost, block_current = [], ZERO, ZERO, ZERO
+        # An account set to show what was put in is worth its cost in net worth, whatever the holdings are worth now
+        accrued = getattr(account, 'show_accrued_balance', True)
         for holding in by_account.get(account.pk, []):
-            valuation = holding.valuations.first()
+            valuation = holding.valuations.first() if accrued else None
             cost = holding.cost_basis
-            current = valuation.value_for(holding.units) if valuation else cost
+            cached_nav = navs.get(holding.scheme_code) if (accrued and not valuation and holding.scheme_code) else None
+            if valuation:
+                current = valuation.value_for(holding.units)
+            elif cached_nav is not None and holding.units:
+                current = (holding.units * cached_nav).quantize(Decimal('0.01'))
+            else:
+                current = cost
             rate = rate_for(holding.currency)
             current_base, cost_base = (current * rate).quantize(Decimal('0.01')), (cost * rate).quantize(Decimal('0.01'))
-            has_gain = bool(valuation and cost > 0)
+            has_gain = bool((valuation or (cached_nav is not None and holding.units)) and cost > 0)
             if current_base <= 0 and cost_base <= 0:
                 continue
             invested += cost_base
@@ -272,7 +284,9 @@ def build_portfolio_summary(user, today=None) -> dict:
 
     invested = holdings_invested + deposits_invested
     tracked_current = holdings_current + deposits_current
-    returns = tracked_current - invested if invested > 0 else None
+    # A gain is reported only where something has a value to set against its cost (an account shown at cost has none)
+    gain_known = any(b['gain_pct'] is not None for b in holding_blocks) or any(r['gain_pct'] is not None for r in deposit_rows)
+    returns = tracked_current - invested if (invested > 0 and gain_known) else None
     investments_value = (sum((b['total'] for b in holding_blocks), ZERO)
                          + sum((r['value'] for r in deposit_rows), ZERO))
 

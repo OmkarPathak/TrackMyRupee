@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from expenses.ledger_read_service import LedgerReadService
-from expenses.models import Account, Holding, Loan, RecurringFundSplit, RecurringTransaction, Valuation
+from expenses.models import Account, FundNAVCache, Holding, Loan, RecurringFundSplit, RecurringTransaction, Valuation
 from expenses.portfolio_summary import MONTHLY_FACTOR, build_portfolio_summary
 
 D = Decimal
@@ -120,6 +120,47 @@ class InvestmentTests(Base):
         allocation = build_portfolio_summary(self.user)['allocation']
         self.assertEqual(sum(item['percent'] for item in allocation), D('100.0'))
         self.assertEqual([item['color'] for item in allocation], [0, 1])
+
+
+class HoldingValueAgreesWithNetWorthTests(Base):
+    """A holding is worth the same in the report as in the net worth the rows are meant to add up to."""
+
+    def block(self, summary, title='Mutual Funds'):
+        return next(b for b in summary['blocks'] if b['title'] == title)
+
+    def test_a_holding_with_no_valuation_but_a_cached_nav_is_worth_units_times_that_nav(self):
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        holding = Holding.objects.create(account=funds, instrument_name='Cached Fund', units=D('10'), avg_cost=D('100'),
+                                         instrument_type='MF', currency='₹', scheme_code='999001')
+        FundNAVCache.objects.create(scheme_code='999001', latest_nav=D('120.0000'))
+        summary = build_portfolio_summary(self.user)
+        row = {r['name']: r for r in self.block(summary)['rows']}['Cached Fund']
+        self.assertEqual((row['value'], row['gain_pct']), (D('1200.00'), D('20.0')))
+        names = [r['name'] for r in self.block(summary)['rows']]
+        self.assertNotIn('Cash in this account', names)
+        self.assertEqual(sum(r['value'] for r in self.block(summary)['rows']), self.block(summary)['total'])
+        self.assertTrue(holding.pk)
+
+    def test_a_recorded_valuation_beats_the_cached_nav(self):
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        holding = self.holding(funds, 'Valued Fund', '10', '100', nav='130')
+        holding.scheme_code = '999002'
+        holding.save()
+        FundNAVCache.objects.create(scheme_code='999002', latest_nav=D('120.0000'))
+        row = {r['name']: r for r in self.block(build_portfolio_summary(self.user))['rows']}['Valued Fund']
+        self.assertEqual(row['value'], D('1300.00'))
+
+    def test_an_account_shown_at_cost_lists_its_holdings_at_cost(self):
+        """(an account with 'show accrued balance' off is worth its cost in net worth, so its rows are too)"""
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND', show_accrued_balance=False)
+        self.holding(funds, 'Winner Fund', '10', '100', nav='120')
+        summary = build_portfolio_summary(self.user)
+        block = self.block(summary)
+        row = {r['name']: r for r in block['rows']}['Winner Fund']
+        self.assertEqual((row['value'], row['gain_pct']), (D('1000.00'), None))
+        self.assertEqual(block['total'], D('1000.00'))
+        self.assertEqual(sum(r['value'] for r in block['rows']), block['total'])
+        self.assertIsNone(summary['returns'])          # (no valuation is counted, so there is no gain to report)
 
 
 class DepositTests(Base):

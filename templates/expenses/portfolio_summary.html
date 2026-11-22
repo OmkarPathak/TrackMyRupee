@@ -106,10 +106,12 @@
                     <div class="psr-label">{% trans "Invested" %}</div>
                     <div class="psr-stat-value" data-psr="invested">{{ currency }}{{ summary.invested|ind_comma_plain:currency|translate_digits }}</div>
                 </div>
+                {% if summary.returns is not None %}
                 <div>
                     <div class="psr-label">{% trans "Returns" %}</div>
                     <div class="psr-stat-value {% if summary.returns >= 0 %}psr-up{% else %}psr-down{% endif %}" data-psr="returns">{% if summary.returns < 0 %}&minus;{% else %}+{% endif %}{{ currency }}{{ summary.returns|ind_comma_plain:currency|translate_digits }}{% if summary.returns_pct is not None %}<span class="psr-stat-note">{% if summary.returns_pct >= 0 %}+{% endif %}{{ summary.returns_pct|translate_digits }}%</span>{% endif %}</div>
                 </div>
+                {% endif %}
                 {% endif %}
                 {% if summary.monthly_sip %}
                 <div>
