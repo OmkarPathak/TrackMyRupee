@@ -86,98 +86,52 @@
     </div>
 
         <div class="d-md-none">
-            <div class="row row-cols-3 g-2 mb-3">
-                <!-- 1. Income -->
+            {# Phones: two to a row, a quiet label over a large figure and a one-line note (see .tmr-stat-card in style.css) #}
+            <div class="row row-cols-2 g-2 mb-3">
                 <div class="col">
-                    <div class="tmr-edge card p-2 rounded-3 h-100 d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
-                            <i class="bi bi-arrow-down-up amount-income"></i>
-                            <span class="fw-medium text-truncate">{% trans "Income" %}</span>
-                        </div>
-                        <div class="fw-bold amount-income my-1 text-truncate" style="font-size: 0.95rem;">
-                            {{ user.profile.currency }}{{ income_amount|compact_amount:user.profile.currency|translate_digits }}
-                        </div>
-                        <div class="text-muted text-truncate" style="font-size: 0.68rem;">
-                            {{ income_count|translate_digits }} {% if income_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}
-                        </div>
+                    <div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+                        <div class="tmr-stat-label"><span class="tmr-stat-dot amount-income" aria-hidden="true"></span>{% trans "Income" %}</div>
+                        <div class="tmr-stat-value text-truncate">{{ user.profile.currency }}{{ income_amount|compact_amount:user.profile.currency|translate_digits }}</div>
+                        <div class="tmr-stat-note">{{ income_count|translate_digits }} {% if income_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}</div>
                     </div>
                 </div>
-                <!-- 2. Expenses -->
                 <div class="col">
-                    <div class="tmr-edge card p-2 rounded-3 h-100 d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
-                            <i class="bi bi-arrow-down-up amount-expense"></i>
-                            <span class="fw-medium text-truncate">{% trans "Expenses" %}</span>
-                        </div>
-                        <div class="fw-bold amount-expense my-1 text-truncate" style="font-size: 0.95rem;">
-                            {{ user.profile.currency }}{{ expense_amount|compact_amount:user.profile.currency|translate_digits }}
-                        </div>
-                        <div class="text-muted text-truncate" style="font-size: 0.68rem;">
-                            {{ expense_count|translate_digits }} {% if expense_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}
-                        </div>
+                    <div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+                        <div class="tmr-stat-label"><span class="tmr-stat-dot amount-expense" aria-hidden="true"></span>{% trans "Expenses" %}</div>
+                        <div class="tmr-stat-value text-truncate">{{ user.profile.currency }}{{ expense_amount|compact_amount:user.profile.currency|translate_digits }}</div>
+                        <div class="tmr-stat-note">{{ expense_count|translate_digits }} {% if expense_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}</div>
                     </div>
                 </div>
-                <!-- 3. Transfers -->
                 <div class="col">
-                    <div class="tmr-edge card p-2 rounded-3 h-100 d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
-                            <i class="bi bi-arrow-left-right amount-transfer"></i>
-                            <span class="text-truncate">{% trans "Transfers" %}</span>
-                        </div>
-                        <div class="fw-bold amount-transfer my-1 text-truncate" style="font-size: 0.95rem;">
-                            {{ user.profile.currency }}{{ transfer_amount|compact_amount:user.profile.currency|translate_digits }}
-                        </div>
-                        <div class="text-muted text-truncate" style="font-size: 0.68rem;">
-                            {{ transfer_count|translate_digits }} {% if transfer_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}
-                        </div>
+                    <div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+                        <div class="tmr-stat-label"><span class="tmr-stat-dot amount-transfer" aria-hidden="true"></span>{% trans "Transfers" %}</div>
+                        <div class="tmr-stat-value text-truncate">{{ user.profile.currency }}{{ transfer_amount|compact_amount:user.profile.currency|translate_digits }}</div>
+                        <div class="tmr-stat-note">{{ transfer_count|translate_digits }} {% if transfer_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}</div>
                     </div>
                 </div>
-                <!-- 4. Capital -->
                 <div class="col">
-                    <div class="tmr-edge card p-2 rounded-3 h-100 d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
-                            <i class="bi bi-flag amount-capital_event"></i>
-                            <span class="fw-medium text-truncate">{% trans "Capital" %}</span>
-                        </div>
-                        <div class="fw-bold amount-capital_event my-1 text-truncate" style="font-size: 0.95rem;">
-                            {{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}
-                        </div>
-                        <div class="text-muted text-truncate" style="font-size: 0.68rem;">
-                            {{ capital_event_count|translate_digits }} {% if capital_event_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}
-                        </div>
+                    <div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+                        <div class="tmr-stat-label"><span class="tmr-stat-dot amount-capital_event" aria-hidden="true"></span>{% trans "Capital" %}</div>
+                        <div class="tmr-stat-value text-truncate">{{ user.profile.currency }}{{ capital_event_amount|compact_amount:user.profile.currency|translate_digits }}</div>
+                        <div class="tmr-stat-note">{{ capital_event_count|translate_digits }} {% if capital_event_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}</div>
                     </div>
                 </div>
-                <!-- 5. Loans -->
                 <div class="col">
-                    <div class="tmr-edge card p-2 rounded-3 h-100 d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
-                            <i class="bi bi-shield-lock amount-loan"></i>
-                            <span class="fw-medium text-truncate">{% trans "Loans" %}</span>
-                        </div>
-                        <div class="fw-bold amount-loan my-1 text-truncate" style="font-size: 0.95rem;">
-                            {{ user.profile.currency }}{{ loan_amount|compact_amount:user.profile.currency|translate_digits }}
-                        </div>
-                        <div class="text-muted text-truncate" style="font-size: 0.68rem;">
-                            {{ loan_count|translate_digits }} {% if loan_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}
-                        </div>
+                    <div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+                        <div class="tmr-stat-label"><span class="tmr-stat-dot amount-loan" aria-hidden="true"></span>{% trans "Loans" %}</div>
+                        <div class="tmr-stat-value text-truncate">{{ user.profile.currency }}{{ loan_amount|compact_amount:user.profile.currency|translate_digits }}</div>
+                        <div class="tmr-stat-note">{{ loan_count|translate_digits }} {% if loan_count == 1 %}{% trans "entry" %}{% else %}{% trans "entries" %}{% endif %}</div>
                     </div>
                 </div>
-                <!-- 6. Net Remaining -->
                 <div class="col">
-                    <div class="tmr-edge card p-2 rounded-3 h-100 d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.7rem;">
-                            <span class="fw-medium text-truncate">{% trans "Net Remaining" %}</span>
-                        </div>
-                        <div class="fw-bold amount-income my-1 text-truncate" style="font-size: 0.95rem;">
-                            {{ user.profile.currency }}{{ net_remaining|compact_amount:user.profile.currency|translate_digits }}
-                        </div>
-                        <div class="amount-income fw-semibold text-truncate" style="font-size: 0.68rem;">
-                            {{ savings_rate|translate_digits }}% {% trans "rate" %}
-                        </div>
+                    <div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+                        <div class="tmr-stat-label">{% trans "Net Remaining" %}</div>
+                        <div class="tmr-stat-value text-truncate">{{ user.profile.currency }}{{ net_remaining|compact_amount:user.profile.currency|translate_digits }}</div>
+                        <div class="tmr-stat-note fw-semibold {% if net_remaining < 0 %}amount-expense{% else %}amount-income{% endif %}">{{ savings_rate|translate_digits }}% {% trans "rate" %}</div>
                     </div>
                 </div>
+            </div>
         </div>
-    </div>
 
     {% if filter_config %}
     {% render_filter_toolbar filter_config applied_state %}

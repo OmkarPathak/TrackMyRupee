@@ -24424,3 +24424,75 @@ msgstr "चे व्याज देतो"
 #: expenses/views/dashboard.py
 msgid "Today's Expenses"
 msgstr "आजचे खर्च"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Summary report"
+msgstr "सारांश अहवाल"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Investments and liabilities summary, to print or save as a PDF"
+msgstr "गुंतवणूक आणि देयकांचा सारांश, प्रिंट करण्यासाठी किंवा PDF म्हणून सेव्ह करण्यासाठी"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Print / Save as PDF"
+msgstr "प्रिंट करा / PDF म्हणून सेव्ह करा"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Portfolio summary"
+msgstr "पोर्टफोलिओ सारांश"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "As of %(date)s"
+msgstr "%(date)s पर्यंत"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Add an account, a holding or a loan and your summary will appear here."
+msgstr "एखादे अकाउंट, होल्डिंग किंवा कर्ज जोडा, तुमचा सारांश येथे दिसेल."
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Liabilities"
+msgstr "देयके"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Returns"
+msgstr "परतावा"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Assets by type"
+msgstr "प्रकारानुसार मालमत्ता"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Active SIPs"
+msgstr "चालू SIP"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Total"
+msgstr "एकूण"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Prepared with TrackMyRupee on %(date)s. Every figure comes from your own entries and valuations; returns are shown only where the cost is recorded, and a SIP that is not paid monthly is shown as a month's worth."
+msgstr "TrackMyRupee द्वारे %(date)s रोजी तयार केले. प्रत्येक आकडा तुमच्या स्वतःच्या नोंदी आणि मूल्यांकनातून येतो; परतावा फक्त तिथेच दिसतो जिथे खर्च नोंदवलेला आहे, आणि दर महिन्याला न कापली जाणारी SIP एका महिन्याच्या हिशोबाने दाखवली आहे."
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Cash in this account"
+msgstr "या अकाउंटमधील रोख"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "matures %(date)s"
+msgstr "%(date)s रोजी परिपक्व"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Goal savings and adjustments"
+msgstr "उद्दिष्ट बचत आणि समायोजन"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Cash (not in a fund)"
+msgstr "रोख (फंडात नाही)"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Deposits and schemes"
+msgstr "ठेवी आणि योजना"
+
+#: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
+msgid "Cash and other assets"
+msgstr "रोख आणि इतर मालमत्ता"
