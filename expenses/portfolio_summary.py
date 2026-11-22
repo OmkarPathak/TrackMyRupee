@@ -18,18 +18,19 @@ from collections import defaultdict
 from decimal import Decimal
 
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
 from .account_types import STRATEGY, investment_codes, is_liability, strategy_for
 from .ledger_read_service import LedgerReadService
-from .models import Account, Holding, Loan, RecurringTransaction
+from .models import Account, FundNAVCache, Holding, Loan, RecurringTransaction, Valuation
 from .services import LoanService, annotate_loan_principal_totals
 
 ZERO = Decimal('0.00')
 
 # A schedule's amount, as a month's worth
 MONTHLY_FACTOR = {
-    'DAILY': Decimal(30),
+    'DAILY': Decimal(365) / Decimal(12),
     'WEEKLY': Decimal(52) / Decimal(12),
     'BIWEEKLY': Decimal(26) / Decimal(12),
     'MONTHLY': Decimal(1),
@@ -64,24 +65,45 @@ def _type_labels() -> dict[str, str]:
     return labels
 
 
+def holdings_with_latest_valuation(accounts):
+    """The active holdings of ``accounts``, each with only its latest valuation loaded (a fund priced every day has
+    thousands, and the report reads one)."""
+    from django.db.models import OuterRef, Prefetch, Subquery
+    latest = Valuation.objects.filter(holding=OuterRef('holding')).order_by('-as_of_date', '-created_at').values('pk')[:1]
+    return (Holding.objects.filter(account__in=accounts, is_active=True)
+            .select_related('account')
+            .prefetch_related(Prefetch('valuations', queryset=Valuation.objects.filter(pk=Subquery(latest)))))
+
+
 def _holding_rows(user, accounts, balances, rate_for):
     """[(account, block)] for the accounts valued from their holdings, and the figures for the returns."""
-    holdings = (Holding.objects.filter(account__in=accounts, is_active=True)
-                .select_related('account').prefetch_related('valuations'))
+    holdings = holdings_with_latest_valuation(accounts)
     by_account = defaultdict(list)
     for holding in holdings:
         by_account[holding.account_id].append(holding)
 
+    # Net worth values a holding with no recorded valuation at its fund's latest cached NAV, so the report does too
+    codes = {h.scheme_code for rows in by_account.values() for h in rows if h.scheme_code}
+    navs = dict(FundNAVCache.objects.filter(scheme_code__in=codes).values_list('scheme_code', 'latest_nav')) if codes else {}
+
     blocks, invested, tracked_current = [], ZERO, ZERO
     for account in accounts:
         rows, listed, block_cost, block_current = [], ZERO, ZERO, ZERO
+        # An account set to show what was put in is worth its cost in net worth, whatever the holdings are worth now
+        accrued = getattr(account, 'show_accrued_balance', True)
         for holding in by_account.get(account.pk, []):
-            valuation = holding.valuations.first()
+            valuation = holding.valuations.first() if accrued else None
             cost = holding.cost_basis
-            current = valuation.value_for(holding.units) if valuation else cost
+            cached_nav = navs.get(holding.scheme_code) if (accrued and not valuation and holding.scheme_code) else None
+            if valuation:
+                current = valuation.value_for(holding.units)
+            elif cached_nav is not None and holding.units:
+                current = (holding.units * cached_nav).quantize(Decimal('0.01'))
+            else:
+                current = cost
             rate = rate_for(holding.currency)
             current_base, cost_base = (current * rate).quantize(Decimal('0.01')), (cost * rate).quantize(Decimal('0.01'))
-            has_gain = bool(valuation and cost > 0)
+            has_gain = bool((valuation or (cached_nav is not None and holding.units)) and cost > 0)
             if current_base <= 0 and cost_base <= 0:
                 continue
             invested += cost_base
@@ -118,10 +140,13 @@ def _deposit_rows(accounts, balances, rate_for, labels):
         if account.deposit_rate:
             subtitle = f'{subtitle} · {account.deposit_rate.normalize():f}%'
         if account.deposit_maturity_date and not account.deposit_closed_date:
-            subtitle = f'{subtitle} · ' + _('matures %(date)s') % {'date': account.deposit_maturity_date.strftime('%d %b %Y')}
+            subtitle = f'{subtitle} · ' + _('matures %(date)s') % {'date': date_format(account.deposit_maturity_date, 'd M Y')}
         gain_pct = None
         try:
-            baseline = get_baseline_deposit(account)
+            if account.account_type != 'RD' and account.deposit_principal and account.deposit_principal > 0:
+                baseline = account.deposit_principal.quantize(Decimal('0.01'))       # (what get_baseline_deposit gives, without its ledger query)
+            else:
+                baseline = get_baseline_deposit(account)
         except Exception:
             baseline = None
         if baseline is not None and baseline > 0:
@@ -140,18 +165,22 @@ def _liability_rows(user, accounts, balances, base_rate):
     for account in accounts:
         if account.linked_loan_id:
             linked_loan_ids.add(account.linked_loan_id)
-    loans = {loan.pk: loan for loan in annotate_loan_principal_totals(Loan.objects.filter(user=user, is_active=True))}
+    loans = {loan.pk: loan for loan in annotate_loan_principal_totals(Loan.objects.filter(user=user, is_active=True))
+             .prefetch_related('interest_rates')}
     for account in accounts:
         if not (is_liability(account.account_type) or strategy_for(account.account_type) == STRATEGY.LOAN_OUTSTANDING):
             continue
-        owed = -balances.get(account.pk, ZERO)
+        balance = balances.get(account.pk, ZERO)
+        # Net worth keeps what is owed on a loan account as a positive figure (the loan's outstanding principal) and a
+        # card's debt as a negative balance, so each is read the way net worth wrote it.
+        owed = abs(balance) if strategy_for(account.account_type) == STRATEGY.LOAN_OUTSTANDING else -balance
         if owed <= 0:
             continue
         loan = loans.get(account.linked_loan_id) if account.linked_loan_id else None
         subtitle = ''
         if loan:
             subtitle = loan.get_loan_type_display()
-            rate = loan.interest_rates.first()
+            rate = next(iter(loan.interest_rates.all()), None)       # (newest first, already loaded)
             if rate:
                 subtitle = f'{subtitle} · {rate.interest_rate.normalize():f}%'
         rows.append({'name': account.name, 'subtitle': subtitle, 'value': owed})
@@ -162,7 +191,7 @@ def _liability_rows(user, accounts, balances, base_rate):
         if owed <= 0:
             continue
         subtitle = loan.get_loan_type_display()
-        rate = loan.interest_rates.first()
+        rate = next(iter(loan.interest_rates.all()), None)       # (newest first, already loaded)
         if rate:
             subtitle = f'{subtitle} · {rate.interest_rate.normalize():f}%'
         rows.append({'name': loan.name, 'subtitle': subtitle, 'value': owed})
@@ -184,12 +213,14 @@ def _sip_rows(user, today, base_rate):
         total += monthly
         splits = list(schedule.fund_splits.all())
         if splits:
-            for split in splits:
-                rows.append({'name': split.holding.instrument_name, 'subtitle': schedule.to_account.name,
-                             'value': (split.amount * rate * factor).quantize(Decimal('0.01'))})
-            rest = monthly - sum((r['value'] for r in rows[-len(splits):]), ZERO)
-            if rest > Decimal('0.5'):
-                rows.append({'name': _('Cash (not in a fund)'), 'subtitle': schedule.to_account.name, 'value': rest})
+            fund_rows = [{'name': split.holding.instrument_name, 'subtitle': schedule.to_account.name,
+                          'value': (split.amount * rate * factor).quantize(Decimal('0.01'))} for split in splits]
+            rows.extend(fund_rows)
+            in_funds = sum((r['value'] for r in fund_rows), ZERO)
+            if in_funds > monthly:
+                total += in_funds - monthly         # (splits that came to more than the transfer: the total follows the rows)
+            elif monthly - in_funds > Decimal('0.5'):
+                rows.append({'name': _('Cash (not in a fund)'), 'subtitle': schedule.to_account.name, 'value': monthly - in_funds})
         else:
             rows.append({'name': schedule.description or schedule.to_account.name, 'subtitle': schedule.to_account.name,
                          'value': monthly})
@@ -249,8 +280,11 @@ def build_portfolio_summary(user, today=None) -> dict:
         liability_rows.append({'name': _('Other'), 'subtitle': '', 'value': liabilities_total - listed_liabilities})
 
     blocks.sort(key=lambda b: b['total'], reverse=True)
+    # Shares are of what is listed as held: a block that takes away from the total (an overdrawn account, a correction)
+    # has no share, and the rest add up to 100%.
+    held_total = sum((b['total'] for b in blocks if b['total'] > 0), ZERO)
     for block in blocks:
-        block['share_pct'] = _pct(block['total'], assets_total, '1')
+        block['share_pct'] = _pct(block['total'], held_total, '1') if block['total'] > 0 else None
 
     # The allocation bar: assets by account-type group (the other rows by their own label)
     allocation_totals: dict[str, Decimal] = defaultdict(Decimal)
@@ -261,15 +295,18 @@ def build_portfolio_summary(user, today=None) -> dict:
         if value > 0:
             allocation_totals[str(groups.get(account.account_type, _('Other')))] += value
     allocation = []
+    allocated_total = sum(allocation_totals.values(), ZERO)
     for name, amount in sorted(allocation_totals.items(), key=lambda kv: kv[1], reverse=True):
-        allocation.append({'label': name, 'amount': amount, 'percent': _pct(amount, assets_total, '1') or Decimal('0')})
+        allocation.append({'label': name, 'amount': amount, 'percent': _pct(amount, allocated_total, '1') or Decimal('0')})
     # Beyond the palette the smallest groups share the last colour
     for index, item in enumerate(allocation):
         item['color'] = min(index, PALETTE_SIZE - 1)
 
     invested = holdings_invested + deposits_invested
     tracked_current = holdings_current + deposits_current
-    returns = tracked_current - invested if invested > 0 else None
+    # A gain is reported only where something has a value to set against its cost (an account shown at cost has none)
+    gain_known = any(b['gain_pct'] is not None for b in holding_blocks) or any(r['gain_pct'] is not None for r in deposit_rows)
+    returns = tracked_current - invested if (invested > 0 and gain_known) else None
     investments_value = (sum((b['total'] for b in holding_blocks), ZERO)
                          + sum((r['value'] for r in deposit_rows), ZERO))
 

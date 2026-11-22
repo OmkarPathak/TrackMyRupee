@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from ..models import Account, CapitalEvent, Holding, RecurringTransaction
 from ..forms import MoneyInput
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, default_funding_account
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, UniqueAccountNameMixin, default_funding_account
 from .registry import register_flow
 
 
@@ -32,7 +32,7 @@ def _validate_deposit_dates(form, cleaned, start_key, maturity_key=None, closed_
             form.add_error(key, message)
 
 
-class SipRdFlowForm(forms.Form):
+class SipRdFlowForm(UniqueAccountNameMixin, forms.Form):
     instrument_type = forms.ChoiceField(
         choices=[('SIP', 'SIP'), ('RD', 'RD')],
         widget=forms.Select(attrs={'class': 'form-select'}),
@@ -183,7 +183,7 @@ class SipRdFlowForm(forms.Form):
         return cleaned_data
 
 
-class FdFlowForm(forms.Form):
+class FdFlowForm(UniqueAccountNameMixin, forms.Form):
     name = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'form-control'}),
         help_text=_('Display name for the fixed deposit account.'),
@@ -359,12 +359,12 @@ class FdFlowForm(forms.Form):
                     self.add_error('rd_name', _('You already have an account with this name.'))
         else:
             # The RD is for monthly payouts only: with any other choice its fields mean nothing.
-            for field in ('payout_to_rd', 'rd_name', 'rd_rate', 'rd_tenure_months'):
-                cleaned_data[field] = None if field != 'payout_to_rd' else False
+            for field in ('payout_to_rd', 'rd_name', 'rd_rate', 'rd_tenure_months', 'rd_compounding'):
+                cleaned_data[field] = False if field == 'payout_to_rd' else None
         return cleaned_data
 
 
-class PpfEpfNpsFlowForm(forms.Form):
+class PpfEpfNpsFlowForm(UniqueAccountNameMixin, forms.Form):
     scheme_type = forms.ChoiceField(
         choices=[('PPF', 'PPF'), ('EPF', 'EPF'), ('NPS', 'NPS')],
         widget=forms.Select(attrs={'class': 'form-select'}),
@@ -452,6 +452,7 @@ class PpfEpfNpsFlowForm(forms.Form):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = user
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
@@ -618,6 +619,23 @@ class SipRdFlow(Flow):
         }
 
 
+def payout_schedule_dates(data: dict, frequency: str):
+    """(start date, last processed date) of the schedules that follow a deposit's payouts.
+
+    A deposit booked on the 29th, 30th or 31st pays on that day of the month (the 30th or 28th in a short month, then back
+    to the 31st). A schedule keeps the day of its start date, so these start on the booking day itself, with that day
+    taken as already done; starting on the first payout (a clamped 28th) would pin every later payout to the 28th.
+    Any other deposit starts on its first payout, as before. Payouts that fell due before today are recorded only when
+    asked for; otherwise the schedule carries on from the next one due."""
+    booking, first = data['deposit_start_date'], data['first_payout_date']
+    historical = data.get('create_historical_entries')
+    if booking.day > 28:
+        start = booking
+        done = booking if (historical or booking > timezone.localdate()) else RecurringService.last_due_before_today(booking, frequency)
+        return start, done
+    return first, (None if historical else RecurringService.last_due_before_today(first, frequency))
+
+
 @register_flow
 class FdFlow(Flow):
     key = 'fd'
@@ -694,6 +712,7 @@ class FdFlow(Flow):
         if payout:
             frequency = RecurringService.PAYOUT_FREQUENCY[payout]
             first = data['first_payout_date']
+            payout_start, payout_done = payout_schedule_dates(data, frequency)
             steps.append(CreateStep(
                 RecurringTransaction,
                 {
@@ -705,12 +724,10 @@ class FdFlow(Flow):
                     'payout_for': '$account',
                     'source': 'Interest Income',
                     'frequency': frequency,
-                    'start_date': first,
+                    'start_date': payout_start,
                     # (a deposit booked as already closed pays out until that day)
                     'end_date': data.get('deposit_closed_date') or data['maturity_date'],
-                    # Payouts that fell due before today are recorded only when asked for; otherwise the schedule starts
-                    # from the next one due.
-                    'last_processed_date': None if data.get('create_historical_entries') else RecurringService.last_due_before_today(first, frequency),
+                    'last_processed_date': payout_done,
                     'description': _('Interest payout: %(name)s') % {'name': data['name']},
                     'is_active': True,
                 },
@@ -718,6 +735,7 @@ class FdFlow(Flow):
             ))
             if data.get('payout_to_rd'):
                 payout_end = data.get('deposit_closed_date') or data['maturity_date']
+                transfer_start, transfer_done = payout_schedule_dates(data, 'MONTHLY')
                 steps.append(CreateStep(
                     Account,
                     {
@@ -747,16 +765,23 @@ class FdFlow(Flow):
                         'to_account': '$rd',
                         'payout_for': '$account',
                         'frequency': 'MONTHLY',
-                        'start_date': first,
+                        'start_date': transfer_start,
                         # the last instalment falls before the RD matures, and the funding stops with the payouts
                         'end_date': min(payout_end, data['rd_maturity_date'] - timedelta(days=1)),
-                        'last_processed_date': None if data.get('create_historical_entries') else RecurringService.last_due_before_today(first, 'MONTHLY'),
+                        'last_processed_date': transfer_done,
                         'description': _('Interest into RD: %(name)s') % {'name': data['rd_name']},
                         'is_active': True,
                     },
                     key='rd_transfer',
                 ))
         return steps
+
+    def step_applies(self, step, cleaned_data) -> bool:
+        if step.key == 'fd_payout':
+            return bool(cleaned_data.get('interest_payout'))               # (nothing to say about a payout that is not paid out)
+        if step.key == 'fd_rd':
+            return cleaned_data.get('interest_payout') == 'MONTHLY'        # (the RD is for monthly payouts only)
+        return True
 
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)

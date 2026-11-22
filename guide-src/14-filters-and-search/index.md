@@ -129,6 +129,9 @@ It is like asking the station announcer which platform your train is on, instead
 
 ---
 
+!!! tip "Open an account from the list"
+    On All Transactions the account name on each row is a link: click it (on a phone it is a small chip under the title) to open that account.
+
 ## Related Links
 - [Adding Expenses](../03-transactions-expenses/index.md)
 - [Adding Income](../04-transactions-income/index.md)

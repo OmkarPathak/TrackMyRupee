@@ -4,7 +4,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.utils import timezone
 from django.utils.cache import patch_vary_headers
 
@@ -285,7 +285,8 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                 elif rt.transaction_type == 'CAPITAL':
                     subtype = rt.capital_subtype or 'other'
                     exists = CapitalEvent.objects.filter(
-                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, subtype=subtype
+                        Q(note=description, account=rt.account) | ~Q(note__endswith='(Recurring)'),
+                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, subtype=subtype,
                     ).exists()
                     if not exists:
                         try:
@@ -311,7 +312,15 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                     # The source is free text on a schedule; keep the matching type, else "Other"
                     # (it used to fall back to the model default, "Salary", for everything).
                     source_type = source if source in dict(Income.SOURCE_TYPE_CHOICES) else 'Other'
-                    exists = Income.objects.filter(user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source).exists()
+                    # The same entry again (a run that was cut short, or typed in by hand): the account and the description are
+                    # part of it, so two deposits paying the same interest on the same day are two entries.
+                    # An entry the person made by hand (or a setup did) for the same payment counts as the one this schedule would
+                    # post; the entries a run itself posted end in "(Recurring)", and only this schedule's own, into this account,
+                    # count: two schedules paying the same amount on the same day are two entries.
+                    exists = Income.objects.filter(
+                        Q(description=description, account=rt.account) | ~Q(description__endswith='(Recurring)'),
+                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source,
+                    ).exists()
                     if not exists:
                         try:
                             Income(

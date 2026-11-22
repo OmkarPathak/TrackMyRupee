@@ -8,11 +8,11 @@ from django.utils.translation import gettext_lazy as _
 from ..models import Account, PhysicalAsset, RecurringTransaction
 from ..forms import MoneyInput
 from ..services_recurring import RecurringService
-from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, default_funding_account
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, UniqueAccountNameMixin, default_funding_account
 from .registry import register_flow
 
 
-class InsuranceFlowForm(forms.Form):
+class InsuranceFlowForm(UniqueAccountNameMixin, forms.Form):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}), help_text=_('Policy or plan name.'))
     policy_type = forms.ChoiceField(choices=PhysicalAsset.POLICY_TYPE_SHORT_CHOICES, initial='PROTECTION', required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('Term and health cover is a cost, not an asset. Choose Savings / endowment only if the policy pays back on maturity: its premiums then count as its value.'))
     premium_amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Amount of each premium payment.'))

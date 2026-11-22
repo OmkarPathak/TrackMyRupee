@@ -28,6 +28,10 @@ def apply_filter_config(
         'sort': request.GET.get('sort', config.default_sort),
         'filters': {},
     }
+    # A page with a short list of periods (the Budget page has two months and a custom range) shows none other as chosen:
+    # a period from the address that it does not offer is the page's own default.
+    if config.time_periods and applied_state['time_period'] not in config.time_periods:
+        applied_state['time_period'] = config.default_time_range
 
     from ..periods import get_cycle_context, resolve_period
     from ..views.utils import apply_date_filters

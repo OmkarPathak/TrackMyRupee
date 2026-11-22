@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView, View
 
 from ..flows import *  # noqa: F403
-from ..flows.base import FlowSnapshot
+from ..flows.base import FlowSnapshot, PlanLimitError
 from ..flows.registry import FlowRegistry
 
 
@@ -55,6 +55,8 @@ class FlowBaseView(LoginRequiredMixin):
             return {}
 
         data = {}
+        if form.is_bound:
+            form.is_valid()              # (runs the checks, so there is cleaned data: a preview used to be made from the raw post)
         cleaned_data = getattr(form, 'cleaned_data', {})
         for k, v in cleaned_data.items():
             if v is not None:
@@ -62,7 +64,10 @@ class FlowBaseView(LoginRequiredMixin):
 
         if form.is_bound and hasattr(form, 'data'):
             for field_name, field in form.fields.items():
-                if field_name not in data or data[field_name] is None:
+                # Only a field that did not validate is read from what was posted, so the review can still show it for
+                # correcting. One the form cleaned to nothing on purpose (the RD's fields once the payout is not monthly)
+                # stays out, whatever the hidden step still holds.
+                if field_name not in cleaned_data:
                     raw_val = form.data.get(field_name)
                     if raw_val is not None and raw_val != '':
                         try:
@@ -82,7 +87,7 @@ class FlowBaseView(LoginRequiredMixin):
         is not an error yet: "This field is required" appears under every field they have not reached. Those are
         shown only when they confirm. Every other error (an invalid value, dates in the wrong order) shows at once."""
         rows = []
-        for field in form.visible_fields():
+        for field in form:               # (every field: a hidden one, like the funds of a SIP, has errors to show too)
             messages = []
             for error in field.errors.as_data():
                 if confirming or error.code != 'required':
@@ -278,7 +283,8 @@ class FlowCommitView(FlowBaseView, View):
                 process_user_recurring_transactions(request.user, force=True)
         except ValidationError as exc:
             preview = self.flow.preview(request.user, form.cleaned_data)
-            preview['warnings'] = list(exc.messages)
+            # Only a plan limit is a reason to offer the plans; any other problem is shown as the error it is
+            preview['warnings' if isinstance(exc, PlanLimitError) else 'errors'] = list(exc.messages)
             return self.render_review(request, form, preview, status=200, confirming=True)
 
         # Allow subsequent runs of the same flow in the same session.

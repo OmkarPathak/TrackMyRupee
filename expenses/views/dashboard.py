@@ -111,6 +111,10 @@ def home_view(request):
         if cached_context.get('salary_date', 1) != user_salary_date:
             cached_context = None
             cache.delete(home_cache_key)
+    if cached_context is not None and cached_context.get('built_on') != timezone.localdate().isoformat():
+        # Worked out on another day: its month, cycle and "today" figures are those of that day
+        cached_context = None
+        cache.delete(home_cache_key)
 
     # Compute once — reused both for the onboarding redirect AND the year-in-review
     # banner near the bottom of this view. On a cache hit it is derived from the cached
@@ -2335,6 +2339,7 @@ def home_view(request):
         'has_projection': has_projection,
         'projected_savings': projected_savings,
         'is_new_user': not has_any_data,
+        'built_on': timezone.localdate().isoformat(),       # the day this was worked out (a cached page is served only that day)
         'actionable_alerts': actionable_alerts,
         'smart_insights': smart_insights,
         'total_income': total_income,

@@ -10,12 +10,12 @@ from django.urls import reverse
 
 from ..models import Account, AssetValuation, CapitalEvent, Holding, Loan, PhysicalAsset, RecurringTransaction
 from ..forms import MoneyInput
-from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, default_funding_account
+from .base import CreateStep, Flow, FlowSnapshot, FlowWizardStep, UniqueAccountNameMixin, default_funding_account
 from .loan import NewLoanFlow
 from .registry import register_flow
 
 
-class CarFlowForm(forms.Form):
+class CarFlowForm(UniqueAccountNameMixin, forms.Form):
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     purchase_price = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}))
     acquisition_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
@@ -31,6 +31,7 @@ class CarFlowForm(forms.Form):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = user
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['from_account'].queryset = accounts
@@ -49,7 +50,7 @@ class CarFlowForm(forms.Form):
         return cleaned
 
 
-class GoldFlowForm(forms.Form):
+class GoldFlowForm(UniqueAccountNameMixin, forms.Form):
     route = forms.ChoiceField(choices=[('physical', _('Physical')), ('digital', _('Digital SGB'))], widget=forms.Select(attrs={'class': 'form-select'}))
     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     amount = forms.DecimalField(min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}))
@@ -59,6 +60,7 @@ class GoldFlowForm(forms.Form):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.user = user
         self.fields['from_account'].required = False
         if user:
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')

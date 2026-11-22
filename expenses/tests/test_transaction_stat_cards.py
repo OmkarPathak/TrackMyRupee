@@ -57,3 +57,31 @@ class StatCardTests(TestCase):
 
     def test_computers_keep_their_own_summary(self):
         self.assertIn('d-none d-md-', self.html)
+
+
+class NegativeNetRemainingTests(TestCase):
+    """When more went out than came in, the figure reads -₹80,000, not ₹-80,000."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('overspent', 'o@example.com', 'pw')
+        self.client.force_login(self.user)
+        account = Account.objects.create(user=self.user, name='Cash', account_type='CASH_WALLET', balance=Decimal('1000'), currency='₹')
+        today = timezone.localdate()
+        Income.objects.create(user=self.user, date=today, amount=Decimal('20000'), source='Salary', account=account, base_amount=Decimal('20000'))
+        Expense.objects.create(user=self.user, date=today, amount=Decimal('100000'), description='Big', category='Food',
+                               account=account, base_amount=Decimal('100000'))
+
+    def net_remaining_figure(self):
+        html = self.client.get(reverse('all-transactions')).content.decode()
+        block = html.split('<div class="d-md-none">', 1)[1].split('tmr-toolbar', 1)[0]
+        card = block.split('Net Remaining', 1)[1]
+        return re.search(r'tmr-stat-value[^>]*>(.*?)</div>', card, re.S).group(1)
+
+    def test_the_minus_sign_comes_before_the_currency(self):
+        figure = self.net_remaining_figure()
+        self.assertNotIn('₹-', figure)
+        self.assertNotIn('₹−', figure)
+        self.assertRegex(figure, r'[-−]\s*(<[^>]+>)*₹')
+
+    def test_the_amount_is_still_the_shortfall(self):
+        self.assertIn('80,000', self.net_remaining_figure().replace('&#x27;', ''))

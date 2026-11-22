@@ -88,3 +88,38 @@ class PhoneTests(Base):
         cards = page.locator('.tmr-stat-card:visible')
         first, last = cards.nth(0).bounding_box(), cards.nth(5).bounding_box()
         self.assertLess(last['y'] + last['height'] - first['y'], 640 * 0.40)
+
+
+class PrintTests(Base):
+    LUMINANCE = """(el) => { const [r, g, b] = getComputedStyle(el).color.match(/\\d+/g).map(Number); return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255; }"""
+
+    def printed_in_dark_mode(self):
+        page = self.new_page(self.user)
+        self.open(page, reverse('portfolio-summary'))
+        page.evaluate("document.documentElement.setAttribute('data-bs-theme', 'dark')")
+        page.emulate_media(media='print')
+        return page
+
+    def test_the_text_is_dark_on_the_white_page_even_when_the_app_is_in_dark_mode(self):
+        page = self.printed_in_dark_mode()
+        for selector in ('.psr-legend b', '.psr-block-meta b', '.psr-stat-value', '.psr-name', '.psr-big'):
+            self.assertLess(page.eval_on_selector(selector, self.LUMINANCE), 0.45, selector)
+
+    def test_the_gain_and_loss_colours_are_the_dark_print_ones(self):
+        page = self.printed_in_dark_mode()
+        self.assertLess(page.eval_on_selector('.psr-up', self.LUMINANCE), 0.45)
+
+    def test_the_total_rule_is_dark(self):
+        page = self.printed_in_dark_mode()
+        self.assertTrue(page.locator('#portfolio-summary').is_visible())
+        self.assertEqual(page.evaluate("getComputedStyle(document.querySelector('#portfolio-summary')).backgroundColor"),
+                         'rgb(255, 255, 255)')
+
+    def test_a_long_name_wraps_instead_of_running_off_the_page(self):
+        from expenses.models import Holding
+        funds = self.user.accounts.get(name='Mutual Funds')
+        Holding.objects.create(account=funds, instrument_name='Supercalifragilisticexpialidocious' * 3, units=Decimal('1'),
+                               avg_cost=Decimal('100'), instrument_type='MF', currency='₹')
+        page = self.new_page(self.user, phone=True)
+        self.open(page, reverse('portfolio-summary'))
+        self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'), page.viewport_size['width'] + 1)

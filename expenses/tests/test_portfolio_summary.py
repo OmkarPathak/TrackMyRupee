@@ -1,6 +1,6 @@
 """Accounts > Summary report: the investments and liabilities summary agrees with the net worth, shows holdings with their
 gains, deposits, loans and cards as liabilities and the active SIPs per fund, and is a page made to be printed."""
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from expenses.ledger_read_service import LedgerReadService
-from expenses.models import Account, Holding, Loan, RecurringFundSplit, RecurringTransaction, Valuation
+from expenses.models import Account, FundNAVCache, Holding, Loan, LoanInterestRate, RecurringFundSplit, RecurringTransaction, Valuation
 from expenses.portfolio_summary import MONTHLY_FACTOR, build_portfolio_summary
 
 D = Decimal
@@ -122,6 +122,82 @@ class InvestmentTests(Base):
         self.assertEqual([item['color'] for item in allocation], [0, 1])
 
 
+class HoldingValueAgreesWithNetWorthTests(Base):
+    """A holding is worth the same in the report as in the net worth the rows are meant to add up to."""
+
+    def block(self, summary, title='Mutual Funds'):
+        return next(b for b in summary['blocks'] if b['title'] == title)
+
+    def test_a_holding_with_no_valuation_but_a_cached_nav_is_worth_units_times_that_nav(self):
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        holding = Holding.objects.create(account=funds, instrument_name='Cached Fund', units=D('10'), avg_cost=D('100'),
+                                         instrument_type='MF', currency='₹', scheme_code='999001')
+        FundNAVCache.objects.create(scheme_code='999001', latest_nav=D('120.0000'))
+        summary = build_portfolio_summary(self.user)
+        row = {r['name']: r for r in self.block(summary)['rows']}['Cached Fund']
+        self.assertEqual((row['value'], row['gain_pct']), (D('1200.00'), D('20.0')))
+        names = [r['name'] for r in self.block(summary)['rows']]
+        self.assertNotIn('Cash in this account', names)
+        self.assertEqual(sum(r['value'] for r in self.block(summary)['rows']), self.block(summary)['total'])
+        self.assertTrue(holding.pk)
+
+    def test_a_recorded_valuation_beats_the_cached_nav(self):
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        holding = self.holding(funds, 'Valued Fund', '10', '100', nav='130')
+        holding.scheme_code = '999002'
+        holding.save()
+        FundNAVCache.objects.create(scheme_code='999002', latest_nav=D('120.0000'))
+        row = {r['name']: r for r in self.block(build_portfolio_summary(self.user))['rows']}['Valued Fund']
+        self.assertEqual(row['value'], D('1300.00'))
+
+    def test_an_account_shown_at_cost_lists_its_holdings_at_cost(self):
+        """(an account with 'show accrued balance' off is worth its cost in net worth, so its rows are too)"""
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND', show_accrued_balance=False)
+        self.holding(funds, 'Winner Fund', '10', '100', nav='120')
+        summary = build_portfolio_summary(self.user)
+        block = self.block(summary)
+        row = {r['name']: r for r in block['rows']}['Winner Fund']
+        self.assertEqual((row['value'], row['gain_pct']), (D('1000.00'), None))
+        self.assertEqual(block['total'], D('1000.00'))
+        self.assertEqual(sum(r['value'] for r in block['rows']), block['total'])
+        self.assertIsNone(summary['returns'])          # (no valuation is counted, so there is no gain to report)
+
+
+class PercentagesTests(Base):
+    """The allocation bar and the blocks' shares are shares of what is listed, so they add up to 100%."""
+
+    def overdrawn(self):
+        self.account('HDFC Savings', balance='120000')
+        self.account('Old Overdrawn', balance='-20000')
+
+    def test_the_bar_adds_up_to_100_when_one_account_is_overdrawn(self):
+        self.overdrawn()
+        summary = build_portfolio_summary(self.user)
+        self.assertEqual(sum(item['percent'] for item in summary['allocation']), D('100.0'))
+
+    def test_the_blocks_shares_add_up_to_100_and_none_is_negative(self):
+        self.overdrawn()
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        self.holding(funds, 'Fund', '10', '100', nav='100')
+        summary = build_portfolio_summary(self.user)
+        shares = [b['share_pct'] for b in summary['blocks'] if b['share_pct'] is not None]
+        self.assertTrue(all(share >= 0 for share in shares), shares)
+        self.assertTrue(D('99.5') <= sum(shares) <= D('100.5'), shares)
+
+    def test_a_block_that_takes_away_from_the_total_has_no_share(self):
+        self.overdrawn()
+        summary = build_portfolio_summary(self.user)
+        negative = [b for b in summary['blocks'] if b['total'] < 0]
+        self.assertTrue(all(b['share_pct'] is None for b in negative))
+
+    def test_ordinary_assets_are_unchanged(self):
+        self.account('HDFC Savings', balance='8000')
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        self.holding(funds, 'Fund', '10', '100', nav='100')
+        shares = {b['title']: b['share_pct'] for b in build_portfolio_summary(self.user)['blocks']}
+        self.assertEqual(shares, {'Cash and other assets': D('89'), 'Mutual Funds': D('11')})
+
+
 class DepositTests(Base):
     def test_a_deposit_shows_its_rate_maturity_and_value(self):
         self.account('Bank FD', 'FD', balance='100000', deposit_principal=D('100000'), deposit_rate=D('7.1'),
@@ -147,6 +223,25 @@ class LiabilityTests(Base):
         self.assertEqual(names['Home loan']['value'], D('500000.00'))
         self.assertEqual(names['Home loan']['subtitle'].split(' · ')[0], 'Home Loan')
         self.assertEqual(sum(row['value'] for row in summary['liability_rows']), summary['liabilities'])
+
+    def test_a_loan_account_linked_to_a_loan_is_listed_with_what_is_owed(self):
+        """(net worth keeps a loan account's value as a positive outstanding figure, not a negative balance)"""
+        loan = Loan.objects.create(user=self.user, name='Home loan', loan_type='HOME', initial_principal=D('500000'),
+                                   duration_months=120, start_date=self.today, currency='₹')
+        self.account('Home loan account', 'HOME_LOAN', balance='-500000', linked_loan=loan)
+        summary = build_portfolio_summary(self.user)
+        rows = {row['name']: row for row in summary['liability_rows']}
+        self.assertEqual(rows['Home loan account']['value'], D('500000.00'))
+        self.assertEqual(rows['Home loan account']['subtitle'].split(' · ')[0], 'Home Loan')
+        self.assertNotIn('Other', rows)
+        self.assertEqual(sum(row['value'] for row in summary['liability_rows']), summary['liabilities'])
+
+    def test_a_loan_account_with_no_loan_behind_it_is_listed_too(self):
+        self.account('Car loan', 'VEHICLE_LOAN', balance='-300000')
+        summary = build_portfolio_summary(self.user)
+        rows = {row['name']: row['value'] for row in summary['liability_rows']}
+        self.assertEqual(rows, {'Car loan': D('300000.00')})
+        self.assertEqual(summary['liabilities'], D('300000.00'))
 
     def test_a_loan_that_is_paid_off_is_not_listed(self):
         Loan.objects.create(user=self.user, name='Old loan', loan_type='CAR', initial_principal=D('1000'),
@@ -183,6 +278,24 @@ class SipTests(Base):
         self.sip('3000', 'QUARTERLY')
         self.assertEqual(build_portfolio_summary(self.user)['monthly_sip'], D('1000.00'))
         self.assertEqual(MONTHLY_FACTOR['YEARLY'] * 12, D(1))
+
+    def test_a_daily_schedule_is_a_365th_of_the_year_times_twelve_not_thirty_days(self):
+        self.sip('100', 'DAILY')
+        self.assertEqual(build_portfolio_summary(self.user)['monthly_sip'], D('3041.67'))
+
+    def test_a_weekly_schedule_is_52_weeks_over_12_months(self):
+        self.sip('1000', 'WEEKLY')
+        self.assertEqual(build_portfolio_summary(self.user)['monthly_sip'], D('4333.33'))
+
+    def test_splits_that_add_up_to_more_than_the_transfer_still_add_up_in_the_report(self):
+        """(the form refuses it, but data can get there; the table must not disagree with its total)"""
+        schedule = self.sip('5000')
+        second = self.holding(self.funds, 'Second Fund', '10', '100', nav='100')
+        RecurringFundSplit.objects.create(recurring=schedule, holding=self.winner, amount=D('3000'))
+        RecurringFundSplit.objects.create(recurring=schedule, holding=second, amount=D('3000'))
+        summary = build_portfolio_summary(self.user)
+        self.assertEqual(sum(r['value'] for r in summary['sip_rows']), summary['monthly_sip'])
+        self.assertEqual(summary['monthly_sip'], D('6000.00'))
 
     def test_a_schedule_that_has_ended_or_is_off_is_left_out(self):
         self.sip('5000', end_date=self.today - timedelta(days=1))
@@ -254,3 +367,79 @@ class PageTests(Base):
         with CaptureQueriesContext(connection) as large:
             self.client.get(reverse('portfolio-summary'))
         self.assertEqual(len(small), len(large), 'the number of queries grows with the number of holdings')
+
+
+class QueryCountTests(Base):
+    """What the report costs does not grow with how many accounts, deposits, loans and holdings there are."""
+
+    def count(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        with CaptureQueriesContext(connection) as queries:
+            build_portfolio_summary(self.user)
+        return len(queries)
+
+    def add_deposits(self, start, end):
+        for n in range(start, end):
+            self.account(f'FD {n}', 'FD', balance='100000', deposit_principal=D('100000'), deposit_rate=D('7'),
+                         deposit_start_date=self.today - timedelta(days=100), deposit_maturity_date=self.today + timedelta(days=265))
+
+    def add_loans(self, start, end):
+        for n in range(start, end):
+            loan = Loan.objects.create(user=self.user, name=f'Loan {n}', loan_type='PERSONAL', initial_principal=D('100000'),
+                                       duration_months=24, start_date=self.today, currency='₹')
+            LoanInterestRate.objects.create(loan=loan, interest_rate=D('9.5'), effective_date=self.today)
+
+    def test_deposits_with_a_recorded_principal_cost_no_query_each(self):
+        self.add_deposits(0, 2)
+        few = self.count()
+        self.add_deposits(2, 10)
+        self.assertEqual(self.count(), few)
+
+    def test_loans_cost_no_query_each_for_their_rates(self):
+        self.add_loans(0, 2)
+        few = self.count()
+        self.add_loans(2, 10)
+        self.assertEqual(self.count(), few)
+
+    def test_holdings_cost_no_query_each(self):
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        for n in range(2):
+            self.holding(funds, f'Fund {n}', '10', '100', nav='110')
+        few = self.count()
+        for n in range(2, 12):
+            self.holding(funds, f'Fund {n}', '10', '100', nav='110')
+        self.assertEqual(self.count(), few)
+
+    def test_only_the_latest_valuation_of_a_holding_is_loaded(self):
+        from expenses.portfolio_summary import holdings_with_latest_valuation
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        holding = self.holding(funds, 'Daily NAV Fund', '10', '100', nav='100')
+        for days in range(1, 40):
+            Valuation.objects.create(holding=holding, value=D('1000') + days, unit_nav=D('100') + days,
+                                     as_of_date=self.today - timedelta(days=days))
+        Valuation.objects.create(holding=holding, value=D('2000'), unit_nav=D('200'), as_of_date=self.today + timedelta(days=0),
+                                 )
+        loaded = list(holdings_with_latest_valuation(Account.objects.filter(pk=funds.pk)))
+        self.assertEqual(len(loaded), 1)
+        prefetched = loaded[0]._prefetched_objects_cache['valuations']
+        self.assertEqual(len(prefetched), 1)
+        self.assertEqual(prefetched[0].unit_nav, D('200'))
+
+
+class LocalisedDatesTests(Base):
+    def test_a_maturity_date_is_written_in_the_persons_language(self):
+        from django.utils import translation
+        self.account('Bank FD', 'FD', balance='100000', deposit_principal=D('100000'), deposit_rate=D('7'),
+                     deposit_start_date=date(2026, 1, 1), deposit_maturity_date=date(2027, 11, 5))
+        with translation.override('hi'):
+            summary = build_portfolio_summary(self.user)
+        row = next(r for b in summary['blocks'] for r in b['rows'] if r['name'] == 'Bank FD')
+        self.assertNotIn('Nov', row['subtitle'])
+        self.assertIn('2027', row['subtitle'])
+
+    def test_in_english_it_reads_as_before(self):
+        self.account('Bank FD', 'FD', balance='100000', deposit_principal=D('100000'), deposit_rate=D('7'),
+                     deposit_start_date=date(2026, 1, 1), deposit_maturity_date=date(2027, 11, 5))
+        row = self.rows(build_portfolio_summary(self.user), 'Deposits and schemes')['Bank FD']
+        self.assertIn('matures 05 Nov 2027', row['subtitle'])

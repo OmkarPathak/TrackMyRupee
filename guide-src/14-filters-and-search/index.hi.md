@@ -129,6 +129,9 @@ Expenses, Income और Transactions तालिकाओं में आप *
 
 ---
 
+!!! tip "सूची से खाता खोलें"
+    All Transactions में हर पंक्ति पर खाते का नाम एक लिंक है: उस पर क्लिक करें (फ़ोन पर यह शीर्षक के नीचे एक छोटी चिप है) और वह खाता खुल जाएगा।
+
 ## संबंधित लिंक
 - [व्यय जोड़ना](../03-transactions-expenses/index.md)
 - [आय जोड़ना](../04-transactions-income/index.md)

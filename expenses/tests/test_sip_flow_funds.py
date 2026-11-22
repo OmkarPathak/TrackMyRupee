@@ -207,3 +207,40 @@ class ReviewTests(Base):
     def test_other_setups_are_unaffected(self):
         response = self.client.get(reverse('flow-detail', kwargs={'key': 'fd'}))
         self.assertNotContains(response, 'flowSplitAdd')
+
+
+class ConfirmErrorTests(Base):
+    """Confirm on a form with a problem has to say what the problem is, even when the field is hidden (the funds) or on an
+    earlier step."""
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+
+    def commit_post(self, **extra):
+        post = {'instrument_type': 'SIP', 'name': 'Index SIP', 'amount': '15000', 'frequency': 'MONTHLY',
+                'from_account': self.bank.pk, 'deposit_start_date': '2026-11-01', 'deposit_compounding': 'SIMPLE',
+                'fund_splits': json.dumps([NIFTY])}
+        post.update(extra)
+        return self.client.post(reverse('flow-commit', kwargs={'key': 'sip'}), post, HTTP_HX_REQUEST='true')
+
+    def error_in(self, response, field):
+        import re
+        match = re.search(rf'id="field-errors-{field}" hx-swap-oob="true">(.*?)</div>\s*(?=<div id=|$)', response.content.decode(), re.S)
+        self.assertIsNotNone(match, f'no error spot for {field}')
+        return match.group(1)
+
+    def test_funds_adding_up_to_more_than_the_instalment_are_explained_on_confirm(self):
+        response = self.commit_post(fund_splits=json.dumps([dict(NIFTY, amount='20000')]))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('more than', self.error_in(response, 'fund_splits').lower())
+
+    def test_a_fund_typed_without_picking_a_suggestion_is_explained_on_confirm(self):
+        with patch('expenses.holdings_service.resolve_scheme_code', return_value=None):       # (no fund by that name)
+            response = self.commit_post(fund_splits=json.dumps([{'name': 'HDFC Flexi', 'amount': '5000'}]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(self.error_in(response, 'fund_splits').strip())
+
+    def test_the_error_spot_exists_on_the_page_for_the_funds_field(self):
+        html = self.client.get(reverse('flow-detail', kwargs={'key': 'sip'})).content.decode()
+        self.assertIn('id="field-errors-fund_splits"', html)

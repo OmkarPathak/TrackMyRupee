@@ -42,6 +42,39 @@ from ..cache_utils import suppress_dashboard_cache_invalidation
 from ..signals import _DASHBOARD_CACHE_MODELS, invalidate_dashboard_cache
 
 
+class PlanLimitError(ValidationError):
+    """The setup would go past what the person's plan allows (the review offers the plans), as opposed to any other
+    problem found while creating it."""
+
+
+class UniqueAccountNameMixin:
+    """For a setup form that opens an account named by one of its fields: an active account of the same person cannot
+    share that name, so the form says so on the field instead of the setup failing when it is confirmed."""
+
+    account_name_fields = ('name',)
+
+    def _already_committed(self, user) -> bool:
+        """A submission that was already confirmed (a double tap, a retry after a dropped connection) carries the same
+        key again and must be answered as the setup it made, not refused because the account it created now exists."""
+        raw = (getattr(self, 'data', None) or {}).get('idempotency_key')
+        try:
+            key = uuid.UUID(str(raw))
+        except (ValueError, TypeError):
+            return False
+        return FinancialFlow.objects.filter(user=user, idempotency_key=key).exists()
+
+    def clean(self):
+        cleaned = super().clean()
+        user = getattr(self, 'user', None)        # (the form keeps the person it was built for as self.user)
+        if user is None or self._already_committed(user):
+            return cleaned
+        for field in self.account_name_fields:
+            name = (cleaned.get(field) or '').strip()
+            if name and field not in self.errors and Account.objects.filter(user=user, is_active=True, name__iexact=name).exists():
+                self.add_error(field, _('You already have an account called "%(name)s". Choose another name.') % {'name': name})
+        return cleaned
+
+
 def default_funding_account(accounts):
     """The account a setup should offer first: the cash or bank account the person uses most (see
     form_defaults.most_used_account); with no history yet, the one called Cash, else the first."""
@@ -635,11 +668,18 @@ class Flow:
             return str(_('investment'))
         return ""
 
+    def step_applies(self, step, cleaned_data) -> bool:
+        """Whether the review lists a wizard step: a step the person's choices have switched off (the wizard does not show
+        it either) is left out, whatever its fields still hold. A setup overrides this for its own conditional steps."""
+        return True
+
     def review_context(self, user, form, cleaned_data) -> dict:
         profile = getattr(user, 'profile', None)
         currency = getattr(profile, 'currency', '₹') or '₹'
         sections = []
         for index, step in enumerate(self.get_wizard_steps(), start=1):
+            if not self.step_applies(step, cleaned_data):
+                continue
             if step.show_if:
                 if "instrument_type === 'RD'" in step.show_if and cleaned_data.get('instrument_type') != 'RD':
                     continue
@@ -667,7 +707,7 @@ class Flow:
                     val_str = str(value.name)
                     acc_cur = getattr(value, 'currency', currency)
                     subvalue = f"{_('Balance')} {acc_cur}{value.formatted_balance}"
-                elif field_name in ('annual_rate', 'interest_rate', 'deposit_rate'):
+                elif field_name in ('annual_rate', 'interest_rate', 'deposit_rate', 'rd_rate'):
                     val_str = f"{value}%"
                 elif field_name in (
                     'amount', 'principal', 'balance', 'credit_limit', 'target_amount',
@@ -678,7 +718,7 @@ class Flow:
                 ):
                     from ..utils import format_indian_number
                     val_str = f"{currency}{format_indian_number(value)}"
-                elif field_name in ('tenure_months', 'target_months'):
+                elif field_name in ('tenure_months', 'target_months', 'rd_tenure_months'):
                     val_str = f"{value} {_('months') if value != 1 else _('month')}"
                 elif field_name in ('salary_date', 'billing_day', 'payment_due_day', 'rd_installment_day'):
                     val_str = str(value)
@@ -732,7 +772,7 @@ class Flow:
         steps = self.plan(data)
         warnings = self.check_limits(user, steps)
         if warnings:
-            raise ValidationError(warnings)
+            raise PlanLimitError(warnings)
 
         spec = self._serialize_value(data)
 
