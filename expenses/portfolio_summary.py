@@ -264,8 +264,11 @@ def build_portfolio_summary(user, today=None) -> dict:
         liability_rows.append({'name': _('Other'), 'subtitle': '', 'value': liabilities_total - listed_liabilities})
 
     blocks.sort(key=lambda b: b['total'], reverse=True)
+    # Shares are of what is listed as held: a block that takes away from the total (an overdrawn account, a correction)
+    # has no share, and the rest add up to 100%.
+    held_total = sum((b['total'] for b in blocks if b['total'] > 0), ZERO)
     for block in blocks:
-        block['share_pct'] = _pct(block['total'], assets_total, '1')
+        block['share_pct'] = _pct(block['total'], held_total, '1') if block['total'] > 0 else None
 
     # The allocation bar: assets by account-type group (the other rows by their own label)
     allocation_totals: dict[str, Decimal] = defaultdict(Decimal)
@@ -276,8 +279,9 @@ def build_portfolio_summary(user, today=None) -> dict:
         if value > 0:
             allocation_totals[str(groups.get(account.account_type, _('Other')))] += value
     allocation = []
+    allocated_total = sum(allocation_totals.values(), ZERO)
     for name, amount in sorted(allocation_totals.items(), key=lambda kv: kv[1], reverse=True):
-        allocation.append({'label': name, 'amount': amount, 'percent': _pct(amount, assets_total, '1') or Decimal('0')})
+        allocation.append({'label': name, 'amount': amount, 'percent': _pct(amount, allocated_total, '1') or Decimal('0')})
     # Beyond the palette the smallest groups share the last colour
     for index, item in enumerate(allocation):
         item['color'] = min(index, PALETTE_SIZE - 1)

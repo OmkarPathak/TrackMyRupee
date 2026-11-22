@@ -163,6 +163,41 @@ class HoldingValueAgreesWithNetWorthTests(Base):
         self.assertIsNone(summary['returns'])          # (no valuation is counted, so there is no gain to report)
 
 
+class PercentagesTests(Base):
+    """The allocation bar and the blocks' shares are shares of what is listed, so they add up to 100%."""
+
+    def overdrawn(self):
+        self.account('HDFC Savings', balance='120000')
+        self.account('Old Overdrawn', balance='-20000')
+
+    def test_the_bar_adds_up_to_100_when_one_account_is_overdrawn(self):
+        self.overdrawn()
+        summary = build_portfolio_summary(self.user)
+        self.assertEqual(sum(item['percent'] for item in summary['allocation']), D('100.0'))
+
+    def test_the_blocks_shares_add_up_to_100_and_none_is_negative(self):
+        self.overdrawn()
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        self.holding(funds, 'Fund', '10', '100', nav='100')
+        summary = build_portfolio_summary(self.user)
+        shares = [b['share_pct'] for b in summary['blocks'] if b['share_pct'] is not None]
+        self.assertTrue(all(share >= 0 for share in shares), shares)
+        self.assertTrue(D('99.5') <= sum(shares) <= D('100.5'), shares)
+
+    def test_a_block_that_takes_away_from_the_total_has_no_share(self):
+        self.overdrawn()
+        summary = build_portfolio_summary(self.user)
+        negative = [b for b in summary['blocks'] if b['total'] < 0]
+        self.assertTrue(all(b['share_pct'] is None for b in negative))
+
+    def test_ordinary_assets_are_unchanged(self):
+        self.account('HDFC Savings', balance='8000')
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        self.holding(funds, 'Fund', '10', '100', nav='100')
+        shares = {b['title']: b['share_pct'] for b in build_portfolio_summary(self.user)['blocks']}
+        self.assertEqual(shares, {'Cash and other assets': D('89'), 'Mutual Funds': D('11')})
+
+
 class DepositTests(Base):
     def test_a_deposit_shows_its_rate_maturity_and_value(self):
         self.account('Bank FD', 'FD', balance='100000', deposit_principal=D('100000'), deposit_rate=D('7.1'),
