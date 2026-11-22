@@ -279,6 +279,24 @@ class SipTests(Base):
         self.assertEqual(build_portfolio_summary(self.user)['monthly_sip'], D('1000.00'))
         self.assertEqual(MONTHLY_FACTOR['YEARLY'] * 12, D(1))
 
+    def test_a_daily_schedule_is_a_365th_of_the_year_times_twelve_not_thirty_days(self):
+        self.sip('100', 'DAILY')
+        self.assertEqual(build_portfolio_summary(self.user)['monthly_sip'], D('3041.67'))
+
+    def test_a_weekly_schedule_is_52_weeks_over_12_months(self):
+        self.sip('1000', 'WEEKLY')
+        self.assertEqual(build_portfolio_summary(self.user)['monthly_sip'], D('4333.33'))
+
+    def test_splits_that_add_up_to_more_than_the_transfer_still_add_up_in_the_report(self):
+        """(the form refuses it, but data can get there; the table must not disagree with its total)"""
+        schedule = self.sip('5000')
+        second = self.holding(self.funds, 'Second Fund', '10', '100', nav='100')
+        RecurringFundSplit.objects.create(recurring=schedule, holding=self.winner, amount=D('3000'))
+        RecurringFundSplit.objects.create(recurring=schedule, holding=second, amount=D('3000'))
+        summary = build_portfolio_summary(self.user)
+        self.assertEqual(sum(r['value'] for r in summary['sip_rows']), summary['monthly_sip'])
+        self.assertEqual(summary['monthly_sip'], D('6000.00'))
+
     def test_a_schedule_that_has_ended_or_is_off_is_left_out(self):
         self.sip('5000', end_date=self.today - timedelta(days=1))
         self.sip('4000', is_active=False)

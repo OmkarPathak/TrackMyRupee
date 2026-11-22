@@ -29,7 +29,7 @@ ZERO = Decimal('0.00')
 
 # A schedule's amount, as a month's worth
 MONTHLY_FACTOR = {
-    'DAILY': Decimal(30),
+    'DAILY': Decimal(365) / Decimal(12),
     'WEEKLY': Decimal(52) / Decimal(12),
     'BIWEEKLY': Decimal(26) / Decimal(12),
     'MONTHLY': Decimal(1),
@@ -199,12 +199,14 @@ def _sip_rows(user, today, base_rate):
         total += monthly
         splits = list(schedule.fund_splits.all())
         if splits:
-            for split in splits:
-                rows.append({'name': split.holding.instrument_name, 'subtitle': schedule.to_account.name,
-                             'value': (split.amount * rate * factor).quantize(Decimal('0.01'))})
-            rest = monthly - sum((r['value'] for r in rows[-len(splits):]), ZERO)
-            if rest > Decimal('0.5'):
-                rows.append({'name': _('Cash (not in a fund)'), 'subtitle': schedule.to_account.name, 'value': rest})
+            fund_rows = [{'name': split.holding.instrument_name, 'subtitle': schedule.to_account.name,
+                          'value': (split.amount * rate * factor).quantize(Decimal('0.01'))} for split in splits]
+            rows.extend(fund_rows)
+            in_funds = sum((r['value'] for r in fund_rows), ZERO)
+            if in_funds > monthly:
+                total += in_funds - monthly         # (splits that came to more than the transfer: the total follows the rows)
+            elif monthly - in_funds > Decimal('0.5'):
+                rows.append({'name': _('Cash (not in a fund)'), 'subtitle': schedule.to_account.name, 'value': monthly - in_funds})
         else:
             rows.append({'name': schedule.description or schedule.to_account.name, 'subtitle': schedule.to_account.name,
                          'value': monthly})
