@@ -144,7 +144,10 @@ def _liability_rows(user, accounts, balances, base_rate):
     for account in accounts:
         if not (is_liability(account.account_type) or strategy_for(account.account_type) == STRATEGY.LOAN_OUTSTANDING):
             continue
-        owed = -balances.get(account.pk, ZERO)
+        balance = balances.get(account.pk, ZERO)
+        # Net worth keeps what is owed on a loan account as a positive figure (the loan's outstanding principal) and a
+        # card's debt as a negative balance, so each is read the way net worth wrote it.
+        owed = abs(balance) if strategy_for(account.account_type) == STRATEGY.LOAN_OUTSTANDING else -balance
         if owed <= 0:
             continue
         loan = loans.get(account.linked_loan_id) if account.linked_loan_id else None

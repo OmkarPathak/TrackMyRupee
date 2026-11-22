@@ -148,6 +148,25 @@ class LiabilityTests(Base):
         self.assertEqual(names['Home loan']['subtitle'].split(' · ')[0], 'Home Loan')
         self.assertEqual(sum(row['value'] for row in summary['liability_rows']), summary['liabilities'])
 
+    def test_a_loan_account_linked_to_a_loan_is_listed_with_what_is_owed(self):
+        """(net worth keeps a loan account's value as a positive outstanding figure, not a negative balance)"""
+        loan = Loan.objects.create(user=self.user, name='Home loan', loan_type='HOME', initial_principal=D('500000'),
+                                   duration_months=120, start_date=self.today, currency='₹')
+        self.account('Home loan account', 'HOME_LOAN', balance='-500000', linked_loan=loan)
+        summary = build_portfolio_summary(self.user)
+        rows = {row['name']: row for row in summary['liability_rows']}
+        self.assertEqual(rows['Home loan account']['value'], D('500000.00'))
+        self.assertEqual(rows['Home loan account']['subtitle'].split(' · ')[0], 'Home Loan')
+        self.assertNotIn('Other', rows)
+        self.assertEqual(sum(row['value'] for row in summary['liability_rows']), summary['liabilities'])
+
+    def test_a_loan_account_with_no_loan_behind_it_is_listed_too(self):
+        self.account('Car loan', 'VEHICLE_LOAN', balance='-300000')
+        summary = build_portfolio_summary(self.user)
+        rows = {row['name']: row['value'] for row in summary['liability_rows']}
+        self.assertEqual(rows, {'Car loan': D('300000.00')})
+        self.assertEqual(summary['liabilities'], D('300000.00'))
+
     def test_a_loan_that_is_paid_off_is_not_listed(self):
         Loan.objects.create(user=self.user, name='Old loan', loan_type='CAR', initial_principal=D('1000'),
                             opening_paid_principal=D('1000'), duration_months=12, start_date=self.today, currency='₹')
