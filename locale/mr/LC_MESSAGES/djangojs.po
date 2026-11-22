@@ -387,3 +387,7 @@ msgstr "मागे"
 #: static/js/tutorial.js
 msgid "{{current}} of {{total}}"
 msgstr "{{current}} / {{total}}"
+
+#: static/js/tmr_filter.js
+msgid "Today"
+msgstr "आज"

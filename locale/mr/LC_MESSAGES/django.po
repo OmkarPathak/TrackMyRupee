@@ -24420,3 +24420,7 @@ msgstr "पायऱ्या"
 #: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
 msgid "Pays out interest of"
 msgstr "चे व्याज देतो"
+
+#: expenses/views/dashboard.py
+msgid "Today's Expenses"
+msgstr "आजचे खर्च"

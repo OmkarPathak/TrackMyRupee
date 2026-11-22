@@ -298,6 +298,12 @@ def home_view(request):
             display_year = str(last_day_last_month.year)
             display_month = _(calendar.month_name[last_day_last_month.month])
 
+        elif resolved_period.key == 'today':
+            trend_title = _("Today's Expenses")
+            trend_is_daily = True
+            display_year = str(today.year)
+            display_month = _(calendar.month_name[today.month])
+
         elif resolved_period.key == 'last_3_months':
             trend_title = _("Expenses Trend (Last 3 Months)")
             trend_is_daily = False

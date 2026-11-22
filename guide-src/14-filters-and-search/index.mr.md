@@ -37,6 +37,7 @@ TrackMyRupee मधील जवळजवळ प्रत्येक याद�
 ![कालावधीचा मेनू](img/time-period-menu-desktop.webp){ loading=lazy }
 
 
+- **Today**
 - **This month**
 - **Last month**
 - **Last 3 months**

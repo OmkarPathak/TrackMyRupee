@@ -10,6 +10,8 @@ Semantics:
     When a non-default salary cycle is active (salary_date in 2..31), resolves to the
     salary cycle containing `today`. When salary_date == 1 or user has no profile,
     resolves to the current calendar month (1st of month to month-end).
+- 'today':
+    Just today: `today` to `today`. Calendar-based, whatever the salary cycle.
 - 'last_month':
     The cycle immediately preceding 'this_month' (e.g. cycle containing current_cycle_start - 1 day).
     When salary_date == 1 or no profile, resolves to the previous calendar month.
@@ -89,7 +91,10 @@ def resolve_period(
         else:
             clean_key = 'this_month'
 
-    if clean_key == 'this_month':
+    if clean_key == 'today':
+        return ResolvedPeriod(start=today, end=today, key='today', is_cycle=False)
+
+    elif clean_key == 'this_month':
         if has_custom_cycle:
             start, end = SalaryAnalysisService.get_salary_cycle_dates(user, today)
             return ResolvedPeriod(start=start, end=end, key='this_month', is_cycle=True)
