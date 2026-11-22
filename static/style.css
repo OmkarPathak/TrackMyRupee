@@ -4815,3 +4815,11 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
   font-family: "bootstrap-icons"; content: "\f282"; font-size: .7rem; font-weight: 400; color: var(--bs-secondary-color);
 }
 .navbar .no-arrow::after { display: none; }
+
+/* ── The figures at the top of All Transactions on a phone: two to a row, a quiet label over a figure and a one-line
+      note. Together they stay under 40% of the screen's height (templates/expenses/partials/_transaction_list.html) ── */
+.tmr-stat-card { padding: .6rem .9rem; gap: .1rem; justify-content: space-between; box-shadow: none; }
+.tmr-stat-label { font-size: .78rem; color: var(--bs-secondary-color); line-height: 1.2; }
+.tmr-stat-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; margin-right: .4rem; vertical-align: .05em; }
+.tmr-stat-value { font-size: 1.25rem; font-weight: 500; line-height: 1.15; letter-spacing: -.01em; color: var(--bs-body-color); }
+.tmr-stat-note { font-size: .74rem; color: var(--bs-secondary-color); line-height: 1.2; }

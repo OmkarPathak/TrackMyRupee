@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load i18n digit_filters %}
+
+{% block title %}{% trans "Summary report" %} | TrackMyRupee{% endblock %}
+
+{% block content %}
+<style>
+    /* The summary report: made to read well on a screen and to print on one A4 page or two. Colours come from the app tokens. */
+    .psr { --psr-line: rgba(26,26,24,.10); --psr-muted: var(--color-muted-text, #595855); --psr-green: var(--color-secondary, #0F7657); --psr-red: var(--color-danger, #B4402A); max-width: 1100px; margin: 0 auto; }
+    [data-bs-theme="dark"] .psr { --psr-line: rgba(255,255,255,.12); --psr-green: var(--color-success, #5DCAA5); --psr-red: #F08A78; }
+    .psr-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .psr-sheet { background: var(--bs-card-bg, var(--bs-body-bg)); border: 1px solid var(--psr-line); border-radius: 20px; padding: 2rem 2.25rem; }
+    .psr-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+    .psr-head h1 { font-size: clamp(1.5rem, 4vw, 2.1rem); font-weight: 800; letter-spacing: -.03em; margin: 0; }
+    .psr-asof { color: var(--psr-muted); font-size: .9rem; }
+    .psr-hero { display: grid; gap: 1.25rem 2.5rem; grid-template-columns: minmax(0, 1fr); align-items: end; padding-bottom: 1.5rem; border-bottom: 1px solid var(--psr-line); }
+    @media (min-width: 900px) { .psr-hero { grid-template-columns: auto minmax(0, 1fr); } }
+    .psr-label { font-size: .85rem; color: var(--psr-muted); margin-bottom: .2rem; }
+    .psr-big { font-size: clamp(2.2rem, 7vw, 3.4rem); font-weight: 800; letter-spacing: -.04em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+    .psr-big.is-negative { color: var(--psr-red); }
+    .psr-stats { display: grid; gap: 1rem 2rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (min-width: 600px) { .psr-stats { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); } }
+    .psr-stat-value { font-size: 1.35rem; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .psr-stat-note { font-size: .8rem; font-weight: 600; margin-left: .3rem; }
+    @media (max-width: 599.98px) { .psr-stat-note { display: block; margin: .1rem 0 0; } }
+    .psr-up { color: var(--psr-green); }
+    .psr-down { color: var(--psr-red); }
+    .psr-bar { display: flex; gap: 2px; height: 12px; border-radius: 99px; overflow: hidden; margin: 1.5rem 0 .7rem; }
+    .psr-bar span { display: block; height: 100%; min-width: 4px; }
+    .psr-legend { display: flex; flex-wrap: wrap; gap: .35rem 1.4rem; font-size: .85rem; color: var(--psr-muted); }
+    .psr-legend b { color: var(--bs-body-color); margin-left: .25rem; }
+    .psr-dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: .4rem; }
+    .psr-c0 { background: #1d4e63; } .psr-c1 { background: #3f8a8d; } .psr-c2 { background: #8fc1b5; }
+    .psr-c3 { background: #c9dcd3; } .psr-c4 { background: #e1b869; } .psr-c5 { background: #c68b3c; }
+    .psr-cols { display: grid; gap: 2.25rem 3rem; grid-template-columns: minmax(0, 1fr); margin-top: 2rem; }
+    @media (min-width: 900px) { .psr-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .psr-block { margin-bottom: 2rem; break-inside: avoid; }
+    .psr-block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-bottom: .55rem; border-bottom: 1px solid var(--psr-line); }
+    .psr-block-head h2 { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    .psr-block-meta { color: var(--psr-muted); font-size: .8rem; font-variant-numeric: tabular-nums; text-align: right; }
+    .psr-block-meta b { color: var(--bs-body-color); }
+    .psr-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: .6rem 0; border-bottom: 1px solid var(--psr-line); }
+    .psr-row:last-child { border-bottom: 0; }
+    .psr-name { min-width: 0; font-size: .95rem; }
+    .psr-sub { display: block; color: var(--psr-muted); font-size: .78rem; }
+    .psr-amt { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; font-size: .95rem; }
+    .psr-amt small { display: inline-block; min-width: 3.6em; font-weight: 600; margin-left: .6rem; }
+    .psr-total { display: flex; justify-content: space-between; padding-top: .7rem; font-weight: 700; border-top: 1px solid var(--bs-body-color); }
+    .psr-foot { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--psr-line); color: var(--psr-muted); font-size: .78rem; }
+    .psr-empty { text-align: center; padding: 3rem 1rem; color: var(--psr-muted); }
+    @media (max-width: 575.98px) { .psr-sheet { padding: 1.25rem 1.1rem; border-radius: 16px; } .psr-amt small { min-width: 0; } }
+
+    @page { size: A4; margin: 12mm; }
+    @media print {
+        aside#sidebar, nav.navbar, .mobile-bottom-nav, #global-fab, #cookie-consent-banner, .demo-banner, footer,
+        .no-print, .toast-container, #expense-composer, .upgrade-nudge { display: none !important; }
+        html, body { background: #fff !important; color: #111 !important; }
+        body, body.has-sidebar, body.has-sidebar.sidebar-collapsed { padding: 0 !important; margin: 0 !important; }
+        main, main .main-content-container, body.has-sidebar main .main-content-container { margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
+        .psr { max-width: none; --psr-line: #d9d9d4; --psr-muted: #555; --psr-green: #0b6b4f; --psr-red: #a3331f; }
+        .psr-sheet { border: 0; padding: 0; border-radius: 0; background: #fff; }
+        .psr-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 2rem; }
+        .psr-hero { grid-template-columns: auto minmax(0, 1fr); }
+        .psr-bar, .psr-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        a { color: inherit !important; text-decoration: none !important; }
+    }
+</style>
+
+<div class="psr">
+    <div class="psr-actions no-print">
+        <a href="{% url 'account-list' %}" class="btn btn-action-cancel"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Accounts" %}</a>
+        <button type="button" class="btn btn-action-primary" onclick="window.print()">
+            <i class="bi bi-printer me-1" aria-hidden="true"></i>{% trans "Print / Save as PDF" %}
+        </button>
+    </div>
+
+    <div class="psr-sheet" id="portfolio-summary">
+        <div class="psr-head">
+            <h1>{% trans "Portfolio summary" %}</h1>
+            <span class="psr-asof">{% blocktrans with date=summary.as_of|date:"j M Y" %}As of {{ date }}{% endblocktrans %}</span>
+        </div>
+
+        {% if summary.is_empty %}
+        <div class="psr-empty">
+            <p class="mb-3">{% trans "Add an account, a holding or a loan and your summary will appear here." %}</p>
+            <a href="{% url 'account-create' %}" class="btn btn-action-primary">{% trans "Add an account" %}</a>
+        </div>
+        {% else %}
+
+        <div class="psr-hero">
+            <div>
+                <div class="psr-label">{% trans "Net worth" %}</div>
+                <div class="psr-big {% if summary.net_worth < 0 %}is-negative{% endif %}" data-psr="net-worth">{% if summary.net_worth < 0 %}&minus;{% endif %}{{ currency }}{{ summary.net_worth|ind_comma_plain:currency|translate_digits }}</div>
+            </div>
+            <div class="psr-stats">
+                <div>
+                    <div class="psr-label">{% trans "Assets" %}</div>
+                    <div class="psr-stat-value" data-psr="assets">{{ currency }}{{ summary.assets|ind_comma_plain:currency|translate_digits }}</div>
+                </div>
+                <div>
+                    <div class="psr-label">{% trans "Liabilities" %}</div>
+                    <div class="psr-stat-value" data-psr="liabilities">{{ currency }}{{ summary.liabilities|ind_comma_plain:currency|translate_digits }}</div>
+                </div>
+                {% if summary.invested %}
+                <div>
+                    <div class="psr-label">{% trans "Invested" %}</div>
+                    <div class="psr-stat-value" data-psr="invested">{{ currency }}{{ summary.invested|ind_comma_plain:currency|translate_digits }}</div>
+                </div>
+                <div>
+                    <div class="psr-label">{% trans "Returns" %}</div>
+                    <div class="psr-stat-value {% if summary.returns >= 0 %}psr-up{% else %}psr-down{% endif %}" data-psr="returns">{% if summary.returns < 0 %}&minus;{% else %}+{% endif %}{{ currency }}{{ summary.returns|ind_comma_plain:currency|translate_digits }}{% if summary.returns_pct is not None %}<span class="psr-stat-note">{% if summary.returns_pct >= 0 %}+{% endif %}{{ summary.returns_pct|translate_digits }}%</span>{% endif %}</div>
+                </div>
+                {% endif %}
+                {% if summary.monthly_sip %}
+                <div>
+                    <div class="psr-label">{% trans "Monthly SIP" %}</div>
+                    <div class="psr-stat-value" data-psr="monthly-sip">{{ currency }}{{ summary.monthly_sip|ind_comma_plain:currency|translate_digits }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if summary.allocation %}
+        <div class="psr-bar" role="img" aria-label="{% trans 'Assets by type' %}">
+            {% for item in summary.allocation %}<span class="psr-c{{ item.color }}" style="flex: {{ item.percent|stringformat:'s' }} 1 0;" title="{{ item.label }} {{ item.percent }}%"></span>{% endfor %}
+        </div>
+        <div class="psr-legend">
+            {% for item in summary.allocation %}<span><i class="psr-dot psr-c{{ item.color }}"></i>{{ item.label }} <b>{{ item.percent|translate_digits }}%</b></span>{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="psr-cols">
+            <div>
+                {% for block in summary.blocks %}
+                <section class="psr-block" data-psr-block>
+                    <div class="psr-block-head">
+                        <h2>{{ block.title }}</h2>
+                        <span class="psr-block-meta"><b>{{ currency }}{{ block.total|ind_comma_plain:currency|translate_digits }}</b>{% if block.share_pct is not None %} &middot; {{ block.share_pct|translate_digits }}%{% endif %}{% if block.gain_pct is not None %} &middot; <span class="{% if block.gain_pct >= 0 %}psr-up{% else %}psr-down{% endif %}">{% if block.gain_pct >= 0 %}+{% endif %}{{ block.gain_pct|translate_digits }}%</span>{% endif %}</span>
+                    </div>
+                    {% for row in block.rows %}
+                    <div class="psr-row">
+                        <div class="psr-name">{{ row.name }}{% if row.subtitle %}<span class="psr-sub">{{ row.subtitle }}</span>{% endif %}</div>
+                        <div class="psr-amt">{{ currency }}{{ row.value|ind_comma_plain:currency|translate_digits }}{% if row.gain_pct is not None %}<small class="{% if row.gain_pct >= 0 %}psr-up{% else %}psr-down{% endif %}">{% if row.gain_pct >= 0 %}+{% endif %}{{ row.gain_pct|translate_digits }}%</small>{% endif %}</div>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endfor %}
+            </div>
+
+            <div>
+                {% if summary.liability_rows %}
+                <section class="psr-block" data-psr-liabilities>
+                    <div class="psr-block-head">
+                        <h2>{% trans "Liabilities" %}</h2>
+                        <span class="psr-block-meta"><b>{{ currency }}{{ summary.liabilities|ind_comma_plain:currency|translate_digits }}</b></span>
+                    </div>
+                    {% for row in summary.liability_rows %}
+                    <div class="psr-row">
+                        <div class="psr-name">{{ row.name }}{% if row.subtitle %}<span class="psr-sub">{{ row.subtitle }}</span>{% endif %}</div>
+                        <div class="psr-amt">{{ currency }}{{ row.value|ind_comma_plain:currency|translate_digits }}</div>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
+
+                {% if summary.sip_rows %}
+                <section class="psr-block" data-psr-sips>
+                    <div class="psr-block-head">
+                        <h2>{% trans "Active SIPs" %}</h2>
+                        <span class="psr-block-meta">{% trans "Monthly" %}</span>
+                    </div>
+                    {% for row in summary.sip_rows %}
+                    <div class="psr-row">
+                        <div class="psr-name">{{ row.name }}{% if row.subtitle %}<span class="psr-sub">{{ row.subtitle }}</span>{% endif %}</div>
+                        <div class="psr-amt">{{ currency }}{{ row.value|ind_comma_plain:currency|translate_digits }}</div>
+                    </div>
+                    {% endfor %}
+                    <div class="psr-total"><span>{% trans "Total" %}</span><span>{{ currency }}{{ summary.monthly_sip|ind_comma_plain:currency|translate_digits }}</span></div>
+                </section>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="psr-foot">
+            {% blocktrans with date=summary.as_of|date:"j M Y" %}Prepared with TrackMyRupee on {{ date }}. Every figure comes from your own entries and valuations; returns are shown only where the cost is recorded, and a SIP that is not paid monthly is shown as a month's worth.{% endblocktrans %}
+        </div>
+    </div>
+</div>
+{% endblock %}

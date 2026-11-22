@@ -183,6 +183,19 @@ The sparkline walks back from today's figure by each earlier month's savings, so
 
 ---
 
+## 7. Print or Save a Summary Report
+
+On the Accounts page, tap **Summary report** to open a one-page summary of everything you own and owe, as of today:
+
+- **Net worth**, with your assets and liabilities, and a bar showing how your assets are spread across types.
+- **Investments**: each fund or stock with its value and gain or loss, and your deposits and schemes (FD, RD, PPF, EPF, NPS) with their rate and maturity date.
+- **Liabilities**: your loans and credit cards, with what is still owed.
+- **Active SIPs**: each fund your recurring transfers buy, and what they add up to in a month.
+
+The figures are the same ones your net worth uses. **Invested** and **Returns** count only investments whose cost is recorded, so an account you have only entered as a balance does not distort them.
+
+Tap **Print / Save as PDF** and choose **Save as PDF** in the print window to keep a copy or share it with an adviser or your family. The menus and buttons are left out of the printout.
+
 ## Related Links
 - [Holdings and Mutual Funds Portfolio](holdings.md)
 - [Accrued vs Invested Balance View](accrued-vs-invested.md)
