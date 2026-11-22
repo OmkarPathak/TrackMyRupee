@@ -63,6 +63,8 @@ const shots = [
   { file: '01-getting-started/img/salary-cycle-desktop.webp', url: '/settings/profile/' },
   { file: '01-getting-started/img/categories-desktop.webp', url: '/category/list/' },
   { file: '02-accounts/img/accounts-list-desktop.webp', url: '/accounts/list/?sort=attention' },
+  { file: '02-accounts/img/summary-report-desktop.webp', url: '/accounts/summary/', fullPage: true, wait: 2200 },
+  { file: '01-getting-started/img/top-bar-desktop.webp', url: '/dashboard/', clipTo: 'nav.navbar' },
   { file: '02-accounts/img/add-account-desktop.webp', url: '/accounts/add/' },
   // The second part of "What kind of account is it?": the types inside one kind
   { file: '02-accounts/img/add-account-type-desktop.webp', url: '/accounts/add/', before: `
@@ -144,11 +146,16 @@ const flows = [
   ], review: 'insurance-review' },
   { key: 'sip', steps: [
     { file: 'sip-step1', values: { instrument_type: 'SIP', name: 'Nifty 50 Index Fund', amount: '5000', frequency: 'Monthly', deposit_start_date: '2026-11-05', from_account: HDFC } },
+    { file: 'sip-step2', values: {} },       // the Funds step
   ], review: 'sip-review' },
   { key: 'fd', steps: [
     { file: 'fd-step1', values: { name: 'HDFC 1-year FD', principal: '500000', annual_rate: '7.1', from_account: HDFC } },
     { file: 'fd-step2', values: { deposit_start_date: '2026-10-10', maturity_date: '2027-10-10', deposit_compounding: 'Quarterly' } },
-    { file: 'fd-step3', values: {} },
+    // The payout and recurring-deposit steps are shown with a monthly payout; the rest of the guide's FD example pays at maturity,
+    // so the choice is put back (`after`) before the Reporting step and the review.
+    { file: 'fd-step3', values: { interest_payout: 'Every month' } },
+    { file: 'fd-step4', values: { payout_to_rd: true, rd_rate: '6.5', rd_tenure_months: '12' }, after: { interest_payout: 'At maturity', payout_to_rd: false } },
+    { file: 'fd-step5', values: {} },
   ], review: 'fd-review' },
   { key: 'ppfepfnps', steps: [
     { file: 'ppfepfnps-step1', values: { scheme_type: 'PPF', name: 'PPF', annual_amount: '150000', from_account: HDFC } },
@@ -321,6 +328,7 @@ async function main() {
         if (missing.length) console.warn('  not found:', flow.key, missing.join(', '));
         await sleep(500);
         await save(step.file);
+        if (step.after) { await evaluate(FILL(step.after)); await sleep(500); }
         await evaluate(NEXT);
         await sleep(700);
       }
