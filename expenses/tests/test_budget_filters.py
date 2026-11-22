@@ -42,6 +42,29 @@ class BudgetFilterTests(Base):
         self.assertEqual([o['key'] for o in config['sort_options']], ['urgent', 'spent', 'limit', 'name'])
         self.assertTrue(BUDGET_FILTERS.calendar_months_only)
 
+    def test_a_period_the_budget_does_not_offer_is_not_shown_as_chosen(self):
+        """(?time_period=today in the address used to label the toolbar "Today" while the page showed the month)"""
+        for key in ('today', 'last_3_months', 'this_year', 'all', 'nonsense'):
+            response = self.page(time_period=key)
+            self.assertEqual(response.context['applied_state']['time_period'], 'this_month', key)
+            html = response.content.decode()
+            label = html.split('class="tmr-time-label">', 1)[1].split('</span>', 1)[0]
+            self.assertNotIn('Today', label, key)
+
+    def test_a_period_the_budget_offers_is_kept(self):
+        for key in ('this_month', 'last_month'):
+            self.assertEqual(self.page(time_period=key).context['applied_state']['time_period'], key)
+
+    def test_pages_without_a_short_list_keep_what_was_asked(self):
+        from django.test import RequestFactory
+        from expenses.filters.definitions import EXPENSE_FILTERS
+        from expenses.filters import apply_filter_config
+        from expenses.models import Expense
+        request = RequestFactory().get('/expenses/', {'time_period': 'today'})
+        request.user = self.user
+        _qs, state = apply_filter_config(Expense.objects.none(), request, EXPENSE_FILTERS)
+        self.assertEqual(state['time_period'], 'today')
+
     def test_time_period_picks_the_calendar_month(self):
         self.assertEqual(self.page().context['month_start'], CUR)
         self.assertEqual(self.page(time_period='this_month').context['month_start'], CUR)
