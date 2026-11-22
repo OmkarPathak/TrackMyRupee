@@ -4,7 +4,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.utils import timezone
 from django.utils.cache import patch_vary_headers
 
@@ -285,7 +285,8 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                 elif rt.transaction_type == 'CAPITAL':
                     subtype = rt.capital_subtype or 'other'
                     exists = CapitalEvent.objects.filter(
-                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, subtype=subtype
+                        Q(note=description) | Q(note=rt.description),
+                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, subtype=subtype, account=rt.account,
                     ).exists()
                     if not exists:
                         try:
@@ -311,7 +312,12 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                     # The source is free text on a schedule; keep the matching type, else "Other"
                     # (it used to fall back to the model default, "Salary", for everything).
                     source_type = source if source in dict(Income.SOURCE_TYPE_CHOICES) else 'Other'
-                    exists = Income.objects.filter(user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source).exists()
+                    # The same entry again (a run that was cut short, or typed in by hand): the account and the description are
+                    # part of it, so two deposits paying the same interest on the same day are two entries.
+                    exists = Income.objects.filter(
+                        Q(description=description) | Q(description=rt.description),      # (what the run posts, or the same typed by hand)
+                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source, account=rt.account,
+                    ).exists()
                     if not exists:
                         try:
                             Income(
