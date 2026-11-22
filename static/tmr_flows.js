@@ -85,6 +85,26 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
       document.addEventListener('htmx:afterSwap', () => {
         this.checkWarnings();
       });
+
+      // Confirm found a problem on a step that is not showing: go back to the first one that has it
+      document.addEventListener('htmx:afterSettle', (event) => {
+        const path = (event.detail && event.detail.pathInfo && event.detail.pathInfo.requestPath) || '';
+        if (/\/commit\/?$/.test(path)) this.goToFirstError();
+      });
+    },
+
+    goToFirstError() {
+      if (!this.isReviewStep()) return;
+      const review = this.reviewStepNumber();
+      for (let number = 1; number < review; number++) {
+        const stepEl = document.querySelector(`.wizard-step-content[data-step="${number}"]`);
+        if (!stepEl) continue;
+        const spot = Array.from(stepEl.querySelectorAll('[id^="field-errors-"]')).find((el) => el.textContent.trim());
+        if (!spot) continue;
+        this.currentStep = number;
+        this.$nextTick(() => spot.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        return;
+      }
     },
 
     setKeyboards() {

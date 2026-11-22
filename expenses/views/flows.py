@@ -82,7 +82,7 @@ class FlowBaseView(LoginRequiredMixin):
         is not an error yet: "This field is required" appears under every field they have not reached. Those are
         shown only when they confirm. Every other error (an invalid value, dates in the wrong order) shows at once."""
         rows = []
-        for field in form.visible_fields():
+        for field in form:               # (every field: a hidden one, like the funds of a SIP, has errors to show too)
             messages = []
             for error in field.errors.as_data():
                 if confirming or error.code != 'required':
