@@ -285,8 +285,8 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                 elif rt.transaction_type == 'CAPITAL':
                     subtype = rt.capital_subtype or 'other'
                     exists = CapitalEvent.objects.filter(
-                        Q(note=description) | Q(note=rt.description),
-                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, subtype=subtype, account=rt.account,
+                        Q(note=description, account=rt.account) | ~Q(note__endswith='(Recurring)'),
+                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, subtype=subtype,
                     ).exists()
                     if not exists:
                         try:
@@ -314,9 +314,12 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                     source_type = source if source in dict(Income.SOURCE_TYPE_CHOICES) else 'Other'
                     # The same entry again (a run that was cut short, or typed in by hand): the account and the description are
                     # part of it, so two deposits paying the same interest on the same day are two entries.
+                    # An entry the person made by hand (or a setup did) for the same payment counts as the one this schedule would
+                    # post; the entries a run itself posted end in "(Recurring)", and only this schedule's own, into this account,
+                    # count: two schedules paying the same amount on the same day are two entries.
                     exists = Income.objects.filter(
-                        Q(description=description) | Q(description=rt.description),      # (what the run posts, or the same typed by hand)
-                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source, account=rt.account,
+                        Q(description=description, account=rt.account) | ~Q(description__endswith='(Recurring)'),
+                        user=user, date=current_date, amount=rt.amount, currency=rt.currency, source=source,
                     ).exists()
                     if not exists:
                         try:

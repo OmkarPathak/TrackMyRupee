@@ -53,6 +53,15 @@ class IncomeTests(Base):
         process_user_recurring_transactions(self.user, force=True)
         self.assertEqual(self.posted().count(), 2)
 
+    def test_a_payment_recorded_by_hand_under_another_description_still_counts_as_the_one_due(self):
+        """(the first salary that onboarding records, whose schedule then posts under its own wording)"""
+        schedule = self.income('Monthly salary', source='Salary', amount='50000')
+        Income.objects.create(user=self.user, date=self.today, amount=D('50000'), currency='₹', source='Salary',
+                              source_type='Salary', description='Salary', account=self.bank, base_amount=D('50000'))
+        process_user_recurring_transactions(self.user, force=True)
+        self.assertEqual(self.posted().filter(source='Salary').count(), 1)
+        self.assertTrue(schedule.pk)
+
     def test_an_entry_the_person_typed_in_by_hand_for_the_same_payment_is_not_posted_again(self):
         schedule = self.income('Interest: FD one')
         Income.objects.create(user=self.user, date=self.today, amount=schedule.amount, currency='₹', source='Interest Income',
