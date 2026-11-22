@@ -126,7 +126,7 @@
                 <div class="col">
                     <div class="tmr-edge tmr-stat-card card rounded-4 h-100">
                         <div class="tmr-stat-label">{% trans "Net Remaining" %}</div>
-                        <div class="tmr-stat-value text-truncate">{{ user.profile.currency }}{{ net_remaining|compact_amount:user.profile.currency|translate_digits }}</div>
+                        <div class="tmr-stat-value text-truncate">{{ net_remaining|compact_money:user.profile.currency|translate_digits }}</div>
                         <div class="tmr-stat-note fw-semibold {% if net_remaining < 0 %}amount-expense{% else %}amount-income{% endif %}">{{ savings_rate|translate_digits }}% {% trans "rate" %}</div>
                     </div>
                 </div>
