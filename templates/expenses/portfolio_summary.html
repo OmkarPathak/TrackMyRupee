@@ -41,8 +41,8 @@
     .psr-block-meta b { color: var(--bs-body-color); }
     .psr-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: .6rem 0; border-bottom: 1px solid var(--psr-line); }
     .psr-row:last-child { border-bottom: 0; }
-    .psr-name { min-width: 0; font-size: .95rem; }
-    .psr-sub { display: block; color: var(--psr-muted); font-size: .78rem; }
+    .psr-name { min-width: 0; font-size: .95rem; overflow-wrap: anywhere; }
+    .psr-sub { display: block; color: var(--psr-muted); font-size: .78rem; overflow-wrap: anywhere; }
     .psr-amt { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; font-size: .95rem; }
     .psr-amt small { display: inline-block; min-width: 3.6em; font-weight: 600; margin-left: .6rem; }
     .psr-total { display: flex; justify-content: space-between; padding-top: .7rem; font-weight: 700; border-top: 1px solid var(--bs-body-color); }
@@ -57,8 +57,14 @@
         html, body { background: #fff !important; color: #111 !important; }
         body, body.has-sidebar, body.has-sidebar.sidebar-collapsed { padding: 0 !important; margin: 0 !important; }
         main, main .main-content-container, body.has-sidebar main .main-content-container { margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
-        .psr { max-width: none; --psr-line: #d9d9d4; --psr-muted: #555; --psr-green: #0b6b4f; --psr-red: #a3331f; }
-        .psr-sheet { border: 0; padding: 0; border-radius: 0; background: #fff; }
+        /* Paper is white whatever the app's theme: the colours (and the text colour the figures borrow from the theme) are set
+           for it with a selector that outranks the dark-mode one */
+        html .psr, html[data-bs-theme] .psr {
+            max-width: none; color: #111 !important;
+            --psr-line: #d9d9d4 !important; --psr-muted: #555 !important; --psr-green: #0b6b4f !important; --psr-red: #a3331f !important;
+            --bs-body-color: #111 !important; --bs-card-bg: #fff !important; --bs-body-bg: #fff !important;
+        }
+        .psr-sheet { border: 0; padding: 0; border-radius: 0; background: #fff !important; }
         .psr-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 2rem; }
         .psr-hero { grid-template-columns: auto minmax(0, 1fr); }
         .psr-bar, .psr-dot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }

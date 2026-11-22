@@ -1,6 +1,6 @@
 """Accounts > Summary report: the investments and liabilities summary agrees with the net worth, shows holdings with their
 gains, deposits, loans and cards as liabilities and the active SIPs per fund, and is a page made to be printed."""
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -425,3 +425,21 @@ class QueryCountTests(Base):
         prefetched = loaded[0]._prefetched_objects_cache['valuations']
         self.assertEqual(len(prefetched), 1)
         self.assertEqual(prefetched[0].unit_nav, D('200'))
+
+
+class LocalisedDatesTests(Base):
+    def test_a_maturity_date_is_written_in_the_persons_language(self):
+        from django.utils import translation
+        self.account('Bank FD', 'FD', balance='100000', deposit_principal=D('100000'), deposit_rate=D('7'),
+                     deposit_start_date=date(2026, 1, 1), deposit_maturity_date=date(2027, 11, 5))
+        with translation.override('hi'):
+            summary = build_portfolio_summary(self.user)
+        row = next(r for b in summary['blocks'] for r in b['rows'] if r['name'] == 'Bank FD')
+        self.assertNotIn('Nov', row['subtitle'])
+        self.assertIn('2027', row['subtitle'])
+
+    def test_in_english_it_reads_as_before(self):
+        self.account('Bank FD', 'FD', balance='100000', deposit_principal=D('100000'), deposit_rate=D('7'),
+                     deposit_start_date=date(2026, 1, 1), deposit_maturity_date=date(2027, 11, 5))
+        row = self.rows(build_portfolio_summary(self.user), 'Deposits and schemes')['Bank FD']
+        self.assertIn('matures 05 Nov 2027', row['subtitle'])

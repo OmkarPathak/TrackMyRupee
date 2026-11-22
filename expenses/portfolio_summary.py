@@ -18,6 +18,7 @@ from collections import defaultdict
 from decimal import Decimal
 
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
 from .account_types import STRATEGY, investment_codes, is_liability, strategy_for
@@ -139,7 +140,7 @@ def _deposit_rows(accounts, balances, rate_for, labels):
         if account.deposit_rate:
             subtitle = f'{subtitle} · {account.deposit_rate.normalize():f}%'
         if account.deposit_maturity_date and not account.deposit_closed_date:
-            subtitle = f'{subtitle} · ' + _('matures %(date)s') % {'date': account.deposit_maturity_date.strftime('%d %b %Y')}
+            subtitle = f'{subtitle} · ' + _('matures %(date)s') % {'date': date_format(account.deposit_maturity_date, 'd M Y')}
         gain_pct = None
         try:
             if account.account_type != 'RD' and account.deposit_principal and account.deposit_principal > 0:
