@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from expenses.ledger_read_service import LedgerReadService
-from expenses.models import Account, FundNAVCache, Holding, Loan, RecurringFundSplit, RecurringTransaction, Valuation
+from expenses.models import Account, FundNAVCache, Holding, Loan, LoanInterestRate, RecurringFundSplit, RecurringTransaction, Valuation
 from expenses.portfolio_summary import MONTHLY_FACTOR, build_portfolio_summary
 
 D = Decimal
@@ -367,3 +367,61 @@ class PageTests(Base):
         with CaptureQueriesContext(connection) as large:
             self.client.get(reverse('portfolio-summary'))
         self.assertEqual(len(small), len(large), 'the number of queries grows with the number of holdings')
+
+
+class QueryCountTests(Base):
+    """What the report costs does not grow with how many accounts, deposits, loans and holdings there are."""
+
+    def count(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        with CaptureQueriesContext(connection) as queries:
+            build_portfolio_summary(self.user)
+        return len(queries)
+
+    def add_deposits(self, start, end):
+        for n in range(start, end):
+            self.account(f'FD {n}', 'FD', balance='100000', deposit_principal=D('100000'), deposit_rate=D('7'),
+                         deposit_start_date=self.today - timedelta(days=100), deposit_maturity_date=self.today + timedelta(days=265))
+
+    def add_loans(self, start, end):
+        for n in range(start, end):
+            loan = Loan.objects.create(user=self.user, name=f'Loan {n}', loan_type='PERSONAL', initial_principal=D('100000'),
+                                       duration_months=24, start_date=self.today, currency='₹')
+            LoanInterestRate.objects.create(loan=loan, interest_rate=D('9.5'), effective_date=self.today)
+
+    def test_deposits_with_a_recorded_principal_cost_no_query_each(self):
+        self.add_deposits(0, 2)
+        few = self.count()
+        self.add_deposits(2, 10)
+        self.assertEqual(self.count(), few)
+
+    def test_loans_cost_no_query_each_for_their_rates(self):
+        self.add_loans(0, 2)
+        few = self.count()
+        self.add_loans(2, 10)
+        self.assertEqual(self.count(), few)
+
+    def test_holdings_cost_no_query_each(self):
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        for n in range(2):
+            self.holding(funds, f'Fund {n}', '10', '100', nav='110')
+        few = self.count()
+        for n in range(2, 12):
+            self.holding(funds, f'Fund {n}', '10', '100', nav='110')
+        self.assertEqual(self.count(), few)
+
+    def test_only_the_latest_valuation_of_a_holding_is_loaded(self):
+        from expenses.portfolio_summary import holdings_with_latest_valuation
+        funds = self.account('Mutual Funds', 'MUTUAL_FUND')
+        holding = self.holding(funds, 'Daily NAV Fund', '10', '100', nav='100')
+        for days in range(1, 40):
+            Valuation.objects.create(holding=holding, value=D('1000') + days, unit_nav=D('100') + days,
+                                     as_of_date=self.today - timedelta(days=days))
+        Valuation.objects.create(holding=holding, value=D('2000'), unit_nav=D('200'), as_of_date=self.today + timedelta(days=0),
+                                 )
+        loaded = list(holdings_with_latest_valuation(Account.objects.filter(pk=funds.pk)))
+        self.assertEqual(len(loaded), 1)
+        prefetched = loaded[0]._prefetched_objects_cache['valuations']
+        self.assertEqual(len(prefetched), 1)
+        self.assertEqual(prefetched[0].unit_nav, D('200'))

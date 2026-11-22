@@ -22,7 +22,7 @@ from django.utils.translation import gettext as _
 
 from .account_types import STRATEGY, investment_codes, is_liability, strategy_for
 from .ledger_read_service import LedgerReadService
-from .models import Account, FundNAVCache, Holding, Loan, RecurringTransaction
+from .models import Account, FundNAVCache, Holding, Loan, RecurringTransaction, Valuation
 from .services import LoanService, annotate_loan_principal_totals
 
 ZERO = Decimal('0.00')
@@ -64,10 +64,19 @@ def _type_labels() -> dict[str, str]:
     return labels
 
 
+def holdings_with_latest_valuation(accounts):
+    """The active holdings of ``accounts``, each with only its latest valuation loaded (a fund priced every day has
+    thousands, and the report reads one)."""
+    from django.db.models import OuterRef, Prefetch, Subquery
+    latest = Valuation.objects.filter(holding=OuterRef('holding')).order_by('-as_of_date', '-created_at').values('pk')[:1]
+    return (Holding.objects.filter(account__in=accounts, is_active=True)
+            .select_related('account')
+            .prefetch_related(Prefetch('valuations', queryset=Valuation.objects.filter(pk=Subquery(latest)))))
+
+
 def _holding_rows(user, accounts, balances, rate_for):
     """[(account, block)] for the accounts valued from their holdings, and the figures for the returns."""
-    holdings = (Holding.objects.filter(account__in=accounts, is_active=True)
-                .select_related('account').prefetch_related('valuations'))
+    holdings = holdings_with_latest_valuation(accounts)
     by_account = defaultdict(list)
     for holding in holdings:
         by_account[holding.account_id].append(holding)
@@ -133,7 +142,10 @@ def _deposit_rows(accounts, balances, rate_for, labels):
             subtitle = f'{subtitle} · ' + _('matures %(date)s') % {'date': account.deposit_maturity_date.strftime('%d %b %Y')}
         gain_pct = None
         try:
-            baseline = get_baseline_deposit(account)
+            if account.account_type != 'RD' and account.deposit_principal and account.deposit_principal > 0:
+                baseline = account.deposit_principal.quantize(Decimal('0.01'))       # (what get_baseline_deposit gives, without its ledger query)
+            else:
+                baseline = get_baseline_deposit(account)
         except Exception:
             baseline = None
         if baseline is not None and baseline > 0:
@@ -152,7 +164,8 @@ def _liability_rows(user, accounts, balances, base_rate):
     for account in accounts:
         if account.linked_loan_id:
             linked_loan_ids.add(account.linked_loan_id)
-    loans = {loan.pk: loan for loan in annotate_loan_principal_totals(Loan.objects.filter(user=user, is_active=True))}
+    loans = {loan.pk: loan for loan in annotate_loan_principal_totals(Loan.objects.filter(user=user, is_active=True))
+             .prefetch_related('interest_rates')}
     for account in accounts:
         if not (is_liability(account.account_type) or strategy_for(account.account_type) == STRATEGY.LOAN_OUTSTANDING):
             continue
@@ -166,7 +179,7 @@ def _liability_rows(user, accounts, balances, base_rate):
         subtitle = ''
         if loan:
             subtitle = loan.get_loan_type_display()
-            rate = loan.interest_rates.first()
+            rate = next(iter(loan.interest_rates.all()), None)       # (newest first, already loaded)
             if rate:
                 subtitle = f'{subtitle} · {rate.interest_rate.normalize():f}%'
         rows.append({'name': account.name, 'subtitle': subtitle, 'value': owed})
@@ -177,7 +190,7 @@ def _liability_rows(user, accounts, balances, base_rate):
         if owed <= 0:
             continue
         subtitle = loan.get_loan_type_display()
-        rate = loan.interest_rates.first()
+        rate = next(iter(loan.interest_rates.all()), None)       # (newest first, already loaded)
         if rate:
             subtitle = f'{subtitle} · {rate.interest_rate.normalize():f}%'
         rows.append({'name': loan.name, 'subtitle': subtitle, 'value': owed})
