@@ -668,11 +668,18 @@ class Flow:
             return str(_('investment'))
         return ""
 
+    def step_applies(self, step, cleaned_data) -> bool:
+        """Whether the review lists a wizard step: a step the person's choices have switched off (the wizard does not show
+        it either) is left out, whatever its fields still hold. A setup overrides this for its own conditional steps."""
+        return True
+
     def review_context(self, user, form, cleaned_data) -> dict:
         profile = getattr(user, 'profile', None)
         currency = getattr(profile, 'currency', '₹') or '₹'
         sections = []
         for index, step in enumerate(self.get_wizard_steps(), start=1):
+            if not self.step_applies(step, cleaned_data):
+                continue
             if step.show_if:
                 if "instrument_type === 'RD'" in step.show_if and cleaned_data.get('instrument_type') != 'RD':
                     continue
@@ -700,7 +707,7 @@ class Flow:
                     val_str = str(value.name)
                     acc_cur = getattr(value, 'currency', currency)
                     subvalue = f"{_('Balance')} {acc_cur}{value.formatted_balance}"
-                elif field_name in ('annual_rate', 'interest_rate', 'deposit_rate'):
+                elif field_name in ('annual_rate', 'interest_rate', 'deposit_rate', 'rd_rate'):
                     val_str = f"{value}%"
                 elif field_name in (
                     'amount', 'principal', 'balance', 'credit_limit', 'target_amount',
@@ -711,7 +718,7 @@ class Flow:
                 ):
                     from ..utils import format_indian_number
                     val_str = f"{currency}{format_indian_number(value)}"
-                elif field_name in ('tenure_months', 'target_months'):
+                elif field_name in ('tenure_months', 'target_months', 'rd_tenure_months'):
                     val_str = f"{value} {_('months') if value != 1 else _('month')}"
                 elif field_name in ('salary_date', 'billing_day', 'payment_due_day', 'rd_installment_day'):
                     val_str = str(value)

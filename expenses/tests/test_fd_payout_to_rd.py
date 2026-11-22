@@ -305,3 +305,40 @@ class StepTests(Base):
     def test_the_rd_step_has_a_circle_for_the_phone(self):
         html = self.client.get(reverse('flow-detail', kwargs={'key': 'fd'})).content.decode()
         self.assertIn('data-title="Recurring deposit"', html)
+
+
+class ReviewCardTests(Base):
+    """The review screen's cards: the RD's figures are written as figures, and a step that does not apply is not listed."""
+
+    def review(self, **overrides):
+        data = {k: (v.pk if hasattr(v, 'pk') else v) for k, v in self.payload(**overrides).items()}
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('flow-preview', kwargs={'key': 'fd'}), data)
+        self.assertEqual(response.status_code, 200)
+        return response.context['review']
+
+    def cards(self, review):
+        return {str(section['title']): {str(i['label']): i['value'] for i in section['items']} for section in review['sections']}
+
+    def test_the_rd_rate_is_a_percentage_and_the_tenure_is_in_months(self):
+        card = self.cards(self.review())['Recurring deposit']
+        self.assertEqual(card['RD interest rate (% a year)'], '6.5%')
+        self.assertEqual(card['RD tenure (months)'], '36 months')
+
+    def test_the_other_rates_are_unchanged(self):
+        basics = self.cards(self.review())['Deposit Basics']
+        self.assertEqual(basics['Annual Rate'], '7.5%')
+
+    def test_a_payout_that_is_not_monthly_leaves_the_rd_card_off_the_review(self):
+        """(the RD's fields are still posted from the step that is not showing, and the form puts them aside)"""
+        review = self.review(interest_payout='', payout_to_rd='')
+        self.assertNotIn('Recurring deposit', self.cards(review))
+        self.assertNotIn('Interest payout', self.cards(review))
+
+    def test_a_monthly_payout_without_the_rd_option_shows_only_that_choice(self):
+        card = self.cards(self.review(payout_to_rd='')).get('Recurring deposit', {})
+        self.assertEqual(card, {'Put each payout into a recurring deposit (RD)': 'No'})
+
+    def test_a_value_that_failed_validation_is_still_shown_so_it_can_be_corrected(self):
+        review = self.review(annual_rate='not a number')
+        self.assertIn('Deposit Basics', self.cards(review))

@@ -359,8 +359,8 @@ class FdFlowForm(UniqueAccountNameMixin, forms.Form):
                     self.add_error('rd_name', _('You already have an account with this name.'))
         else:
             # The RD is for monthly payouts only: with any other choice its fields mean nothing.
-            for field in ('payout_to_rd', 'rd_name', 'rd_rate', 'rd_tenure_months'):
-                cleaned_data[field] = None if field != 'payout_to_rd' else False
+            for field in ('payout_to_rd', 'rd_name', 'rd_rate', 'rd_tenure_months', 'rd_compounding'):
+                cleaned_data[field] = False if field == 'payout_to_rd' else None
         return cleaned_data
 
 
@@ -775,6 +775,13 @@ class FdFlow(Flow):
                     key='rd_transfer',
                 ))
         return steps
+
+    def step_applies(self, step, cleaned_data) -> bool:
+        if step.key == 'fd_payout':
+            return bool(cleaned_data.get('interest_payout'))               # (nothing to say about a payout that is not paid out)
+        if step.key == 'fd_rd':
+            return cleaned_data.get('interest_payout') == 'MONTHLY'        # (the RD is for monthly payouts only)
+        return True
 
     def derive(self, cleaned_data) -> dict:
         data = dict(cleaned_data)

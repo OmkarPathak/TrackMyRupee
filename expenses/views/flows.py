@@ -55,6 +55,8 @@ class FlowBaseView(LoginRequiredMixin):
             return {}
 
         data = {}
+        if form.is_bound:
+            form.is_valid()              # (runs the checks, so there is cleaned data: a preview used to be made from the raw post)
         cleaned_data = getattr(form, 'cleaned_data', {})
         for k, v in cleaned_data.items():
             if v is not None:
@@ -62,7 +64,10 @@ class FlowBaseView(LoginRequiredMixin):
 
         if form.is_bound and hasattr(form, 'data'):
             for field_name, field in form.fields.items():
-                if field_name not in data or data[field_name] is None:
+                # Only a field that did not validate is read from what was posted, so the review can still show it for
+                # correcting. One the form cleaned to nothing on purpose (the RD's fields once the payout is not monthly)
+                # stays out, whatever the hidden step still holds.
+                if field_name not in cleaned_data:
                     raw_val = form.data.get(field_name)
                     if raw_val is not None and raw_val != '':
                         try:
