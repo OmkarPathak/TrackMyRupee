@@ -37,6 +37,7 @@ Click the time period button (it starts out showing **This month**). A small men
 ![The time period menu](img/time-period-menu-desktop.webp){ loading=lazy }
 
 
+- **Today**
 - **This month**
 - **Last month**
 - **Last 3 months**

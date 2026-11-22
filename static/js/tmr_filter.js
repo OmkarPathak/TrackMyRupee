@@ -346,6 +346,9 @@ class TMRFilterSystem {
         if (this.state.time_period === 'custom') {
           labelSpan.textContent = this.formatDateRange(this.state.start_date, this.state.end_date);
           if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
+        } else if (this.state.time_period === 'today') {
+          labelSpan.textContent = gettext('Today');
+          if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
         } else if (this.state.cycle_active) {
           if (this.state.time_period === 'this_month' && this.state.cycle_range) {
             labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">${gettext('Salary Cycle')} •&nbsp;</span>${escapeHtml(this.state.cycle_range)}`;
@@ -966,6 +969,7 @@ class TMRFilterSystem {
     const last3Start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
     const defaultLast3Range = `${formatShort(last3Start)} – ${formatShort(now)}`;
     const defaultThisYearRange = '01 Jan – 31 Dec';
+    const todayRange = formatShort(now);
 
     const calMonthRange = this.state.calendar_month_range || defaultCalMonthRange;
     const lastMonthRange = this.state.last_month_range || defaultLastMonthRange;
@@ -1032,6 +1036,19 @@ class TMRFilterSystem {
         </div>
 
         <!-- Calendar options -->
+        <li class="tmr-popover-item ${currentKey === 'today' ? 'selected' : ''}" data-time-key="today">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'today' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">${gettext('Today')}</span>
+            </div>
+            <span class="tmr-item-range">${todayRange}</span>
+          </div>
+        </li>
+
         <li class="tmr-popover-item ${currentKey === 'calendar_month' ? 'selected' : ''}" data-time-key="calendar_month">
           <div class="tmr-item-main">
             <div class="tmr-item-left">
@@ -1112,6 +1129,19 @@ class TMRFilterSystem {
       `;
 
       listHtml = `
+        <li class="tmr-popover-item ${currentKey === 'today' ? 'selected' : ''}" data-time-key="today">
+          <div class="tmr-item-main">
+            <div class="tmr-item-left">
+              ${currentKey === 'today' 
+                ? '<span class="tmr-check-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>' 
+                : '<span class="tmr-check-spacer"></span>'
+              }
+              <span class="tmr-item-label">${gettext('Today')}</span>
+            </div>
+            <span class="tmr-item-range">${todayRange}</span>
+          </div>
+        </li>
+
         <li class="tmr-popover-item ${currentKey === 'this_month' ? 'selected' : ''}" data-time-key="this_month">
           <div class="tmr-item-main">
             <div class="tmr-item-left">
@@ -1292,6 +1322,8 @@ class TMRFilterSystem {
                   ? `<span class="tmr-cycle-prefix d-none d-md-inline">${gettext('Previous Cycle')} •&nbsp;</span>${escapeHtml(this.state.prev_cycle_range)}` 
                   : gettext('Previous Cycle');
                 isCycle = true;
+              } else if (key === 'today') {
+                labelSpan.textContent = gettext('Today');
               } else if (key === 'calendar_month') {
                 labelSpan.innerHTML = this.state.calendar_month_range 
                   ? `<span class="tmr-cycle-prefix d-none d-md-inline">${gettext('Calendar Month')} •&nbsp;</span>${escapeHtml(this.state.calendar_month_range)}` 
@@ -1304,7 +1336,9 @@ class TMRFilterSystem {
                 labelSpan.textContent = gettext('All time');
               }
             } else {
-              if (key === 'this_month') {
+              if (key === 'today') {
+                labelSpan.textContent = gettext('Today');
+              } else if (key === 'this_month') {
                 labelSpan.textContent = gettext('This month');
               } else if (key === 'last_month') {
                 labelSpan.textContent = gettext('Last month');

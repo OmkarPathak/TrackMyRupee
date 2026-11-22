@@ -24357,3 +24357,7 @@ msgstr "चरण"
 #: expenses/flows/investment.py templates/flows/detail.html expenses/models.py
 msgid "Pays out interest of"
 msgstr "का ब्याज देता है"
+
+#: expenses/views/dashboard.py
+msgid "Today's Expenses"
+msgstr "आज के खर्च"

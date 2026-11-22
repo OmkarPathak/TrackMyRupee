@@ -37,6 +37,7 @@ TrackMyRupee की लगभग हर सूची में ऊपर यह�
 ![समय अवधि का मेनू](img/time-period-menu-desktop.webp){ loading=lazy }
 
 
+- **Today**
 - **This month**
 - **Last month**
 - **Last 3 months**

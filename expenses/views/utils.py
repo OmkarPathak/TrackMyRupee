@@ -83,7 +83,7 @@ def apply_date_filters(queryset, request, date_field='date'):
     """
     Applies time_period, start_date, or end_date filtering to a queryset.
     Delegates to the unified resolve_period resolver.
-    time_period can be: 'this_month', 'last_month', 'last_3_months', 'this_year', 'all', 'custom'
+    time_period can be: 'today', 'this_month', 'last_month', 'last_3_months', 'this_year', 'all', 'custom'
     """
     from ..periods import resolve_period
 
