@@ -63,7 +63,7 @@ Every Flow follows the same three moves.
 
 ### Step 1: Fill in the details
 
-The form is split into short steps with a progress label such as **Step 1 of 2**. Each field has a line of help text underneath it in plain language. Fields marked optional can be skipped.
+The form is split into short steps with a progress label such as **Step 1 of 2**. Each field has a line of help text underneath it in plain language. Fields marked optional can be skipped. On a phone the steps are shown as numbered circles with the current step's name written out. The account fields start on the cash or bank account you use most.
 
 ### Step 2: Review
 
@@ -77,6 +77,8 @@ Before anything is saved, you land on a **Review** screen. It shows:
 ### Step 3: Confirm
 
 Press **Confirm and create**. You are taken to the Dashboard with a success message, and everything is in place. Nothing is created until you press this button, so you can always press **Back** or **Cancel** safely.
+
+If Confirm finds a problem, you are taken back to the first step that has one, and the message is shown under the field. A name you already use for another account is refused on the name field.
 
 !!! example "Think of it like a restaurant bill"
     The Review screen is the itemised bill that comes to the table before you pay. You can see every item, question anything that looks off, and only then hand over the card.

@@ -125,7 +125,7 @@ If you prefer the classic way, use **Enter details manually**, then fill in:
 1. **Amount** (required): The amount you spent. The box on its left shows the currency; click it to pick another (type to search). Digits are grouped as you type, the way that currency is written (`100000` shows as **1,00,000** for the rupee and **100,000** for others), and the plain number is what is saved.
 2. **Category** (required): The spending category, such as Food, Transport, or Bills.
 3. **Description** (optional): A short note about what you spent on.
-4. **Account**: The account the money came from. **Required.** It is pre-selected for you (the one you used last, or your first account). If you clear it, the form shows "Select the account this was paid from" under the field and nothing is saved, so every expense is always taken out of an account. If you have no account yet, add one first from **Accounts**. Expenses saved before this rule that have no account keep working; pick an account when you next edit one and its balance is charged then.
+4. **Account**: The account the money came from. **Required.** It is pre-selected for you (the account you paid from last, else the cash or bank account you use most, else Cash). If you clear it, the form shows "Select the account this was paid from" under the field and nothing is saved, so every expense is always taken out of an account. If you have no account yet, add one first from **Accounts**. Expenses saved before this rule that have no account keep working; pick an account when you next edit one and its balance is charged then.
 5. **Date**: Defaults to today.
 6. **Payment Method**: Tap one of Cash, Credit Card, Debit Card, UPI, or NetBanking.
 

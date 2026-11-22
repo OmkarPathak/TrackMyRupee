@@ -124,6 +124,9 @@ If you ever have more active subscriptions than your plan allows (for example af
 
 ---
 
+!!! tip "A transfer that buys several funds"
+    In the list, a transfer into an investment account that buys more than one fund shows **3 funds** (or however many). Click it to see how much of each instalment buys each fund, in a window on a computer and a sheet from the bottom on a phone.
+
 ## Related Links
 - [Adding Expenses](../03-transactions-expenses/index.md)
 - [Adding Income](../04-transactions-income/index.md)

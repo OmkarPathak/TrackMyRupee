@@ -40,6 +40,19 @@ The first time you open the Dashboard after the wizard, a short tour points out 
 
 The bottom bar names each page under its icon: **Dashboard**, **Transactions**, **Accounts** and **More**, with the **+** button beside it for adding things. **More** holds everything else, in two groups: **Everyday** (Expenses, Income, Budgets, Subscriptions, Calendar, Analytics) and **Money & plans** (Holdings, Loans, Goals, Big purchases, Family, Guided Setup). Alerts, Settings, Legal, Theme and Logout sit underneath.
 
+
+### Help, one tap away
+
+**Help** in the top bar (on a computer) or in **More** (on a phone) opens the guide page for the page you are on, in your language, in a new tab.
+
+![The top bar, with Help beside Add and the alerts bell](img/top-bar-desktop.webp){ loading=lazy }
+
+Empty pages, a failed import and the Contact page link to the guide too.
+
+### Rounded amounts
+
+Large amounts are shown rounded, such as **₹2.3L**. Tap or click one to see the exact figure, such as ₹2,31,233, in a small tip.
+
 ---
 
 ## 3. Setting the Salary Cycle Start Date

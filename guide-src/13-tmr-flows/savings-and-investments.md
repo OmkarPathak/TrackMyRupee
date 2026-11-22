@@ -47,6 +47,9 @@ Use it any time you start a regular monthly investment. It takes about a minute.
 
 **Step 2: Funds** (appears only when you choose **SIP**; optional)
 
+![The Funds step](img/sip-step2-desktop.webp){ loading=lazy width="560" }
+
+
 Choose which funds each instalment buys. Skip it if you only want the account and the schedule for now; you can add funds later by editing the schedule.
 
 | Field | What to enter |
@@ -141,6 +144,9 @@ Use it when you book a new fixed deposit. It takes about a minute.
 
 **Step 3: Interest payout**
 
+![Interest payout step](img/fd-step3-desktop.webp){ loading=lazy width="560" }
+
+
 Does your bank pay the interest out to you, for example every month, instead of adding it to the deposit? Say so here.
 
 | Field | What to enter |
@@ -151,6 +157,9 @@ Does your bank pay the interest out to you, for example every month, instead of 
 | **Record the payouts already received** | Off by default. If the FD started in the past, turn on to also record the payouts that have fallen due since. They are added to the account that receives the interest, so leave it off if that account's balance already includes them. |
 
 **Step 4: Recurring deposit**
+
+![Recurring deposit step](img/fd-step4-desktop.webp){ loading=lazy width="560" }
+
 
 Shown only when the interest is paid out **every month**. You can move each payout, on the day it arrives, into a new recurring deposit (RD), so the interest earns interest too.
 
@@ -165,7 +174,7 @@ Shown only when the interest is paid out **every month**. You can move each payo
 **Step 5: Reporting**
 
 
-![Reporting step](img/fd-step3-desktop.webp){ loading=lazy width="560" }
+![Reporting step](img/fd-step5-desktop.webp){ loading=lazy width="560" }
 
 
 | Field | What to enter |
@@ -194,6 +203,9 @@ The last tab summarises what will be created, with the headline figure at the to
 
 The Review screen shows a quick estimate of the amount you will receive at maturity, such as *₹5,35,000 at maturity*.
 
+!!! note "A deposit booked on the 29th, 30th or 31st"
+    Its payouts, and the RD transfer, keep to that day of the month: the 30th or the 28th in a short month, then back to the 31st. They do not settle on the 28th after the first short month.
+
 !!! example "Real-world use case"
     Sunita books a ₹5,00,000 FD at 7% for one year on 10 October, funded from her savings account, with quarterly compounding.
 
@@ -203,6 +215,9 @@ The Review screen shows a quick estimate of the amount you will receive at matur
 
 !!! note "Dates are checked for you"
     The form will not accept a maturity date that is on or before the start date, or a closed date that is earlier than the start date. The same checks apply to RDs and to PPF / EPF / NPS, including their end dates.
+
+!!! warning "A name you already use"
+    Each account needs its own name. If you already have an active account called "SBI FD", the form says so on the **Name** field and nothing is created. Closed accounts do not count.
 
 !!! warning "Why did my bank balance drop?"
     That is the funding entry doing its job. The principal really did leave your savings account on the day you booked the FD. It reappears as an FD balance, so your net worth stays the same.

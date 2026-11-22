@@ -112,6 +112,8 @@ Accounts पृष्ठ पर **Summary report** दबाएँ। आज क
 
 **Print / Save as PDF** दबाएँ और प्रिंट विंडो में **Save as PDF** चुनें, ताकि आप एक प्रति रख सकें या किसी सलाहकार या परिवार को भेज सकें। मेन्यू और बटन प्रिंट में शामिल नहीं होते।
 
+![सारांश रिपोर्ट](img/summary-report-desktop.webp){ loading=lazy }
+
 ## संबंधित लिंक
 - [होल्डिंग्स और म्यूचुअल फंड पोर्टफोलियो](holdings.hi.md)
 - [शुरुआत करें](../01-getting-started/index.hi.md)
