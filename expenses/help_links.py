@@ -1,8 +1,7 @@
 """Which page of the user guide (docs.trackmyrupee.com) explains the page the person is on.
 
-The help button in the top bar and the phone's More menu open the guide for the current page in a side panel
-(templates/components/help_panel.html). `help_page` below is what they open: a docs path and a title. A page with no
-entry of its own opens the guide's front page.
+The Help link in the top bar and the phone's More menu open the guide page for the current page in a new tab.
+`help_page` below is what they open: a docs path and a title. A page with no entry of its own opens the guide's front page.
 """
 from __future__ import annotations
 
@@ -23,7 +22,6 @@ EXACT = {
     'pricing': ('23-plans-and-billing/', _('Plans and billing')),
     'payment-history': ('23-plans-and-billing/', _('Plans and billing')),
     'notification-list': ('16-notifications/', _('Notifications')),
-    'insights-settings': ('18-insights/', _('Insights')),
     'settings-home': ('01-getting-started/', _('Getting started')),
     'contact': ('22-faq/', _('Frequently asked questions')),
 }

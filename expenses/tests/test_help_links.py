@@ -185,3 +185,19 @@ class GuideLinkTrackingTests(TestCase):
         self.assertIn("localStorage.getItem('cookieConsent') === 'accepted'", script)
         for word in ('email', 'username', 'amount'):
             self.assertNotIn(word, script.split('*/', 1)[1])
+
+
+class MappingHonestyTests(TestCase):
+    def test_every_named_page_in_the_mapping_is_a_real_url(self):
+        from django.urls import get_resolver
+        real = {name for name in get_resolver().reverse_dict if isinstance(name, str)}
+        unknown = [name for name in help_links.EXACT if name not in real]
+        self.assertEqual(unknown, [])
+
+    def test_a_post_only_endpoint_is_not_mapped_as_if_it_were_a_page(self):
+        self.assertNotIn('insights-settings', help_links.EXACT)
+
+    def test_the_comments_describe_what_the_links_do(self):
+        text = Path(help_links.__file__).read_text() + (Path(__file__).resolve().parents[2] / 'templates' / 'components' / 'help_link.html').read_text()
+        self.assertNotIn('help_panel', text)
+        self.assertNotIn('side panel', text)
