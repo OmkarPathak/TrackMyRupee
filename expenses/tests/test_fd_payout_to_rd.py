@@ -342,3 +342,34 @@ class ReviewCardTests(Base):
     def test_a_value_that_failed_validation_is_still_shown_so_it_can_be_corrected(self):
         review = self.review(annual_rate='not a number')
         self.assertIn('Deposit Basics', self.cards(review))
+
+
+class PayoutCurrencyTests(Base):
+    """The interest is recorded in the deposit's currency, so the account that receives it must hold that currency."""
+
+    def setUp(self):
+        super().setUp()
+        self.usd = Account.objects.create(user=self.user, name='Dollar Account', account_type='SAVINGS_ACCOUNT',
+                                          balance=D('1000'), currency='$')
+
+    def form(self, **overrides):
+        return FlowRegistry.get('fd').form_class(data=self.payload(**overrides), user=self.user)
+
+    def test_a_payout_into_an_account_in_another_currency_is_refused_on_that_field(self):
+        form = self.form(payout_account=self.usd)
+        self.assertFalse(form.is_valid())
+        self.assertIn('payout_account', form.errors)
+        self.assertIn('same currency', str(form.errors['payout_account']))
+
+    def test_the_same_currency_is_fine(self):
+        self.assertTrue(self.form(payout_account=self.bank).is_valid())
+
+    def test_no_payout_means_nothing_to_check(self):
+        self.assertTrue(self.form(interest_payout='', payout_to_rd='', payout_account=self.usd).is_valid())
+
+    def test_leaving_the_account_empty_uses_the_funding_account_so_it_is_fine(self):
+        self.assertTrue(self.form(payout_account='').is_valid())
+
+    def test_a_dollar_deposit_can_pay_into_a_dollar_account(self):
+        form = self.form(from_account=self.usd, payout_account=self.usd, payout_to_rd='')
+        self.assertTrue(form.is_valid(), dict(form.errors))

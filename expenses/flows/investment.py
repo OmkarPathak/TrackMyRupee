@@ -337,6 +337,11 @@ class FdFlowForm(UniqueAccountNameMixin, forms.Form):
         cleaned_data = super().clean()
         _validate_deposit_dates(self, cleaned_data, 'deposit_start_date', 'maturity_date', 'deposit_closed_date')
         if cleaned_data.get('interest_payout'):
+            payout_account, funding = cleaned_data.get('payout_account'), cleaned_data.get('from_account')
+            if payout_account and funding and payout_account.currency != funding.currency:
+                # The payouts are recorded in the deposit's currency (the funding account's), and money is not converted between
+                # two accounts here, so the account that receives them has to hold that currency.
+                self.add_error('payout_account', _('The account that receives the interest must be in the same currency as the deposit (%(currency)s).') % {'currency': funding.currency})
             rate = cleaned_data.get('annual_rate')
             if rate is not None and rate <= 0 and not cleaned_data.get('payout_amount'):
                 self.add_error('annual_rate', _('Enter the interest rate, or the amount each payout, for a deposit that pays interest out.'))
