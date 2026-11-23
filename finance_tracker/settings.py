@@ -396,7 +396,7 @@ GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID')
 POSTHOG_API_KEY = os.environ.get('POSTHOG_API_KEY')
 POSTHOG_HOST = os.environ.get('POSTHOG_HOST', 'https://us.i.posthog.com')
 
-# The user guide the help panel and help links open (a mkdocs site; a page in another language sits under /hi/, /mr/).
+# The user guide the help links open (a mkdocs site; a page in another language sits under /hi/, /mr/).
 DOCS_BASE_URL = os.environ.get('DOCS_BASE_URL', 'https://docs.trackmyrupee.com').rstrip('/')
 
 # Sign up with email + username; log in with either (allauth >= 65.4 settings).

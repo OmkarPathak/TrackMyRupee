@@ -391,3 +391,11 @@ msgstr "{{current}} / {{total}}"
 #: static/js/tmr_filter.js
 msgid "Today"
 msgstr "आज"
+
+#: static/js/tmr_filter.js
+msgid "Last 6 months"
+msgstr "पिछले 6 महीने"
+
+#: static/js/tmr_filter.js
+msgid "Last Calendar Month"
+msgstr "पिछला कैलेंडर महीना"

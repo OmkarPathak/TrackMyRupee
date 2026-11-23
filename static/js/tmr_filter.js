@@ -359,20 +359,14 @@ class TMRFilterSystem {
           } else if (this.state.time_period === 'calendar_month' && this.state.calendar_month_range) {
             labelSpan.innerHTML = `<span class="tmr-cycle-prefix d-none d-md-inline">${gettext('Calendar Month')} •&nbsp;</span>${escapeHtml(this.state.calendar_month_range)}`;
             if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
+          } else {
+            const plain = this.plainPeriodLabel(this.state.time_period);
+            if (plain) labelSpan.textContent = plain;
           }
         } else {
           if (timeIcon) timeIcon.className = 'bi bi-calendar3 tmr-btn-icon';
-          if (this.state.time_period === 'this_month') {
-            labelSpan.textContent = gettext('This month');
-          } else if (this.state.time_period === 'last_month') {
-            labelSpan.textContent = gettext('Last month');
-          } else if (this.state.time_period === 'last_3_months') {
-            labelSpan.textContent = 'Last 3 months';
-          } else if (this.state.time_period === 'this_year') {
-            labelSpan.textContent = gettext('This year');
-          } else if (this.state.time_period === 'all') {
-            labelSpan.textContent = gettext('All time');
-          }
+          const plain = this.plainPeriodLabel(this.state.time_period);
+          if (plain) labelSpan.textContent = plain;
         }
       }
       if (this.state.cycle_active && this.state.cycle_range) {
@@ -946,6 +940,22 @@ class TMRFilterSystem {
     return s[(v - 20) % 10] || s[v] || s[0];
   }
 
+  // The words on the time button for a period that is not a salary cycle: every place that writes the label uses these, so a
+  // period reads the same however it was reached and is translated the same way
+  plainPeriodLabel(key) {
+    const labels = {
+      today: gettext('Today'),
+      this_month: gettext('This month'),
+      last_month: gettext('Last month'),
+      last_3_months: gettext('Last 3 months'),
+      last_6_months: gettext('Last 6 months'),
+      this_year: gettext('This year'),
+      all: gettext('All time'),
+      calendar_last_month: gettext('Last Calendar Month'),
+    };
+    return labels[key] || '';
+  }
+
   // --- Popover 3: Time Period Menu ---
   toggleTimePopover(anchorEl) {
     const salaryDate = this.state.salary_date || 1;
@@ -1322,33 +1332,15 @@ class TMRFilterSystem {
                   ? `<span class="tmr-cycle-prefix d-none d-md-inline">${gettext('Previous Cycle')} •&nbsp;</span>${escapeHtml(this.state.prev_cycle_range)}` 
                   : gettext('Previous Cycle');
                 isCycle = true;
-              } else if (key === 'today') {
-                labelSpan.textContent = gettext('Today');
               } else if (key === 'calendar_month') {
                 labelSpan.innerHTML = this.state.calendar_month_range 
                   ? `<span class="tmr-cycle-prefix d-none d-md-inline">${gettext('Calendar Month')} •&nbsp;</span>${escapeHtml(this.state.calendar_month_range)}` 
                   : gettext('Calendar Month');
-              } else if (key === 'last_3_months') {
-                labelSpan.textContent = 'Last 3 months';
-              } else if (key === 'this_year') {
-                labelSpan.textContent = gettext('This year');
-              } else if (key === 'all') {
-                labelSpan.textContent = gettext('All time');
+              } else {
+                labelSpan.textContent = this.plainPeriodLabel(key);
               }
             } else {
-              if (key === 'today') {
-                labelSpan.textContent = gettext('Today');
-              } else if (key === 'this_month') {
-                labelSpan.textContent = gettext('This month');
-              } else if (key === 'last_month') {
-                labelSpan.textContent = gettext('Last month');
-              } else if (key === 'last_3_months') {
-                labelSpan.textContent = 'Last 3 months';
-              } else if (key === 'this_year') {
-                labelSpan.textContent = gettext('This year');
-              } else if (key === 'all') {
-                labelSpan.textContent = gettext('All time');
-              }
+              labelSpan.textContent = this.plainPeriodLabel(key);
             }
 
             if (timeIcon) {
