@@ -1799,8 +1799,10 @@ class TransferForm(SearchableSelectFormMixin, forms.ModelForm):
                     if last.from_account_id in ids and last.to_account_id in ids:
                         self.fields['from_account'].initial = last.from_account_id
                         self.fields['to_account'].initial = last.to_account_id
-                elif not self.is_bound:
-                    busiest = most_used_account(accounts_qs)       # no earlier move: pay from the account they use most
+                if not self.fields['from_account'].initial and not self.is_bound:
+                    # No earlier move, or its accounts cannot be picked any more (closed, or beyond the plan): pay from the
+                    # account they use most
+                    busiest = most_used_account(accounts_qs)
                     if busiest:
                         self.fields['from_account'].initial = busiest.pk
             # {account id: currency}, for the currency segment next to the amount
