@@ -92,6 +92,6 @@ class LoanFormHeaderTests(TestCase):
         html = self.client.get(reverse('loan-create')).content.decode()
         self.assertIn('Add New Loan', html)
         self.assertNotIn('bi-arrow-left', html.split('Need guidance')[0].split('Add New Loan')[-1])
-        link = re.search(r'<a href="https://docs\.trackmyrupee\.com/08-loans/"[^>]*data-docs-src="loan_form"[^>]*>', html).group(0)
+        link = re.search(r'<a href="https://docs\.trackmyrupee\.com/08-loans/[^"]*"[^>]*data-docs-src="loan_form"[^>]*>', html).group(0)
         for css in ('d-inline-flex', 'align-items-center'):
             self.assertIn(css, link)
