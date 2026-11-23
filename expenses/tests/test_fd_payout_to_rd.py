@@ -373,3 +373,41 @@ class PayoutCurrencyTests(Base):
     def test_a_dollar_deposit_can_pay_into_a_dollar_account(self):
         form = self.form(from_account=self.usd, payout_account=self.usd, payout_to_rd='')
         self.assertTrue(form.is_valid(), dict(form.errors))
+
+
+class MaturityBeforeFirstPayoutTests(Base):
+    """A deposit that matures before its first payout would record nothing, so the form says so instead of making a schedule."""
+
+    def form(self, **overrides):
+        return FlowRegistry.get('fd').form_class(data=self.payload(**overrides), user=self.user)
+
+    def test_a_yearly_payout_on_a_six_month_deposit_is_refused(self):
+        form = self.form(interest_payout='ANNUAL', payout_to_rd='', maturity_date=(self.start + relativedelta(months=6)).isoformat())
+        self.assertFalse(form.is_valid())
+        self.assertIn('interest_payout', form.errors)
+        self.assertIn('matures before', str(form.errors['interest_payout']))
+
+    def test_a_monthly_payout_on_a_deposit_that_matures_within_the_month_is_refused(self):
+        form = self.form(payout_to_rd='', maturity_date=(self.start + relativedelta(days=10)).isoformat())
+        self.assertFalse(form.is_valid())
+        self.assertIn('interest_payout', form.errors)
+
+    def test_maturing_on_the_day_of_the_first_payout_is_fine(self):
+        form = self.form(payout_to_rd='', maturity_date=self.first.isoformat())
+        self.assertTrue(form.is_valid(), dict(form.errors))
+
+    def test_a_deposit_that_pays_at_maturity_is_not_checked(self):
+        form = self.form(interest_payout='', payout_to_rd='', maturity_date=(self.start + relativedelta(days=10)).isoformat())
+        self.assertTrue(form.is_valid(), dict(form.errors))
+
+    def test_a_deposit_booked_as_already_closed_is_not_refused_for_it(self):
+        """(it may have been closed before any payout fell due; the person is only recording it)"""
+        form = self.form(payout_to_rd='', maturity_date=(self.start + relativedelta(days=10)).isoformat(),
+                         deposit_closed_date=(self.start + relativedelta(days=5)).isoformat())
+        self.assertTrue(form.is_valid(), dict(form.errors))
+
+    def test_the_other_checks_on_the_dates_still_come_first(self):
+        form = self.form(payout_to_rd='', maturity_date=(self.start - relativedelta(days=1)).isoformat())
+        self.assertFalse(form.is_valid())
+        self.assertIn('maturity_date', form.errors)
+        self.assertNotIn('interest_payout', form.errors)
