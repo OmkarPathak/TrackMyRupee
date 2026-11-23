@@ -101,3 +101,34 @@ class MenuTests(TestCase):
         for suffix in ('', '.hi', '.mr'):
             text = (ROOT / 'guide-src' / '14-filters-and-search' / f'index{suffix}.md').read_text()
             self.assertIn('- **Today**\n- **This month**', text, suffix or 'en')
+
+
+class TodaysDateComesFromTheServerTests(TestCase):
+    """The date beside "Today" in the menu is the server's, like the other ranges, not whatever day the browser's clock says."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('clockwatcher', password='pw')
+
+    def test_the_cycle_context_has_it(self):
+        from expenses.periods import get_cycle_context
+        for salary_date in (1, 15):
+            self.user.profile.salary_date = salary_date
+            self.user.profile.save()
+            self.assertEqual(get_cycle_context(self.user, today=date(2026, 11, 2))['today_range'], '02 Nov', salary_date)
+
+    def test_every_page_with_the_toolbar_hands_it_to_the_script(self):
+        self.client.force_login(self.user)
+        today = timezone.localdate().strftime('%d %b')
+        for name in ('all-transactions', 'expense-list', 'income-list'):
+            response = self.client.get(reverse(name))
+            state = response.context.get('applied_state') or {}
+            self.assertEqual(state.get('today_range'), today, name)
+
+    def test_a_page_whose_period_is_fixed_leaves_it_empty(self):
+        from django.test import RequestFactory
+        from expenses.filters import apply_filter_config
+        from expenses.filters.definitions import BUDGET_FILTERS
+        request = RequestFactory().get('/budget/')
+        request.user = self.user
+        _qs, state = apply_filter_config(Expense.objects.none(), request, BUDGET_FILTERS)
+        self.assertIn('today_range', state)

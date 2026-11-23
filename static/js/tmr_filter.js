@@ -110,6 +110,7 @@ class TMRFilterSystem {
       calendar_month_range: s.calendar_month_range !== undefined ? s.calendar_month_range : (rawState.calendar_month_range || ''),
       last_month_range: s.last_month_range !== undefined ? s.last_month_range : (rawState.last_month_range || ''),
       last_3_months_range: s.last_3_months_range !== undefined ? s.last_3_months_range : (rawState.last_3_months_range || ''),
+      today_range: s.today_range !== undefined ? s.today_range : (rawState.today_range || ''),
       this_year_range: s.this_year_range !== undefined ? s.this_year_range : (rawState.this_year_range || ''),
       cycle_day: s.cycle_day !== undefined ? s.cycle_day : (rawState.cycle_day || 0),
       cycle_total_days: s.cycle_total_days !== undefined ? s.cycle_total_days : (rawState.cycle_total_days || 0),
@@ -979,7 +980,7 @@ class TMRFilterSystem {
     const last3Start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
     const defaultLast3Range = `${formatShort(last3Start)} – ${formatShort(now)}`;
     const defaultThisYearRange = '01 Jan – 31 Dec';
-    const todayRange = formatShort(now);
+    const todayRange = this.state.today_range || formatShort(now);          // (the server's day, like the other ranges)
 
     const calMonthRange = this.state.calendar_month_range || defaultCalMonthRange;
     const lastMonthRange = this.state.last_month_range || defaultLastMonthRange;

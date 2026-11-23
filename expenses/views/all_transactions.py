@@ -277,6 +277,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             'calendar_month_range': cycle_ctx['calendar_month_range'],
             'last_month_range': cycle_ctx['last_month_range'],
             'last_3_months_range': cycle_ctx['last_3_months_range'],
+            'today_range': cycle_ctx['today_range'],
             'this_year_range': cycle_ctx['this_year_range'],
             'cycle_day': cycle_ctx['cycle_day'],
             'cycle_total_days': cycle_ctx['cycle_total_days'],

@@ -202,6 +202,7 @@ def get_cycle_context(user: Any = None, today: Optional[date] = None) -> dict:
     last_90_start = today - timedelta(days=90)
     last_3_months_range = f"{last_90_start.strftime('%d %b')} – {today.strftime('%d %b')}"
     this_year_range = "01 Jan – 31 Dec"
+    today_range = today.strftime('%d %b')
 
     if has_custom_cycle:
         c_start, c_end = SalaryAnalysisService.get_salary_cycle_dates(user, today)
@@ -223,6 +224,7 @@ def get_cycle_context(user: Any = None, today: Optional[date] = None) -> dict:
             'calendar_month_range': calendar_month_range,
             'last_month_range': last_month_range,
             'last_3_months_range': last_3_months_range,
+            'today_range': today_range,
             'this_year_range': this_year_range,
             'cycle_day': elapsed_days,
             'cycle_total_days': total_days,
@@ -241,6 +243,7 @@ def get_cycle_context(user: Any = None, today: Optional[date] = None) -> dict:
         'calendar_month_range': calendar_month_range,
         'last_month_range': last_month_range,
         'last_3_months_range': last_3_months_range,
+        'today_range': today_range,
         'this_year_range': this_year_range,
         'cycle_day': 0,
         'cycle_total_days': 0,
