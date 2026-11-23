@@ -365,3 +365,12 @@ document.addEventListener('htmx:beforeRequest', (event) => {
     icon.classList.add('bi-check-circle-fill');
   }
 });
+
+// A Confirm that found a problem (or could not be sent) leaves the button where it was: put its icon back
+['htmx:afterRequest', 'htmx:sendError', 'htmx:timeout'].forEach((name) => {
+  document.addEventListener(name, (event) => {
+    const btn = event.target && event.target.matches && event.target.matches('[data-confirm-btn]') ? event.target : null;
+    const icon = btn && btn.querySelector('i');
+    if (icon) icon.classList.remove('bi-check-circle-fill');
+  });
+});

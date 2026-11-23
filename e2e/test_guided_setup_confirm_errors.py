@@ -66,3 +66,15 @@ class SipFundsTests(Base):
         self.confirm(page)
         self.wait_until(lambda: self.current_step_key(page) != 'review', 'still on the review', seconds=15)
         self.assertTrue(page.locator('#field-errors-fund_splits').is_visible())
+
+
+class ConfirmButtonTests(Base):
+    def test_the_confirm_button_goes_back_to_its_icon_after_a_confirm_that_found_a_problem(self):
+        page = self.new_page(self.user)
+        self.sip_with_funds_adding_up_to_more(page)
+        self.confirm(page)
+        self.wait_until(lambda: self.current_step_key(page) != 'review', 'still on the review', seconds=15)
+        classes = page.evaluate("""[...document.querySelectorAll('[data-confirm-btn] i')].map((i) => i.className)""")
+        self.assertTrue(classes)
+        for name in classes:
+            self.assertNotIn('bi-check-circle-fill', name)

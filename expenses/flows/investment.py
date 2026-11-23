@@ -138,7 +138,7 @@ class SipRdFlowForm(UniqueAccountNameMixin, forms.Form):
     )
 
     # JSON built by the page: [{"name", "scheme_code", "amount"}], the funds each instalment buys (SIP only).
-    fund_splits = forms.CharField(required=False, label=_('Funds'), widget=forms.HiddenInput())
+    fund_splits = forms.CharField(required=False, max_length=50000, label=_('Funds'), widget=forms.HiddenInput())
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
