@@ -1,4 +1,4 @@
-{% load static i18n digit_filters %}
+{% load static i18n digit_filters %}{% load help_tags %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -1979,7 +1979,7 @@
                 </div>
                 <div class="mt-4 d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
                     <a href="{% url 'features' %}#family" class="btn-primary-landing">{% trans "How family sharing works" %} <i class="bi bi-arrow-right"></i></a>
-                    <a href="https://docs.trackmyrupee.com/24-family-sharing/" data-docs-path="24-family-sharing/" data-docs-src="landing-family" class="btn-secondary-landing">{% trans "Read the guide" %}</a>
+                    <a href="{% docs_url '24-family-sharing/' 'landing-family' %}" data-docs-path="24-family-sharing/" data-docs-src="landing-family" class="btn-secondary-landing">{% trans "Read the guide" %}</a>
                 </div>
             </div>
             <div class="col-lg-6 order-lg-1">

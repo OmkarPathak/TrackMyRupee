@@ -8,6 +8,7 @@ import math
 from dateutil.relativedelta import relativedelta
 from django import forms
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 
 from ..models import Account, CapitalEvent, Holding, RecurringTransaction
@@ -137,7 +138,7 @@ class SipRdFlowForm(UniqueAccountNameMixin, forms.Form):
     )
 
     # JSON built by the page: [{"name", "scheme_code", "amount"}], the funds each instalment buys (SIP only).
-    fund_splits = forms.CharField(required=False, label=_('Funds'), widget=forms.HiddenInput())
+    fund_splits = forms.CharField(required=False, max_length=50000, label=_('Funds'), widget=forms.HiddenInput())
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -337,6 +338,18 @@ class FdFlowForm(UniqueAccountNameMixin, forms.Form):
         cleaned_data = super().clean()
         _validate_deposit_dates(self, cleaned_data, 'deposit_start_date', 'maturity_date', 'deposit_closed_date')
         if cleaned_data.get('interest_payout'):
+            payout_account, funding = cleaned_data.get('payout_account'), cleaned_data.get('from_account')
+            if payout_account and funding and payout_account.currency != funding.currency:
+                # The payouts are recorded in the deposit's currency (the funding account's), and money is not converted between
+                # two accounts here, so the account that receives them has to hold that currency.
+                self.add_error('payout_account', _('The account that receives the interest must be in the same currency as the deposit (%(currency)s).') % {'currency': funding.currency})
+            start, maturity = cleaned_data.get('deposit_start_date'), cleaned_data.get('maturity_date')
+            if (start and maturity and not cleaned_data.get('deposit_closed_date') and 'maturity_date' not in self.errors
+                    and 'deposit_start_date' not in self.errors):
+                # A deposit that matures before its first payout would record nothing (a schedule that ends before it starts)
+                first = RecurringService.first_payout_date(start, cleaned_data['interest_payout'])
+                if maturity < first:
+                    self.add_error('interest_payout', _('This deposit matures before its first payout (%(date)s). Choose a shorter payout period, or interest at maturity.') % {'date': date_format(first, 'd M Y')})
             rate = cleaned_data.get('annual_rate')
             if rate is not None and rate <= 0 and not cleaned_data.get('payout_amount'):
                 self.add_error('annual_rate', _('Enter the interest rate, or the amount each payout, for a deposit that pays interest out.'))

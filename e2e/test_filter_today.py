@@ -47,3 +47,15 @@ class PhoneTests(Base):
         page = self.new_page(self.user, phone=True)
         self.choose_today(page)
         self.assertIn('Chai today', page.content())
+
+
+class ClockTests(Base):
+    def test_the_date_beside_today_is_the_servers_even_when_the_browsers_clock_says_another_day(self):
+        page = self.new_page(self.user)
+        page.add_init_script("""(() => { const Real = Date; const fixed = new Real(2020, 0, 5, 12).getTime();
+            window.Date = class extends Real { constructor(...a) { if (a.length === 0) super(fixed); else super(...a); } static now() { return fixed; } }; })();""")
+        self.open(page, reverse('all-transactions'))
+        page.click('#tmr-time-dropdown-btn')
+        first = page.locator('[data-time-key="today"] .tmr-item-range').first.inner_text()
+        self.assertEqual(first.strip(), timezone.localdate().strftime('%d %b'))
+        self.assertNotIn('Jan', first)

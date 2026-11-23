@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n %}{% load help_tags %}
 <!-- Educational: How Budgets Work -->
 <div class="collapse mb-4" id="guideBudgets">
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -83,7 +83,7 @@
                             <i class="bi bi-lightbulb-fill text-warning me-1"></i>
                             {% trans "Need help planning category budgets?" %}
                         </div>
-                        <a href="https://docs.trackmyrupee.com/07-budgets/" target="_blank" rel="noopener" data-docs-path="07-budgets/" data-docs-src="guide_budgets" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1 text-nowrap">
+                        <a href="{% docs_url '07-budgets/' 'guide_budgets' %}" target="_blank" rel="noopener" data-docs-path="07-budgets/" data-docs-src="guide_budgets" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1 text-nowrap">
                             <i class="bi bi-book me-1"></i> {% trans "View Budgets Tutorial" %} &rarr;
                         </a>
                     </div>

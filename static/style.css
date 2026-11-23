@@ -4821,5 +4821,6 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
 .tmr-stat-card { padding: .6rem .9rem; gap: .1rem; justify-content: space-between; box-shadow: none; }
 .tmr-stat-label { font-size: .78rem; color: var(--bs-secondary-color); line-height: 1.2; }
 .tmr-stat-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; margin-right: .4rem; vertical-align: .05em; }
-.tmr-stat-value { font-size: 1.25rem; font-weight: 500; line-height: 1.15; letter-spacing: -.01em; color: var(--bs-body-color); }
+/* the figures are written the way the Accounts page writes its amounts (.acx-tile-amount): heavy, tightly spaced, tabular digits */
+.tmr-stat-value { font-size: clamp(1.15rem, 3vw, 1.45rem); font-weight: 800; line-height: 1.15; letter-spacing: -.03em; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--bs-body-color); }
 .tmr-stat-note { font-size: .74rem; color: var(--bs-secondary-color); line-height: 1.2; }

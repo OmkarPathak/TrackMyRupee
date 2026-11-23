@@ -59,6 +59,9 @@ Choose which funds each instalment buys. Skip it if you only want the account an
 
 Press **Add fund** for each extra fund. The line under the rows shows how much of the instalment goes to funds and how much stays as cash. The amounts can add up to less than the instalment, never more, and a fund can appear only once.
 
+!!! tip "A name that fits several funds"
+    If what you type fits more than one fund, for example "UTI Nifty 50" is both a direct and a regular plan, nothing is chosen for you. Pick the one you mean from the search results.
+
 **Step 2: Recurring Deposit Details** (appears only when you choose **RD**)
 
 | Field | What to enter |
@@ -218,6 +221,9 @@ The Review screen shows a quick estimate of the amount you will receive at matur
 
 !!! warning "A name you already use"
     Each account needs its own name. If you already have an active account called "SBI FD", the form says so on the **Name** field and nothing is created. Closed accounts do not count.
+
+!!! note "Payout checks"
+    The account that receives the interest must be in the same currency as the deposit. A payout period longer than the deposit, such as a yearly payout on a six-month FD, is refused, and the message gives the date of the first payout.
 
 !!! warning "Why did my bank balance drop?"
     That is the funding entry doing its job. The principal really did leave your savings account on the day you booked the FD. It reappears as an FD balance, so your net worth stays the same.

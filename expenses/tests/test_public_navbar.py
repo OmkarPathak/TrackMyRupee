@@ -21,7 +21,15 @@ class GuideLinkTests(TestCase):
         return self.client.get(reverse(name), **headers).content.decode()
 
     def guide_links(self, fragment):
-        return re.findall(r'<a [^>]*href="(https://docs\.trackmyrupee\.com/[^"]*)"[^>]*>', fragment)
+        """The guide addresses in a fragment, without the tracking parameters every link carries (they are checked below)."""
+        return [link.split('?')[0] for link in re.findall(r'<a [^>]*href="(https://docs\.trackmyrupee\.com/[^"]*)"[^>]*>', fragment)]
+
+    def test_the_links_say_they_come_from_the_public_navbar(self):
+        html = self.page()
+        for fragment in (header(html), mobile_menu(html)):
+            link = re.search(r'href="(https://docs\.trackmyrupee\.com/[^"]*)"', fragment).group(1)
+            self.assertIn('utm_source=trackmyrupee-app', link)
+            self.assertIn('utm_content=public-navbar', link)
 
     def test_the_landing_page_navbar_links_to_the_guide(self):
         html = self.page()

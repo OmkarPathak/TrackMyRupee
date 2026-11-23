@@ -57,6 +57,7 @@ def apply_filter_config(
         applied_state['calendar_month_range'] = cycle_ctx['calendar_month_range']
         applied_state['last_month_range'] = cycle_ctx['last_month_range']
         applied_state['last_3_months_range'] = cycle_ctx['last_3_months_range']
+        applied_state['today_range'] = cycle_ctx['today_range']
         applied_state['this_year_range'] = cycle_ctx['this_year_range']
         applied_state['cycle_day'] = cycle_ctx['cycle_day']
         applied_state['cycle_total_days'] = cycle_ctx['cycle_total_days']
@@ -70,6 +71,7 @@ def apply_filter_config(
         applied_state['calendar_month_range'] = ''
         applied_state['last_month_range'] = ''
         applied_state['last_3_months_range'] = ''
+        applied_state['today_range'] = ''
         applied_state['this_year_range'] = ''
         applied_state['cycle_day'] = 0
         applied_state['cycle_total_days'] = 0

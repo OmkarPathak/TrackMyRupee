@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n %}{% load help_tags %}
 <!-- Educational: How Subscriptions / Recurring Transactions Work -->
 <div class="collapse mb-4" id="guideRecurring">
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -84,7 +84,7 @@
                             <i class="bi bi-lightbulb-fill text-warning me-1"></i>
                             {% trans "Need help managing recurring subscriptions?" %}
                         </div>
-                        <a href="https://docs.trackmyrupee.com/05-transactions-recurring/" target="_blank" rel="noopener" data-docs-path="05-transactions-recurring/" data-docs-src="guide_recurring" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1 text-nowrap">
+                        <a href="{% docs_url '05-transactions-recurring/' 'guide_recurring' %}" target="_blank" rel="noopener" data-docs-path="05-transactions-recurring/" data-docs-src="guide_recurring" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1 text-nowrap">
                             <i class="bi bi-book me-1"></i> {% trans "View Subscriptions Tutorial" %} &rarr;
                         </a>
                     </div>

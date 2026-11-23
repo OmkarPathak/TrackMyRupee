@@ -134,6 +134,22 @@ class FormTests(Base):
         self.assertEqual(self.initial(form, 'to_account'), self.cash.pk)
 
 
+class TransferFallbackTests(Base):
+    def test_when_the_last_moves_accounts_can_no_longer_be_picked_it_starts_from_the_busiest(self):
+        self.spend(self.bank, 3)
+        Transfer.objects.create(user=self.user, date=self.today, amount=Decimal('50'), from_account=self.salary, to_account=self.cash)
+        Account.objects.filter(pk=self.salary.pk).update(is_active=False)           # (closed since)
+        form = TransferForm(user=self.fresh_user())
+        self.assertEqual(self.initial(form, 'from_account'), self.bank.pk)
+        self.assertIsNone(form.fields['to_account'].initial)
+
+    def test_with_neither_a_usable_last_move_nor_any_history_it_leaves_the_choice(self):
+        Transfer.objects.create(user=self.user, date=self.today, amount=Decimal('50'), from_account=self.salary, to_account=self.cash)
+        Account.objects.filter(pk=self.salary.pk).update(is_active=False)
+        form = TransferForm(user=self.fresh_user())
+        self.assertIsNone(form.fields['from_account'].initial)
+
+
 class ComposerTests(Base):
     def test_quick_add_starts_on_the_last_used_account(self):
         self.spend(self.salary, 1)

@@ -123,3 +123,20 @@ class PrintTests(Base):
         page = self.new_page(self.user, phone=True)
         self.open(page, reverse('portfolio-summary'))
         self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'), page.viewport_size['width'] + 1)
+
+
+class AmountStyleTests(Base):
+    """The figures at the top of All Transactions are written like the amounts on the Accounts page."""
+    STYLE = """(el) => { const c = getComputedStyle(el); return { family: c.fontFamily, weight: c.fontWeight, numeric: c.fontVariantNumeric,
+        spacing: parseFloat(c.letterSpacing) / parseFloat(c.fontSize) }; }"""
+
+    def style_of(self, page, url_name, selector):
+        self.open(page, reverse(url_name))
+        return page.eval_on_selector(selector, self.STYLE)
+
+    def test_a_figure_is_set_like_an_amount_on_the_accounts_page(self):
+        page = self.new_page(self.user, phone=True)
+        mine = self.style_of(page, 'all-transactions', '.tmr-stat-value')
+        theirs = self.style_of(page, 'account-list', '.acx-tile-amount')
+        self.assertEqual((mine['family'], mine['weight'], mine['numeric']), (theirs['family'], theirs['weight'], theirs['numeric']))
+        self.assertAlmostEqual(mine['spacing'], theirs['spacing'], places=2)

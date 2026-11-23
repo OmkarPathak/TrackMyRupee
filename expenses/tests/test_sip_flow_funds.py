@@ -157,6 +157,15 @@ class FormTests(Base):
         self.assertFalse(form.is_valid())
         self.assertIn('fund_splits', form.errors)
 
+    def test_an_enormous_fund_list_is_refused_before_it_is_read(self):
+        form = self.form(fund_splits=json.dumps([dict(NIFTY, name='N' * 60000)]))          # (valid JSON, only far too long)
+        self.assertFalse(form.is_valid())
+        self.assertIn('at most 50000 characters', str(form.errors['fund_splits']))
+
+    def test_a_normal_list_is_well_inside_the_limit(self):
+        many = [dict(NIFTY, scheme_code=str(100000 + n), name=f'Fund number {n} of the long list', amount='10') for n in range(30)]
+        self.assertLess(len(json.dumps(many)), 50000)
+
     def test_too_many_funds_are_refused(self):
         many = [dict(NIFTY, scheme_code=str(100000 + n), name=f'Fund {n}', amount='10') for n in range(30)]
         form = self.form(funds=many)
