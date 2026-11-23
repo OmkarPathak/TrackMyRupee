@@ -129,7 +129,7 @@
 
                 <!-- Help: the guide page for this page, in a new tab -->
                 <li class="nav-item d-none d-lg-block ms-2">
-                    <a href="{% docs_url help_page.path %}" target="_blank" rel="noopener" class="nav-link tmr-topbar-action d-flex align-items-center" data-docs-path="{{ help_page.path }}" data-docs-src="topbar" title="{% trans 'Open the guide for this page' %}">
+                    <a href="{% docs_url help_page.path 'topbar' %}" target="_blank" rel="noopener" class="nav-link tmr-topbar-action d-flex align-items-center" data-docs-path="{{ help_page.path }}" data-docs-src="topbar" title="{% trans 'Open the guide for this page' %}">
                         <i class="bi bi-question-circle me-2 text-primary" aria-hidden="true"></i>
                         <span class="fw-bold">{% trans "Help" %}</span>
                     </a>
@@ -560,7 +560,7 @@
                     </a>
                 </div>
                 <div class="col">
-                    <a href="{% docs_url help_page.path %}" target="_blank" rel="noopener" class="mmt mmt--small mobile-grid-item" data-docs-path="{{ help_page.path }}" data-docs-src="more-menu">
+                    <a href="{% docs_url help_page.path 'more-menu' %}" target="_blank" rel="noopener" class="mmt mmt--small mobile-grid-item" data-docs-path="{{ help_page.path }}" data-docs-src="more-menu">
                         <i class="bi bi-question-circle text-primary"></i>
                         <span class="mmt-label">{% trans "Help" %}</span>
                     </a>

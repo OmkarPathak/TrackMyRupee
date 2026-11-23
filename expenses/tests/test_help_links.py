@@ -73,7 +73,7 @@ class GuideUrlTests(TestCase):
         html = self.render("{% docs_help '07-budgets/' 'How budgets work' 'budgets-page' %}")
         self.assertIn('data-docs-path="07-budgets/"', html)
         self.assertIn('data-docs-src="budgets-page"', html)
-        self.assertIn('href="https://docs.trackmyrupee.com/07-budgets/"', html)
+        self.assertIn('href="https://docs.trackmyrupee.com/07-budgets/?utm_source=trackmyrupee-app&amp;utm_medium=guide-link&amp;utm_content=budgets-page"', html)
         self.assertIn('target="_blank"', html)
 
     def test_a_help_link_without_a_label_is_the_question_mark(self):
@@ -113,7 +113,7 @@ class PagesCarryTheHelpTests(TestCase):
 
     def test_the_top_bar_link_opens_the_guide_in_a_new_tab(self):
         html = self.get('budget')
-        self.assertIn('href="https://docs.trackmyrupee.com/07-budgets/" target="_blank"', html)
+        self.assertIn('href="https://docs.trackmyrupee.com/07-budgets/?utm_source=trackmyrupee-app&amp;utm_medium=guide-link&amp;utm_content=topbar" target="_blank"', html)
 
 
 class UntrackedGuideLinksTests(TestCase):
@@ -201,3 +201,44 @@ class MappingHonestyTests(TestCase):
         text = Path(help_links.__file__).read_text() + (Path(__file__).resolve().parents[2] / 'templates' / 'components' / 'help_link.html').read_text()
         self.assertNotIn('help_panel', text)
         self.assertNotIn('side panel', text)
+
+
+class ServerSideTrackingTests(TestCase):
+    """The tracking parameters are in the address itself, so middle-click, "open in a new tab" and "copy link" carry them."""
+
+    def render(self, template, language='en'):
+        with translation.override(language):
+            return Template('{% load help_tags %}' + template).render(Context({}))
+
+    def test_a_link_with_a_source_carries_the_parameters(self):
+        url = self.render("{% docs_url '07-budgets/' 'topbar' %}")
+        self.assertEqual(url, 'https://docs.trackmyrupee.com/07-budgets/?utm_source=trackmyrupee-app&amp;utm_medium=guide-link&amp;utm_content=topbar')   # (as written inside an attribute)
+
+    def test_the_language_prefix_comes_before_the_parameters(self):
+        url = self.render("{% docs_url '07-budgets/' 'more-menu' %}", 'hi')
+        self.assertTrue(url.startswith('https://docs.trackmyrupee.com/hi/07-budgets/?utm_source='), url)
+
+    def test_without_a_source_the_address_is_plain(self):
+        self.assertEqual(self.render("{% docs_url '07-budgets/' %}"), 'https://docs.trackmyrupee.com/07-budgets/')
+
+    def test_a_help_link_carries_its_source(self):
+        html = self.render("{% docs_help '07-budgets/' 'How budgets work' 'budgets-page' %}")
+        self.assertIn('href="https://docs.trackmyrupee.com/07-budgets/?utm_source=trackmyrupee-app&amp;utm_medium=guide-link&amp;utm_content=budgets-page"', html)
+
+    def test_the_top_bar_and_the_phone_menu_links_carry_theirs(self):
+        user = User.objects.create_user('tracked', 't@example.com', 'pw')
+        self.client.force_login(user)
+        html = self.client.get(reverse('budget')).content.decode()
+        self.assertIn('utm_content=topbar', html)
+        self.assertIn('utm_content=more-menu', html)
+
+    def test_no_page_of_the_app_links_to_the_guide_with_a_bare_address(self):
+        import re
+        templates = Path(__file__).resolve().parents[2] / 'templates'
+        bare = []
+        for path in templates.rglob('*.html'):
+            if 'email' in str(path):
+                continue
+            for tag in re.findall(r'<a [^>]*href="https://docs\.trackmyrupee\.com[^"]*"', path.read_text()):
+                bare.append(f'{path.relative_to(templates)}: {tag[:80]}')
+        self.assertEqual(bare, [])
