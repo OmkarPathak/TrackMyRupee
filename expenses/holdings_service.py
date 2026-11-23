@@ -92,14 +92,24 @@ def derive_purchase(units=None, price=None, amount=None):
 
 def resolve_scheme_code(name, instrument_type):
     """AMFI scheme code for a fund name ('' if none). Only mutual funds are looked up: a stock's name must
-    never be matched to a fund."""
+    never be matched to a fund.
+
+    A name is matched only when it points to one scheme: the full name, or a part of a name that exactly one scheme has. A part
+    several schemes share ("UTI Nifty 50": direct or regular?) matches none, so the person picks from the search results instead
+    of the first of several being chosen for them."""
+    name = (name or '').strip()
     if instrument_type != 'MF' or not name:
         return ''
     from .models import AMFIScheme
 
-    match = AMFIScheme.objects.filter(scheme_name__icontains=name).first()
-    if match:
-        return match.scheme_code
+    exact = list(AMFIScheme.objects.filter(scheme_name__iexact=name)[:2])
+    if len(exact) == 1:
+        return exact[0].scheme_code
+    known = list(AMFIScheme.objects.filter(scheme_name__icontains=name)[:2])
+    if len(known) == 1:
+        return known[0].scheme_code
+    if known:
+        return ''                      # (several: not for the network to guess between either)
     try:
         import urllib.parse
 
@@ -107,9 +117,12 @@ def resolve_scheme_code(name, instrument_type):
         resp = requests.get(f"https://api.mfapi.in/mf/search?q={urllib.parse.quote(name)}",
                             headers={'User-Agent': 'TrackMyRupee/1.0'}, timeout=5)
         if resp.status_code == 200:
-            data = resp.json()
-            if data:
+            data = resp.json() or []
+            if len(data) == 1:
                 return str(data[0].get('schemeCode'))
+            same = [row for row in data if str(row.get('schemeName', '')).strip().lower() == name.lower()]
+            if len(same) == 1:
+                return str(same[0].get('schemeCode'))
     except Exception:
         pass
     return ''
