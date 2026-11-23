@@ -78,8 +78,10 @@ ENABLE_ADMIN_URL = ENABLE_ADMIN_URL or IS_TESTING
 if IS_TESTING:
     PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 
-# Only our own hosts; set ALLOWED_HOSTS (comma separated) in the environment to change them.
-ALLOWED_HOSTS = ['*']
+# Host names the site answers to. Set ALLOWED_HOSTS (comma separated) in the environment to restrict them, for example
+# "trackmyrupee.com,www.trackmyrupee.com"; the host of SITE_URL is always added. Left unset, any host name is accepted (the
+# platform's proxy decides which reach the app), as it always has been.
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if h.strip()] or ['*']
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://trackmyrupee.com,https://www.trackmyrupee.com').split(',')
 CSRF_FAILURE_VIEW = 'finance_tracker.csrf.csrf_failure'  # friendly recovery + reason logging for expired login forms
@@ -87,7 +89,7 @@ CSRF_FAILURE_VIEW = 'finance_tracker.csrf.csrf_failure'  # friendly recovery + r
 # Absolute URL for generating links in background tasks (emails, push)
 SITE_URL = os.environ.get('SITE_URL', 'https://trackmyrupee.com').rstrip('/')
 
-# Include SITE_URL host for safety when ALLOWED_HOSTS is not explicitly set.
+# The host of SITE_URL is always one of them.
 site_url_host = urlparse(SITE_URL).hostname
 if site_url_host and site_url_host not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(site_url_host)
