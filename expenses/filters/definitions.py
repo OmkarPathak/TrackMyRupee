@@ -574,6 +574,7 @@ RECURRING_FILTERS = FilterSetConfig(
                 {"value": "WEEKLY", "label": "Weekly"},
                 {"value": "BIWEEKLY", "label": "Bi-weekly"},
                 {"value": "MONTHLY", "label": "Monthly"},
+                {"value": "BIMONTHLY", "label": "Bi-monthly"},
                 {"value": "QUARTERLY", "label": "Quarterly"},
                 {"value": "SEMIANNUALLY", "label": "Semi-annually"},
                 {"value": "YEARLY", "label": "Yearly"},

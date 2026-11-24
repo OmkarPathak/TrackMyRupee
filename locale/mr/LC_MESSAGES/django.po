@@ -3240,6 +3240,14 @@ msgstr "साप्ताहिक"
 msgid "Bi-Weekly (Every 2 Weeks)"
 msgstr "द्वै-साप्ताहिक (दर 2 आठवड्यांनी)"
 
+#: expenses/models.py
+msgid "Bi-Monthly (Every 2 Months)"
+msgstr "द्वैमासिक (दर 2 महिन्यांनी)"
+
+#: templates/expenses/income_list.html
+msgid "Every 2 months"
+msgstr "दर 2 महिन्यांनी"
+
 #: expenses/models.py:1478
 msgid "Quarterly (Every 3 Months)"
 msgstr "त्रैमासिक (दर 3 महिन्यांनी)"

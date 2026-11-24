@@ -240,7 +240,7 @@ class LoanService:
             return float(interest.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
         return LoanService.calculate_emi(principal, annual_rate, months)
 
-    MONTHS_PER_PERIOD = {'MONTHLY': 1, 'QUARTERLY': 3, 'SEMIANNUALLY': 6, 'YEARLY': 12}
+    MONTHS_PER_PERIOD = {'MONTHLY': 1, 'BIMONTHLY': 2, 'QUARTERLY': 3, 'SEMIANNUALLY': 6, 'YEARLY': 12}
 
     @staticmethod
     def period_interest(balance, annual_rate, frequency='MONTHLY'):

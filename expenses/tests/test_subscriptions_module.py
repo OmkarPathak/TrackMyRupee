@@ -1145,7 +1145,7 @@ class TestSubscriptionCrud(SubBase):
 
 class TestSubscriptionDocs(SubBase):
     def test_frequencies_and_types_match_the_guide(self):
-        self.assertEqual(FREQUENCIES, ['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'QUARTERLY', 'SEMIANNUALLY', 'YEARLY'])
+        self.assertEqual(FREQUENCIES, ['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY', 'BIMONTHLY', 'QUARTERLY', 'SEMIANNUALLY', 'YEARLY'])
         types = [t for t, _label in RecurringTransactionForm(user=self.user).fields['transaction_type'].choices]
         self.assertEqual(types, ['EXPENSE', 'INCOME', 'TRANSFER', 'LOAN', 'CAPITAL', 'INSURANCE_PREMIUM'])
 

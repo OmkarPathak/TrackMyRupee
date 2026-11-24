@@ -114,7 +114,7 @@ Use it when you have a bill with a regular amount and a regular date. It takes a
 
 | Field | What to enter |
 |---|---|
-| **Frequency** | Daily, Weekly, Bi-Weekly, Monthly, Quarterly, Semi-Annually, or Yearly. |
+| **Frequency** | Daily, Weekly, Bi-Weekly, Monthly, Bi-Monthly (every 2 months), Quarterly, Semi-Annually, or Yearly. |
 | **Start date** | The date of the first (or next) payment. |
 | **Create historical entries** | Turn on if the start date is in the past and you want earlier payments added. |
 
