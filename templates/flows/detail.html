@@ -4,7 +4,7 @@
 {% block title %}{{ flow.label }} | {% trans "Guided Setup" %}{% endblock %}
 
 {% block extra_js %}
-<script defer src="{% static 'tmr_flows.js' %}?v=20261122"></script>
+<script defer src="{% static 'tmr_flows.js' %}?v=20261124"></script>
 {% endblock %}
 
 {% block content %}
@@ -194,7 +194,7 @@
     }
 </style>
 
-<div class="container py-4" x-data="tmrFlowWizard({{ flow.get_wizard_steps|length }}, 1, false)">
+<div class="container py-4" data-flow-key="{{ flow.key }}" x-data="tmrFlowWizard({{ flow.get_wizard_steps|length }}, 1, false)">
     <div class="row justify-content-center fade-in">
         <div class="col-md-9 col-lg-8">
             <div class="card shadow-lg border-0 fade-in">

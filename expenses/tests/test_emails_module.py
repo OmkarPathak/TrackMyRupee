@@ -87,6 +87,20 @@ class LoggedBackendTests(TestCase):
 
 
 @override_settings(EMAIL_BACKEND=LOGGED, DEBUG=False)
+class TestsNeverReachBrevoTests(TestCase):
+    """With DEBUG off the logged backend delivers through Brevo; under test it must not, whatever the .env holds."""
+
+    def test_the_delivery_backend_under_test_is_not_brevo(self):
+        real = LoggedEmailBackend()._get_real_backend()
+        self.assertNotIn('brevo', type(real).__module__.lower())
+
+    def test_creating_a_user_sends_nothing_outside_the_process(self):
+        with patch('anymail.backends.brevo.EmailBackend.send_messages') as brevo:
+            User.objects.create_user('quiet', 'quiet@example.com', 'pw')
+        brevo.assert_not_called()
+
+
+@override_settings(EMAIL_BACKEND=LOGGED, DEBUG=False)
 class SignupEmailFlowTests(TestCase):
     """The welcome email is logged as SENT a moment before the confirmation email is requested."""
 

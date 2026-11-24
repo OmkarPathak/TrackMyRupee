@@ -31,6 +31,11 @@ class LoggedEmailBackend(BaseEmailBackend):
 
     def _get_real_backend(self):
         """Return an instance of the actual delivery backend."""
+        if getattr(settings, 'IS_TESTING', False):
+            # A test that switches to this backend with DEBUG off (to check what gets logged) must still never reach
+            # Brevo: with a real key in .env every such test sent a live API call, from the developer's own address.
+            from django.core.mail.backends.locmem import EmailBackend as LocmemBackend
+            return LocmemBackend(fail_silently=self.fail_silently)
         if settings.DEBUG:
             from django.core.mail.backends.console import EmailBackend as ConsoleBackend
             return ConsoleBackend(fail_silently=self.fail_silently)

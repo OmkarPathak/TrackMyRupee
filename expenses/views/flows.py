@@ -14,6 +14,7 @@ from django.views.generic import TemplateView, View
 
 from ..flows import *  # noqa: F403
 from ..flows.base import FlowSnapshot, PlanLimitError
+from ..flows import telemetry
 from ..flows.registry import FlowRegistry
 
 
@@ -205,6 +206,7 @@ class FlowLandingView(LoginRequiredMixin, TemplateView):
             'initial_category': 'all',
             'initial_flow_key': flow_items[0]['key'] if flow_items else 'loan',
         })
+        telemetry.event(self.request.user, 'landing_viewed', configured=configured_count, total=total_count)
         return context
 
 
@@ -212,6 +214,7 @@ class FlowDetailView(FlowBaseView, View):
     template_name = 'flows/detail.html'
 
     def get(self, request, key):
+        telemetry.event(request.user, 'started', flow=self.flow.key)
         form = self.get_form()
         preview_data = self.get_preview_data(form)
         return render(
@@ -264,6 +267,8 @@ class FlowCommitView(FlowBaseView, View):
     def post(self, request, key):
         form = self.get_form(data=request.POST)
         if not form.is_valid():
+            telemetry.event(request.user, 'confirm_failed', flow=self.flow.key, kind='invalid',
+                            field_count=len(form.errors), first_field=next(iter(form.errors), ''))
             preview_data = self.get_preview_data(form)
             try:
                 preview = self.flow.preview(request.user, preview_data)
@@ -282,11 +287,14 @@ class FlowCommitView(FlowBaseView, View):
                 from .mixins import process_user_recurring_transactions
                 process_user_recurring_transactions(request.user, force=True)
         except ValidationError as exc:
+            telemetry.event(request.user, 'confirm_failed', flow=self.flow.key,
+                            kind='plan_limit' if isinstance(exc, PlanLimitError) else 'error')
             preview = self.flow.preview(request.user, form.cleaned_data)
             # Only a plan limit is a reason to offer the plans; any other problem is shown as the error it is
             preview['warnings' if isinstance(exc, PlanLimitError) else 'errors'] = list(exc.messages)
             return self.render_review(request, form, preview, status=200, confirming=True)
 
+        telemetry.event(request.user, 'completed', flow=self.flow.key)
         # Allow subsequent runs of the same flow in the same session.
         self.rotate_idempotency_key()
 

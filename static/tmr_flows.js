@@ -70,7 +70,35 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
     reviewTimer: null,
     freshRequests: new WeakSet(),
 
+    // Where people leave a setup is what we measure (PostHog, only after analytics consent): which step was shown, and
+    // the step they were on when they went away without confirming. Nothing they typed is ever sent.
+    track(name, extra) {
+      try {
+        if (localStorage.getItem('cookieConsent') !== 'accepted') return;
+        if (!window.posthog || typeof window.posthog.capture !== 'function') return;
+        const root = document.querySelector('[data-flow-key]');
+        const stepEl = document.querySelector(`.wizard-step-content[data-step="${this.currentStep}"]`);
+        window.posthog.capture(name, Object.assign({
+          flow: root ? root.dataset.flowKey : '',
+          step: this.currentVisibleStepNumber(),
+          of: this.visibleStepsCount(),
+          step_key: stepEl ? stepEl.dataset.stepKey : '',
+        }, extra || {}));
+      } catch (e) { /* never worth an error */ }
+    },
+
+    watchLeaving() {
+      let confirmed = false;
+      document.addEventListener('htmx:afterRequest', (event) => {
+        const path = (event.detail && event.detail.pathInfo && event.detail.pathInfo.requestPath) || '';
+        if (/\/commit\/?$/.test(path) && event.detail.xhr && event.detail.xhr.status === 204) confirmed = true;
+      });
+      window.addEventListener('pagehide', () => { if (!confirmed) this.track('guided_setup_left'); });
+    },
+
     init() {
+      this.track('guided_setup_step_viewed');
+      this.watchLeaving();
       this.setKeyboards();
       this.syncFormState();
       this.checkWarnings();
@@ -275,6 +303,7 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
         if (!this.validateCurrentStep()) return;
       }
       this.currentStep = targetStep;
+      this.track('guided_setup_step_viewed');
       if (this.isReviewStep()) {
         this.checkWarnings();
         const form = document.querySelector('form[hx-post]');
