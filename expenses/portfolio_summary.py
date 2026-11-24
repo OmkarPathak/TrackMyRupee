@@ -34,6 +34,7 @@ MONTHLY_FACTOR = {
     'WEEKLY': Decimal(52) / Decimal(12),
     'BIWEEKLY': Decimal(26) / Decimal(12),
     'MONTHLY': Decimal(1),
+    'BIMONTHLY': Decimal(1) / Decimal(2),
     'QUARTERLY': Decimal(1) / Decimal(3),
     'SEMIANNUALLY': Decimal(1) / Decimal(6),
     'YEARLY': Decimal(1) / Decimal(12),

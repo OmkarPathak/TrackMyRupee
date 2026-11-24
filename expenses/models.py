@@ -1743,6 +1743,7 @@ class RecurringTransaction(models.Model):
         ('WEEKLY', _('Weekly')),
         ('BIWEEKLY', _('Bi-Weekly (Every 2 Weeks)')),
         ('MONTHLY', _('Monthly')),
+        ('BIMONTHLY', _('Bi-Monthly (Every 2 Months)')),
         ('QUARTERLY', _('Quarterly (Every 3 Months)')),
         ('SEMIANNUALLY', _('Semi-Annually (Every 6 Months)')),
         ('YEARLY', _('Yearly')),
@@ -1893,6 +1894,8 @@ class RecurringTransaction(models.Model):
                     return next_dt.date()
             else:
                 return RecurringTransaction._next_month_step(current_date, start_date, 1)
+        elif frequency == 'BIMONTHLY':
+            return RecurringTransaction._next_month_step(current_date, start_date, 2)
         elif frequency == 'QUARTERLY':
             return RecurringTransaction._next_month_step(current_date, start_date, 3)
         elif frequency == 'SEMIANNUALLY':

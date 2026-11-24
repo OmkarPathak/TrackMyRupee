@@ -15,6 +15,7 @@ class RecurringService:
         'WEEKLY': 7,
         'BIWEEKLY': 14,
         'MONTHLY': 30,
+        'BIMONTHLY': 60,
         'QUARTERLY': 90,
         'SEMIANNUALLY': 180,
         'YEARLY': 365,
@@ -119,7 +120,7 @@ class RecurringService:
             if changed:
                 schedule.save(update_fields=changed)
 
-    MONTH_STEPS = {'MONTHLY': 1, 'QUARTERLY': 3, 'SEMIANNUALLY': 6, 'YEARLY': 12}
+    MONTH_STEPS = {'MONTHLY': 1, 'BIMONTHLY': 2, 'QUARTERLY': 3, 'SEMIANNUALLY': 6, 'YEARLY': 12}
 
     @staticmethod
     def last_due_before_today(start_date: date, frequency: str, is_last_day_of_month: bool = False,

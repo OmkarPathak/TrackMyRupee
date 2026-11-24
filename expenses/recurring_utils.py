@@ -20,6 +20,7 @@ def calculate_recurring_equivalents(
       - WEEKLY: 4 / 52
       - BIWEEKLY: 2 / 26
       - MONTHLY: 1 / 12
+      - BIMONTHLY: / 2 / * 6
       - QUARTERLY: / 3 / * 4
       - SEMIANNUALLY: / 6 / * 2
       - YEARLY: / 12 / * 1
@@ -40,6 +41,9 @@ def calculate_recurring_equivalents(
     elif freq == 'MONTHLY':
         monthly = amount
         yearly = amount * 12
+    elif freq == 'BIMONTHLY':
+        monthly = amount / 2
+        yearly = amount * 6
     elif freq == 'QUARTERLY':
         monthly = amount / 3
         yearly = amount * 4
@@ -104,6 +108,13 @@ def get_recurring_month_occurrence_amount(
         return amt * max(days, 0)
     elif freq == 'MONTHLY':
         return amt
+    elif freq == 'BIMONTHLY':
+        if not start_date:
+            return amt
+        month_diff = (year - start_date.year) * 12 + (month - start_date.month)
+        if month_diff >= 0 and month_diff % 2 == 0:
+            return amt
+        return type(amt)(0)
     elif freq == 'QUARTERLY':
         if not start_date:
             return amt

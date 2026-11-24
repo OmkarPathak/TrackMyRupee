@@ -123,7 +123,7 @@ class RentBillFlow(Flow):
         warnings = self.check_limits(user, steps)
         amount = Decimal(str(data.get('amount') or 0))
         frequency = data.get('frequency') or 'MONTHLY'
-        multipliers = {'DAILY': 365, 'WEEKLY': 52, 'BIWEEKLY': 26, 'MONTHLY': 12, 'QUARTERLY': 4, 'SEMIANNUALLY': 2, 'YEARLY': 1}
+        multipliers = {'DAILY': 365, 'WEEKLY': 52, 'BIWEEKLY': 26, 'MONTHLY': 12, 'BIMONTHLY': 6, 'QUARTERLY': 4, 'SEMIANNUALLY': 2, 'YEARLY': 1}
         annual = float(amount) * multipliers.get(frequency, 12)
         return {
             'headline': float(amount),

@@ -114,7 +114,7 @@ description: "गाइडेड सेटअप से TrackMyRupee में �
 
 | फ़ील्ड | क्या दर्ज करें |
 |---|---|
-| **Frequency** | Daily, Weekly, Bi-Weekly, Monthly, Quarterly, Semi-Annually या Yearly। |
+| **Frequency** | Daily, Weekly, Bi-Weekly, Monthly, Bi-Monthly (हर 2 महीने में), Quarterly, Semi-Annually या Yearly। |
 | **Start date** | पहले (या अगले) भुगतान की तारीख। |
 | **Create historical entries** | अगर शुरुआत की तारीख बीत चुकी है और आप पुराने भुगतान जोड़ना चाहते हैं तो इसे चालू करें। |
 

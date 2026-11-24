@@ -44,7 +44,7 @@ The form is organized into three steps:
 ![Step 2 of the subscription form](img/subscription-step2-desktop.webp){ loading=lazy width="545" }
 
 
-- **Frequency**: How often the transaction repeats: **Daily, Weekly, Bi-Weekly (every 2 weeks), Monthly, Quarterly (every 3 months), Semi-Annually (every 6 months), or Yearly**.
+- **Frequency**: How often the transaction repeats: **Daily, Weekly, Bi-Weekly (every 2 weeks), Monthly, Bi-Monthly (every 2 months), Quarterly (every 3 months), Semi-Annually (every 6 months), or Yearly**. Choose **Bi-Monthly** for bills that arrive once every two months, such as electricity or water in some states: the next one is posted two months after the last, on the same day of the month, and the forecast counts it only in the months it falls due.
 - **Start Date**: The date of the first occurrence.
 - **End Date** (optional): The date after which the subscription stops auto-posting. When the last occurrence is done, the subscription moves to **Cancelled** by itself.
 - **Monthly Recurrence Rules** (Monthly only): Tick **Last Calendar Day of Month** to post on the 30th, 31st, or 28th/29th as the month requires, or **Last Working Day of Month** to post on the last weekday (Monday to Friday). Exactly one entry is posted each month. With either rule, the first entry lands on the first such day on or after your start date.
