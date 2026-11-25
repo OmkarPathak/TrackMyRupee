@@ -1130,6 +1130,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#recording-the-money-you-received" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recording the money you received
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1667,6 +1678,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#recording-the-money-you-received" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recording the money you received
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1809,13 +1831,18 @@
 <p><strong>Quickest, with Pay EMI.</strong> Open <strong>Add → Pay EMI</strong> (on a phone, tap <strong>+</strong> then <strong>Pay EMI</strong>). The amount is filled in from your loan, <strong>Paid from</strong> starts on the account you used last time, and the date is today. Tap <strong>Record EMI</strong>. The split between principal and interest is worked out for you; open <strong>Split into principal and interest</strong> only if you want to type your own. With more than one loan, pick which one at the top. On the Free plan Pay EMI is marked <strong>Plus</strong>.</p>
 <p><img alt="The Pay EMI page" loading="lazy" src="img/pay-emi-desktop.webp" /></p>
 <p><strong>By hand, from the loan page.</strong> Open the loan and use <strong>Record Repayment</strong>. Enter the <strong>amount</strong>, the <strong>account</strong> it was paid from, and the <strong>date</strong> (it cannot be in the future). You can leave the split blank, and TrackMyRupee estimates the interest from the current balance and rate and treats the rest as principal. Or fill in the <strong>principal</strong> and <strong>interest</strong> portions yourself; they must add up to the amount. If you pay more principal than is left, the extra is trimmed, so you can pay a loan off in full. Tick <strong>Make this a recurring loan repayment</strong> to turn it into a subscription with the same amount.</p>
+<p>In the window, changing the <strong>principal portion</strong> fills in the <strong>interest portion</strong> (and the other way round), so the two always add up to the amount.</p>
 <p>Either way, the account you paid from goes down by the amount, and the remaining principal goes down by the <strong>principal portion only</strong>. To undo a repayment, delete it from the <strong>History</strong> tab and the money goes back to the account.</p>
 <h3 id="how-interest-is-worked-out">How interest is worked out<a class="headerlink" href="#how-interest-is-worked-out" title="Permanent link">&para;</a></h3>
 <p>Interest each month is the <strong>annual rate divided by 12, applied to the balance still owed</strong>: at 12 percent on Rs. 1,00,000, the first month's interest is Rs. 1,000. This is the same rule the EMI formula and the schedule use, so what is posted always matches the schedule. As the balance falls, so does the interest and more of each EMI goes to principal.</p>
 <h3 id="when-the-rate-changes">When the rate changes<a class="headerlink" href="#when-the-rate-changes" title="Permanent link">&para;</a></h3>
 <p>Use <strong>Update Interest Rate</strong> on the loan page and give the <strong>New Annual Rate</strong> and the date it is <strong>Effective From</strong>. A rate only applies from its effective date: a rate you enter for next month does not change this month's interest. When the app catches up several months of EMIs, each month uses the rate that was in force in that month.</p>
+<p>A rate you record for a future date shows as <strong>Upcoming</strong> in the <strong>Interest Rate History</strong>. The <strong>Interest Rate</strong> at the top of the page and the schedule keep using the rate in force today, and switch on the effective date.</p>
 <h3 id="down-payments-and-prepayments">Down payments and prepayments<a class="headerlink" href="#down-payments-and-prepayments" title="Permanent link">&para;</a></h3>
 <p>A lump sum, such as a down payment or a prepayment, is recorded as a <a href="../09-capital-events/">big purchase</a> with the subtype <strong>Loan Down Payment</strong> or <strong>Loan Prepayment</strong>, linked to the loan (the loan page has an <strong>Add big purchase for this Loan</strong> shortcut). It counts fully as principal paid. Big purchases with other subtypes do not change the loan.</p>
+<h3 id="recording-the-money-you-received">Recording the money you received<a class="headerlink" href="#recording-the-money-you-received" title="Permanent link">&para;</a></h3>
+<p>When the lender pays the loan into your account, the loan page has a <strong>Money received</strong> card with a <strong>Record amount received</strong> button. Choose the account it arrived in, the amount (it starts as the loan amount you have not recorded yet) and the date. The amount is added to that account's balance, and the loan's balance in the ledger grows with it. It is <strong>not income</strong>, so your income and savings figures do not change.</p>
+<p>New loans set up through <a href="../13-tmr-flows/debt/">Guided Setup</a> record this for you. <strong>Loans you added earlier are left as they are</strong>, because many people already entered the money by hand: if yours is not in the account's balance yet, use <strong>Record amount received</strong> once. To undo it, delete the entry from the card or from the account's activity list, and the amount is taken out of the account again. To change an amount, delete it and record it again.</p>
 <hr />
 <h2 id="4-reading-the-paid-off-percentage-and-remaining-balance">4. Reading the Paid-Off Percentage and Remaining Balance<a class="headerlink" href="#4-reading-the-paid-off-percentage-and-remaining-balance" title="Permanent link">&para;</a></h2>
 <p>On the Loans list page, each loan card shows:</p>
@@ -1833,7 +1860,7 @@
 <hr />
 <h2 id="5-what-happens-when-a-loan-is-fully-paid-off">5. What Happens When a Loan Is Fully Paid Off<a class="headerlink" href="#5-what-happens-when-a-loan-is-fully-paid-off" title="Permanent link">&para;</a></h2>
 <p>When the remaining principal reaches zero, whether through repayments or a prepayment, TrackMyRupee automatically marks the loan as <strong>closed</strong> (inactive). You do not need to do anything manually.</p>
-<p>The closed loan moves to the <strong>Paid Off</strong> tab for your records. It no longer counts as a liability in your net worth, and on the Plus plan it frees your loan slot. The status always follows the numbers: if you delete the last repayment, or raise the principal when you edit the loan, it reopens by itself.</p>
+<p>The closed loan moves to the <strong>Paid Off</strong> tab for your records, and its <strong>EMI subscription stops at once</strong>, so it no longer shows as renewing soon or on the calendar. Until then, what you owe counts against your net worth on both the Dashboard and the Accounts page, whether or not you made a loan account for it. Once closed, it no longer counts as a liability, and on the Plus plan it frees your loan slot. The status always follows the numbers: if you delete the last repayment, or raise the principal when you edit the loan, it reopens by itself.</p>
 <h3 id="editing-and-deleting-a-loan">Editing and deleting a loan<a class="headerlink" href="#editing-and-deleting-a-loan" title="Permanent link">&para;</a></h3>
 <p>Use <strong>Edit</strong> to change the name, type, principal, term, start date, or rate. If the loan has only one rate, editing the rate changes that rate; if you have added rate changes since, they are left as they are (use <strong>Update Interest Rate</strong> for new ones). <strong>Deleting</strong> a loan removes all its repayments (and gives the money back to the accounts they were paid from) and its recurring repayment. Big purchases you had linked to it are kept, just unlinked.</p>
 <div class="admonition example">

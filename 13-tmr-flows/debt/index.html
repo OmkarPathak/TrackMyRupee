@@ -1828,6 +1828,14 @@
 <td><strong>Start date</strong></td>
 <td>The date the loan begins.</td>
 </tr>
+<tr>
+<td><strong>Add the loan amount to an account</strong></td>
+<td>On by default for a new loan. Turn it on if the lender has paid the money into one of your accounts: the amount is added to that account's balance, so the balance matches your bank. It is recorded as money received, not as income. Switch it off if you have already recorded the money yourself.</td>
+</tr>
+<tr>
+<td><strong>Received in account</strong></td>
+<td>The account the loan amount was paid into. It starts on the account you use most.</td>
+</tr>
 </tbody>
 </table>
 <p><strong>Step 2: Repayment Schedule</strong></p>
@@ -1873,7 +1881,7 @@
 <p><strong>Step 3: Adjustments</strong> (both parts are optional)</p>
 <p><img alt="Adjustments step" loading="lazy" src="../img/loan-step3-adjustments-desktop.webp" width="560" /></p>
 <ul>
-<li><strong>Mid tenure</strong>: for a loan you took some time ago. Enter how much principal you have already repaid and the date of your first EMI. TrackMyRupee then starts from where you actually are, not from day one.</li>
+<li><strong>Mid tenure</strong>: for a loan you took some time ago (the loan amount is then not added to an account, because it reached your account long ago and is already in its balance). Enter how much principal you have already repaid and the date of your first EMI. TrackMyRupee then starts from where you actually are, not from day one.</li>
 <li><strong>Include down payment</strong>: for loans on a purchase. Enter the down payment amount, the account it came from (required), and an optional note.</li>
 </ul>
 <p><strong>Review and confirm</strong></p>
@@ -1883,6 +1891,7 @@
 <ul>
 <li>A <strong>loan account</strong> with your balance and interest rate</li>
 <li>A <strong>repayment schedule</strong>, set up as a recurring EMI</li>
+<li>If you left <strong>Add the loan amount to an account</strong> on, the <strong>money received</strong>: the loan amount, added to the account you chose on the loan's start date (it is not counted as income)</li>
 <li>If you included a down payment, a <strong>big purchase</strong> of type <em>Loan Down Payment</em>, linked to the loan</li>
 </ul>
 <p>On the Review screen the big number you see is your calculated monthly EMI, so you can compare it with what your bank told you before you confirm.</p>
