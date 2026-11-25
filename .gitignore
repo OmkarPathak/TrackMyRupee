@@ -218,3 +218,4 @@ e2e/artifacts/
 
 # Installed by `npm install` in mobile/ (the Capacitor project); package-lock.json pins the versions
 node_modules/
+.e2e_timings.json

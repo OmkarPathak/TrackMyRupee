@@ -5,7 +5,9 @@ unit tests cannot: a script that throws, a button that does nothing, a page that
 
 They are slow compared with the unit tests, so they only run when asked (RUN_E2E=1): see e2e/README.md.
 """
+import atexit
 import os
+import time
 import unittest
 from datetime import timedelta
 from decimal import Decimal
@@ -45,6 +47,38 @@ def make_account(user, name, kind='SAVINGS_ACCOUNT', balance=100000, **extra):
     return Account.objects.create(user=user, name=name, account_type=kind, balance=Decimal(balance), currency='₹', **extra)
 
 
+_SHARED = {}
+
+
+def shared_browser():
+    """One Chromium for the whole run of this process, not one per test class: starting Playwright's driver and a browser
+    took a couple of seconds for each of about a hundred classes, and failed now and then when several processes did it at
+    once. Each test still gets its own context (cookies, storage), so nothing leaks between tests."""
+    browser = _SHARED.get('browser')
+    if browser is not None and browser.is_connected():
+        return browser
+    from playwright.sync_api import sync_playwright
+    if 'playwright' not in _SHARED:
+        _SHARED['playwright'] = sync_playwright().start()
+        atexit.register(_close_shared_browser)
+    launch = {'args': ['--no-sandbox'] if os.geteuid() == 0 else []}      # (containers run as root)
+    if os.environ.get('E2E_CHROMIUM_PATH'):
+        launch['executable_path'] = os.environ['E2E_CHROMIUM_PATH']
+    _SHARED['browser'] = _SHARED['playwright'].chromium.launch(**launch)
+    return _SHARED['browser']
+
+
+def _close_shared_browser():
+    try:
+        if _SHARED.get('browser') is not None:
+            _SHARED['browser'].close()
+        if _SHARED.get('playwright') is not None:
+            _SHARED['playwright'].stop()
+    except Exception:
+        pass
+    _SHARED.clear()
+
+
 @unittest.skipUnless(ENABLED, 'browser tests: set RUN_E2E=1 (see e2e/README.md)')
 class E2ETestCase(StaticLiveServerTestCase):
     host = '127.0.0.1'
@@ -52,26 +86,31 @@ class E2ETestCase(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        from playwright.sync_api import sync_playwright
-        cls._playwright = sync_playwright().start()
-        launch = {'args': ['--no-sandbox'] if os.geteuid() == 0 else []}      # (containers run as root)
-        if os.environ.get('E2E_CHROMIUM_PATH'):
-            launch['executable_path'] = os.environ['E2E_CHROMIUM_PATH']
-        cls.browser = cls._playwright.chromium.launch(**launch)
+        cls.browser = shared_browser()
 
     @classmethod
     def tearDownClass(cls):
-        cls.browser.close()
-        cls._playwright.stop()
-        super().tearDownClass()
+        super().tearDownClass()           # (the browser stays up for the next class: see shared_browser)
 
     def setUp(self):
         super().setUp()
+        self._started = time.monotonic()
         self._contexts = []
         self.js_errors = []
         self.server_errors = []
 
+    def _note_timing(self):
+        """With E2E_TIMINGS=<file>, add "<module> <seconds>" for this test (scripts/run_e2e.py shares the files out by it)."""
+        path = os.environ.get('E2E_TIMINGS')
+        if path:
+            try:
+                with open(path, 'a') as handle:
+                    handle.write(f'{type(self).__module__.rsplit(".", 1)[-1]} {time.monotonic() - self._started:.2f}\n')
+            except OSError:
+                pass
+
     def tearDown(self):
+        self._note_timing()
         if self._test_failed():
             self._save_screenshots()
         for context in self._contexts:
@@ -109,10 +148,11 @@ class E2ETestCase(StaticLiveServerTestCase):
     def new_page(self, user=None, *, phone=False):
         """A page in its own browser context, signed in as `user` (without going through the sign-in form)."""
         context = self.browser.new_context(**(PHONE if phone else DESKTOP))
-        context.set_default_timeout(15000)
+        context.set_default_timeout(30000)        # (a limit, not a delay: pages that load fast are not waited for; this is for a busy machine)
         # no cookie banner over the page
         context.add_init_script("try { localStorage.setItem('cookieConsent', 'declined'); } catch (e) {}")
         self._contexts.append(context)
+        self._block_outside_requests(context)
         self._serve_cdn_files(context)
         if user is not None:
             client = Client()
@@ -127,6 +167,21 @@ class E2ETestCase(StaticLiveServerTestCase):
     def _note_server_error(self, response):
         if response.status >= 500 and response.url.startswith(self.live_server_url):
             self.server_errors.append(f'{response.status} {response.request.method} {response.url}')
+
+    def _block_outside_requests(self, context):
+        """Optional (E2E_BLOCK_NETWORK=1): keep the pages on the test server, with no fonts, analytics or CDN files fetched
+        from the internet. It made no measurable difference to the run time, and the public pages need Google's reCAPTCHA
+        script (they throw "grecaptcha is not defined" without it), so it is off by default."""
+        if not os.environ.get('E2E_BLOCK_NETWORK'):
+            return
+        local = ('http://127.0.0.1', 'http://localhost', 'data:', 'blob:', 'about:')
+
+        def gate(route):
+            if route.request.url.startswith(local):
+                route.continue_()
+            else:
+                route.abort()
+        context.route('**/*', gate)
 
     def _serve_cdn_files(self, context):
         """Where the network is blocked, serve the CDN files some pages need (the tour) from a folder instead.

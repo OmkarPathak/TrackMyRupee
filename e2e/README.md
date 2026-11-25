@@ -23,6 +23,24 @@ If a Chromium is already installed (for example in a container), point at it ins
 RUN_E2E=1 E2E_CHROMIUM_PATH=/path/to/chrome python manage.py test e2e --noinput
 ```
 
+### Run them fast
+
+A serial run of everything takes about 16 minutes. `scripts/run_e2e.py` runs the files in 6 processes at once (each with its
+own database file and browser) and takes about 4:
+
+```bash
+python scripts/run_e2e.py                 # everything, 6 processes
+python scripts/run_e2e.py loans           # only the files with "loans" in their name
+python scripts/run_e2e.py loans phone -w 4
+python scripts/run_e2e.py --list          # show the split and run nothing
+python scripts/run_e2e.py --fresh         # build the test databases again (they are kept between runs by default)
+```
+
+Django's own `--parallel` cannot be used here: the browser tests need a database file, and on macOS Django's parallel
+runner only clones an in-memory one. The runner remembers how long each file took (`.e2e_timings.json`, not in git) and shares
+the files out by it, so the processes finish together. More than about 6 processes only competes for the processor and
+makes pages slow enough to time out.
+
 Run one file or one test: `RUN_E2E=1 python manage.py test e2e.test_move_money --noinput`.
 
 ## What they cover
