@@ -27,6 +27,7 @@ from .models import (
     Income,
     JournalEntry,
     JournalLine,
+    LoanDisbursement,
     LoanRepayment,
     Transfer,
 )
@@ -141,6 +142,9 @@ def dated_flows(account):
 
     for r in LoanRepayment.objects.filter(loan__user=user, from_account=account, is_deleted=False).select_related('loan'):
         flows.append(Flow(r.date, 'loan', r.loan.name, signed('LOAN_REPAYMENT', r, r.loan.currency, r.amount, -1)))
+
+    for d in LoanDisbursement.objects.filter(loan__user=user, account=account, is_deleted=False).select_related('loan'):
+        flows.append(Flow(d.date, 'loan', d.loan.name, signed('LOAN_DISBURSEMENT', d, d.loan.currency, d.amount, 1)))
 
     for ce in CapitalEvent.objects.filter(user=user, account=account, include_in_net_worth=True, is_deleted=False):
         flows.append(Flow(ce.date, 'capital', ce.note or '', signed('CAPITAL_EVENT', ce, ce.currency, ce.amount, -1)))

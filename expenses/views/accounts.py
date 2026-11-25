@@ -46,6 +46,7 @@ from ..models import (
     GoalContribution,
     Holding,
     Income,
+    LoanDisbursement,
     LoanRepayment,
     RecurringTransaction,
     Transfer,
@@ -630,7 +631,14 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         all_accounts = getattr(self, '_all_accounts', accounts)
         groups = self._overview_groups(all_accounts)
         context['overview_groups'] = groups
-        context['overall_total'] = sum((a.base_value for a in all_accounts), Decimal('0.00')).quantize(Decimal('0.01'))
+        unlinked_loans_owed = Decimal('0.00')
+        if current_status == 'active':
+            # A loan with no loan account of its own still counts against net worth (the Dashboard does the same): its
+            # outstanding principal is owed whether or not an account stands for it
+            linked_loan_ids = {a.linked_loan_id for a in all_accounts
+                               if strategy_for(a.account_type) == STRATEGY.LOAN_OUTSTANDING and a.linked_loan_id}
+            unlinked_loans_owed = LedgerReadService._loans_outstanding_base(request.user, user_currency, exclude_ids=linked_loan_ids)
+        context['overall_total'] = (sum((a.base_value for a in all_accounts), Decimal('0.00')) - unlinked_loans_owed).quantize(Decimal('0.01'))
         context['overall_count'] = len(all_accounts)
 
         # Tiles: one per group (what you hold, then what you owe); a click filters the list to it
@@ -660,10 +668,10 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
         # Allocation summary: what is held vs. what is owed
         assets_total = sum((g['total'] for g in groups if g['total'] > 0), Decimal('0.00'))
-        owed_total = sum((g['owed'] for g in groups if g['total'] < 0), Decimal('0.00'))
+        owed_total = sum((g['owed'] for g in groups if g['total'] < 0), Decimal('0.00')) + unlinked_loans_owed
         context['assets_total'] = assets_total.quantize(Decimal('0.01'))
         context['owed_total'] = owed_total.quantize(Decimal('0.01'))
-        context['owed_label'] = _('cards and loans') if any('LOAN' in g['type'] and g['total'] < 0 for g in groups) \
+        context['owed_label'] = _('cards and loans') if (unlinked_loans_owed > 0 or any('LOAN' in g['type'] and g['total'] < 0 for g in groups)) \
             else _('cards')
 
         if current_status == 'active':
@@ -1268,6 +1276,17 @@ class AccountDetailView(LoginRequiredMixin, View):
                 ).select_related('loan')
             }
 
+        received_rows = rows_by_type.get('LOAN_DISBURSEMENT', [])
+        if received_rows:
+            hydrated_by_type['LOAN_DISBURSEMENT'] = {
+                item.id: item
+                for item in LoanDisbursement.active.filter(
+                    loan__user=user,
+                    account=account,
+                    pk__in=[row['id'] for row in received_rows],
+                ).select_related('loan')
+            }
+
         capital_rows = rows_by_type.get('CAPITAL_EVENT', [])
         if capital_rows:
             hydrated_by_type['CAPITAL_EVENT'] = {
@@ -1363,6 +1382,7 @@ class AccountDetailView(LoginRequiredMixin, View):
         transfers_to = Transfer.objects.filter(user=request.user, to_account=account).select_related('from_account').order_by('-date')
         contributions = GoalContribution.objects.filter(goal__user=request.user, account=account).select_related('goal').order_by('-date')
         loan_repayments = LoanRepayment.objects.filter(loan__user=request.user, from_account=account).select_related('loan').order_by('-date')
+        loan_disbursements = LoanDisbursement.active.filter(loan__user=request.user, account=account).select_related('loan').order_by('-date')
         capital_events = CapitalEvent.objects.filter(user=request.user, account=account).select_related('linked_loan').order_by('-date')
 
         if selected_tx_types:
@@ -1377,6 +1397,7 @@ class AccountDetailView(LoginRequiredMixin, View):
                 contributions = GoalContribution.objects.none()
             if 'LOAN' not in selected_tx_types:
                 loan_repayments = LoanRepayment.objects.none()
+                loan_disbursements = LoanDisbursement.objects.none()
             if 'CAPITAL' not in selected_tx_types:
                 capital_events = CapitalEvent.objects.none()
 
@@ -1387,6 +1408,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             transfers_to = Transfer.objects.none()
             contributions = GoalContribution.objects.none()
             loan_repayments = LoanRepayment.objects.none()
+            loan_disbursements = LoanDisbursement.objects.none()
             capital_events = CapitalEvent.objects.none()
 
         if selected_amounts:
@@ -1397,6 +1419,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             transfers_to = filter_amount_range(transfers_to, selected_amounts)
             contributions = filter_amount_range(contributions, selected_amounts)
             loan_repayments = filter_amount_range(loan_repayments, selected_amounts)
+            loan_disbursements = filter_amount_range(loan_disbursements, selected_amounts)
             capital_events = filter_amount_range(capital_events, selected_amounts)
 
         if time_period != 'all':
@@ -1406,6 +1429,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             transfers_to = apply_date_filters(transfers_to, request)
             contributions = apply_date_filters(contributions, request)
             loan_repayments = apply_date_filters(loan_repayments, request)
+            loan_disbursements = apply_date_filters(loan_disbursements, request)
             capital_events = apply_date_filters(capital_events, request)
 
         if search_query:
@@ -1415,6 +1439,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             transfers_to = transfers_to.filter(description__icontains=search_query)
             contributions = contributions.filter(Q(goal__name__icontains=search_query))
             loan_repayments = loan_repayments.filter(Q(loan__name__icontains=search_query))
+            loan_disbursements = loan_disbursements.filter(Q(loan__name__icontains=search_query) | Q(note__icontains=search_query))
             capital_events = capital_events.filter(Q(note__icontains=search_query) | Q(subtype__icontains=search_query))
 
         base_currency = request.user.profile.currency if hasattr(request.user, 'profile') else '₹'
@@ -1494,6 +1519,13 @@ class AccountDetailView(LoginRequiredMixin, View):
         else:
             loan_total = _get_total(loan_repayments)
 
+        received_total = Decimal('0.00')           # loan amounts received: money in
+        for ld in loan_disbursements:
+            if ld.loan.currency != account.currency:
+                received_total += (ld.amount * _get_account_fx(ld.loan.currency, account.currency)).quantize(Decimal('0.01'))
+            else:
+                received_total += ld.amount
+
         # Capital events are in the event's currency
         cap_total = Decimal('0.00')
         for ce in capital_events:
@@ -1504,7 +1536,7 @@ class AccountDetailView(LoginRequiredMixin, View):
                 else:
                     cap_total += ce.amount
 
-        filtered_net_total = inc_total + in_total - exp_total - out_total - sav_total - loan_total - cap_total
+        filtered_net_total = inc_total + in_total + received_total - exp_total - out_total - sav_total - loan_total - cap_total
 
         # Build a lightweight combined ledger first so the database handles
         # the global ordering/counting, then hydrate only the rows on the
@@ -1517,6 +1549,7 @@ class AccountDetailView(LoginRequiredMixin, View):
                 self._build_ledger_source(transfers_to, 'TRANSFER_IN', 3),
                 self._build_ledger_source(contributions, 'SAVINGS', 4),
                 self._build_ledger_source(loan_repayments, 'LOAN_REPAYMENT', 5),
+                self._build_ledger_source(loan_disbursements, 'LOAN_DISBURSEMENT', 7),
                 self._build_ledger_source(capital_events, 'CAPITAL_EVENT', 6),
                 all=True,
             )
@@ -1580,6 +1613,15 @@ class AccountDetailView(LoginRequiredMixin, View):
                 else:
                     item.base_amount_display = None
                 item.description = _("Loan Repayment: %(loan)s") % {'loan': item.loan.name}
+            elif tag == 'LOAN_DISBURSEMENT':
+                item.transaction_type = 'LOAN_DISBURSEMENT'
+                item.display_currency = item.loan.currency
+                if item.loan.currency != account.currency:
+                    rate = get_exchange_rate(item.loan.currency, account.currency)
+                    item.base_amount_display = (item.amount * rate).quantize(Decimal('0.01'))
+                else:
+                    item.base_amount_display = None
+                item.description = item.note or _("Loan received: %(loan)s") % {'loan': item.loan.name}
             elif tag == 'CAPITAL_EVENT':
                 item.transaction_type = 'CAPITAL_EVENT'
                 item.display_currency = item.currency
@@ -1601,12 +1643,13 @@ class AccountDetailView(LoginRequiredMixin, View):
                 + Transfer.objects.filter(user=request.user).filter(Q(from_account=account) | Q(to_account=account)).count()
                 + GoalContribution.objects.filter(goal__user=request.user, account=account).count()
                 + LoanRepayment.objects.filter(loan__user=request.user, from_account=account).count()
+                + LoanDisbursement.active.filter(loan__user=request.user, account=account).count()
                 + CapitalEvent.objects.filter(user=request.user, account=account).count()
             )
         else:
             total_transactions = paginator.count
 
-        money_in = inc_total + in_total
+        money_in = inc_total + in_total + received_total
         money_out = exp_total + out_total + sav_total + loan_total + cap_total
 
         applied_filters = {}
@@ -1674,6 +1717,7 @@ class AccountDetailView(LoginRequiredMixin, View):
         'TRANSFER_IN': ('transfer', _('Transfer'), True),
         'SAVINGS': ('savings', _('Savings'), False),
         'LOAN_REPAYMENT': ('loan', _('Loan Repayment'), False),
+        'LOAN_DISBURSEMENT': ('loan', _('Loan received'), True),
         'CAPITAL_EVENT': ('capital_event', _('Big purchase'), False),
     }
 
@@ -1697,7 +1741,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             badge = _('From %(name)s') % {'name': item.from_account.name}
         elif tag == 'SAVINGS':
             badge, variant = item.goal.name, 'warning'
-        elif tag == 'LOAN_REPAYMENT':
+        elif tag in ('LOAN_REPAYMENT', 'LOAN_DISBURSEMENT'):
             badge, variant = item.loan.name, 'warning'
         elif tag == 'CAPITAL_EVENT':
             badge, variant = item.get_subtype_display(), 'danger'
@@ -1781,6 +1825,7 @@ class AccountDetailView(LoginRequiredMixin, View):
         transfers_in = Transfer.objects.filter(user=user, to_account=account).select_related('from_account')
         contributions = GoalContribution.objects.filter(goal__user=user, account=account).select_related('goal')
         loan_repayments = LoanRepayment.objects.filter(loan__user=user, from_account=account).select_related('loan')
+        loan_disbursements = LoanDisbursement.active.filter(loan__user=user, account=account).select_related('loan')
         capital_events = CapitalEvent.objects.filter(user=user, account=account, include_in_net_worth=True)
         
         if start_date:
@@ -1790,6 +1835,7 @@ class AccountDetailView(LoginRequiredMixin, View):
             transfers_in = transfers_in.filter(date__gte=start_date)
             contributions = contributions.filter(date__gte=start_date)
             loan_repayments = loan_repayments.filter(date__gte=start_date)
+            loan_disbursements = loan_disbursements.filter(date__gte=start_date)
             capital_events = capital_events.filter(date__gte=start_date)
             
         # For simplicity, we'll manually handle the currency conversion logic in Python 
@@ -1834,6 +1880,13 @@ class AccountDetailView(LoginRequiredMixin, View):
                 rate = get_exchange_rate(lr.loan.currency, account.currency)
                 amt = (amt * rate).quantize(Decimal('0.01'))
             all_tx.append({'date': lr.date, 'net_amount': -amt})
+
+        for ld in loan_disbursements:
+            amt = ld.amount
+            if ld.loan.currency != account.currency:
+                rate = get_exchange_rate(ld.loan.currency, account.currency)
+                amt = (amt * rate).quantize(Decimal('0.01'))
+            all_tx.append({'date': ld.date, 'net_amount': amt})
 
         for ce in capital_events.values('date', 'amount', 'currency'):
             amt = ce['amount']

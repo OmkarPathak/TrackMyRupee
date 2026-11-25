@@ -7,6 +7,10 @@
         <div class="col-12{% if field_name != 'fund_splits' %} col-md-6{% endif %}"
              {% if flow.key == 'car' and field_name == 'loan_name' or flow.key == 'car' and field_name == 'annual_rate' or flow.key == 'car' and field_name == 'tenure_months' or flow.key == 'car' and field_name == 'loan_start_date' %}
              x-cloak x-show="isFinanced" x-transition
+             {% elif flow.key == 'loan' and field_name == 'record_loan_received' %}
+             x-cloak x-show="!midTenure" x-transition
+             {% elif flow.key == 'loan' and field_name == 'loan_received_account' %}
+             x-cloak x-show="recordLoanReceived && !midTenure" x-transition
              {% elif flow.key == 'loan' and field_name == 'payment_account' or flow.key == 'loan' and field_name == 'repayment_amount' or flow.key == 'loan' and field_name == 'repayment_frequency' or flow.key == 'loan' and field_name == 'repayment_start_date' or flow.key == 'loan' and field_name == 'repayment_is_active' %}
              x-cloak x-show="createRepaymentSchedule" x-transition
              {% elif flow.key == 'loan' and field_name == 'opening_paid_principal' or flow.key == 'loan' and field_name == 'first_emi_date' %}

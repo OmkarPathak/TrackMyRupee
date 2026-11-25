@@ -325,6 +325,9 @@ class LoanService:
             delattr(loan, 'paid_principal')
         if hasattr(loan, 'capital_prepaid'):
             delattr(loan, 'capital_prepaid')
+        for cached in ('topped_up_principal', 'topped_up_months'):
+            if hasattr(loan, cached):
+                delattr(loan, cached)
         if hasattr(loan, '_cached_summary'):
             delattr(loan, '_cached_summary')
 
@@ -333,7 +336,33 @@ class LoanService:
         if loan.is_active != should_be_active:
             loan.is_active = should_be_active
             loan.save(update_fields=['is_active', 'updated_at'])
+            if not should_be_active:
+                # Nothing left to pay: its EMI schedule stops now, not at its next due date
+                from .models import RecurringTransaction
+                RecurringTransaction.objects.filter(loan=loan, transaction_type='LOAN', is_active=True).update(is_active=False)
         return loan.is_active
+
+    @staticmethod
+    def months_left(loan, today=None):
+        """Months of the term still ahead, at least one."""
+        today = today or timezone.localdate()
+        passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
+        return max(1, loan.total_duration_months - passed)
+
+    @staticmethod
+    def suggest_emi(loan, today=None):
+        """What the EMI works out to now: for what is still owed, the rate in force and the months left of the term.
+        None for a loan that does not amortise (interest only, bullet) or has nothing left to pay."""
+        if getattr(loan, 'repayment_type', 'EMI') != 'EMI':
+            return None
+        today = today or timezone.localdate()
+        remaining = Decimal(str(LoanService.get_loan_summary(loan)['remaining_principal']))
+        if remaining <= 0:
+            return None
+        months_left = LoanService.months_left(loan, today)
+        rate = LoanService.current_rate(loan, today)
+        emi = Decimal(str(LoanService.calculate_emi(remaining, rate, months_left))).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        return {'emi': emi, 'months': months_left, 'rate': rate, 'remaining': remaining}
 
     @staticmethod
     def get_loan_summary(loan):
@@ -361,13 +390,17 @@ class LoanService:
             .aggregate(total=Sum('amount'))['total']
         ) or Decimal('0.00')
 
+        topped_up = loan.topped_up       # everything top-ups added to the principal
+
         # Cache on loan object to avoid subqueries inside remaining_principal
         loan.paid_principal = principal_paid
         loan.capital_prepaid = capital_prepaid
+        loan.topped_up_principal = topped_up
         loan.opening_paid_principal = getattr(loan, 'opening_paid_principal', Decimal('0.00'))
 
         rem = (
             Decimal(str(loan.initial_principal))
+            + topped_up
             - Decimal(str(principal_paid))
             - Decimal(str(capital_prepaid))
             - Decimal(str(getattr(loan, 'opening_paid_principal', Decimal('0.00')) or 0))
@@ -378,6 +411,7 @@ class LoanService:
             'principal_paid': float(principal_paid),
             'capital_prepaid': float(capital_prepaid),
             'opening_paid_principal': float(Decimal(str(getattr(loan, 'opening_paid_principal', 0) or 0))),
+            'topped_up': float(topped_up),
             'interest_paid': float(interest_paid),
             'total_paid': float(total_paid),
             'remaining_principal': float(remaining_principal)
@@ -407,7 +441,7 @@ class LoanService:
         # Months of the term already gone. A loan that has not started yet has none gone (it used to
         # get a negative number, which added extra months to the schedule).
         months_passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
-        remaining_months = loan.duration_months - months_passed
+        remaining_months = loan.total_duration_months - months_passed
 
         if remaining_months <= 0 and remaining_principal > 0:
             # Past the term but still owing: show one final payment that clears the balance.
@@ -473,7 +507,7 @@ class LoanService:
         today = timezone.localdate()
         annual_rate = LoanService.current_rate(loan, today)
         months_passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
-        remaining_months = loan.duration_months - months_passed
+        remaining_months = loan.total_duration_months - months_passed
 
         if remaining_months <= 0:
             return None

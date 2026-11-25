@@ -30,7 +30,7 @@ RATE_CHANGE_DAYS = 30
 
 def _months_left(loan, today) -> int:
     passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
-    return loan.duration_months - passed
+    return loan.total_duration_months - passed
 
 
 def _remaining(loan) -> Decimal:
@@ -142,7 +142,7 @@ def milestone_ahead(ctx) -> list[Insight]:
                            if ctx.today < r.effective_date <= ctx.today + timedelta(days=RATE_CHANGE_DAYS)),
                           key=lambda r: r.effective_date)
         left = _months_left(loan, ctx.today)
-        initial = D(str(loan.initial_principal))
+        initial = D(str(loan.total_principal))
         repaid = (initial - remaining) / initial * 100 if initial > 0 else D(0)
         if upcoming:
             change = upcoming[0]

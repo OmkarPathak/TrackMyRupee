@@ -62,6 +62,7 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
     interestPayout: '',
     isFinanced: false,
     createRepaymentSchedule: true,
+    recordLoanReceived: true,
     midTenure: false,
     includeDownPayment: false,
     // True from the moment the review step is opened until the server's answer for the form as it is now has been
@@ -189,6 +190,10 @@ function tmrFlowWizard(totalSteps, initialStep = 1, initialHasWarnings = false) 
       const repInput = document.querySelector('[name="create_repayment_schedule"]');
       if (repInput) {
         this.createRepaymentSchedule = repInput.checked;
+      }
+      const recvInput = document.querySelector('[name="record_loan_received"]');
+      if (recvInput) {
+        this.recordLoanReceived = recvInput.checked;
       }
       const midInput = document.querySelector('[name="mid_tenure"]');
       if (midInput) {

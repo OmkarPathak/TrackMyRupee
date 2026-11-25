@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,16 +15,19 @@ from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
 from ..form_defaults import default_payer_account
-from ..forms import LoanForm, LoanInterestRateForm, LoanRepaymentForm
+from ..forms import LoanDisbursementForm, LoanForm, LoanInterestRateForm, LoanRepaymentForm, LoanTopUpForm
 from ..models import (
     CapitalEvent,
     Loan,
+    LoanDisbursement,
     LoanInterestRate,
     LoanRepayment,
+    LoanTopUp,
     RecurringTransaction,
 )
 from ..posthog_utils import ph_capture
 from ..services import LoanService
+from ..templatetags.digit_filters import ind_comma
 from ..services_recurring import RecurringService
 from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
@@ -74,6 +78,10 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
             )
         )
         repayment_map = {r['loan_id']: r for r in repayment_totals}
+        topup_map = {
+            row['loan_id']: row['total'] or Decimal('0.00')
+            for row in LoanTopUp.objects.filter(loan__user=self.request.user).values('loan_id').annotate(total=Sum('amount')).order_by()
+        }
 
         capital_prepayment_totals = (
             CapitalEvent.objects
@@ -108,10 +116,11 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
 
             loan.paid_principal = principal_paid
             loan.capital_prepaid = capital_prepaid
+            loan.topped_up_principal = topup_map.get(loan.id, Decimal('0.00'))
             remaining_principal = loan.remaining_principal
             opening_paid = Decimal(str(loan.opening_paid_principal or 0))
 
-            initial = loan.initial_principal
+            initial = loan.total_principal
             progress = min((Decimal('1') - remaining_principal / initial) * Decimal('100'), Decimal('100')) if initial > 0 else Decimal('100')
             summary = {
                 'loan': loan,
@@ -256,6 +265,25 @@ class LoanDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMi
         ph_capture(self.request.user, 'loan_deleted', {})
         return response
 
+def _loan_schedule(loan):
+    """The recurring EMI schedule made for this loan (an active one first), or None."""
+    return (RecurringTransaction.objects.filter(loan=loan, transaction_type='LOAN')
+            .order_by('-is_active', '-id').first())
+
+
+def _emi_card(loan, *, has_topups):
+    """What the loan page says about the EMI schedule: what it posts now and, after a top-up, what the EMI would be
+    for the balance and term the loan has now. The person decides whether to update it. None with no schedule."""
+    schedule = _loan_schedule(loan)
+    if schedule is None:
+        return None
+    suggestion = LoanService.suggest_emi(loan) if has_topups else None
+    differs = bool(suggestion) and abs(Decimal(str(schedule.amount)) - suggestion['emi']) >= Decimal('1')
+    stopped = (not schedule.is_active) and bool(suggestion)          # (a paid-off loan that a top-up reopened)
+    return {'schedule': schedule, 'suggestion': suggestion, 'differs': differs, 'stopped': stopped,
+            'offer': bool(suggestion) and (differs or stopped)}
+
+
 class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     template_name = 'expenses/loan_detail.html'
 
@@ -273,6 +301,13 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         repayments = loan.repayments.select_related('from_account').order_by('-date')
         
         repayment_form = LoanRepaymentForm(user=request.user, loan=loan)
+        disbursements = list(loan.disbursements.filter(is_deleted=False).select_related('account').order_by('-date', '-id'))
+        disbursement_form = LoanDisbursementForm(user=request.user, loan=loan)
+        topups = list(loan.topups.select_related('disbursement__account').order_by('-date', '-id'))
+        topup_form = LoanTopUpForm(user=request.user, loan=loan)
+        emi_card = _emi_card(loan, has_topups=bool(topups))
+        topup_basis = {'remaining': summary['remaining_principal'], 'rate': float(LoanService.current_rate(loan, timezone.localdate())),
+                       'months': LoanService.months_left(loan), 'is_emi': loan.repayment_type == 'EMI'}
         rate_form = LoanInterestRateForm()
         extra_emi_savings = LoanService.calculate_extra_emi_savings(loan)
 
@@ -298,8 +333,11 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         from collections import defaultdict
 
         def _build_historical_months(loan_repayments, capital_events, initial_principal):
-            """Aggregate past repayments and capital events by month, return sorted monthly data."""
+            """Aggregate past repayments and capital events by month, return sorted monthly data.
+            A top-up adds to the balance in its month (it is not a payment, so it adds nothing to the bars)."""
             all_events = []
+            for t in loan.topups.all():
+                all_events.append({'date': t.date, 'principal': 0.0, 'interest': 0.0, 'added': float(t.amount), 'type': 'topup'})
             for r in loan_repayments.order_by('date'):
                 all_events.append({
                     'date': r.date,
@@ -316,11 +354,12 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 })
             all_events.sort(key=lambda x: x['date'])
 
-            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0})
+            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0, 'added': 0.0})
             for ev in all_events:
                 m_key = ev['date'].strftime('%b %Y')
                 monthly_map[m_key]['principal'] += ev['principal']
                 monthly_map[m_key]['interest'] += ev['interest']
+                monthly_map[m_key]['added'] += ev.get('added', 0.0)
 
             h_labels, h_principals, h_interests, h_balances = [], [], [], []
             curr_balance = float(initial_principal)
@@ -328,12 +367,12 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 h_labels.append(m_key)
                 h_principals.append(round(vals['principal'], 2))
                 h_interests.append(round(vals['interest'], 2))
-                curr_balance = max(0.0, curr_balance - vals['principal'])
+                curr_balance = max(0.0, curr_balance + vals['added'] - vals['principal'])
                 h_balances.append(round(curr_balance, 2))
             return h_labels, h_principals, h_interests, h_balances
 
         # Check if there's any prior payment history (EMIs or capital events)
-        has_prior_history = repayments.exists() or linked_capital_events.exists()
+        has_prior_history = repayments.exists() or linked_capital_events.exists() or loan.topups.exists()
 
         if schedule:
             hist_labels, hist_principals, hist_interests, hist_balances = [], [], [], []
@@ -366,14 +405,17 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                     'principal': float(c.base_amount or 0),
                     'interest': 0.0,
                 })
+            for t in loan.topups.all():
+                all_events.append({'date': t.date, 'principal': 0.0, 'interest': 0.0, 'added': float(t.amount)})
             all_events.sort(key=lambda x: x['date'])
 
             from collections import defaultdict
-            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0})
+            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0, 'added': 0.0})
             for ev in all_events:
                 m_key = ev['date'].strftime('%b %Y')
                 monthly_map[m_key]['principal'] += ev['principal']
                 monthly_map[m_key]['interest'] += ev['interest']
+                monthly_map[m_key]['added'] += ev.get('added', 0.0)
 
             labels = []
             principals = []
@@ -385,7 +427,7 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 labels.append(m_key)
                 principals.append(round(vals['principal'], 2))
                 interests.append(round(vals['interest'], 2))
-                curr_balance = max(0.0, curr_balance - vals['principal'])
+                curr_balance = max(0.0, curr_balance + vals['added'] - vals['principal'])
                 balances.append(round(curr_balance, 2))
 
             amortization_chart_data = {
@@ -409,9 +451,11 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 start_idx = max(0, hist_count - 6)
                 trend_labels = all_chart_labels[start_idx:hist_count]
                 trend_balances = all_chart_balances[start_idx:hist_count]
-            else:
+            elif not schedule:
+                # A closed loan: its whole history is the trend
                 trend_labels = all_chart_labels[:min(6, len(all_chart_labels))]
                 trend_balances = all_chart_balances[:min(6, len(all_chart_balances))]
+            # (a loan with nothing repaid yet has no trend: the months ahead are a plan, not a trend)
 
         if len(trend_balances) >= 2:
             start_val = trend_balances[0]
@@ -419,14 +463,14 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             months_count = len(trend_balances)
             trend_summary_text = _("%(currency)s%(start)s → %(currency)s%(end)s over the last %(count)s months") % {
                 'currency': loan.currency,
-                'start': f"{start_val:,.0f}",
-                'end': f"{end_val:,.0f}",
+                'start': ind_comma(start_val, loan.currency),
+                'end': ind_comma(end_val, loan.currency),
                 'count': months_count,
             }
         elif len(trend_balances) == 1:
             trend_summary_text = _("Current balance: %(currency)s%(val)s") % {
                 'currency': loan.currency,
-                'val': f"{trend_balances[0]:,.0f}",
+                'val': ind_comma(trend_balances[0], loan.currency),
             }
 
         trend_chart_data = {
@@ -434,12 +478,31 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             'balance': trend_balances,
         }
 
+        # The rate in force today (a rate that starts later is not "the rate" yet), and each rate's place in the history
+        today = timezone.localdate()
+        rates = list(loan.interest_rates.all())          # newest effective date first
+        in_force = next((r for r in rates if r.effective_date <= today), None) or (rates[-1] if rates else None)
+        rate_rows = [{
+            'rate': r.interest_rate, 'date': r.effective_date,
+            'status': 'current' if r is in_force else ('upcoming' if r.effective_date > today else 'past'),
+        } for r in rates]
+
         context = {
             'loan': loan,
             'summary': summary,
+            'principal_paid_all': round(summary['principal_paid'] + summary['capital_prepaid'], 2),     # (repaid, and paid by prepayments and down payments)
+            'grand_total_paid': round(float(linked_capital_total) + summary['total_paid'], 2),
+            'current_rate': in_force.interest_rate if in_force else None,
+            'rate_rows': rate_rows,
             'schedule': schedule,
             'repayments': repayments,
             'repayment_form': repayment_form,
+            'disbursements': disbursements,
+            'disbursement_form': disbursement_form,
+            'topups': topups,
+            'topup_form': topup_form,
+            'topup_basis': topup_basis,
+            'emi_card': emi_card,
             'rate_form': rate_form,
             'extra_emi_savings': extra_emi_savings,
             'linked_capital_events': linked_capital_events,
@@ -529,6 +592,140 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             if recorded:
                 return redirect(get_safe_redirect_url(request, request.POST.get('next'), reverse('loan-detail', kwargs={'pk': loan.uuid})))
             return redirect(f"{reverse('pay-emi')}?loan={loan.uuid}")
+        return redirect('loan-detail', pk=loan.uuid)
+
+
+class LoanDisbursementCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    """Record the loan amount (or a top-up) as received in an account, from the loan's page."""
+    DOUBLE_SUBMIT_SECONDS = 15
+
+    def post(self, request, pk):
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        form = LoanDisbursementForm(request.POST, user=request.user, loan=loan)
+        if not form.is_valid():
+            errors_list = [f"{err}" for field, errs in form.errors.items() for err in errs]
+            messages.error(request, _("Could not record the amount received: %(err)s") % {'err': " ".join(errors_list) or _("Please check the form.")})
+            return redirect('loan-detail', pk=loan.uuid)
+        recent = timezone.now() - timedelta(seconds=self.DOUBLE_SUBMIT_SECONDS)
+        if loan.disbursements.filter(account=form.cleaned_data['account'], amount=form.cleaned_data['amount'],
+                                     date=form.cleaned_data['date'], created_at__gte=recent, is_deleted=False).exists():
+            messages.info(request, _("This amount was already recorded."))
+            return redirect('loan-detail', pk=loan.uuid)
+        try:
+            with transaction.atomic():
+                disbursement = form.save(commit=False)
+                disbursement.loan = loan
+                disbursement.save()
+        except (RuntimeError, ValidationError):
+            messages.error(request, _("Unable to record the amount received because currency conversion failed or the data is invalid."))
+            return redirect('loan-detail', pk=loan.uuid)
+        messages.success(request, _("Recorded. The amount is now in your %(account)s balance.") % {'account': disbursement.account.name})
+        ph_capture(request.user, 'loan_disbursement_added', {'via': 'loan_page'})
+        return redirect('loan-detail', pk=loan.uuid)
+
+
+class LoanDisbursementDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMixin, DeleteView):
+    model = LoanDisbursement
+
+    def get_queryset(self):
+        return LoanDisbursement.active.filter(loan__user=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        return redirect('loan-detail', pk=self.get_object().loan.uuid)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, _("Deleted. The amount was taken out of the account again."))
+        ph_capture(self.request.user, 'loan_disbursement_deleted', {})
+        return response
+
+    def get_success_url(self):
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        fallback = reverse_lazy('loan-detail', kwargs={'pk': self.object.loan.uuid})
+        if next_url:
+            return get_safe_redirect_url(self.request, next_url, fallback)
+        return fallback
+
+
+class LoanTopUpCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    """More borrowed on a loan: adds to its principal from a date, and optionally to its term, its rate and an account."""
+    DOUBLE_SUBMIT_SECONDS = 15
+
+    def post(self, request, pk):
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        form = LoanTopUpForm(request.POST, user=request.user, loan=loan)
+        if not form.is_valid():
+            errors = [f"{err}" for errs in form.errors.values() for err in errs]
+            messages.error(request, _("Could not add the top-up: %(err)s") % {'err': " ".join(errors) or _("Please check the form.")})
+            return redirect('loan-detail', pk=loan.uuid)
+        recent = timezone.now() - timedelta(seconds=self.DOUBLE_SUBMIT_SECONDS)
+        if loan.topups.filter(date=form.cleaned_data['date'], amount=form.cleaned_data['amount'], created_at__gte=recent).exists():
+            messages.info(request, _("This top-up was already added."))
+            return redirect('loan-detail', pk=loan.uuid)
+        try:
+            topup = form.save()
+        except (RuntimeError, ValidationError):
+            messages.error(request, _("Unable to add the top-up because currency conversion failed or the data is invalid."))
+            return redirect('loan-detail', pk=loan.uuid)
+
+        loan = Loan.objects.get(pk=loan.pk)                       # (fresh: its figures have changed)
+        owed = LoanService.get_loan_summary(loan)['remaining_principal']
+        messages.success(request, _("Top-up of %(currency)s%(amount)s added. You now owe %(currency)s%(owed)s.") % {
+            'currency': loan.currency, 'amount': ind_comma(topup.amount, loan.currency), 'owed': ind_comma(owed, loan.currency)})
+        card = _emi_card(loan, has_topups=True)
+        if card and card['offer']:
+            messages.info(request, _("For the balance and term you have now, the EMI works out to about %(currency)s%(emi)s. "
+                                     "You can update your EMI schedule from the loan page.") % {
+                'currency': loan.currency, 'emi': ind_comma(card['suggestion']['emi'], loan.currency)})
+        ph_capture(request.user, 'loan_topup_added', {'has_account': bool(topup.disbursement_id), 'added_months': bool(topup.extra_months),
+                                                      'new_rate': bool(form.cleaned_data.get('new_rate') is not None)})
+        return redirect('loan-detail', pk=loan.uuid)
+
+
+class LoanTopUpDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMixin, DeleteView):
+    model = LoanTopUp
+
+    def get_queryset(self):
+        return LoanTopUp.objects.filter(loan__user=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        return redirect('loan-detail', pk=self.get_object().loan.uuid)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, _("Top-up deleted. What you owe, the term and any money it put into an account are back as they were."))
+        ph_capture(self.request.user, 'loan_topup_deleted', {})
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy('loan-detail', kwargs={'pk': self.object.loan.uuid})
+
+
+class LoanEmiUpdateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    """Set the loan's EMI schedule to the EMI that fits what is owed now (the person asked for it: it is only suggested)."""
+
+    def post(self, request, pk):
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        schedule = _loan_schedule(loan)
+        suggestion = LoanService.suggest_emi(loan)
+        if schedule is None or suggestion is None:
+            messages.error(request, _("There is no EMI schedule to update for this loan."))
+            return redirect('loan-detail', pk=loan.uuid)
+        reopened = not schedule.is_active
+        schedule.amount = suggestion['emi']
+        if reopened:
+            # Starting again: what fell due while it was stopped was not owed, so it is not posted now
+            schedule.is_active = True
+            schedule.last_processed_date = RecurringService.last_due_before_today(
+                schedule.start_date, schedule.frequency, schedule.is_last_day_of_month, schedule.is_last_working_day)
+        try:
+            schedule.save()
+        except IntegrityError:
+            messages.warning(request, _("An identical EMI schedule already exists."))
+            return redirect('loan-detail', pk=loan.uuid)
+        messages.success(request, _("Your EMI schedule now posts %(currency)s%(emi)s.") % {
+            'currency': loan.currency, 'emi': ind_comma(suggestion['emi'], loan.currency)})
+        ph_capture(request.user, 'loan_emi_updated', {'restarted': reopened})
         return redirect('loan-detail', pk=loan.uuid)
 
 

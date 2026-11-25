@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 from finance_tracker.plans import get_limit
 
-from ..models import Account, CapitalEvent, Loan, LoanInterestRate, RecurringTransaction
+from ..models import Account, CapitalEvent, Loan, LoanDisbursement, LoanInterestRate, RecurringTransaction
 from ..forms import MoneyInput
 from ..services import LoanService
 from ..services_recurring import RecurringService
@@ -27,6 +27,8 @@ class NewLoanFlowForm(forms.Form):
     annual_rate = forms.DecimalField(min_value=Decimal('0.00'), max_digits=7, decimal_places=2, widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Nominal annual interest rate for EMI estimation.'))
     tenure_months = forms.IntegerField(min_value=1, widget=forms.NumberInput(attrs={'class': 'form-control'}), help_text=_('How long the repayment runs in months.'))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}), help_text=_('The date the loan tracking starts.'))
+    record_loan_received = forms.BooleanField(required=False, initial=True, label=_('Add the loan amount to an account'), widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Turn on if the lender paid the money into one of your accounts. It is added to that balance, not counted as income.'))
+    loan_received_account = forms.ModelChoiceField(queryset=Account.objects.none(), required=False, label=_('Received in account'), widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('The account the loan amount was paid into.'))
     create_repayment_schedule = forms.BooleanField(required=False, initial=True, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}), help_text=_('Create a recurring repayment schedule for this loan.'))
     payment_account = forms.ModelChoiceField(queryset=Account.objects.none(), required=False, widget=forms.Select(attrs={'class': 'form-select'}), help_text=_('The account that will be used for loan repayments.'))
     repayment_amount = forms.DecimalField(required=False, min_value=Decimal('0.01'), max_digits=15, decimal_places=2, widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}), help_text=_('Optional override amount per repayment. Leave blank to use calculated EMI.'))
@@ -51,18 +53,27 @@ class NewLoanFlowForm(forms.Form):
             accounts = Account.objects.filter(user=user, is_active=True).order_by('name')
             self.fields['payment_account'].queryset = accounts
             self.fields['down_payment_account'].queryset = accounts
+            self.fields['loan_received_account'].queryset = accounts
             if not self.is_bound:           # (a POST does not need the starting value)
                 cash_default = default_funding_account(accounts)
                 self.fields['payment_account'].initial = cash_default
                 self.fields['down_payment_account'].initial = cash_default
+                self.fields['loan_received_account'].initial = cash_default
             if not accounts.exists():
                 self.fields['payment_account'].help_text = _('No active accounts found. <a href="/accounts/add/" target="_blank" class="fw-semibold text-decoration-underline">Add an account</a>.')
         else:
             self.fields['payment_account'].queryset = Account.objects.none()
             self.fields['down_payment_account'].queryset = Account.objects.none()
+            self.fields['loan_received_account'].queryset = Account.objects.none()
 
     def clean(self):
         cleaned = super().clean()
+        if cleaned.get('mid_tenure'):
+            # A loan taken long ago: the money reached the account then, and is already in its balance
+            cleaned['record_loan_received'] = False
+            cleaned['loan_received_account'] = None
+        elif cleaned.get('record_loan_received') and not cleaned.get('loan_received_account'):
+            self.add_error('loan_received_account', _('Select the account the loan amount was paid into.'))
         if cleaned.get('mid_tenure') and not cleaned.get('opening_paid_principal'):
             self.add_error('opening_paid_principal', _('Enter the principal already paid before tracking started.'))
         if cleaned.get('include_down_payment') and not cleaned.get('down_payment_amount'):
@@ -103,6 +114,7 @@ class NewLoanFlow(Flow):
     estimated_time = _('About 2 min')
     creates = [
         _('Loan account with balance and rate'),
+        _('The amount received, added to your account'),
         _('Repayment schedule'),
         _('Recurring EMI transaction'),
     ]
@@ -116,6 +128,7 @@ class NewLoanFlow(Flow):
         'down_payment': FlowAddon('down_payment', _('Down Payment'), ['down_payment_amount', 'down_payment_account', 'custom_note']),
     }
     conditional_fields = {
+        'loan_received_account': 'record_loan_received',
         'payment_account': 'create_repayment_schedule', 'repayment_amount': 'create_repayment_schedule',
         'repayment_frequency': 'create_repayment_schedule', 'repayment_start_date': 'create_repayment_schedule',
         'repayment_is_active': 'create_repayment_schedule',
@@ -124,7 +137,7 @@ class NewLoanFlow(Flow):
         'custom_note': 'include_down_payment',
     }
     wizard_steps = [
-        FlowWizardStep('loan_basics', _('Loan Basics'), ['loan_type', 'repayment_type', 'name', 'principal', 'annual_rate', 'tenure_months', 'start_date'], _('Core loan details for principal, rate, and tenure.')),
+        FlowWizardStep('loan_basics', _('Loan Basics'), ['loan_type', 'repayment_type', 'name', 'principal', 'annual_rate', 'tenure_months', 'start_date', 'record_loan_received', 'loan_received_account'], _('Core loan details for principal, rate, and tenure.')),
         FlowWizardStep('loan_repayment', _('Repayment Schedule'), ['create_repayment_schedule', 'payment_account', 'repayment_amount', 'repayment_frequency', 'repayment_start_date', 'create_historical_entries', 'repayment_is_active'], _('Control if and how recurring loan repayments should be created.')),
         FlowWizardStep('loan_adjustments', _('Adjustments'), ['mid_tenure', 'opening_paid_principal', 'first_emi_date', 'include_down_payment', 'down_payment_amount', 'down_payment_account', 'custom_note'], _('Optional fields for already-started loans or upfront payments.')),
     ]
@@ -211,6 +224,21 @@ class NewLoanFlow(Flow):
             ),
         ]
 
+        if data.get('record_loan_received') and data.get('loan_received_account') and not data.get('mid_tenure'):
+            steps.append(
+                CreateStep(
+                    LoanDisbursement,
+                    {
+                        'loan': '$loan',
+                        'account': data['loan_received_account'],
+                        'amount': data['principal'],
+                        'date': start_date,
+                        'note': _('Loan amount received'),
+                    },
+                    key='received',
+                )
+            )
+
         if data.get('include_down_payment') and data.get('down_payment_amount'):
             default_note = _('Loan down payment for %(name)s') % {'name': data['name']}
             note = data.get('custom_note') or default_note
@@ -248,6 +276,8 @@ class NewLoanFlow(Flow):
             'bullets': [
                 _('Creates a loan account and interest rate'),
                 _('Creates a recurring EMI schedule') if schedule_enabled else _('Skips recurring schedule creation'),
+                *([_('Adds the loan amount to %(account)s') % {'account': data['loan_received_account'].name}]
+                  if data.get('record_loan_received') and data.get('loan_received_account') and not data.get('mid_tenure') else []),
             ],
             'warnings': warnings,
         }

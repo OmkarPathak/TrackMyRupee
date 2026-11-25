@@ -564,6 +564,68 @@ class LedgerPostingService:
         )
 
     @classmethod
+    def post_loan_disbursement(cls, *, disbursement, idempotency_key, metadata=None):
+        """Money lent to the person arrives in an account: the account is debited (it holds more) and the loan's
+        liability is credited (they owe more). The mirror of a repayment's principal."""
+        loan = disbursement.loan
+        user = loan.user
+        if disbursement.account is None:
+            raise ValidationError("A loan amount received must be linked to an account for ledger posting.")
+
+        asset_ledger = cls._get_or_create_account_ledger(user, disbursement.account)
+        loan_liability_ledger = cls._get_or_create_loan_liability_ledger(user, loan)
+        lines = [
+            cls._build_line(entry=None, ledger_account=asset_ledger, direction="DEBIT", amount=disbursement.amount,
+                            currency=loan.currency, user=user, account_ref=disbursement.account),
+            cls._build_line(entry=None, ledger_account=loan_liability_ledger, direction="CREDIT",
+                            amount=disbursement.amount, currency=loan.currency, user=user),
+        ]
+        return cls._create_entry(
+            user=user, source_type="LOAN_DISBURSEMENT", source_id=disbursement.id, idempotency_key=idempotency_key,
+            description=f"Loan received: {loan.name}", metadata=metadata, lines=lines,
+        )
+
+    @classmethod
+    def _post_loan_disbursement_reversal(cls, *, disbursement, idempotency_key, metadata=None):
+        loan = disbursement.loan
+        user = loan.user
+        if disbursement.account is None:
+            return None, False
+
+        lines = cls._build_reversal_lines_from_original("LOAN_DISBURSEMENT", disbursement.id)
+        if not lines:
+            asset_ledger = cls._get_or_create_account_ledger(user, disbursement.account)
+            loan_liability_ledger = cls._get_or_create_loan_liability_ledger(user, loan)
+            lines = [
+                cls._build_line(entry=None, ledger_account=asset_ledger, direction="CREDIT", amount=disbursement.amount,
+                                currency=loan.currency, user=user, account_ref=disbursement.account),
+                cls._build_line(entry=None, ledger_account=loan_liability_ledger, direction="DEBIT",
+                                amount=disbursement.amount, currency=loan.currency, user=user),
+            ]
+        return cls._create_entry(
+            user=user, source_type="LOAN_DISBURSEMENT", source_id=disbursement.id, idempotency_key=idempotency_key,
+            description=f"Reversal: Loan received: {loan.name}", metadata=metadata, lines=lines, status="POSTED",
+        )
+
+    @classmethod
+    def shadow_post_loan_disbursement_create(cls, *, disbursement, version_token):
+        if not cls._has_fk(disbursement, "account"):
+            return None, False
+        return cls.post_loan_disbursement(
+            disbursement=disbursement,
+            idempotency_key=cls._idempotency_key("LOAN_DISBURSEMENT", disbursement.id, f"{version_token}-POST"),
+            metadata={"shadow_action": "CREATE", "version": version_token},
+        )
+
+    @classmethod
+    def shadow_post_loan_disbursement_delete(cls, *, disbursement, version_token):
+        return cls._post_loan_disbursement_reversal(
+            disbursement=disbursement,
+            idempotency_key=cls._idempotency_key("LOAN_DISBURSEMENT", disbursement.id, f"{version_token}-REV"),
+            metadata={"shadow_action": "DELETE_REVERSE", "version": version_token},
+        )
+
+    @classmethod
     def post_goal_contribution(cls, *, contribution, idempotency_key, metadata=None):
         user = contribution.goal.user
         if contribution.account is None:
@@ -1356,6 +1418,12 @@ class LedgerPostingService:
         )
 
     @staticmethod
+    def _disbursement_like(data):
+        loan = Loan.objects.get(pk=data["loan_id"])
+        account = Account.objects.filter(pk=data.get("account_id")).first() if data.get("account_id") else None
+        return SimpleNamespace(id=data["source_id"], loan=loan, amount=Decimal(data["amount"]), account=account)
+
+    @staticmethod
     def _goal_contribution_like(data):
         goal = SavingsGoal.objects.get(pk=data["goal_id"])
         account = Account.objects.filter(pk=data.get("account_id")).first() if data.get("account_id") else None
@@ -1429,6 +1497,15 @@ class LedgerPostingService:
         if handler == "loan_repayment_delete":
             repayment = cls._repayment_like(payload["loan_repayment"])
             cls.shadow_post_loan_repayment_delete(repayment=repayment, version_token=version_token)
+            return
+
+        if handler == "loan_disbursement_create":
+            cls.shadow_post_loan_disbursement_create(
+                disbursement=cls._disbursement_like(payload["loan_disbursement"]), version_token=version_token)
+            return
+        if handler == "loan_disbursement_delete":
+            cls.shadow_post_loan_disbursement_delete(
+                disbursement=cls._disbursement_like(payload["loan_disbursement"]), version_token=version_token)
             return
 
         if handler == "goal_contribution_create":

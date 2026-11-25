@@ -340,7 +340,7 @@ class InsightContext:
         loans = list(annotate_loan_principal_totals(
             Loan.objects.filter(user=self.user, is_active=True).order_by('id')).prefetch_related('interest_rates'))
         for loan in loans:
-            remaining = (Decimal(str(loan.initial_principal)) - Decimal(str(loan.paid_principal))
+            remaining = (loan.total_principal - Decimal(str(loan.paid_principal))
                          - Decimal(str(loan.capital_prepaid)) - Decimal(str(loan.opening_paid_principal or 0)))
             loan._cached_summary = {'remaining_principal': float(max(remaining, ZERO))}
         return loans

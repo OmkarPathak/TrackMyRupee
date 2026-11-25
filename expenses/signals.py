@@ -24,6 +24,7 @@ from .models import (
     Loan,
     LoanInterestRate,
     LoanRepayment,
+    LoanTopUp,
     Notification,
     PhysicalAsset,
     RecurringTransaction,
@@ -189,8 +190,10 @@ def handle_physical_asset_deactivation(sender, instance, **kwargs):
 
 @receiver(post_save, sender=LoanRepayment)
 @receiver(post_delete, sender=LoanRepayment)
+@receiver(post_save, sender=LoanTopUp)
+@receiver(post_delete, sender=LoanTopUp)
 def handle_loan_repayment_active_status(sender, instance, **kwargs):
-    """Sync loan active status when a LoanRepayment is saved or deleted."""
+    """Sync loan active status when a LoanRepayment or a top-up is saved or deleted (a top-up reopens a paid-off loan)."""
     if kwargs.get('raw', False):
         return
     if getattr(instance, 'loan_id', None):
@@ -215,7 +218,7 @@ def handle_capital_event_loan_active_status(sender, instance, **kwargs):
 
 def _dashboard_cache_user_id(instance):
     """Resolve the owning user id for cache-invalidation, regardless of model shape."""
-    if isinstance(instance, (LoanRepayment, LoanInterestRate)):
+    if isinstance(instance, (LoanRepayment, LoanInterestRate, LoanTopUp)):
         try:
             return instance.loan.user_id
         except Exception:
@@ -333,6 +336,7 @@ _DASHBOARD_CACHE_MODELS = (
     Income,
     Transfer,
     LoanRepayment,
+    LoanTopUp,
     CapitalEvent,
     Account,
     RecurringTransaction,

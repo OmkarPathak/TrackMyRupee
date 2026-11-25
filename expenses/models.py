@@ -464,6 +464,7 @@ class JournalEntry(models.Model):
         ('INCOME', _('Income')),
         ('TRANSFER', _('Transfer')),
         ('LOAN_REPAYMENT', _('Loan Repayment')),
+        ('LOAN_DISBURSEMENT', _('Loan received')),
         ('GOAL_CONTRIBUTION', _('Goal Contribution')),
         ('ADJUSTMENT', _('Adjustment')),
         ('CAPITAL_EVENT', _('Big purchase')),
@@ -2704,13 +2705,37 @@ class Loan(models.Model):
         with transaction.atomic():
             for repayment in self.repayments.all():
                 repayment.delete()
+            for disbursement in self.disbursements.all():
+                disbursement.delete()          # (the money received goes back out of the account it arrived in)
             super().delete(*args, **kwargs)
+
+    @property
+    def topped_up(self) -> Decimal:
+        """Everything added to the principal by top-ups. Read from ``topped_up_principal`` when a queryset
+        already carried it (see annotate_loan_principal_totals), else summed here."""
+        value = getattr(self, 'topped_up_principal', None)
+        if value is None:
+            value = self.topups.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        return Decimal(str(value))
+
+    @property
+    def total_principal(self) -> Decimal:
+        """The amount borrowed in all: the original principal plus every top-up."""
+        return Decimal(str(self.initial_principal)) + self.topped_up
+
+    @property
+    def total_duration_months(self) -> int:
+        """The term in months: the original term plus the months top-ups added to it."""
+        value = getattr(self, 'topped_up_months', None)
+        if value is None:
+            value = self.topups.aggregate(total=Sum('extra_months'))['total'] or 0
+        return int(self.duration_months) + int(value)
 
     @property
     def remaining_principal(self) -> Decimal:
         """
         Calculates remaining outstanding principal:
-        initial_principal - sum(repayments.principal_portion) - sum(capital_prepaid) - opening_paid_principal
+        initial_principal + top-ups - sum(repayments.principal_portion) - sum(capital_prepaid) - opening_paid_principal
         """
         
         principal_paid = getattr(self, 'paid_principal', None)
@@ -2726,7 +2751,7 @@ class Loan(models.Model):
             ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
 
         rem = (
-            Decimal(str(self.initial_principal))
+            self.total_principal
             - Decimal(str(principal_paid))
             - Decimal(str(capital_prepaid))
             - Decimal(str(self.opening_paid_principal or 0))
@@ -2770,6 +2795,11 @@ def annotate_loan_principal_totals(queryset, as_of=None):
         # Only what had been paid by that date (net worth "as of" a past day)
         repayments = repayments.filter(date__lte=as_of)
         prepayments = prepayments.filter(date__lte=as_of)
+    topups = LoanTopUp.objects.filter(loan=OuterRef('pk'))
+    if as_of is not None:
+        topups = topups.filter(date__lte=as_of)     # (a top-up made after that day had not been taken yet)
+    topped_amount = topups.order_by().values('loan').annotate(total=Sum('amount')).values('total')
+    topped_months = topups.order_by().values('loan').annotate(total=Sum('extra_months')).values('total')
     paid = (
         repayments
         .order_by().values('loan')
@@ -2789,7 +2819,56 @@ def annotate_loan_principal_totals(queryset, as_of=None):
             Subquery(prepaid, output_field=CapitalEvent._meta.get_field('amount')),
             zero, output_field=CapitalEvent._meta.get_field('amount'),
         ),
+        topped_up_principal=Coalesce(
+            Subquery(topped_amount, output_field=LoanRepayment._meta.get_field('amount')),
+            zero, output_field=LoanRepayment._meta.get_field('amount'),
+        ),
+        topped_up_months=Coalesce(
+            Subquery(topped_months, output_field=models.IntegerField()), Value(0), output_field=models.IntegerField(),
+        ),
     )
+
+
+class LoanTopUp(models.Model):
+    """More borrowed on an existing loan, part-way through its term.
+
+    The loan's original principal is never edited: a top-up adds to it from its date, so the history and the "how
+    much is repaid" figures stay honest. It may also add months to the term. Where the money went is recorded
+    separately, as a LoanDisbursement linked here (deleting the top-up takes that out of the account again)."""
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='topups')
+    date = models.DateField(default=timezone.now, verbose_name=_('Date'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount added'))
+    extra_months = models.PositiveIntegerField(default=0, verbose_name=_('Months added to the term'))
+    note = models.CharField(max_length=120, blank=True, default='', verbose_name=_('Note'))
+    disbursement = models.OneToOneField('LoanDisbursement', null=True, blank=True, on_delete=models.SET_NULL,
+                                        related_name='topup')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'id']
+        indexes = [models.Index(fields=['loan', 'date'], name='loantopup_loan_date_idx')]
+
+    def __str__(self):
+        loan_name = getattr(self, 'loan_id', None) and getattr(self.loan, 'name', _('Loan')) or _('Loan')
+        return f"{loan_name} top-up - {self.amount} on {self.date}"
+
+    def clean(self):
+        if self.amount is None or self.amount <= 0:
+            raise ValidationError({'amount': _('The top-up amount must be greater than zero.')})
+        if self.loan_id and self.date and self.date < self.loan.start_date:
+            raise ValidationError({'date': _('A top-up cannot be dated before the loan started.')})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            received = self.disbursement
+            super().delete(*args, **kwargs)
+            if received is not None:
+                received.delete()               # (the money it put into an account goes back out)
 
 
 class LoanRepayment(models.Model):
@@ -2848,8 +2927,9 @@ class LoanRepayment(models.Model):
             .filter(subtype__in=['loan_down_payment', 'loan_prepayment'])
             .aggregate(total=models.Sum('amount'))['total']
         ) or Decimal('0.00')
+        topped_up = self.loan.topups.filter(date__lte=self.date).aggregate(total=models.Sum('amount'))['total'] or Decimal('0.00')
         remaining_principal = max(
-            self.loan.initial_principal - prior_paid - capital_prepaid
+            self.loan.initial_principal + topped_up - prior_paid - capital_prepaid
             - (self.loan.opening_paid_principal or Decimal('0.00')),
             Decimal('0.00'),
         )
@@ -3012,6 +3092,129 @@ class LoanRepayment(models.Model):
                     object_uuid=self.uuid,
                     action='DELETE',
                     diff={'deleted': True}
+                )
+            else:
+                super().delete(*args, **kwargs)
+
+
+class LoanDisbursement(models.Model):
+    """The money a lender paid out: the loan amount (or a top-up) arriving in one of the person's accounts.
+
+    The mirror of a repayment: the account is credited and the loan's liability grows by the same amount. Nothing about
+    it is income, and it is not an expense, so it never shows in either total. Its amount cannot be edited (delete it
+    and record it again): the account's balance and the ledger are changed by exactly the amount that was recorded."""
+    LEDGER_FIELDS = ('amount', 'account_id', 'loan_id')
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='disbursements')
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_disbursements',
+                                verbose_name=_('Received in account'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount received'))
+    date = models.DateField(default=timezone.now, verbose_name=_('Date received'))
+    note = models.CharField(max_length=120, blank=True, default='', verbose_name=_('Note'))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = models.Manager()
+    active = SoftDeleteManager()
+
+    class Meta:
+        ordering = ['date', 'id']
+        indexes = [models.Index(fields=['loan', 'date'], name='loandisb_loan_date_idx')]
+
+    def __str__(self):
+        loan_name = getattr(self, 'loan_id', None) and getattr(self.loan, 'name', _('Loan')) or _('Loan')
+        return f"{loan_name} received - {self.amount} on {self.date}"
+
+    def clean(self):
+        if self.amount is None or self.amount <= 0:
+            raise ValidationError({'amount': _('The amount received must be greater than zero.')})
+        if self.account_id is None:
+            raise ValidationError({'account': _('Choose the account the money arrived in.')})
+        if self.account.user_id != self.loan.user_id:
+            raise ValidationError({'account': _('Selected account does not belong to this user.')})
+        if self.pk:
+            old = LoanDisbursement.objects.filter(pk=self.pk).first()
+            if old and not _ledger_inputs_unchanged(old, self):
+                raise ValidationError(_('To change the amount or the account, delete this entry and record it again.'))
+
+    def _amount_in_account_currency(self, account):
+        if self.loan.currency == account.currency:
+            return self.amount
+        return (self.amount * get_exchange_rate(self.loan.currency, account.currency)).quantize(Decimal('0.01'))
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        with transaction.atomic():
+            is_new = self.pk is None
+            super().save(*args, **kwargs)
+            if not is_new:
+                return                      # (only the date or the note can change: the account and the ledger stay as they are)
+
+            locked_account = Account.objects.select_for_update().get(pk=self.account_id)
+            locked_account.balance += self._amount_in_account_currency(locked_account)
+            locked_account.save(update_fields=['balance', 'updated_at'])
+
+            def _post_shadow_entry():
+                from .ledger_service import LedgerPostingService
+                LedgerPostingService.shadow_post_loan_disbursement_create(
+                    disbursement=self, version_token=_build_ledger_version(self, 'CREATE'))
+
+            _run_ledger_shadow(
+                _post_shadow_entry,
+                source_type='LOAN_DISBURSEMENT',
+                source_id=self.id,
+                action='CREATE',
+                payload={
+                    'handler': 'loan_disbursement_create',
+                    'version_token': _build_ledger_version(self, 'CREATE'),
+                    'loan_disbursement': {
+                        'loan_id': self.loan_id, 'amount': str(self.amount), 'account_id': self.account_id,
+                        'source_id': self.id,
+                    },
+                },
+            )
+            FinancialAuditLog.objects.create(
+                user=self.loan.user, model_name='LoanDisbursement', object_id=self.id, object_uuid=self.uuid,
+                action='CREATE', diff={'before': None, 'after': {'amount': str(self.amount)}},
+            )
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            if self.account_id:
+                locked_account = Account.objects.select_for_update().get(pk=self.account_id)
+                undo = _undo_amount('LOAN_DISBURSEMENT', self.pk, locked_account, inflow=True,
+                                    fallback=self._amount_in_account_currency(locked_account))
+                locked_account.balance -= undo
+                locked_account.save(update_fields=['balance', 'updated_at'])
+
+            def _post_shadow_entry():
+                from .ledger_service import LedgerPostingService
+                LedgerPostingService.shadow_post_loan_disbursement_delete(
+                    disbursement=self, version_token=_build_ledger_version(self, 'DELETE'))
+
+            _run_ledger_shadow(
+                _post_shadow_entry,
+                source_type='LOAN_DISBURSEMENT',
+                source_id=self.id,
+                action='DELETE',
+                payload={
+                    'handler': 'loan_disbursement_delete',
+                    'version_token': _build_ledger_version(self, 'DELETE'),
+                    'loan_disbursement': {
+                        'loan_id': self.loan_id, 'amount': str(self.amount), 'account_id': self.account_id,
+                        'source_id': self.id,
+                    },
+                },
+            )
+            if getattr(settings, 'SOFT_DELETE_ENABLED', False):
+                self.is_deleted = True
+                self.deleted_at = timezone.now()
+                super().save(update_fields=['is_deleted', 'deleted_at'])
+                FinancialAuditLog.objects.create(
+                    user=self.loan.user, model_name='LoanDisbursement', object_id=self.id, object_uuid=self.uuid,
+                    action='DELETE', diff={'deleted': True},
                 )
             else:
                 super().delete(*args, **kwargs)

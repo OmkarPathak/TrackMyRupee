@@ -181,7 +181,11 @@ class LoanServiceTest(TestCase):
         self.assertEqual(list_response_2.status_code, 200)
         self.assertContains(list_response_2, 'id="loanComparisonChart"')
 
-        # Test LoanDetailView context contains breakdown & trend chart data
+        # Test LoanDetailView context contains breakdown & trend chart data. The balance trend is drawn from what has
+        # been repaid, so the loan needs a repayment first (without one the page says there is no trend yet).
+        LoanRepayment.objects.create(loan=self.loan, from_account=self.account, amount=Decimal('1100.00'),
+                                     principal_portion=Decimal('1000.00'), interest_portion=Decimal('100.00'),
+                                     date=datetime.date.today() - datetime.timedelta(days=40))
         detail_response = self.client.get(reverse('loan-detail', kwargs={'pk': self.loan.pk}))
         self.assertEqual(detail_response.status_code, 200)
         self.assertIn('breakdown_chart_data', detail_response.context)
@@ -344,7 +348,7 @@ class LoanServiceTest(TestCase):
     def test_pure_read_no_db_writes_on_summary_or_list_view(self):
         """Test that get_loan_summary and LoanListView are pure reads and do not perform any database writes."""
         # Check get_loan_summary does no writes
-        with self.assertNumQueries(2):  # 1 for repayments aggregate, 1 for capital_events aggregate
+        with self.assertNumQueries(3):  # 1 for repayments aggregate, 1 for capital_events aggregate, 1 for top-ups aggregate
             LoanService.get_loan_summary(self.loan)
 
         # Check LoanListView context generation performs no writes (only SELECTs)
