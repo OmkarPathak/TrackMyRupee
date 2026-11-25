@@ -224,6 +224,7 @@ def _loan(name, initial, remaining, rate, months=240, started=40, extra_rates=()
     loan = SimpleNamespace(
         uuid=uuid.uuid5(uuid.NAMESPACE_URL, name), name=name, currency='₹', initial_principal=D(initial),
         paid_principal=paid, capital_prepaid=D(0), opening_paid_principal=D(0), duration_months=months, start_date=start,
+        total_principal=D(initial), total_duration_months=months,
         repayment_type='EMI', interest_rates=_Rates(SimpleNamespace(effective_date=start, interest_rate=D(rate)),
                                                      *extra_rates))
     loan._cached_summary = {'remaining_principal': float(remaining)}

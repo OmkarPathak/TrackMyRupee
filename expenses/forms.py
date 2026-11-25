@@ -2039,7 +2039,7 @@ class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.M
         # EMI suggestion is useful for the initial preview only.
         today = timezone.localdate()
         months_passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
-        remaining_months = max(1, loan.duration_months - months_passed)
+        remaining_months = max(1, loan.total_duration_months - months_passed)
 
         suggested_amount = LoanService.calculate_emi(summary['remaining_principal'], annual_rate, remaining_months)
         estimated_interest = float(LoanService.period_interest(summary['remaining_principal'], annual_rate, 'MONTHLY'))

@@ -14,6 +14,7 @@ from ..models import (
     Income,
     LoanInterestRate,
     LoanRepayment,
+    LoanTopUp,
     RecurringTransaction,
     Transfer,
     UserProfile,
@@ -84,6 +85,7 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
         recurring_txs = recurring_txs[:limit]
 
     loan_principal_paid_map = {}
+    loan_balance_changes = {}       # {loan id: [(date, change to the principal)]}: prepayments (-) and top-ups (+)
     latest_rate_map = {}
     
     try:
@@ -102,19 +104,14 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
             row['loan_id']: Decimal(str(row['total_principal'] or 0))
             for row in repayment_totals
         }
-        # Add capital event prepayments so recurring EMI scheduling sees the correct balance
-        capital_prepayment_totals = (
-            CapitalEvent.objects
-            .filter(linked_loan_id__in=loan_ids, subtype__in=['loan_down_payment', 'loan_prepayment'])
-            .values('linked_loan_id')
-            .annotate(total_prepaid=Sum('amount'))
-        )
-        for row in capital_prepayment_totals:
-            lid = row['linked_loan_id']
-            loan_principal_paid_map[lid] = (
-                loan_principal_paid_map.get(lid, Decimal('0.00'))
-                + Decimal(str(row['total_prepaid'] or 0))
-            )
+        # Prepayments (and down payments) lower the balance and top-ups raise it, each from its own date: an
+        # instalment being caught up for an earlier month must not see a later prepayment or top-up.
+        for row in (CapitalEvent.objects
+                    .filter(linked_loan_id__in=loan_ids, subtype__in=['loan_down_payment', 'loan_prepayment'])
+                    .values('linked_loan_id', 'date', 'amount')):
+            loan_balance_changes.setdefault(row['linked_loan_id'], []).append((row['date'], -Decimal(str(row['amount'] or 0))))
+        for row in LoanTopUp.objects.filter(loan_id__in=loan_ids).values('loan_id', 'date', 'amount'):
+            loan_balance_changes.setdefault(row['loan_id'], []).append((row['date'], Decimal(str(row['amount'] or 0))))
 
         # Every rate of each loan: the one in force on each posting date is picked below
         rates = LoanInterestRate.objects.filter(loan_id__in=loan_ids).order_by('loan_id', 'effective_date', 'id')
@@ -231,8 +228,11 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                         break
 
                     principal_paid = loan_principal_paid_map.get(rt.loan_id, Decimal('0.00'))
+                    changes_by_now = sum((change for when, change in loan_balance_changes.get(rt.loan_id, ()) if when <= current_date),
+                                         Decimal('0.00'))
                     remaining_principal = (
                         Decimal(str(rt.loan.initial_principal))
+                        + changes_by_now
                         - principal_paid
                         - Decimal(str(getattr(rt.loan, 'opening_paid_principal', 0) or 0))
                     ).quantize(Decimal('0.01'))

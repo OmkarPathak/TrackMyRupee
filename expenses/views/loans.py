@@ -21,6 +21,7 @@ from ..models import (
     LoanDisbursement,
     LoanInterestRate,
     LoanRepayment,
+    LoanTopUp,
     RecurringTransaction,
 )
 from ..posthog_utils import ph_capture
@@ -75,6 +76,10 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
             )
         )
         repayment_map = {r['loan_id']: r for r in repayment_totals}
+        topup_map = {
+            row['loan_id']: row['total'] or Decimal('0.00')
+            for row in LoanTopUp.objects.filter(loan__user=self.request.user).values('loan_id').annotate(total=Sum('amount')).order_by()
+        }
 
         capital_prepayment_totals = (
             CapitalEvent.objects
@@ -109,10 +114,11 @@ class LoanListView(HtmxPartialTemplateMixin, LoginRequiredMixin, LoanFeatureGate
 
             loan.paid_principal = principal_paid
             loan.capital_prepaid = capital_prepaid
+            loan.topped_up_principal = topup_map.get(loan.id, Decimal('0.00'))
             remaining_principal = loan.remaining_principal
             opening_paid = Decimal(str(loan.opening_paid_principal or 0))
 
-            initial = loan.initial_principal
+            initial = loan.total_principal
             progress = min((Decimal('1') - remaining_principal / initial) * Decimal('100'), Decimal('100')) if initial > 0 else Decimal('100')
             summary = {
                 'loan': loan,
@@ -301,8 +307,11 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         from collections import defaultdict
 
         def _build_historical_months(loan_repayments, capital_events, initial_principal):
-            """Aggregate past repayments and capital events by month, return sorted monthly data."""
+            """Aggregate past repayments and capital events by month, return sorted monthly data.
+            A top-up adds to the balance in its month (it is not a payment, so it adds nothing to the bars)."""
             all_events = []
+            for t in loan.topups.all():
+                all_events.append({'date': t.date, 'principal': 0.0, 'interest': 0.0, 'added': float(t.amount), 'type': 'topup'})
             for r in loan_repayments.order_by('date'):
                 all_events.append({
                     'date': r.date,
@@ -319,11 +328,12 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 })
             all_events.sort(key=lambda x: x['date'])
 
-            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0})
+            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0, 'added': 0.0})
             for ev in all_events:
                 m_key = ev['date'].strftime('%b %Y')
                 monthly_map[m_key]['principal'] += ev['principal']
                 monthly_map[m_key]['interest'] += ev['interest']
+                monthly_map[m_key]['added'] += ev.get('added', 0.0)
 
             h_labels, h_principals, h_interests, h_balances = [], [], [], []
             curr_balance = float(initial_principal)
@@ -331,12 +341,12 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 h_labels.append(m_key)
                 h_principals.append(round(vals['principal'], 2))
                 h_interests.append(round(vals['interest'], 2))
-                curr_balance = max(0.0, curr_balance - vals['principal'])
+                curr_balance = max(0.0, curr_balance + vals['added'] - vals['principal'])
                 h_balances.append(round(curr_balance, 2))
             return h_labels, h_principals, h_interests, h_balances
 
         # Check if there's any prior payment history (EMIs or capital events)
-        has_prior_history = repayments.exists() or linked_capital_events.exists()
+        has_prior_history = repayments.exists() or linked_capital_events.exists() or loan.topups.exists()
 
         if schedule:
             hist_labels, hist_principals, hist_interests, hist_balances = [], [], [], []
@@ -369,14 +379,17 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                     'principal': float(c.base_amount or 0),
                     'interest': 0.0,
                 })
+            for t in loan.topups.all():
+                all_events.append({'date': t.date, 'principal': 0.0, 'interest': 0.0, 'added': float(t.amount)})
             all_events.sort(key=lambda x: x['date'])
 
             from collections import defaultdict
-            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0})
+            monthly_map = defaultdict(lambda: {'principal': 0.0, 'interest': 0.0, 'added': 0.0})
             for ev in all_events:
                 m_key = ev['date'].strftime('%b %Y')
                 monthly_map[m_key]['principal'] += ev['principal']
                 monthly_map[m_key]['interest'] += ev['interest']
+                monthly_map[m_key]['added'] += ev.get('added', 0.0)
 
             labels = []
             principals = []
@@ -388,7 +401,7 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 labels.append(m_key)
                 principals.append(round(vals['principal'], 2))
                 interests.append(round(vals['interest'], 2))
-                curr_balance = max(0.0, curr_balance - vals['principal'])
+                curr_balance = max(0.0, curr_balance + vals['added'] - vals['principal'])
                 balances.append(round(curr_balance, 2))
 
             amortization_chart_data = {

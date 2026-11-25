@@ -344,7 +344,7 @@ class LoanServiceTest(TestCase):
     def test_pure_read_no_db_writes_on_summary_or_list_view(self):
         """Test that get_loan_summary and LoanListView are pure reads and do not perform any database writes."""
         # Check get_loan_summary does no writes
-        with self.assertNumQueries(2):  # 1 for repayments aggregate, 1 for capital_events aggregate
+        with self.assertNumQueries(3):  # 1 for repayments aggregate, 1 for capital_events aggregate, 1 for top-ups aggregate
             LoanService.get_loan_summary(self.loan)
 
         # Check LoanListView context generation performs no writes (only SELECTs)

@@ -2710,10 +2710,32 @@ class Loan(models.Model):
             super().delete(*args, **kwargs)
 
     @property
+    def topped_up(self) -> Decimal:
+        """Everything added to the principal by top-ups. Read from ``topped_up_principal`` when a queryset
+        already carried it (see annotate_loan_principal_totals), else summed here."""
+        value = getattr(self, 'topped_up_principal', None)
+        if value is None:
+            value = self.topups.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        return Decimal(str(value))
+
+    @property
+    def total_principal(self) -> Decimal:
+        """The amount borrowed in all: the original principal plus every top-up."""
+        return Decimal(str(self.initial_principal)) + self.topped_up
+
+    @property
+    def total_duration_months(self) -> int:
+        """The term in months: the original term plus the months top-ups added to it."""
+        value = getattr(self, 'topped_up_months', None)
+        if value is None:
+            value = self.topups.aggregate(total=Sum('extra_months'))['total'] or 0
+        return int(self.duration_months) + int(value)
+
+    @property
     def remaining_principal(self) -> Decimal:
         """
         Calculates remaining outstanding principal:
-        initial_principal - sum(repayments.principal_portion) - sum(capital_prepaid) - opening_paid_principal
+        initial_principal + top-ups - sum(repayments.principal_portion) - sum(capital_prepaid) - opening_paid_principal
         """
         
         principal_paid = getattr(self, 'paid_principal', None)
@@ -2729,7 +2751,7 @@ class Loan(models.Model):
             ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
 
         rem = (
-            Decimal(str(self.initial_principal))
+            self.total_principal
             - Decimal(str(principal_paid))
             - Decimal(str(capital_prepaid))
             - Decimal(str(self.opening_paid_principal or 0))
@@ -2773,6 +2795,11 @@ def annotate_loan_principal_totals(queryset, as_of=None):
         # Only what had been paid by that date (net worth "as of" a past day)
         repayments = repayments.filter(date__lte=as_of)
         prepayments = prepayments.filter(date__lte=as_of)
+    topups = LoanTopUp.objects.filter(loan=OuterRef('pk'))
+    if as_of is not None:
+        topups = topups.filter(date__lte=as_of)     # (a top-up made after that day had not been taken yet)
+    topped_amount = topups.order_by().values('loan').annotate(total=Sum('amount')).values('total')
+    topped_months = topups.order_by().values('loan').annotate(total=Sum('extra_months')).values('total')
     paid = (
         repayments
         .order_by().values('loan')
@@ -2792,7 +2819,56 @@ def annotate_loan_principal_totals(queryset, as_of=None):
             Subquery(prepaid, output_field=CapitalEvent._meta.get_field('amount')),
             zero, output_field=CapitalEvent._meta.get_field('amount'),
         ),
+        topped_up_principal=Coalesce(
+            Subquery(topped_amount, output_field=LoanRepayment._meta.get_field('amount')),
+            zero, output_field=LoanRepayment._meta.get_field('amount'),
+        ),
+        topped_up_months=Coalesce(
+            Subquery(topped_months, output_field=models.IntegerField()), Value(0), output_field=models.IntegerField(),
+        ),
     )
+
+
+class LoanTopUp(models.Model):
+    """More borrowed on an existing loan, part-way through its term.
+
+    The loan's original principal is never edited: a top-up adds to it from its date, so the history and the "how
+    much is repaid" figures stay honest. It may also add months to the term. Where the money went is recorded
+    separately, as a LoanDisbursement linked here (deleting the top-up takes that out of the account again)."""
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='topups')
+    date = models.DateField(default=timezone.now, verbose_name=_('Date'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount added'))
+    extra_months = models.PositiveIntegerField(default=0, verbose_name=_('Months added to the term'))
+    note = models.CharField(max_length=120, blank=True, default='', verbose_name=_('Note'))
+    disbursement = models.OneToOneField('LoanDisbursement', null=True, blank=True, on_delete=models.SET_NULL,
+                                        related_name='topup')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'id']
+        indexes = [models.Index(fields=['loan', 'date'], name='loantopup_loan_date_idx')]
+
+    def __str__(self):
+        loan_name = getattr(self, 'loan_id', None) and getattr(self.loan, 'name', _('Loan')) or _('Loan')
+        return f"{loan_name} top-up - {self.amount} on {self.date}"
+
+    def clean(self):
+        if self.amount is None or self.amount <= 0:
+            raise ValidationError({'amount': _('The top-up amount must be greater than zero.')})
+        if self.loan_id and self.date and self.date < self.loan.start_date:
+            raise ValidationError({'date': _('A top-up cannot be dated before the loan started.')})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            received = self.disbursement
+            super().delete(*args, **kwargs)
+            if received is not None:
+                received.delete()               # (the money it put into an account goes back out)
 
 
 class LoanRepayment(models.Model):
@@ -2851,8 +2927,9 @@ class LoanRepayment(models.Model):
             .filter(subtype__in=['loan_down_payment', 'loan_prepayment'])
             .aggregate(total=models.Sum('amount'))['total']
         ) or Decimal('0.00')
+        topped_up = self.loan.topups.filter(date__lte=self.date).aggregate(total=models.Sum('amount'))['total'] or Decimal('0.00')
         remaining_principal = max(
-            self.loan.initial_principal - prior_paid - capital_prepaid
+            self.loan.initial_principal + topped_up - prior_paid - capital_prepaid
             - (self.loan.opening_paid_principal or Decimal('0.00')),
             Decimal('0.00'),
         )
