@@ -1981,7 +1981,7 @@ class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.M
         fields = ['from_account', 'amount', 'principal_portion', 'interest_portion', 'date']
         widgets = {
             'from_account': forms.Select(attrs={'class': 'form-select searchable-select'}),
-            'amount': MoneyInput(attrs={'class': 'form-control', 'step': '0.01', 'onchange': 'recalculatePortions()'}),
+            'amount': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'principal_portion': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'interest_portion': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),

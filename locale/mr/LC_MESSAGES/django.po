@@ -24612,3 +24612,7 @@ msgstr "मिळालेली रक्कम, तुमच्या खा�
 #: loan received (phase 2)
 msgid "Adds the loan amount to %(account)s"
 msgstr "कर्जाची रक्कम %(account)s मध्ये जमा होईल"
+
+#: templates/expenses/loan_detail.html
+msgid "Upcoming"
+msgstr "आगामी"

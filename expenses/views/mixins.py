@@ -276,6 +276,8 @@ def process_user_recurring_transactions(user, force=False, max_catchup=None):
                             )
                             loan_principal_paid_map[rt.loan_id] = principal_paid + principal_payment
                             posted_successfully = True
+                            if remaining_principal - principal_payment <= 0:
+                                rt.is_active = False      # (that was the last of it: the schedule stops with the loan)
                         except Exception as exc:
                             logger.error("Recurring loan repayment posting failed for rt %s on %s", rt.id, current_date, exc_info=exc)
                             break

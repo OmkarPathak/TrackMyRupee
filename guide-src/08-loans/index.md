@@ -65,6 +65,8 @@ There are two ways, and you can mix them.
 
 **By hand, from the loan page.** Open the loan and use **Record Repayment**. Enter the **amount**, the **account** it was paid from, and the **date** (it cannot be in the future). You can leave the split blank, and TrackMyRupee estimates the interest from the current balance and rate and treats the rest as principal. Or fill in the **principal** and **interest** portions yourself; they must add up to the amount. If you pay more principal than is left, the extra is trimmed, so you can pay a loan off in full. Tick **Make this a recurring loan repayment** to turn it into a subscription with the same amount.
 
+In the window, changing the **principal portion** fills in the **interest portion** (and the other way round), so the two always add up to the amount.
+
 Either way, the account you paid from goes down by the amount, and the remaining principal goes down by the **principal portion only**. To undo a repayment, delete it from the **History** tab and the money goes back to the account.
 
 ### How interest is worked out
@@ -74,6 +76,8 @@ Interest each month is the **annual rate divided by 12, applied to the balance s
 ### When the rate changes
 
 Use **Update Interest Rate** on the loan page and give the **New Annual Rate** and the date it is **Effective From**. A rate only applies from its effective date: a rate you enter for next month does not change this month's interest. When the app catches up several months of EMIs, each month uses the rate that was in force in that month.
+
+A rate you record for a future date shows as **Upcoming** in the **Interest Rate History**. The **Interest Rate** at the top of the page and the schedule keep using the rate in force today, and switch on the effective date.
 
 ### Down payments and prepayments
 
@@ -116,7 +120,7 @@ For an EMI loan, the **Overview** tab shows what you would save by paying one ad
 
 When the remaining principal reaches zero, whether through repayments or a prepayment, TrackMyRupee automatically marks the loan as **closed** (inactive). You do not need to do anything manually.
 
-The closed loan moves to the **Paid Off** tab for your records. It no longer counts as a liability in your net worth, and on the Plus plan it frees your loan slot. The status always follows the numbers: if you delete the last repayment, or raise the principal when you edit the loan, it reopens by itself.
+The closed loan moves to the **Paid Off** tab for your records, and its **EMI subscription stops at once**, so it no longer shows as renewing soon or on the calendar. Until then, what you owe counts against your net worth on both the Dashboard and the Accounts page, whether or not you made a loan account for it. Once closed, it no longer counts as a liability, and on the Plus plan it frees your loan slot. The status always follows the numbers: if you delete the last repayment, or raise the principal when you edit the loan, it reopens by itself.
 
 ### Editing and deleting a loan
 

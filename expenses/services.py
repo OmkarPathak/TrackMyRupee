@@ -336,6 +336,10 @@ class LoanService:
         if loan.is_active != should_be_active:
             loan.is_active = should_be_active
             loan.save(update_fields=['is_active', 'updated_at'])
+            if not should_be_active:
+                # Nothing left to pay: its EMI schedule stops now, not at its next due date
+                from .models import RecurringTransaction
+                RecurringTransaction.objects.filter(loan=loan, transaction_type='LOAN', is_active=True).update(is_active=False)
         return loan.is_active
 
     @staticmethod

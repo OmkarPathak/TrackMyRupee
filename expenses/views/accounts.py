@@ -631,7 +631,14 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         all_accounts = getattr(self, '_all_accounts', accounts)
         groups = self._overview_groups(all_accounts)
         context['overview_groups'] = groups
-        context['overall_total'] = sum((a.base_value for a in all_accounts), Decimal('0.00')).quantize(Decimal('0.01'))
+        unlinked_loans_owed = Decimal('0.00')
+        if current_status == 'active':
+            # A loan with no loan account of its own still counts against net worth (the Dashboard does the same): its
+            # outstanding principal is owed whether or not an account stands for it
+            linked_loan_ids = {a.linked_loan_id for a in all_accounts
+                               if strategy_for(a.account_type) == STRATEGY.LOAN_OUTSTANDING and a.linked_loan_id}
+            unlinked_loans_owed = LedgerReadService._loans_outstanding_base(request.user, user_currency, exclude_ids=linked_loan_ids)
+        context['overall_total'] = (sum((a.base_value for a in all_accounts), Decimal('0.00')) - unlinked_loans_owed).quantize(Decimal('0.01'))
         context['overall_count'] = len(all_accounts)
 
         # Tiles: one per group (what you hold, then what you owe); a click filters the list to it
@@ -661,10 +668,10 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
         # Allocation summary: what is held vs. what is owed
         assets_total = sum((g['total'] for g in groups if g['total'] > 0), Decimal('0.00'))
-        owed_total = sum((g['owed'] for g in groups if g['total'] < 0), Decimal('0.00'))
+        owed_total = sum((g['owed'] for g in groups if g['total'] < 0), Decimal('0.00')) + unlinked_loans_owed
         context['assets_total'] = assets_total.quantize(Decimal('0.01'))
         context['owed_total'] = owed_total.quantize(Decimal('0.01'))
-        context['owed_label'] = _('cards and loans') if any('LOAN' in g['type'] and g['total'] < 0 for g in groups) \
+        context['owed_label'] = _('cards and loans') if (unlinked_loans_owed > 0 or any('LOAN' in g['type'] and g['total'] < 0 for g in groups)) \
             else _('cards')
 
         if current_status == 'active':

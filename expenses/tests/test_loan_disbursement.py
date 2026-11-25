@@ -241,6 +241,17 @@ class LoanFlowTests(FlowTestBase):
         bullets = [str(b) for b in flow.preview(self.user, form.cleaned_data)['bullets']]
         self.assertTrue(any('Adds the loan amount to Bank' in b for b in bullets), bullets)
 
+    def test_the_review_lists_the_money_received_among_what_will_be_created(self):
+        flow = FlowRegistry.get('loan')
+        on = self.form('loan', self.payload(record_loan_received='on', loan_received_account=self.bank.pk))
+        self.assertTrue(on.is_valid(), on.errors)
+        cards = flow.get_what_we_create(self.user, on.cleaned_data)
+        self.assertIn('Money received', [str(c['title']) for c in cards])
+        self.assertIn('added to Bank', [c['description'] for c in cards if str(c['title']) == 'Money received'][0])
+        off = self.form('loan', self.payload())
+        self.assertTrue(off.is_valid(), off.errors)
+        self.assertNotIn('Money received', [str(c['title']) for c in flow.get_what_we_create(self.user, off.cleaned_data)])
+
     def test_running_the_same_setup_twice_adds_the_amount_once(self):
         payload = self.payload(record_loan_received='on', loan_received_account=self.bank.pk)
         idem = uuid.uuid4()

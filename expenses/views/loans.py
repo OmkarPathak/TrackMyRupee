@@ -26,6 +26,7 @@ from ..models import (
 )
 from ..posthog_utils import ph_capture
 from ..services import LoanService
+from ..templatetags.digit_filters import ind_comma
 from ..services_recurring import RecurringService
 from .mixins import HtmxPartialTemplateMixin, UUIDOrIntLookupMixin
 from .utils import get_object_by_uuid_or_pk, redirect_to_uuid_url_if_needed
@@ -425,9 +426,11 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 start_idx = max(0, hist_count - 6)
                 trend_labels = all_chart_labels[start_idx:hist_count]
                 trend_balances = all_chart_balances[start_idx:hist_count]
-            else:
+            elif not schedule:
+                # A closed loan: its whole history is the trend
                 trend_labels = all_chart_labels[:min(6, len(all_chart_labels))]
                 trend_balances = all_chart_balances[:min(6, len(all_chart_balances))]
+            # (a loan with nothing repaid yet has no trend: the months ahead are a plan, not a trend)
 
         if len(trend_balances) >= 2:
             start_val = trend_balances[0]
@@ -435,14 +438,14 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             months_count = len(trend_balances)
             trend_summary_text = _("%(currency)s%(start)s → %(currency)s%(end)s over the last %(count)s months") % {
                 'currency': loan.currency,
-                'start': f"{start_val:,.0f}",
-                'end': f"{end_val:,.0f}",
+                'start': ind_comma(start_val, loan.currency),
+                'end': ind_comma(end_val, loan.currency),
                 'count': months_count,
             }
         elif len(trend_balances) == 1:
             trend_summary_text = _("Current balance: %(currency)s%(val)s") % {
                 'currency': loan.currency,
-                'val': f"{trend_balances[0]:,.0f}",
+                'val': ind_comma(trend_balances[0], loan.currency),
             }
 
         trend_chart_data = {
@@ -450,9 +453,22 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             'balance': trend_balances,
         }
 
+        # The rate in force today (a rate that starts later is not "the rate" yet), and each rate's place in the history
+        today = timezone.localdate()
+        rates = list(loan.interest_rates.all())          # newest effective date first
+        in_force = next((r for r in rates if r.effective_date <= today), None) or (rates[-1] if rates else None)
+        rate_rows = [{
+            'rate': r.interest_rate, 'date': r.effective_date,
+            'status': 'current' if r is in_force else ('upcoming' if r.effective_date > today else 'past'),
+        } for r in rates]
+
         context = {
             'loan': loan,
             'summary': summary,
+            'principal_paid_all': round(summary['principal_paid'] + summary['capital_prepaid'], 2),     # (repaid, and paid by prepayments and down payments)
+            'grand_total_paid': round(float(linked_capital_total) + summary['total_paid'], 2),
+            'current_rate': in_force.interest_rate if in_force else None,
+            'rate_rows': rate_rows,
             'schedule': schedule,
             'repayments': repayments,
             'repayment_form': repayment_form,

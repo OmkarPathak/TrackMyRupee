@@ -409,6 +409,13 @@ class Flow:
                     'title': _('Repayment schedule'),
                     'description': f"EMI: {currency}{format_indian_number(emi)} monthly for {tenure} months",
                 })
+            received_in = cleaned_data.get('loan_received_account')
+            if cleaned_data.get('record_loan_received') and received_in and not cleaned_data.get('mid_tenure'):
+                cards.append({
+                    'icon': 'bi-box-arrow-in-down',
+                    'title': _('Money received'),
+                    'description': f"{currency}{format_indian_number(principal)} added to {received_in.name}",
+                })
         elif self.key == 'creditcard':
             name = cleaned_data.get('name') or _('Credit Card')
             limit = cleaned_data.get('credit_limit') or 0
