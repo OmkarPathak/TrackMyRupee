@@ -72,6 +72,34 @@
                             <input class="form-check-input flex-shrink-0 ms-3" type="checkbox" name="entities" value="loan_repayments" checked>
                         </label>
 
+                        <!-- Loan top-ups -->
+                        <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-arrow-up-circle fs-5"></i>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{% trans "Loan Top-ups" %}</span>
+                                    <small class="text-muted">{% trans "More borrowed on a loan, with any months added" %}</small>
+                                </div>
+                            </div>
+                            <input class="form-check-input flex-shrink-0 ms-3" type="checkbox" name="entities" value="loan_topups">
+                        </label>
+
+                        <!-- Loan amounts received -->
+                        <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-2 w-40px h-40px d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-box-arrow-in-down fs-5"></i>
+                                </div>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">{% trans "Loan Amounts Received" %}</span>
+                                    <small class="text-muted">{% trans "Loan money paid into your accounts" %}</small>
+                                </div>
+                            </div>
+                            <input class="form-check-input flex-shrink-0 ms-3" type="checkbox" name="entities" value="loan_disbursements">
+                        </label>
+
                         <!-- Recurring -->
                         <label class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between cursor-pointer">
                             <div class="d-flex align-items-center gap-3">

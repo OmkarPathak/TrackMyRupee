@@ -22,7 +22,9 @@ from ..models import (
     GoalContribution,
     Income,
     Loan,
+    LoanDisbursement,
     LoanRepayment,
+    LoanTopUp,
     RecurringTransaction,
     SavingsGoal,
     Transfer,
@@ -124,6 +126,16 @@ def _loan_rows(user):
                loan.duration_months, loan.is_active]
 
 
+def _loan_topup_rows(user):
+    for t in LoanTopUp.objects.filter(loan__user=user).select_related('loan').order_by('date', 'id'):
+        yield [t.date, t.loan.name, t.amount, t.loan.currency, t.extra_months, t.note]
+
+
+def _loan_disbursement_rows(user):
+    for d in LoanDisbursement.objects.filter(loan__user=user, is_deleted=False).select_related('loan', 'account').order_by('date', 'id'):
+        yield [d.date, d.loan.name, d.amount, d.loan.currency, d.account.name if d.account else '', d.note]
+
+
 def _category_rows(user):
     from ..budget_cycle import current_budget_month
     from ..budget_resolver import effective_limits_by_name
@@ -184,6 +196,9 @@ EXPORTS = {
                                               'Base Amount', 'Category', 'Account', 'In Net Worth'],
                        _capital_event_rows),
     'loans': ('loans.csv', ['Name', 'Type', 'Principal', 'Currency', 'Start Date', 'Months', 'Active'], _loan_rows),
+    'loan_topups': ('loan_topups.csv', ['Date', 'Loan', 'Amount Added', 'Loan Currency', 'Months Added', 'Note'], _loan_topup_rows),
+    'loan_disbursements': ('loan_amounts_received.csv', ['Date', 'Loan', 'Amount', 'Loan Currency', 'Received In Account', 'Note'],
+                           _loan_disbursement_rows),
     'categories': ('categories.csv', ['Category', 'Monthly Budget'], _category_rows),
     'budget_limits': ('budget_limits.csv', ['Month', 'Category', 'Limit', 'Source'], _budget_limit_rows),
 }

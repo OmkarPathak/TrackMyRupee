@@ -343,6 +343,28 @@ class LoanService:
         return loan.is_active
 
     @staticmethod
+    def months_left(loan, today=None):
+        """Months of the term still ahead, at least one."""
+        today = today or timezone.localdate()
+        passed = max(0, (today.year - loan.start_date.year) * 12 + today.month - loan.start_date.month)
+        return max(1, loan.total_duration_months - passed)
+
+    @staticmethod
+    def suggest_emi(loan, today=None):
+        """What the EMI works out to now: for what is still owed, the rate in force and the months left of the term.
+        None for a loan that does not amortise (interest only, bullet) or has nothing left to pay."""
+        if getattr(loan, 'repayment_type', 'EMI') != 'EMI':
+            return None
+        today = today or timezone.localdate()
+        remaining = Decimal(str(LoanService.get_loan_summary(loan)['remaining_principal']))
+        if remaining <= 0:
+            return None
+        months_left = LoanService.months_left(loan, today)
+        rate = LoanService.current_rate(loan, today)
+        emi = Decimal(str(LoanService.calculate_emi(remaining, rate, months_left))).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        return {'emi': emi, 'months': months_left, 'rate': rate, 'remaining': remaining}
+
+    @staticmethod
     def get_loan_summary(loan):
         """
         Calculates total paid and remaining principal based on actual repayments

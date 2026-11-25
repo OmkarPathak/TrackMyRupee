@@ -18,7 +18,9 @@ from expenses.models import (
     GoalContribution,
     Income,
     Loan,
+    LoanDisbursement,
     LoanRepayment,
+    LoanTopUp,
     RecurringTransaction,
     SavingsGoal,
     Transfer,
@@ -63,6 +65,9 @@ class ExportBase(TestCase):
                                    duration_months=12, start_date=TODAY, is_active=True, currency='₹')
         LoanRepayment.objects.create(loan=loan, from_account=self.bank, date=TODAY, amount=D('100'),
                                      principal_portion=D('90'), interest_portion=D('10'))
+        LoanTopUp.objects.create(loan=loan, date=TODAY, amount=D('2000'), extra_months=6, note='Repairs')
+        pot = Account.objects.create(user=self.user, name='Loan pot', account_type='SAVINGS_ACCOUNT', balance=D('0'), currency='₹')
+        LoanDisbursement.objects.create(loan=loan, account=pot, amount=D('5000'), date=TODAY, note='Loan amount received')
         CapitalEvent.objects.create(user=self.user, account=self.bank, date=TODAY, amount=D('30'), note='Laptop',
                                     include_in_net_worth=True)
         Category.objects.update_or_create(user=self.user, name='Food', defaults={'limit': D('2000')})

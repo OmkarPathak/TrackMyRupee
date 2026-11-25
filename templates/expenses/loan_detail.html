@@ -18,7 +18,10 @@
             </div>
             <p class="text-muted ms-5 mb-0">{% trans "Track repayments and monitor your amortization schedule." %}</p>
         </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">
+            <button type="button" class="btn btn-outline-success shadow-sm rounded-3 fw-bold" data-bs-toggle="modal" data-bs-target="#topupModal">
+                <i class="bi bi-arrow-up-circle me-1"></i> {% trans "Top up" %}
+            </button>
             <button type="button" class="btn btn-success shadow-sm rounded-3 fw-bold" data-bs-toggle="modal" data-bs-target="#repaymentModal">
                 <i class="bi bi-plus-lg me-1"></i> {% trans "Record Repayment" %}
             </button>
@@ -157,9 +160,15 @@
                                     <span class="opacity-75 small">{% trans "Initial Principal" %}</span>
                                     <span class="fw-bold">{{ loan.currency }}{{ loan.initial_principal|ind_comma:loan.currency|translate_digits }}</span>
                                 </div>
+                                {% if summary.topped_up %}
+                                <div class="d-flex justify-content-between mb-2" id="summary-topups">
+                                    <span class="opacity-75 small">{% trans "Top-ups" %}</span>
+                                    <span class="fw-bold text-success">+{{ loan.currency }}{{ summary.topped_up|ind_comma:loan.currency|translate_digits }}</span>
+                                </div>
+                                {% endif %}
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="opacity-75 small">{% trans "Duration" %}</span>
-                                    <span class="fw-bold">{{ loan.duration_months }} {% trans "Months" %}</span>
+                                    <span class="fw-bold">{{ loan.total_duration_months }} {% trans "Months" %}</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span class="opacity-75 small">{% trans "Interest Rate" %}</span>
@@ -180,6 +189,59 @@
                     </div>
                 </div>
 
+                <!-- Top-ups: more borrowed on this loan -->
+                <div class="card border-0 shadow-sm rounded-4 border-start border-3 border-success" id="topups-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-arrow-up-circle-fill text-success"></i>
+                            <h6 class="fw-bold mb-0">{% trans "Top-ups" %}</h6>
+                        </div>
+                        {% if topups %}
+                        <p class="text-muted small mb-3">{% trans "More borrowed on this loan. Each one is added to what you owe from its date." %}</p>
+                        {% for t in topups %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary" data-topup="{{ t.uuid }}">
+                            <div>
+                                <span class="small fw-semibold">{{ t.date|date:"d M Y" }}{% if t.extra_months %} · +{{ t.extra_months }} {% trans "months" %}{% endif %}</span>
+                                <span class="d-block text-muted" style="font-size:0.75rem">{% if t.disbursement %}{{ t.disbursement.account.name|default:"-" }}{% else %}{% trans "Not added to an account" %}{% endif %}{% if t.note %} · {{ t.note }}{% endif %}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold text-success">+{{ loan.currency }}{{ t.amount|ind_comma:loan.currency|translate_digits }}</span>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-danger" aria-label="{% trans 'Delete' %}" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-topup-delete' t.uuid %}" data-message="{% trans 'Are you sure you want to delete this top-up? What you owe goes back down, and any money it put into an account is taken out again.' %}"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <p class="text-muted small mb-3">{% trans "Borrowed more on this loan? Add it here instead of creating a new loan, and the balance, schedule and EMI follow." %}</p>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-3 mt-2 w-100 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#topupModal">
+                            <i class="bi bi-plus-lg me-1"></i>{% trans "Top up this loan" %}
+                        </button>
+                    </div>
+                </div>
+
+                {% if emi_card %}
+                <!-- The EMI schedule, and (after a top-up) the EMI that now fits -->
+                <div class="card border-0 shadow-sm rounded-4" id="emi-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-calendar-check text-primary"></i>
+                            <h6 class="fw-bold mb-0">{% trans "EMI schedule" %}</h6>
+                            {% if not emi_card.schedule.is_active %}<span class="badge bg-secondary rounded-pill small ms-auto">{% trans "Stopped" %}</span>{% endif %}
+                        </div>
+                        <p class="mb-1 small">{% trans "Posts" %} <span class="fw-bold">{{ loan.currency }}{{ emi_card.schedule.amount|ind_comma:loan.currency|translate_digits }}</span> {{ emi_card.schedule.get_frequency_display|lower }}</p>
+                        {% if emi_card.offer %}
+                        <div class="rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 p-3 mt-2" id="emi-suggestion">
+                            <p class="small mb-2">{% blocktrans with cur=loan.currency emi=emi_card.suggestion.emi|ind_comma:loan.currency months=emi_card.suggestion.months %}For what you owe now, the EMI works out to about <strong>{{ cur }}{{ emi }}</strong> for the {{ months }} months left.{% endblocktrans %}</p>
+                            <form method="post" action="{% url 'loan-emi-update' loan.uuid %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-action-primary w-100" onclick="setButtonLoading(this, '{% trans 'Updating...' %}')">{% if emi_card.stopped %}{% trans "Restart schedule at this EMI" %}{% else %}{% trans "Update my EMI schedule" %}{% endif %}</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Money received: the loan amount (or a top-up) arriving in an account -->
                 <div class="card border-0 shadow-sm rounded-4" id="money-received-card">
                     <div class="card-body p-4">
@@ -197,7 +259,11 @@
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="fw-bold text-success">+{{ loan.currency }}{{ d.amount|ind_comma:loan.currency|translate_digits }}</span>
+                                {% if d.topup %}
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill small" title="{% trans 'Delete the top-up to take this out again' %}">{% trans "Top-up" %}</span>
+                                {% else %}
                                 <button type="button" class="btn btn-link btn-sm p-0 text-danger" aria-label="{% trans 'Delete' %}" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-disbursement-delete' d.uuid %}" data-message="{% trans 'Are you sure you want to delete this? The amount will be taken out of the account balance again.' %}"><i class="bi bi-trash"></i></button>
+                                {% endif %}
                             </div>
                         </div>
                         {% endfor %}
@@ -405,6 +471,59 @@
         </div>
     </div>
 
+    <!-- Top-up Modal -->
+    <div class="modal fade" id="topupModal" tabindex="-1" aria-hidden="true" data-remaining="{{ topup_basis.remaining }}" data-rate="{{ topup_basis.rate }}" data-months="{{ topup_basis.months }}" data-emi="{{ topup_basis.is_emi|yesno:'1,0' }}" data-currency="{{ loan.currency }}">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="modal-title fw-bold">{% trans "Top up this loan" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
+                </div>
+                <form action="{% url 'loan-topup-create' loan.uuid %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body p-4">
+                        <p class="text-muted small">{% trans "More borrowed on this loan. It is added to what you owe from the date you give." %}</p>
+                        <div class="row g-3">
+                            <div class="col-7">
+                                <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Amount added" %}</label>
+                                {{ topup_form.amount }}
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Date" %}</label>
+                                {{ topup_form.date }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Received in account" %}</label>
+                                {{ topup_form.received_account }}
+                                <div class="form-text">{% trans "If the lender paid it into one of your accounts, it is added to that balance and is not counted as income." %}</div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Months added to the term" %}</label>
+                                {{ topup_form.extra_months }}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-uppercase text-muted">{% trans "New interest rate (%)" %}</label>
+                                {{ topup_form.new_rate }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Note (optional)" %}</label>
+                                {{ topup_form.note }}
+                            </div>
+                        </div>
+                        <div class="rounded-3 bg-body-tertiary p-3 mt-3 small" id="topup-preview" hidden>
+                            <div>{% trans "You would owe" %} <strong id="topup-owed">-</strong></div>
+                            <div id="topup-emi-row">{% trans "EMI would be about" %} <strong id="topup-emi">-</strong> <span class="text-muted">({% trans "you decide whether to update your schedule" %})</span></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                        <button type="submit" class="btn btn-action-primary" onclick="setButtonLoading(this, '{% trans 'Saving...' %}')">{% trans "Add" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Money received Modal -->
     <div class="modal fade" id="disbursementModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -540,7 +659,7 @@
                 interestInput.value = interest.toFixed(2);
             }
 
-            const loanModals = ['repaymentModal', 'disbursementModal', 'rateModal'];
+            const loanModals = ['repaymentModal', 'disbursementModal', 'topupModal', 'rateModal'];
             loanModals.forEach(modalId => {
                 const modalEl = document.getElementById(modalId);
                 if (modalEl) {
@@ -579,6 +698,34 @@
                 };
                 principalField.addEventListener('input', () => balance(principalField, interestField));
                 interestField.addEventListener('input', () => balance(interestField, principalField));
+            }
+
+            // Top-up window: what you would owe and what the EMI would be, as the fields are filled in
+            const topupModal = document.getElementById('topupModal');
+            if (topupModal) {
+                const field = (name) => topupModal.querySelector('[name="' + name + '"]');
+                const preview = document.getElementById('topup-preview');
+                const owedEl = document.getElementById('topup-owed');
+                const emiEl = document.getElementById('topup-emi');
+                const emiRow = document.getElementById('topup-emi-row');
+                const money = (n) => topupModal.dataset.currency + Math.round(n).toLocaleString('en-IN');
+                const update = () => {
+                    const amount = parseFloat(String(field('amount').value).replace(/,/g, ''));
+                    if (Number.isNaN(amount) || amount <= 0) { preview.hidden = true; return; }
+                    const owed = parseFloat(topupModal.dataset.remaining) + amount;
+                    const months = parseInt(topupModal.dataset.months, 10) + (parseInt(field('extra_months').value, 10) || 0);
+                    const rateInput = parseFloat(field('new_rate').value);
+                    const rate = Number.isNaN(rateInput) ? parseFloat(topupModal.dataset.rate) : rateInput;
+                    owedEl.textContent = money(owed);
+                    emiRow.hidden = topupModal.dataset.emi !== '1';
+                    if (!emiRow.hidden) {
+                        const r = rate / 12 / 100;
+                        const emi = r === 0 ? owed / months : owed * r * Math.pow(1 + r, months) / (Math.pow(1 + r, months) - 1);
+                        emiEl.textContent = money(emi);
+                    }
+                    preview.hidden = false;
+                };
+                ['amount', 'extra_months', 'new_rate'].forEach((name) => field(name).addEventListener('input', update));
             }
 
             const recurringToggle = document.getElementById('{{ repayment_form.add_to_recurring.id_for_label }}');

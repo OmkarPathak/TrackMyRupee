@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -14,7 +15,7 @@ from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
 from ..form_defaults import default_payer_account
-from ..forms import LoanDisbursementForm, LoanForm, LoanInterestRateForm, LoanRepaymentForm
+from ..forms import LoanDisbursementForm, LoanForm, LoanInterestRateForm, LoanRepaymentForm, LoanTopUpForm
 from ..models import (
     CapitalEvent,
     Loan,
@@ -264,6 +265,25 @@ class LoanDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMi
         ph_capture(self.request.user, 'loan_deleted', {})
         return response
 
+def _loan_schedule(loan):
+    """The recurring EMI schedule made for this loan (an active one first), or None."""
+    return (RecurringTransaction.objects.filter(loan=loan, transaction_type='LOAN')
+            .order_by('-is_active', '-id').first())
+
+
+def _emi_card(loan, *, has_topups):
+    """What the loan page says about the EMI schedule: what it posts now and, after a top-up, what the EMI would be
+    for the balance and term the loan has now. The person decides whether to update it. None with no schedule."""
+    schedule = _loan_schedule(loan)
+    if schedule is None:
+        return None
+    suggestion = LoanService.suggest_emi(loan) if has_topups else None
+    differs = bool(suggestion) and abs(Decimal(str(schedule.amount)) - suggestion['emi']) >= Decimal('1')
+    stopped = (not schedule.is_active) and bool(suggestion)          # (a paid-off loan that a top-up reopened)
+    return {'schedule': schedule, 'suggestion': suggestion, 'differs': differs, 'stopped': stopped,
+            'offer': bool(suggestion) and (differs or stopped)}
+
+
 class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
     template_name = 'expenses/loan_detail.html'
 
@@ -283,6 +303,11 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         repayment_form = LoanRepaymentForm(user=request.user, loan=loan)
         disbursements = list(loan.disbursements.filter(is_deleted=False).select_related('account').order_by('-date', '-id'))
         disbursement_form = LoanDisbursementForm(user=request.user, loan=loan)
+        topups = list(loan.topups.select_related('disbursement__account').order_by('-date', '-id'))
+        topup_form = LoanTopUpForm(user=request.user, loan=loan)
+        emi_card = _emi_card(loan, has_topups=bool(topups))
+        topup_basis = {'remaining': summary['remaining_principal'], 'rate': float(LoanService.current_rate(loan, timezone.localdate())),
+                       'months': LoanService.months_left(loan), 'is_emi': loan.repayment_type == 'EMI'}
         rate_form = LoanInterestRateForm()
         extra_emi_savings = LoanService.calculate_extra_emi_savings(loan)
 
@@ -474,6 +499,10 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             'repayment_form': repayment_form,
             'disbursements': disbursements,
             'disbursement_form': disbursement_form,
+            'topups': topups,
+            'topup_form': topup_form,
+            'topup_basis': topup_basis,
+            'emi_card': emi_card,
             'rate_form': rate_form,
             'extra_emi_savings': extra_emi_savings,
             'linked_capital_events': linked_capital_events,
@@ -616,6 +645,88 @@ class LoanDisbursementDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDO
         if next_url:
             return get_safe_redirect_url(self.request, next_url, fallback)
         return fallback
+
+
+class LoanTopUpCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    """More borrowed on a loan: adds to its principal from a date, and optionally to its term, its rate and an account."""
+    DOUBLE_SUBMIT_SECONDS = 15
+
+    def post(self, request, pk):
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        form = LoanTopUpForm(request.POST, user=request.user, loan=loan)
+        if not form.is_valid():
+            errors = [f"{err}" for errs in form.errors.values() for err in errs]
+            messages.error(request, _("Could not add the top-up: %(err)s") % {'err': " ".join(errors) or _("Please check the form.")})
+            return redirect('loan-detail', pk=loan.uuid)
+        recent = timezone.now() - timedelta(seconds=self.DOUBLE_SUBMIT_SECONDS)
+        if loan.topups.filter(date=form.cleaned_data['date'], amount=form.cleaned_data['amount'], created_at__gte=recent).exists():
+            messages.info(request, _("This top-up was already added."))
+            return redirect('loan-detail', pk=loan.uuid)
+        try:
+            topup = form.save()
+        except (RuntimeError, ValidationError):
+            messages.error(request, _("Unable to add the top-up because currency conversion failed or the data is invalid."))
+            return redirect('loan-detail', pk=loan.uuid)
+
+        loan = Loan.objects.get(pk=loan.pk)                       # (fresh: its figures have changed)
+        owed = LoanService.get_loan_summary(loan)['remaining_principal']
+        messages.success(request, _("Top-up of %(currency)s%(amount)s added. You now owe %(currency)s%(owed)s.") % {
+            'currency': loan.currency, 'amount': ind_comma(topup.amount, loan.currency), 'owed': ind_comma(owed, loan.currency)})
+        card = _emi_card(loan, has_topups=True)
+        if card and card['offer']:
+            messages.info(request, _("For the balance and term you have now, the EMI works out to about %(currency)s%(emi)s. "
+                                     "You can update your EMI schedule from the loan page.") % {
+                'currency': loan.currency, 'emi': ind_comma(card['suggestion']['emi'], loan.currency)})
+        ph_capture(request.user, 'loan_topup_added', {'has_account': bool(topup.disbursement_id), 'added_months': bool(topup.extra_months),
+                                                      'new_rate': bool(form.cleaned_data.get('new_rate') is not None)})
+        return redirect('loan-detail', pk=loan.uuid)
+
+
+class LoanTopUpDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMixin, DeleteView):
+    model = LoanTopUp
+
+    def get_queryset(self):
+        return LoanTopUp.objects.filter(loan__user=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        return redirect('loan-detail', pk=self.get_object().loan.uuid)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, _("Top-up deleted. What you owe, the term and any money it put into an account are back as they were."))
+        ph_capture(self.request.user, 'loan_topup_deleted', {})
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy('loan-detail', kwargs={'pk': self.object.loan.uuid})
+
+
+class LoanEmiUpdateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    """Set the loan's EMI schedule to the EMI that fits what is owed now (the person asked for it: it is only suggested)."""
+
+    def post(self, request, pk):
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        schedule = _loan_schedule(loan)
+        suggestion = LoanService.suggest_emi(loan)
+        if schedule is None or suggestion is None:
+            messages.error(request, _("There is no EMI schedule to update for this loan."))
+            return redirect('loan-detail', pk=loan.uuid)
+        reopened = not schedule.is_active
+        schedule.amount = suggestion['emi']
+        if reopened:
+            # Starting again: what fell due while it was stopped was not owed, so it is not posted now
+            schedule.is_active = True
+            schedule.last_processed_date = RecurringService.last_due_before_today(
+                schedule.start_date, schedule.frequency, schedule.is_last_day_of_month, schedule.is_last_working_day)
+        try:
+            schedule.save()
+        except IntegrityError:
+            messages.warning(request, _("An identical EMI schedule already exists."))
+            return redirect('loan-detail', pk=loan.uuid)
+        messages.success(request, _("Your EMI schedule now posts %(currency)s%(emi)s.") % {
+            'currency': loan.currency, 'emi': ind_comma(suggestion['emi'], loan.currency)})
+        ph_capture(request.user, 'loan_emi_updated', {'restarted': reopened})
+        return redirect('loan-detail', pk=loan.uuid)
 
 
 class PayEmiView(LoginRequiredMixin, LoanFeatureGateMixin, View):

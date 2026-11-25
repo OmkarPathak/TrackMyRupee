@@ -34,6 +34,7 @@ from .models import (
     LoanInterestRate,
     LoanDisbursement,
     LoanRepayment,
+    LoanTopUp,
     PhysicalAsset,
     RecurringTransaction,
     SavingsGoal,
@@ -1895,6 +1896,7 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
             self.fields['currency'].initial = user.profile.currency
         
         if self.instance.pk:
+            self.fields['initial_principal'].help_text = _('The amount first borrowed. To borrow more on this loan, use Top up on the loan page instead.')
             latest_rate = self.instance.interest_rates.order_by('-effective_date').first()
             if latest_rate:
                 self.fields['interest_rate'].initial = latest_rate.interest_rate
@@ -1959,6 +1961,69 @@ class LoanDisbursementForm(AccountRequiredMixin, SearchableSelectFormMixin, form
         if value and value > timezone.localdate() + timedelta(days=1):
             raise forms.ValidationError(_('The date received cannot be in the future.'))
         return value
+
+
+class LoanTopUpForm(SearchableSelectFormMixin, forms.Form):
+    """More borrowed on an existing loan. It adds to the loan's principal from its date; it may also add months to the
+    term, start a new interest rate that day, and put the money into one of the person's accounts."""
+    date = forms.DateField(label=_('Date'), widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
+    amount = forms.DecimalField(label=_('Amount added'), min_value=Decimal('0.01'), max_digits=15, decimal_places=2,
+                                widget=MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}))
+    extra_months = forms.IntegerField(label=_('Months added to the term'), required=False, min_value=0, initial=0,
+                                      widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0}))
+    new_rate = forms.DecimalField(label=_('New interest rate (%)'), required=False, min_value=Decimal('0'), max_value=Decimal('100'),
+                                  max_digits=5, decimal_places=2,
+                                  widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}))
+    received_account = forms.ModelChoiceField(label=_('Received in account'), required=False, queryset=Account.objects.none(),
+                                              empty_label=_("Don't add it to an account"),
+                                              widget=forms.Select(attrs={'class': 'form-select searchable-select'}))
+    note = forms.CharField(label=_('Note'), required=False, max_length=120,
+                           widget=forms.TextInput(attrs={'class': 'form-control', 'maxlength': 120}))
+
+    def __init__(self, *args, user=None, loan=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.loan = loan
+        self.fields['date'].input_formats = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%y', '%d-%m-%y']
+        if user:
+            from .account_types import liability_codes
+            accounts = Account.objects.filter(user=user, is_active=True).exclude(account_type__in=liability_codes()).order_by('name')
+            self.fields['received_account'].queryset = accounts
+            if not self.is_bound:
+                self.fields['received_account'].initial = default_account(accounts, LoanDisbursement.objects.filter(loan__user=user).order_by('-date', '-id'), 'account_id')
+        if not self.is_bound:
+            self.fields['date'].initial = timezone.localdate
+
+    def clean_date(self):
+        value = self.cleaned_data.get('date')
+        if value and value > timezone.localdate() + timedelta(days=1):
+            raise forms.ValidationError(_('A top-up cannot be dated in the future.'))
+        if value and self.loan and value < self.loan.start_date:
+            raise forms.ValidationError(_('A top-up cannot be dated before the loan started.'))
+        return value
+
+    def clean(self):
+        cleaned = super().clean()
+        extra = cleaned.get('extra_months') or 0
+        if self.loan and extra and self.loan.total_duration_months + extra > 600:
+            self.add_error('extra_months', _('The whole term cannot be more than 600 months.'))
+        return cleaned
+
+    def save(self):
+        """Record the top-up and whatever goes with it, all or nothing. Returns the LoanTopUp."""
+        from django.db import transaction
+        data = self.cleaned_data
+        with transaction.atomic():
+            received = None
+            if data.get('received_account'):
+                received = LoanDisbursement.objects.create(
+                    loan=self.loan, account=data['received_account'], amount=data['amount'], date=data['date'],
+                    note=str(_('Top-up')))
+            topup = LoanTopUp.objects.create(
+                loan=self.loan, date=data['date'], amount=data['amount'], extra_months=data.get('extra_months') or 0,
+                note=data.get('note') or '', disbursement=received)
+            if data.get('new_rate') is not None:
+                LoanInterestRate.objects.create(loan=self.loan, interest_rate=data['new_rate'], effective_date=data['date'])
+        return topup
 
 
 class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):

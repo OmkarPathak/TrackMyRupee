@@ -24553,3 +24553,171 @@ msgstr "लोन की राशि %(account)s में जुड़ेग�
 #: templates/expenses/loan_detail.html
 msgid "Upcoming"
 msgstr "आगामी"
+
+#: loan top-up
+msgid "Top up"
+msgstr "टॉप-अप"
+
+#: loan top-up
+msgid "Top-ups"
+msgstr "टॉप-अप"
+
+#: loan top-up
+msgid "Top-up"
+msgstr "टॉप-अप"
+
+#: loan top-up
+msgid "Top up this loan"
+msgstr "इस लोन में टॉप-अप करें"
+
+#: loan top-up
+msgid "More borrowed on this loan. Each one is added to what you owe from its date."
+msgstr "इस लोन पर और उधार लिया गया। हर एक अपनी तारीख से बकाया में जुड़ता है।"
+
+#: loan top-up
+msgid "Not added to an account"
+msgstr "किसी खाते में नहीं जोड़ा गया"
+
+#: loan top-up
+msgid "Delete the top-up to take this out again"
+msgstr "इसे फिर से हटाने के लिए टॉप-अप हटाएँ"
+
+#: loan top-up
+msgid "Are you sure you want to delete this top-up? What you owe goes back down, and any money it put into an account is taken out again."
+msgstr "क्या आप इस टॉप-अप को हटाना चाहते हैं? बकाया फिर घट जाएगा, और इसने किसी खाते में जो पैसे जोड़े थे वे वापस निकल जाएँगे।"
+
+#: loan top-up
+msgid "Borrowed more on this loan? Add it here instead of creating a new loan, and the balance, schedule and EMI follow."
+msgstr "इस लोन पर और उधार लिया? नया लोन बनाने की जगह यहाँ जोड़ें, बैलेंस, शेड्यूल और EMI उसी हिसाब से बदल जाएँगे।"
+
+#: loan top-up
+msgid "EMI schedule"
+msgstr "EMI शेड्यूल"
+
+#: loan top-up
+msgid "Stopped"
+msgstr "रुका हुआ"
+
+#: loan top-up
+msgid "Posts"
+msgstr "पोस्ट करता है"
+
+#: loan top-up
+msgid "For what you owe now, the EMI works out to about <strong>%(cur)s%(emi)s</strong> for the %(months)s months left."
+msgstr "अभी की बकाया राशि के लिए, बचे %(months)s महीनों की EMI लगभग <strong>%(cur)s%(emi)s</strong> बैठती है।"
+
+#: loan top-up
+msgid "Restart schedule at this EMI"
+msgstr "इस EMI पर शेड्यूल फिर शुरू करें"
+
+#: loan top-up
+msgid "Update my EMI schedule"
+msgstr "मेरा EMI शेड्यूल अपडेट करें"
+
+#: loan top-up
+msgid "More borrowed on this loan. It is added to what you owe from the date you give."
+msgstr "इस लोन पर और उधार लिया गया। यह आपकी दी गई तारीख से बकाया में जुड़ता है।"
+
+#: loan top-up
+msgid "Amount added"
+msgstr "जोड़ी गई राशि"
+
+#: loan top-up
+msgid "If the lender paid it into one of your accounts, it is added to that balance and is not counted as income."
+msgstr "अगर लोन देने वाले ने इसे आपके किसी खाते में डाला है, तो यह उस बैलेंस में जुड़ता है और आय नहीं गिना जाता।"
+
+#: loan top-up
+msgid "Months added to the term"
+msgstr "अवधि में जोड़े गए महीने"
+
+#: loan top-up
+msgid "New interest rate (%)"
+msgstr "नई ब्याज दर (%)"
+
+#: loan top-up
+msgid "You would owe"
+msgstr "आपका बकाया होगा"
+
+#: loan top-up
+msgid "EMI would be about"
+msgstr "EMI लगभग होगी"
+
+#: loan top-up
+msgid "you decide whether to update your schedule"
+msgstr "शेड्यूल अपडेट करना है या नहीं, यह आप तय करते हैं"
+
+#: loan top-up
+msgid "Could not add the top-up: %(err)s"
+msgstr "टॉप-अप नहीं जोड़ा जा सका: %(err)s"
+
+#: loan top-up
+msgid "This top-up was already added."
+msgstr "यह टॉप-अप पहले ही जोड़ा जा चुका है।"
+
+#: loan top-up
+msgid "Unable to add the top-up because currency conversion failed or the data is invalid."
+msgstr "टॉप-अप नहीं जोड़ा जा सका क्योंकि मुद्रा रूपांतरण विफल रहा या डेटा अमान्य है।"
+
+#: loan top-up
+msgid "Top-up of %(currency)s%(amount)s added. You now owe %(currency)s%(owed)s."
+msgstr "%(currency)s%(amount)s का टॉप-अप जोड़ा गया। अब आपका बकाया %(currency)s%(owed)s है।"
+
+#: loan top-up
+msgid "For the balance and term you have now, the EMI works out to about %(currency)s%(emi)s. You can update your EMI schedule from the loan page."
+msgstr "अभी की बकाया राशि और अवधि के लिए EMI लगभग %(currency)s%(emi)s बैठती है। आप ऋण पृष्ठ से अपना EMI शेड्यूल अपडेट कर सकते हैं।"
+
+#: loan top-up
+msgid "Top-up deleted. What you owe, the term and any money it put into an account are back as they were."
+msgstr "टॉप-अप हटा दिया गया। बकाया, अवधि और खाते में जोड़े गए पैसे पहले जैसे हो गए।"
+
+#: loan top-up
+msgid "There is no EMI schedule to update for this loan."
+msgstr "इस लोन के लिए अपडेट करने लायक कोई EMI शेड्यूल नहीं है।"
+
+#: loan top-up
+msgid "An identical EMI schedule already exists."
+msgstr "ऐसा ही EMI शेड्यूल पहले से मौजूद है।"
+
+#: loan top-up
+msgid "Your EMI schedule now posts %(currency)s%(emi)s."
+msgstr "आपका EMI शेड्यूल अब %(currency)s%(emi)s पोस्ट करता है।"
+
+#: loan top-up
+msgid "Don't add it to an account"
+msgstr "इसे किसी खाते में न जोड़ें"
+
+#: loan top-up
+msgid "A top-up cannot be dated in the future."
+msgstr "टॉप-अप की तारीख भविष्य में नहीं हो सकती।"
+
+#: loan top-up
+msgid "A top-up cannot be dated before the loan started."
+msgstr "टॉप-अप की तारीख लोन शुरू होने से पहले की नहीं हो सकती।"
+
+#: loan top-up
+msgid "The whole term cannot be more than 600 months."
+msgstr "पूरी अवधि 600 महीनों से अधिक नहीं हो सकती।"
+
+#: loan top-up
+msgid "The top-up amount must be greater than zero."
+msgstr "टॉप-अप की राशि शून्य से अधिक होनी चाहिए।"
+
+#: loan top-up
+msgid "The amount first borrowed. To borrow more on this loan, use Top up on the loan page instead."
+msgstr "पहली बार उधार ली गई राशि। इस लोन पर और उधार लेने के लिए, इसके बजाय ऋण पृष्ठ पर टॉप-अप का उपयोग करें।"
+
+#: loan top-up
+msgid "Loan Top-ups"
+msgstr "लोन टॉप-अप"
+
+#: loan top-up
+msgid "More borrowed on a loan, with any months added"
+msgstr "लोन पर और उधार, जोड़े गए महीनों के साथ"
+
+#: loan top-up
+msgid "Loan Amounts Received"
+msgstr "प्राप्त लोन राशि"
+
+#: loan top-up
+msgid "Loan money paid into your accounts"
+msgstr "आपके खातों में आया लोन का पैसा"
