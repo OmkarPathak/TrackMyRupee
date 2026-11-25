@@ -37,6 +37,14 @@ Run one file or one test: `RUN_E2E=1 python manage.py test e2e.test_move_money -
 | `test_move_money.py` | Balances change; the notes for money going into, out of and between investments; a renewed FD counts only the new money |
 | `test_deposit_maturity.py` | The "When it matures" card: Add interest opens income for that account, Move Money opens from it |
 | `test_data_flows.py` | CSV import with preview and undo, a one-time big purchase from the composer hint, categories, renaming an account, deleting a transfer, profile settings, export, searching the list |
+| `test_loans_create.py` | Adding every kind of loan, the live EMI preview, the form's rules, editing and deleting, the Loans list (status filters, charts, empty state) and the plan limits |
+| `test_loans_detail.py` | A loan's page: the figures, the Overview, Schedule and History tabs, interest-only, bullet, future and overdue loans, charts, grouping of amounts |
+| `test_loans_repayments.py` | The Record Repayment window and its split, deleting a repayment, paying off, making a repayment recurring, the Pay EMI page |
+| `test_loans_rates_prepayments.py` | Changing the interest rate (including one that starts later), down payments and prepayments linked to a loan, closing and reopening |
+| `test_loans_recurring.py` | EMIs that post by themselves: catching up past dates, the rate and balance of each day, the last instalment, stopping with the loan |
+| `test_loans_received.py` | The loan amount arriving in an account: recording and deleting it, and the Guided Setup switch for a new loan |
+| `test_loans_guided_and_phone.py` | The whole Guided Setup loan flow with every option and check, and the Loans pages on a phone |
+| `test_loans_everywhere.py` | The public EMI calculator, net worth on the Accounts page and the Dashboard, transactions, calendar, export, other currencies, Hindi and Marathi |
 | `test_planning.py` | A subscription (three-step form), a loan, a goal, a budget set from the page, the Guided Setup salary flow |
 | `test_guided_setup.py` | Every Guided Setup flow (read from the registry) opens, walks to its review, and creates its records when confirmed; the landing list; a phone; the SIP Funds step (search, amounts, split saved, RD has no funds step) |
 | `test_everyday.py` | Edit and delete an expense, Pay EMI, goal contribution, language switch, Analytics tabs, the phone bottom bar and More sheet, the first-run redirect |
