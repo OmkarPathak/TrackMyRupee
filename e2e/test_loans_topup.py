@@ -39,7 +39,7 @@ class Base(E2ETestCase):
         return page
 
     def open_window(self, page):
-        page.click('.col-md-4 button[data-bs-target="#topupModal"]:visible')
+        page.click('.col-lg-5 button[data-bs-target="#topupModal"]:visible')
         page.wait_for_selector(MODAL + '.show')
         page.wait_for_timeout(400)
 

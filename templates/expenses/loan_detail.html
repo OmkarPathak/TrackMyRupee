@@ -5,7 +5,7 @@
 <div class="fade-in">
     <!-- Header -->
     <div class="row align-items-center mb-4">
-        <div class="col-md-8">
+        <div class="col-lg-7">
             <div class="d-flex align-items-center mb-2">
                 <a href="{% url 'loan-list' %}" class="btn me-3 icon-btn">
                     <i class="bi bi-arrow-left"></i>
@@ -18,12 +18,12 @@
             </div>
             <p class="text-muted ms-5 mb-0">{% trans "Track repayments and monitor your amortization schedule." %}</p>
         </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex flex-wrap gap-2 justify-content-md-end">
-            <button type="button" class="btn btn-outline-success shadow-sm rounded-3 fw-bold" data-bs-toggle="modal" data-bs-target="#topupModal">
-                <i class="bi bi-arrow-up-circle me-1"></i> {% trans "Top up" %}
+        <div class="col-lg-5 mt-3 mt-lg-0 d-flex flex-wrap gap-2 justify-content-lg-end">
+            <button type="button" class="btn btn-action-outline d-inline-flex align-items-center justify-content-center gap-2 text-nowrap tmr-ic" data-bs-toggle="modal" data-bs-target="#topupModal">
+                <i class="bi bi-arrow-up-circle" aria-hidden="true"></i> {% trans "Top up" %}
             </button>
-            <button type="button" class="btn btn-success shadow-sm rounded-3 fw-bold" data-bs-toggle="modal" data-bs-target="#repaymentModal">
-                <i class="bi bi-plus-lg me-1"></i> {% trans "Record Repayment" %}
+            <button type="button" class="btn btn-action-primary d-inline-flex align-items-center justify-content-center gap-2 text-nowrap tmr-ic" data-bs-toggle="modal" data-bs-target="#repaymentModal">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans "Record Repayment" %}
             </button>
         </div>
     </div>
@@ -213,8 +213,8 @@
                         {% else %}
                         <p class="text-muted small mb-3">{% trans "Borrowed more on this loan? Add it here instead of creating a new loan, and the balance, schedule and EMI follow." %}</p>
                         {% endif %}
-                        <button type="button" class="btn btn-sm btn-outline-success rounded-3 mt-2 w-100 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#topupModal">
-                            <i class="bi bi-plus-lg me-1"></i>{% trans "Top up this loan" %}
+                        <button type="button" class="btn btn-action-outline btn-sm w-100 mt-2 d-inline-flex align-items-center justify-content-center gap-2 text-nowrap tmr-ic" data-bs-toggle="modal" data-bs-target="#topupModal">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans "Top up this loan" %}
                         </button>
                     </div>
                 </div>
@@ -270,8 +270,8 @@
                         {% else %}
                         <p class="text-muted small mb-3">{% trans "No amount recorded as received yet. If the lender paid the money into one of your accounts, record it here so that account's balance includes it." %}</p>
                         {% endif %}
-                        <button type="button" class="btn btn-sm btn-outline-success rounded-3 mt-2 w-100 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#disbursementModal">
-                            <i class="bi bi-plus-lg me-1"></i>{% trans "Record amount received" %}
+                        <button type="button" class="btn btn-action-outline btn-sm w-100 mt-2 d-inline-flex align-items-center justify-content-center gap-2 text-nowrap tmr-ic" data-bs-toggle="modal" data-bs-target="#disbursementModal">
+                            <i class="bi bi-plus-lg" aria-hidden="true"></i> {% trans "Record amount received" %}
                         </button>
                     </div>
                 </div>
