@@ -464,6 +464,7 @@ class JournalEntry(models.Model):
         ('INCOME', _('Income')),
         ('TRANSFER', _('Transfer')),
         ('LOAN_REPAYMENT', _('Loan Repayment')),
+        ('LOAN_DISBURSEMENT', _('Loan received')),
         ('GOAL_CONTRIBUTION', _('Goal Contribution')),
         ('ADJUSTMENT', _('Adjustment')),
         ('CAPITAL_EVENT', _('Big purchase')),
@@ -2704,6 +2705,8 @@ class Loan(models.Model):
         with transaction.atomic():
             for repayment in self.repayments.all():
                 repayment.delete()
+            for disbursement in self.disbursements.all():
+                disbursement.delete()          # (the money received goes back out of the account it arrived in)
             super().delete(*args, **kwargs)
 
     @property
@@ -3012,6 +3015,129 @@ class LoanRepayment(models.Model):
                     object_uuid=self.uuid,
                     action='DELETE',
                     diff={'deleted': True}
+                )
+            else:
+                super().delete(*args, **kwargs)
+
+
+class LoanDisbursement(models.Model):
+    """The money a lender paid out: the loan amount (or a top-up) arriving in one of the person's accounts.
+
+    The mirror of a repayment: the account is credited and the loan's liability grows by the same amount. Nothing about
+    it is income, and it is not an expense, so it never shows in either total. Its amount cannot be edited (delete it
+    and record it again): the account's balance and the ledger are changed by exactly the amount that was recorded."""
+    LEDGER_FIELDS = ('amount', 'account_id', 'loan_id')
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='disbursements')
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_disbursements',
+                                verbose_name=_('Received in account'))
+    amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount received'))
+    date = models.DateField(default=timezone.now, verbose_name=_('Date received'))
+    note = models.CharField(max_length=120, blank=True, default='', verbose_name=_('Note'))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = models.Manager()
+    active = SoftDeleteManager()
+
+    class Meta:
+        ordering = ['date', 'id']
+        indexes = [models.Index(fields=['loan', 'date'], name='loandisb_loan_date_idx')]
+
+    def __str__(self):
+        loan_name = getattr(self, 'loan_id', None) and getattr(self.loan, 'name', _('Loan')) or _('Loan')
+        return f"{loan_name} received - {self.amount} on {self.date}"
+
+    def clean(self):
+        if self.amount is None or self.amount <= 0:
+            raise ValidationError({'amount': _('The amount received must be greater than zero.')})
+        if self.account_id is None:
+            raise ValidationError({'account': _('Choose the account the money arrived in.')})
+        if self.account.user_id != self.loan.user_id:
+            raise ValidationError({'account': _('Selected account does not belong to this user.')})
+        if self.pk:
+            old = LoanDisbursement.objects.filter(pk=self.pk).first()
+            if old and not _ledger_inputs_unchanged(old, self):
+                raise ValidationError(_('To change the amount or the account, delete this entry and record it again.'))
+
+    def _amount_in_account_currency(self, account):
+        if self.loan.currency == account.currency:
+            return self.amount
+        return (self.amount * get_exchange_rate(self.loan.currency, account.currency)).quantize(Decimal('0.01'))
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        with transaction.atomic():
+            is_new = self.pk is None
+            super().save(*args, **kwargs)
+            if not is_new:
+                return                      # (only the date or the note can change: the account and the ledger stay as they are)
+
+            locked_account = Account.objects.select_for_update().get(pk=self.account_id)
+            locked_account.balance += self._amount_in_account_currency(locked_account)
+            locked_account.save(update_fields=['balance', 'updated_at'])
+
+            def _post_shadow_entry():
+                from .ledger_service import LedgerPostingService
+                LedgerPostingService.shadow_post_loan_disbursement_create(
+                    disbursement=self, version_token=_build_ledger_version(self, 'CREATE'))
+
+            _run_ledger_shadow(
+                _post_shadow_entry,
+                source_type='LOAN_DISBURSEMENT',
+                source_id=self.id,
+                action='CREATE',
+                payload={
+                    'handler': 'loan_disbursement_create',
+                    'version_token': _build_ledger_version(self, 'CREATE'),
+                    'loan_disbursement': {
+                        'loan_id': self.loan_id, 'amount': str(self.amount), 'account_id': self.account_id,
+                        'source_id': self.id,
+                    },
+                },
+            )
+            FinancialAuditLog.objects.create(
+                user=self.loan.user, model_name='LoanDisbursement', object_id=self.id, object_uuid=self.uuid,
+                action='CREATE', diff={'before': None, 'after': {'amount': str(self.amount)}},
+            )
+
+    def delete(self, *args, **kwargs):
+        with transaction.atomic():
+            if self.account_id:
+                locked_account = Account.objects.select_for_update().get(pk=self.account_id)
+                undo = _undo_amount('LOAN_DISBURSEMENT', self.pk, locked_account, inflow=True,
+                                    fallback=self._amount_in_account_currency(locked_account))
+                locked_account.balance -= undo
+                locked_account.save(update_fields=['balance', 'updated_at'])
+
+            def _post_shadow_entry():
+                from .ledger_service import LedgerPostingService
+                LedgerPostingService.shadow_post_loan_disbursement_delete(
+                    disbursement=self, version_token=_build_ledger_version(self, 'DELETE'))
+
+            _run_ledger_shadow(
+                _post_shadow_entry,
+                source_type='LOAN_DISBURSEMENT',
+                source_id=self.id,
+                action='DELETE',
+                payload={
+                    'handler': 'loan_disbursement_delete',
+                    'version_token': _build_ledger_version(self, 'DELETE'),
+                    'loan_disbursement': {
+                        'loan_id': self.loan_id, 'amount': str(self.amount), 'account_id': self.account_id,
+                        'source_id': self.id,
+                    },
+                },
+            )
+            if getattr(settings, 'SOFT_DELETE_ENABLED', False):
+                self.is_deleted = True
+                self.deleted_at = timezone.now()
+                super().save(update_fields=['is_deleted', 'deleted_at'])
+                FinancialAuditLog.objects.create(
+                    user=self.loan.user, model_name='LoanDisbursement', object_id=self.id, object_uuid=self.uuid,
+                    action='DELETE', diff={'deleted': True},
                 )
             else:
                 super().delete(*args, **kwargs)

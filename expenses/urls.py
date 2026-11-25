@@ -247,6 +247,8 @@ urlpatterns = [
     path('loans/<uuid_or_int:pk>/tab/history/', views.LoanHistoryTabView.as_view(), name='loan-tab-history'),
     path('loans/<uuid_or_int:pk>/repayment/', views.LoanRepaymentCreateView.as_view(), name='loan-repayment-create'),
     path('loans/repayment/<uuid_or_int:pk>/delete/', views.LoanRepaymentDeleteView.as_view(), name='loan-repayment-delete'),
+    path('loans/<uuid_or_int:pk>/received/', views.LoanDisbursementCreateView.as_view(), name='loan-disbursement-create'),
+    path('loans/received/<uuid_or_int:pk>/delete/', views.LoanDisbursementDeleteView.as_view(), name='loan-disbursement-delete'),
     path('loans/<uuid_or_int:pk>/rate-update/', views.LoanInterestRateCreateView.as_view(), name='loan-rate-update'),
 
     # DNS-over-HTTPS (DoH) resolver endpoints for DNS-AID

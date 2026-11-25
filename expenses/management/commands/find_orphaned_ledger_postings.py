@@ -14,6 +14,7 @@ class Command(BaseCommand):
             'INCOME': 'Income',
             'TRANSFER': 'Transfer',
             'LOAN_REPAYMENT': 'LoanRepayment',
+            'LOAN_DISBURSEMENT': 'LoanDisbursement',
             'GOAL_CONTRIBUTION': 'GoalContribution',
             'CAPITAL_EVENT': 'CapitalEvent',
             'ADJUSTMENT': 'Account', # Adjustments are tied to an Account ID

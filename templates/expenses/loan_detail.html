@@ -180,6 +180,36 @@
                     </div>
                 </div>
 
+                <!-- Money received: the loan amount (or a top-up) arriving in an account -->
+                <div class="card border-0 shadow-sm rounded-4" id="money-received-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-box-arrow-in-down text-success"></i>
+                            <h6 class="fw-bold mb-0">{% trans "Money received" %}</h6>
+                        </div>
+                        {% if disbursements %}
+                        <p class="text-muted small mb-3">{% trans "The loan amount that reached your accounts. It is added to the account's balance and is not counted as income." %}</p>
+                        {% for d in disbursements %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded-3 bg-body-tertiary" data-disbursement="{{ d.uuid }}">
+                            <div>
+                                <span class="small fw-semibold">{{ d.account.name|default:"-" }}</span>
+                                <span class="d-block text-muted" style="font-size:0.75rem">{{ d.date }}{% if d.note %} · {{ d.note }}{% endif %}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold text-success">+{{ loan.currency }}{{ d.amount|ind_comma:loan.currency|translate_digits }}</span>
+                                <button type="button" class="btn btn-link btn-sm p-0 text-danger" aria-label="{% trans 'Delete' %}" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-disbursement-delete' d.uuid %}" data-message="{% trans 'Are you sure you want to delete this? The amount will be taken out of the account balance again.' %}"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <p class="text-muted small mb-3">{% trans "No amount recorded as received yet. If the lender paid the money into one of your accounts, record it here so that account's balance includes it." %}</p>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-success rounded-3 mt-2 w-100 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#disbursementModal">
+                            <i class="bi bi-plus-lg me-1"></i>{% trans "Record amount received" %}
+                        </button>
+                    </div>
+                </div>
+
                 <!-- 3. Linked Capital Events Card (if present) -->
                 {% if linked_capital_events %}
                 <div class="card border-0 shadow-sm rounded-4 border-start border-3 border-primary">
@@ -373,6 +403,44 @@
         </div>
     </div>
 
+    <!-- Money received Modal -->
+    <div class="modal fade" id="disbursementModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="modal-title fw-bold">{% trans "Record amount received" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans "Close" %}"></button>
+                </div>
+                <form action="{% url 'loan-disbursement-create' loan.uuid %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body p-4">
+                        <p class="text-muted small">{% trans "The money the lender paid out. It is added to the account you choose, and is not counted as income." %}</p>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Received in account" %} <span class="text-danger">*</span></label>
+                            {{ disbursement_form.account }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Amount received" %}</label>
+                            {{ disbursement_form.amount }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Date received" %}</label>
+                            {{ disbursement_form.date }}
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label fw-bold small text-uppercase text-muted">{% trans "Note (optional)" %}</label>
+                            {{ disbursement_form.note }}
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4 pt-0">
+                        <button type="button" class="btn btn-action-cancel" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                        <button type="submit" class="btn btn-action-primary" onclick="setButtonLoading(this, '{% trans 'Saving...' %}')">{% trans "Add" %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Interest Rate Modal -->
     <div class="modal fade" id="rateModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -468,7 +536,7 @@
                 interestInput.value = interest.toFixed(2);
             }
 
-            const loanModals = ['repaymentModal', 'rateModal'];
+            const loanModals = ['repaymentModal', 'disbursementModal', 'rateModal'];
             loanModals.forEach(modalId => {
                 const modalEl = document.getElementById(modalId);
                 if (modalEl) {

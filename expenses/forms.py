@@ -32,6 +32,7 @@ from .models import (
     Income,
     Loan,
     LoanInterestRate,
+    LoanDisbursement,
     LoanRepayment,
     PhysicalAsset,
     RecurringTransaction,
@@ -1387,6 +1388,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             or Transfer.objects.filter(Q(from_account=account) | Q(to_account=account)).exists()
             or GoalContribution.objects.filter(account=account).exists()
             or LoanRepayment.objects.filter(from_account=account).exists()
+            or LoanDisbursement.objects.filter(account=account).exists()
             or CapitalEvent.objects.filter(account=account).exists()
         )
 
@@ -1915,6 +1917,49 @@ class LoanInterestRateForm(SearchableSelectFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['effective_date'].initial = timezone.localdate
+
+class LoanDisbursementForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
+    """Record that the lender's money (the loan amount, or a top-up) arrived in one of the person's accounts."""
+    required_account_fields = ('account',)
+
+    class Meta:
+        model = LoanDisbursement
+        fields = ['account', 'amount', 'date', 'note']
+        widgets = {
+            'account': forms.Select(attrs={'class': 'form-select searchable-select'}),
+            'amount': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'note': forms.TextInput(attrs={'class': 'form-control', 'maxlength': 120}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        loan = kwargs.pop('loan', None)
+        super().__init__(*args, **kwargs)
+        self.loan = loan
+        if loan:
+            self.instance.loan = loan
+        self.fields['date'].input_formats = ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%m/%d/%Y', '%d/%m/%y', '%d-%m-%y']
+        if user:
+            from .account_types import liability_codes
+            accounts = Account.objects.filter(user=user, is_active=True).exclude(account_type__in=liability_codes()).order_by('name')
+            self.fields['account'].queryset = accounts
+            if not self.is_bound:
+                self.fields['account'].initial = default_account(accounts, LoanDisbursement.objects.filter(loan__user=user).order_by('-date', '-id'), 'account_id')
+        if loan and not self.is_bound:
+            received = loan.disbursements.filter(is_deleted=False).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            left = Decimal(str(loan.initial_principal)) - received
+            self.fields['amount'].initial = left if left > 0 else None
+            self.fields['date'].initial = loan.start_date
+        elif not self.is_bound:
+            self.fields['date'].initial = timezone.localdate
+
+    def clean_date(self):
+        value = self.cleaned_data.get('date')
+        if value and value > timezone.localdate() + timedelta(days=1):
+            raise forms.ValidationError(_('The date received cannot be in the future.'))
+        return value
+
 
 class LoanRepaymentForm(AccountRequiredMixin, SearchableSelectFormMixin, forms.ModelForm):
     required_account_fields = ('from_account',)

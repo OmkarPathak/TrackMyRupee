@@ -14,10 +14,11 @@ from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
 from ..form_defaults import default_payer_account
-from ..forms import LoanForm, LoanInterestRateForm, LoanRepaymentForm
+from ..forms import LoanDisbursementForm, LoanForm, LoanInterestRateForm, LoanRepaymentForm
 from ..models import (
     CapitalEvent,
     Loan,
+    LoanDisbursement,
     LoanInterestRate,
     LoanRepayment,
     RecurringTransaction,
@@ -273,6 +274,8 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
         repayments = loan.repayments.select_related('from_account').order_by('-date')
         
         repayment_form = LoanRepaymentForm(user=request.user, loan=loan)
+        disbursements = list(loan.disbursements.filter(is_deleted=False).select_related('account').order_by('-date', '-id'))
+        disbursement_form = LoanDisbursementForm(user=request.user, loan=loan)
         rate_form = LoanInterestRateForm()
         extra_emi_savings = LoanService.calculate_extra_emi_savings(loan)
 
@@ -440,6 +443,8 @@ class LoanDetailView(LoginRequiredMixin, LoanFeatureGateMixin, View):
             'schedule': schedule,
             'repayments': repayments,
             'repayment_form': repayment_form,
+            'disbursements': disbursements,
+            'disbursement_form': disbursement_form,
             'rate_form': rate_form,
             'extra_emi_savings': extra_emi_savings,
             'linked_capital_events': linked_capital_events,
@@ -530,6 +535,58 @@ class LoanRepaymentCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
                 return redirect(get_safe_redirect_url(request, request.POST.get('next'), reverse('loan-detail', kwargs={'pk': loan.uuid})))
             return redirect(f"{reverse('pay-emi')}?loan={loan.uuid}")
         return redirect('loan-detail', pk=loan.uuid)
+
+
+class LoanDisbursementCreateView(LoginRequiredMixin, LoanFeatureGateMixin, View):
+    """Record the loan amount (or a top-up) as received in an account, from the loan's page."""
+    DOUBLE_SUBMIT_SECONDS = 15
+
+    def post(self, request, pk):
+        loan = get_object_by_uuid_or_pk(Loan, pk, user=request.user)
+        form = LoanDisbursementForm(request.POST, user=request.user, loan=loan)
+        if not form.is_valid():
+            errors_list = [f"{err}" for field, errs in form.errors.items() for err in errs]
+            messages.error(request, _("Could not record the amount received: %(err)s") % {'err': " ".join(errors_list) or _("Please check the form.")})
+            return redirect('loan-detail', pk=loan.uuid)
+        recent = timezone.now() - timedelta(seconds=self.DOUBLE_SUBMIT_SECONDS)
+        if loan.disbursements.filter(account=form.cleaned_data['account'], amount=form.cleaned_data['amount'],
+                                     date=form.cleaned_data['date'], created_at__gte=recent, is_deleted=False).exists():
+            messages.info(request, _("This amount was already recorded."))
+            return redirect('loan-detail', pk=loan.uuid)
+        try:
+            with transaction.atomic():
+                disbursement = form.save(commit=False)
+                disbursement.loan = loan
+                disbursement.save()
+        except (RuntimeError, ValidationError):
+            messages.error(request, _("Unable to record the amount received because currency conversion failed or the data is invalid."))
+            return redirect('loan-detail', pk=loan.uuid)
+        messages.success(request, _("Recorded. The amount is now in your %(account)s balance.") % {'account': disbursement.account.name})
+        ph_capture(request.user, 'loan_disbursement_added', {'via': 'loan_page'})
+        return redirect('loan-detail', pk=loan.uuid)
+
+
+class LoanDisbursementDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDOrIntLookupMixin, DeleteView):
+    model = LoanDisbursement
+
+    def get_queryset(self):
+        return LoanDisbursement.active.filter(loan__user=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        return redirect('loan-detail', pk=self.get_object().loan.uuid)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, _("Deleted. The amount was taken out of the account again."))
+        ph_capture(self.request.user, 'loan_disbursement_deleted', {})
+        return response
+
+    def get_success_url(self):
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        fallback = reverse_lazy('loan-detail', kwargs={'pk': self.object.loan.uuid})
+        if next_url:
+            return get_safe_redirect_url(self.request, next_url, fallback)
+        return fallback
 
 
 class PayEmiView(LoginRequiredMixin, LoanFeatureGateMixin, View):

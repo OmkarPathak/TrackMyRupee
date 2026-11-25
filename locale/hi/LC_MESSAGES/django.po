@@ -24441,3 +24441,111 @@ msgstr "डिपॉज़िट और योजनाएँ"
 #: expenses/portfolio_summary.py templates/expenses/portfolio_summary.html
 msgid "Cash and other assets"
 msgstr "नकद और अन्य संपत्तियाँ"
+
+#: loan received (phase 2)
+msgid "Loan received"
+msgstr "लोन की राशि मिली"
+
+#: loan received (phase 2)
+msgid "Received in account"
+msgstr "जिस खाते में मिली"
+
+#: loan received (phase 2)
+msgid "Amount received"
+msgstr "मिली हुई राशि"
+
+#: loan received (phase 2)
+msgid "Date received"
+msgstr "मिलने की तारीख"
+
+#: loan received (phase 2)
+msgid "The amount received must be greater than zero."
+msgstr "मिली हुई राशि शून्य से अधिक होनी चाहिए।"
+
+#: loan received (phase 2)
+msgid "Choose the account the money arrived in."
+msgstr "वह खाता चुनें जिसमें पैसे आए।"
+
+#: loan received (phase 2)
+msgid "To change the amount or the account, delete this entry and record it again."
+msgstr "राशि या खाता बदलने के लिए यह प्रविष्टि हटाएँ और दोबारा दर्ज करें।"
+
+#: loan received (phase 2)
+msgid "The date received cannot be in the future."
+msgstr "मिलने की तारीख भविष्य में नहीं हो सकती।"
+
+#: loan received (phase 2)
+msgid "Money received"
+msgstr "मिली हुई राशि"
+
+#: loan received (phase 2)
+msgid "Record amount received"
+msgstr "मिली हुई राशि दर्ज करें"
+
+#: loan received (phase 2)
+msgid "The loan amount that reached your accounts. It is added to the account's balance and is not counted as income."
+msgstr "लोन की जो राशि आपके खातों में पहुँची। यह खाते के बैलेंस में जुड़ती है और आय नहीं गिनी जाती।"
+
+#: loan received (phase 2)
+msgid "No amount recorded as received yet. If the lender paid the money into one of your accounts, record it here so that account's balance includes it."
+msgstr "अभी तक कोई प्राप्त राशि दर्ज नहीं है। अगर लोन देने वाले ने पैसे आपके किसी खाते में डाले हैं, तो उन्हें यहाँ दर्ज करें ताकि उस खाते के बैलेंस में जुड़ जाएँ।"
+
+#: loan received (phase 2)
+msgid "Are you sure you want to delete this? The amount will be taken out of the account balance again."
+msgstr "क्या आप इसे हटाना चाहते हैं? राशि खाते के बैलेंस से फिर घट जाएगी।"
+
+#: loan received (phase 2)
+msgid "The money the lender paid out. It is added to the account you choose, and is not counted as income."
+msgstr "लोन देने वाले ने जो पैसे दिए। यह चुने गए खाते में जुड़ते हैं और आय नहीं गिने जाते।"
+
+#: loan received (phase 2)
+msgid "Saving..."
+msgstr "सहेज रहे हैं..."
+
+#: loan received (phase 2)
+msgid "Are you sure you want to delete this? The amount will be taken out of your account balance again."
+msgstr "क्या आप इसे हटाना चाहते हैं? राशि आपके खाते के बैलेंस से फिर घट जाएगी।"
+
+#: loan received (phase 2)
+msgid "Could not record the amount received: %(err)s"
+msgstr "मिली हुई राशि दर्ज नहीं हो सकी: %(err)s"
+
+#: loan received (phase 2)
+msgid "This amount was already recorded."
+msgstr "यह राशि पहले ही दर्ज हो चुकी है।"
+
+#: loan received (phase 2)
+msgid "Unable to record the amount received because currency conversion failed or the data is invalid."
+msgstr "मिली हुई राशि दर्ज नहीं हो सकी क्योंकि मुद्रा रूपांतरण विफल रहा या डेटा अमान्य है।"
+
+#: loan received (phase 2)
+msgid "Recorded. The amount is now in your %(account)s balance."
+msgstr "दर्ज हो गया। राशि अब आपके %(account)s के बैलेंस में है।"
+
+#: loan received (phase 2)
+msgid "Deleted. The amount was taken out of the account again."
+msgstr "हटा दिया गया। राशि खाते से फिर घटा दी गई।"
+
+#: loan received (phase 2)
+msgid "Add the loan amount to an account"
+msgstr "लोन की राशि किसी खाते में जोड़ें"
+
+#: loan received (phase 2)
+msgid "Turn on if the lender paid the money into one of your accounts. It is added to that balance, not counted as income."
+msgstr "चालू करें अगर लोन देने वाले ने पैसे आपके किसी खाते में डाले हैं। यह उस खाते के बैलेंस में जुड़ता है, आय नहीं गिना जाता।"
+
+#: loan received (phase 2)
+msgid "The account the loan amount was paid into."
+msgstr "वह खाता जिसमें लोन की राशि आई।"
+
+#: loan received (phase 2)
+msgid "Select the account the loan amount was paid into."
+msgstr "वह खाता चुनें जिसमें लोन की राशि आई।"
+
+#: loan received (phase 2)
+msgid "The amount received, added to your account"
+msgstr "मिली हुई राशि, आपके खाते में जुड़ी"
+
+#: loan received (phase 2)
+msgid "Adds the loan amount to %(account)s"
+msgstr "लोन की राशि %(account)s में जुड़ेगी"

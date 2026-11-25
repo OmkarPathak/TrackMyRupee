@@ -79,6 +79,12 @@ Use **Update Interest Rate** on the loan page and give the **New Annual Rate** a
 
 A lump sum, such as a down payment or a prepayment, is recorded as a [big purchase](../09-capital-events/index.md) with the subtype **Loan Down Payment** or **Loan Prepayment**, linked to the loan (the loan page has an **Add big purchase for this Loan** shortcut). It counts fully as principal paid. Big purchases with other subtypes do not change the loan.
 
+### Recording the money you received
+
+When the lender pays the loan into your account, the loan page has a **Money received** card with a **Record amount received** button. Choose the account it arrived in, the amount (it starts as the loan amount you have not recorded yet) and the date. The amount is added to that account's balance, and the loan's balance in the ledger grows with it. It is **not income**, so your income and savings figures do not change.
+
+New loans set up through [Guided Setup](../13-tmr-flows/debt.md) record this for you. **Loans you added earlier are left as they are**, because many people already entered the money by hand: if yours is not in the account's balance yet, use **Record amount received** once. To undo it, delete the entry from the card or from the account's activity list, and the amount is taken out of the account again. To change an amount, delete it and record it again.
+
 ---
 
 ## 4. Reading the Paid-Off Percentage and Remaining Balance

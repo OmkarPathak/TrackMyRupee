@@ -38,6 +38,8 @@ The form has three steps.
 | **Annual rate** | The yearly interest rate, for example 8.5. |
 | **Tenure months** | How long the loan runs, in months. A 20-year loan is 240. |
 | **Start date** | The date the loan begins. |
+| **Add the loan amount to an account** | On by default for a new loan. Turn it on if the lender has paid the money into one of your accounts: the amount is added to that account's balance, so the balance matches your bank. It is recorded as money received, not as income. Switch it off if you have already recorded the money yourself. |
+| **Received in account** | The account the loan amount was paid into. It starts on the account you use most. |
 
 **Step 2: Repayment Schedule**
 
@@ -59,7 +61,7 @@ The form has three steps.
 
 ![Adjustments step](img/loan-step3-adjustments-desktop.webp){ loading=lazy width="560" }
 
-- **Mid tenure**: for a loan you took some time ago. Enter how much principal you have already repaid and the date of your first EMI. TrackMyRupee then starts from where you actually are, not from day one.
+- **Mid tenure**: for a loan you took some time ago (the loan amount is then not added to an account, because it reached your account long ago and is already in its balance). Enter how much principal you have already repaid and the date of your first EMI. TrackMyRupee then starts from where you actually are, not from day one.
 - **Include down payment**: for loans on a purchase. Enter the down payment amount, the account it came from (required), and an optional note.
 
 **Review and confirm**
@@ -72,6 +74,7 @@ The last tab shows everything before anything is saved. The big number at the to
 
 - A **loan account** with your balance and interest rate
 - A **repayment schedule**, set up as a recurring EMI
+- If you left **Add the loan amount to an account** on, the **money received**: the loan amount, added to the account you chose on the loan's start date (it is not counted as income)
 - If you included a down payment, a **big purchase** of type *Loan Down Payment*, linked to the loan
 
 On the Review screen the big number you see is your calculated monthly EMI, so you can compare it with what your bank told you before you confirm.
