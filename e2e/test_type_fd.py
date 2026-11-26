@@ -3,7 +3,6 @@
 The existing e2e/test_fd_interest_payout.py covers monthly payouts and renewals. This file covers the rest of what
 a deposit goes through, with the amounts checked against hand-worked figures (type_helpers.deposit_value).
 """
-import unittest
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -86,11 +85,8 @@ class CreationTests(Base):
         self.assertEqual(balance_on(page), D('107185.90'))
         self.assertIn('7.0% p.a.', page.inner_text('body'))
 
-    @unittest.expectedFailure
-    def test_KNOWN_BUG_the_estimate_shown_while_typing_is_the_amount_the_account_later_shows(self):
-        """The form's estimate counts a year as 365.25 days; the account works the term out as whole years plus
-        leftover days over 365. For 24 months at 7.5% monthly the form says 1,16,141.09 and the account
-        1,16,129.20, which is the correct hand-worked figure. Remove the decorator once the form follows the account."""
+    def test_the_estimate_shown_while_typing_is_the_amount_the_account_later_shows(self):
+        """The form counts time the way the account page does (whole years, then odd days over 365)."""
         from expenses.models import Account
         start, maturity = TODAY - relativedelta(months=6), TODAY + relativedelta(months=18)
         page = self.new_page(self.user)
