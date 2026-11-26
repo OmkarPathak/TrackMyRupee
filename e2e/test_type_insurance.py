@@ -3,7 +3,6 @@
 A savings or endowment policy is worth the surrender value entered, or else the premiums paid so far. Pure protection (term
 or health cover) is worth nothing: its premiums are a cost, not an asset.
 """
-import unittest
 from datetime import timedelta
 from decimal import Decimal
 
@@ -162,12 +161,8 @@ class FormTests(Base):
         self.wait_until(lambda: Account.objects.filter(user=self.user, name='Star Health').exists(), 'the policy was not saved', seconds=15)
         self.assertEqual(Account.objects.get(user=self.user, name='Star Health').linked_physical_asset.policy_type, 'PROTECTION')
 
-    @unittest.expectedFailure
-    def test_KNOWN_BUG_a_health_policy_opened_from_a_type_link_is_pure_protection(self):
-        """The form switches Policy Type to 'Pure protection' only when the account type is changed in the list. Opened
-        straight to Health Insurance (?type=HEALTH_INSURANCE, as the add links do) it stays on 'Savings / endowment',
-        so the policy is saved as savings and its premiums are counted as an asset. Remove the decorator once the
-        form starts on the right type."""
+    def test_a_health_policy_opened_from_a_type_link_is_pure_protection(self):
+        """Opened straight to Health Insurance (?type=HEALTH_INSURANCE, as the add links do), the form starts on pure protection."""
         from expenses.models import Account
         page = self.new_page(self.user)
         self.fill(page, 'HEALTH_INSURANCE', 'Star Health', premium_amount='18000')

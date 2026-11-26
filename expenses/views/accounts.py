@@ -787,6 +787,10 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
         initial = super().get_initial()
         if self._preset_type():
             initial['account_type'] = self._preset_type()
+            if self._preset_type() == 'HEALTH_INSURANCE':
+                # Health cover pays nothing back, so it starts as pure protection (choosing the type from the list does
+                # the same in the page).
+                initial['policy_type'] = 'PROTECTION'
         return initial
 
     def get_context_data(self, **kwargs):
