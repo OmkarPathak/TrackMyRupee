@@ -94,7 +94,7 @@
                 </li>
                 <li class="nav-item d-lg-none">
                     <a href="{% url 'holding-list' %}" class="nav-link {% if 'holding' in request.resolver_match.url_name %}active{% endif %}">
-                        {% trans "Holdings" %}
+                        {% trans "Investments" %}
                     </a>
                 </li>
                 <li class="nav-item d-lg-none">
@@ -507,7 +507,7 @@
                 <div class="col">
                     <a href="{% url 'holding-list' %}" class="mmt mobile-grid-item">
                         <i class="bi bi-graph-up-arrow text-success"></i>
-                        <span class="mmt-label">{% trans "Holdings" %}</span>
+                        <span class="mmt-label">{% trans "Investments" %}</span>
                     </a>
                 </div>
                 {% if user.profile.can_track_loans %}
