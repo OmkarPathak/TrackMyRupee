@@ -2,7 +2,6 @@
 
 The account is tied to a physical asset record. Its value comes from that asset's valuations, newest date first.
 """
-import unittest
 from datetime import timedelta
 from decimal import Decimal
 
@@ -100,11 +99,8 @@ class ValueTests(Base):
         page = self.new_page(self.user)
         self.assertEqual(net_worth(self, page), D('100000'))
 
-    @unittest.expectedFailure
-    def test_KNOWN_BUG_the_asset_accounts_own_page_shows_its_value(self):
-        """Like a loan account, the account's own page reads the ledger (nothing for an asset), so it shows
-        'Current balance ₹0' while the list and net worth count the asset's value. Remove the decorator once
-        the page shows the valuation."""
+    def test_the_asset_accounts_own_page_shows_its_value(self):
+        """The account's own page shows the same amount as the list and net worth, not the empty ledger."""
         asset = self.asset(cost=5000000)
         account = self.account(asset)
         page = self.new_page(self.user)

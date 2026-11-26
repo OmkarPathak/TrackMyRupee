@@ -3,7 +3,6 @@
 A loan account is tied to a Loan record and shows its outstanding principal. The loan pages themselves are covered by
 the e2e/test_loans_* files; this covers the account side: the amount shown, net worth, and the add form.
 """
-import unittest
 from decimal import Decimal
 
 from django.urls import reverse
@@ -78,11 +77,8 @@ class OutstandingTests(Base):
         page = self.new_page(self.user)
         self.assertEqual(net_worth(self, page), D('2000000') - D('1000000'))
 
-    @unittest.expectedFailure
-    def test_KNOWN_BUG_the_loan_accounts_own_page_shows_what_is_owed(self):
-        """The accounts list and net worth count the outstanding principal, but the account's own page shows
-        'Current balance ₹0' (it reads the ledger, which holds nothing for a loan account). Remove the decorator
-        once the page shows -5,00,000."""
+    def test_the_loan_accounts_own_page_shows_what_is_owed(self):
+        """The account's own page shows the same amount as the list and net worth, not the empty ledger."""
         _, account = self.loan_account(principal=500000)
         page = self.new_page(self.user)
         open_account(self, page, account)

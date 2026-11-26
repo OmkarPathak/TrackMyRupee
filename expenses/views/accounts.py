@@ -1338,6 +1338,15 @@ class AccountDetailView(LoginRequiredMixin, View):
         else:
             account.display_balance = account.balance
 
+        # A loan or a property keeps nothing in the ledger: what it is worth comes from the loan's schedule or the
+        # asset's valuations, the same figure the accounts list and net worth use.
+        if account.is_active and strategy_for(account.account_type) in (STRATEGY.LOAN_OUTSTANDING, STRATEGY.PHYSICAL_VALUATION):
+            try:
+                value = get_current(account)
+                account.display_balance = -abs(value) if strategy_for(account.account_type) == STRATEGY.LOAN_OUTSTANDING else value
+            except Exception:
+                pass
+
         if account.account_type in deposit_codes():
             accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))
             deposit_principal = account.deposit_principal if account.deposit_principal is not None else Decimal(str(account.display_balance))
