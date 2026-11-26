@@ -736,9 +736,21 @@
         var wanted = (window.location.hash || '').replace('#', '');
         var button = wanted ? document.getElementById('iv-tab-' + wanted) : null;
         if (button) window.bootstrap.Tab.getOrCreateInstance(button).show();
+        // Counts which tab is opened and how often the report is printed (only after analytics was accepted, nothing about the person)
+        function track(name, props) {
+            try {
+                if (localStorage.getItem('cookieConsent') === 'accepted' && window.posthog && typeof window.posthog.capture === 'function') {
+                    window.posthog.capture(name, props);
+                }
+            } catch (e) { /* never worth an error */ }
+        }
         bar.addEventListener('shown.bs.tab', function (event) {
-            try { history.replaceState(null, '', '#' + event.target.id.replace('iv-tab-', '')); } catch (e) {}
+            var tab = event.target.id.replace('iv-tab-', '');
+            try { history.replaceState(null, '', '#' + tab); } catch (e) {}
+            track('investments_tab_viewed', {tab: tab});
         });
+        var report = document.getElementById('investments-print-report');
+        if (report) report.addEventListener('click', function () { track('investments_report_opened', {}); });
     });
 </script>
 {% endblock %}

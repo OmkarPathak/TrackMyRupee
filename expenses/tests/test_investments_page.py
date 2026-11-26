@@ -241,3 +241,36 @@ class EmptySipTests(Base):
         response = self.page()
         self.assertContains(response, 'id="iv-sips-empty"')
         self.assertContains(response, reverse('recurring-create'))
+
+
+class AnalyticsAndGuideTests(WithInvestments):
+    def test_viewing_the_page_counts_it_with_how_much_there_is_but_no_amounts(self):
+        from unittest.mock import patch
+        with patch('expenses.views.accounts.ph_capture') as capture:
+            self.page()
+        calls = [c for c in capture.call_args_list if c.args[1] == 'investments_viewed']
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0].args[2], {'holdings': 1, 'deposits': 1, 'schemes': 0, 'sips': 1, 'has_upcoming': True})
+
+    def test_the_help_link_opens_the_investments_guide_page(self):
+        from expenses.help_links import help_for
+        path, title = help_for('holding-list')
+        self.assertEqual(path, '02-accounts/holdings/')
+        self.assertEqual(str(title), 'Investments')
+
+    def test_the_guide_page_describes_the_page_in_every_language(self):
+        from pathlib import Path
+        guide = Path(__file__).resolve().parents[2] / 'guide-src' / '02-accounts'
+        for suffix in ('', '.hi', '.mr'):
+            text = (guide / f'holdings{suffix}.md').read_text()
+            for needle in ('Investments', '**Market**', '**Deposits**', '**Schemes**', '**SIPs**', '/holdings/#deposits', 'Coming up', 'Where it is'):
+                self.assertIn(needle, text, (suffix, needle))
+            self.assertNotIn('Sidebar → Net Worth → Holdings', text)
+
+    def test_no_guide_page_still_sends_people_to_a_menu_called_holdings(self):
+        from pathlib import Path
+        guide = Path(__file__).resolve().parents[2] / 'guide-src'
+        for page in guide.rglob('*.md'):
+            text = page.read_text()
+            self.assertNotIn('Net Worth → Holdings', text, page.name)
+            self.assertNotIn('More → Holdings', text, page.name)

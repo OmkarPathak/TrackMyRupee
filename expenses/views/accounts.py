@@ -2525,6 +2525,10 @@ class HoldingsListView(LoginRequiredMixin, ListView):
         context['investment_count'] = len(holdings) + len(overview['deposit_rows'])
         market_total = sum((b['total'] for b in overview['holding_blocks']), Decimal('0.00'))
         context['user_currency'] = user_currency
+        ph_capture(self.request.user, 'investments_viewed', {
+            'holdings': len(holdings), 'deposits': len(overview['deposits']), 'schemes': len(overview['schemes']),
+            'sips': len(overview['sip_schedules']), 'has_upcoming': bool(overview['upcoming']),
+        })
         cash_accounts = list(Account.objects.filter(
             user=self.request.user, is_active=True, account_type__in=holdings_codes()).order_by('name'))
         cash = holdings_cash_summary(cash_accounts)

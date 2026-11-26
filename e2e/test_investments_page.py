@@ -250,3 +250,38 @@ class PhoneSipsTests(SipBase):
         self.assertFalse(page.is_visible('#iv-sips-table'))
         self.assertIn('Weekly SIP', page.inner_text('#iv-sips-cards'))
         self.assertEqual(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1'), True)
+
+
+class AnalyticsTests(Base):
+    """Opening a tab and opening the report are counted, but only after analytics was accepted."""
+    FAKE = "window.__events = []; window.posthog = {capture: function (name, props) { window.__events.push([name, props]); }};"
+
+    def open_with(self, consent):
+        page = self.new_page(self.user)
+        page.add_init_script(f"try {{ localStorage.setItem('cookieConsent', '{consent}'); }} catch (e) {{}}")
+        self.open(page, reverse('holding-list'))
+        page.wait_for_selector('#investments-overview')
+        page.evaluate(self.FAKE)
+        return page
+
+    def events(self, page):
+        return [e for e in page.evaluate('window.__events') if e[0].startswith('investments_')]
+
+    def test_a_tab_opened_is_counted_with_its_name(self):
+        page = self.open_with('accepted')
+        for tab in ('deposits', 'schemes', 'sips'):
+            page.click(f'#iv-tab-{tab}')
+            page.wait_for_selector(f'#iv-pane-{tab}.active.show')
+        self.assertEqual(self.events(page), [['investments_tab_viewed', {'tab': t}] for t in ('deposits', 'schemes', 'sips')])
+
+    def test_nothing_is_counted_without_consent(self):
+        page = self.open_with('declined')
+        page.click('#iv-tab-deposits')
+        page.wait_for_selector('#iv-pane-deposits.active.show')
+        self.assertEqual(self.events(page), [])
+
+    def test_opening_the_report_is_counted(self):
+        page = self.open_with('accepted')
+        page.evaluate("document.getElementById('investments-print-report').addEventListener('click', e => e.preventDefault(), true)")
+        page.click('#investments-print-report')
+        self.assertIn(['investments_report_opened', {}], self.events(page))

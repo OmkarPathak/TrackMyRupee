@@ -64,6 +64,16 @@ const shots = [
   { file: '01-getting-started/img/categories-desktop.webp', url: '/category/list/' },
   { file: '02-accounts/img/accounts-list-desktop.webp', url: '/accounts/list/?sort=attention' },
   { file: '02-accounts/img/summary-report-desktop.webp', url: '/accounts/summary/', fullPage: true, wait: 2200 },
+  // The Investments page: the summary and allocation, then the Deposits and SIPs tabs
+  { file: '02-accounts/img/investments-desktop.webp', url: '/holdings/', wait: 1800 },
+  { file: '02-accounts/img/investments-deposits-desktop.webp', url: '/holdings/', wait: 1500, before: `
+      document.getElementById('iv-tab-deposits').click();
+      await new Promise(r => setTimeout(r, 500));
+      document.getElementById('investmentTabs').scrollIntoView({ block: 'start' }); window.scrollBy(0, -90);` },
+  { file: '02-accounts/img/investments-sips-desktop.webp', url: '/holdings/', wait: 1500, before: `
+      document.getElementById('iv-tab-sips').click();
+      await new Promise(r => setTimeout(r, 500));
+      document.getElementById('investmentTabs').scrollIntoView({ block: 'start' }); window.scrollBy(0, -90);` },
   { file: '01-getting-started/img/top-bar-desktop.webp', url: '/dashboard/', clipTo: 'nav.navbar' },
   { file: '02-accounts/img/add-account-desktop.webp', url: '/accounts/add/' },
   // The second part of "What kind of account is it?": the types inside one kind
