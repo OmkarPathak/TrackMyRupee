@@ -20,7 +20,7 @@ from django.views.generic import ListView
 from ..ledger_read_service import LedgerReadService
 from ..models import Account, CapitalEvent, Expense, Income, LoanDisbursement, LoanRepayment, Transfer
 from ..refunds import net_sum
-from ..savings import LINKED_REFUND, savings_from_querysets
+from ..savings import LINKED_REFUND, savings_from_querysets, user_counts_loan_payments
 from ..utils import get_exchange_rate
 from ..filters.definitions import ALL_TRANSACTIONS_FILTERS
 from ..periods import get_cycle_context, resolve_period
@@ -343,7 +343,8 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
 
         # Net remaining and its rate come from the single savings definition (expenses/savings.py),
         # applied to whatever the active filters left on the page.
-        savings_result = savings_from_querysets(incomes, expenses, loan_repayments, capital_events)
+        savings_result = savings_from_querysets(incomes, expenses, loan_repayments, capital_events,
+                                                count_loan_payments=user_counts_loan_payments(user))
         net_remaining = savings_result.savings
         context['net_remaining'] = net_remaining
         context['net_saved'] = net_remaining

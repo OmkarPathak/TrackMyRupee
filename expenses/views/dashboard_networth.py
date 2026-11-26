@@ -76,7 +76,8 @@ def net_worth_card(user, *, currency_symbol, accounts=None, ledger_result=None, 
 
     # Net worth grows by what you save: income minus spending, where repaying loan principal is not spending
     # (cash becomes less debt) and capital events count per their own switches.
-    net_worth_change = month_savings.savings
+    # (what the month added to net worth: paying down debt is part of it, whatever the savings setting)
+    net_worth_change = month_savings.net_saved
     start_net_worth = net_worth - net_worth_change
     net_worth_percent = Decimal('0.00')
     if start_net_worth > 0:

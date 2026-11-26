@@ -24816,3 +24816,19 @@ msgstr "बदल नाही"
 #: loan received
 msgid "This amount came with a top-up. Delete the top-up on the loan page to take it out again."
 msgstr "ही रक्कम टॉप-अपसोबत आली होती. ती पुन्हा काढण्यासाठी कर्जाच्या पेजवरील टॉप-अप हटवा."
+
+#: loan payments setting
+msgid "Count all loan payments as spending"
+msgstr "सर्व कर्ज हप्ते खर्चात धरा"
+
+#: loan payments setting
+msgid "Off: only the interest part of an EMI counts as spending, because the rest repays borrowed money and raises your net worth. On: the whole EMI, and loan prepayments and down payments, count as spending, so your savings are what is left after every loan payment."
+msgstr "बंद: EMI चा फक्त व्याजाचा भाग खर्च धरला जातो, कारण उरलेला भाग घेतलेले कर्ज फेडतो आणि तुमची निव्वळ संपत्ती वाढवतो. चालू: पूर्ण EMI, आणि कर्जाची आगाऊ परतफेड व डाउन पेमेंट, खर्च धरले जातात, त्यामुळे तुमची बचत प्रत्येक कर्ज हप्त्यानंतर उरलेले पैसे असते."
+
+#: loan payments setting
+msgid "Counting all loan payments as spending"
+msgstr "सर्व कर्ज हप्ते खर्चात धरले जात आहेत"
+
+#: loan payments setting
+msgid "All loan payments count as spending here (change this in Settings → Profile)."
+msgstr "येथे सर्व कर्ज हप्ते खर्चात धरले जातात (हे सेटिंग्ज → प्रोफाइल मध्ये बदला)."

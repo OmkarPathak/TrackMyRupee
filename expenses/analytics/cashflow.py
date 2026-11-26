@@ -215,5 +215,5 @@ def comparison_chart(page: Page) -> dict | None:
 
 def build(page: Page) -> dict:
     flow = sankey(page)
-    return {'tiles': page.tiles(), 'insight': page.insight(), 'sankey': flow, 'health': health(page),
+    return {'tiles': page.tiles(), 'counting_loan_payments': page.summary.savings.count_loan_payments, 'insight': page.insight(), 'sankey': flow, 'health': health(page),
             'comparison': comparison_chart(page), 'has_flow': bool(flow['nodes'])}

@@ -2068,6 +2068,10 @@ class UserProfile(models.Model):
     daily_reminder = models.BooleanField(default=True, verbose_name=_('Daily Expense Reminder'))
     
     # Salary settings
+    count_loan_payments_as_spending = models.BooleanField(
+        default=False, verbose_name=_('Count all loan payments as spending'),
+        help_text=_('Off: only the interest part of an EMI counts as spending, because the rest repays borrowed money and raises your net worth. '
+                    'On: the whole EMI, and loan prepayments and down payments, count as spending, so your savings are what is left after every loan payment.'))
     salary_date = models.IntegerField(
         default=1,
         validators=[MinValueValidator(1), MaxValueValidator(31)],

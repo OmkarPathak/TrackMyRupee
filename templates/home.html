@@ -1730,6 +1730,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
 
+                {% if counting_loan_payments %}<div class="small text-muted" id="loan-payments-note">{% trans "Counting all loan payments as spending" %}</div>{% endif %}
                 <div class="metric-mini-text">
                     <span class="fw-bold text-body-emphasis">{{ currency_symbol }}{{ hero_metrics.saved|humanize_currency:currency_symbol|translate_digits }} {% trans "saved" %}</span>
                     <span class="text-muted"> {% trans "of" %} {{ currency_symbol }}{{ hero_metrics.income|humanize_currency:currency_symbol|translate_digits }} {% trans "income" %}</span>

@@ -19,9 +19,11 @@ from django.db.models import BooleanField, Case, Count, F, Q, Sum, Value, When
 from ..budgets import capital_report_name, normalize_category
 from ..investing import into_investments, out_of_investments
 from ..refunds import NET_EXPENSE, net_sum
-from ..savings import CASHBACK_REFUND_TYPES, LINKED_REFUND, LINKED_TO_EVENT, SavingsResult, calculate_savings
+from ..savings import (CASHBACK_REFUND_TYPES, LINKED_REFUND, LINKED_TO_EVENT, LOAN_CAPITAL_SUBTYPES, SavingsResult,
+                       calculate_savings, user_counts_loan_payments)
 
 ZERO = Decimal('0')
+LOAN_PRINCIPAL_KEY = 'loan repayments'          # the Spending tab's line for EMI principal, when loan payments count as spending
 
 
 class ExpenseRow(NamedTuple):
@@ -137,6 +139,7 @@ class Facts:
     first: date
     last: date
     include_capital_events: bool = False
+    count_loan_payments: bool = False        # the person counts all loan payments as spending (Settings → Profile)
     income: list[Decimal] = field(default_factory=list)
     cashback_refund: list[Decimal] = field(default_factory=list)
     interest: list[Decimal] = field(default_factory=list)
@@ -146,14 +149,18 @@ class Facts:
     expense_cats: list[dict[str, Decimal] | None] = field(default_factory=list)
     capital_cats_counted: list[dict[str, Decimal] | None] = field(default_factory=list)
     capital_cats_extra: list[dict[str, Decimal] | None] = field(default_factory=list)
+    principal: list[Decimal] = field(default_factory=list)              # EMI principal paid each day
+    loan_capital: list[Decimal] = field(default_factory=list)           # loan prepayments / down payments kept out of averages
+    loan_capital_cats: list[dict[str, Decimal] | None] = field(default_factory=list)
     invested_dest: list[dict[tuple[int, str], Decimal] | None] = field(default_factory=list)
     names: dict[str, str] = field(default_factory=dict)  # normalised category -> the name to show
 
     def __post_init__(self):
         n = (self.last - self.first).days + 1
-        for attr in ('income', 'cashback_refund', 'interest', 'invested', 'capital_counted', 'capital_extra'):
+        for attr in ('income', 'cashback_refund', 'interest', 'invested', 'capital_counted', 'capital_extra', 'principal',
+                     'loan_capital'):
             setattr(self, attr, [ZERO] * n)
-        for attr in ('expense_cats', 'capital_cats_counted', 'capital_cats_extra', 'invested_dest'):
+        for attr in ('expense_cats', 'capital_cats_counted', 'capital_cats_extra', 'invested_dest', 'loan_capital_cats'):
             setattr(self, attr, [None] * n)
 
     @property
@@ -186,7 +193,20 @@ class Facts:
                 for key, amount in self.invested_dest[i].items():
                     invested_to[key] = invested_to.get(key, ZERO) + amount
         extra = sum((self.capital_extra[i] for i in span), ZERO) if self.include_capital_events else ZERO
-        expenses = sum(categories.values(), ZERO) - sum((self.capital_counted[i] for i in span), ZERO) - extra
+        # When all loan payments count as spending: the EMI principal, and the loan prepayments / down payments that the
+        # "one-off capital events" switch has not already counted. They are shown as spending lines so the totals tie out.
+        principal = sum((self.principal[i] for i in span), ZERO) if self.count_loan_payments else ZERO
+        loan_capital = ZERO
+        if self.count_loan_payments and not self.include_capital_events:
+            loan_capital = sum((self.loan_capital[i] for i in span), ZERO)
+            for i in span:
+                for key, amount in (self.loan_capital_cats[i] or {}).items():
+                    categories[key] = categories.get(key, ZERO) + amount
+        if principal:
+            categories[LOAN_PRINCIPAL_KEY] = categories.get(LOAN_PRINCIPAL_KEY, ZERO) + principal
+            self.names.setdefault(LOAN_PRINCIPAL_KEY, 'Loan repayments')
+        expenses = (sum(categories.values(), ZERO) - sum((self.capital_counted[i] for i in span), ZERO) - extra
+                    - principal - loan_capital)
         result = calculate_savings(
             income=sum((self.income[i] for i in span), ZERO),
             cashback_refund=sum((self.cashback_refund[i] for i in span), ZERO),
@@ -194,6 +214,9 @@ class Facts:
             loan_interest=sum((self.interest[i] for i in span), ZERO),
             capital_events=sum((self.capital_counted[i] for i in span), ZERO),
             extra_capital_events=extra,
+            loan_principal=principal,
+            loan_capital=loan_capital,
+            count_loan_payments=self.count_loan_payments,
         )
         return Summary(savings=result, invested=sum((self.invested[i] for i in span), ZERO),
                        categories=categories, invested_to=invested_to, capital_extra=extra)
@@ -213,6 +236,10 @@ class Facts:
                 out.append(ZERO)
                 continue
             total = self.interest[day_index] + self.capital_counted[day_index]
+            if self.count_loan_payments:
+                total += self.principal[day_index]
+                if not self.include_capital_events:
+                    total += self.loan_capital[day_index]
             if self.include_capital_events:
                 total += self.capital_extra[day_index]
             if self.expense_cats[day_index]:
@@ -262,7 +289,8 @@ def load_facts(user, first: date, last: date, *, categories: Iterable[str] = (),
     from ..models import CapitalEvent, Expense, Income, LoanRepayment, Transfer
 
     categories, account_ids = list(categories), list(account_ids)
-    facts = Facts(first=first, last=last, include_capital_events=include_capital_events)
+    facts = Facts(first=first, last=last, include_capital_events=include_capital_events,
+                  count_loan_payments=user_counts_loan_payments(user))
     window = {'date__range': (first, last)}
 
     incomes = Income.objects.filter(user=user, **window)
@@ -291,8 +319,10 @@ def load_facts(user, first: date, last: date, *, categories: Iterable[str] = (),
         repayments = LoanRepayment.objects.filter(loan__user=user, **window)
         if account_ids:
             repayments = repayments.filter(from_account_id__in=account_ids)
-        for row in repayments.values('date').annotate(total=Sum(F('interest_portion') * F('exchange_rate'))):
+        for row in repayments.values('date').annotate(total=Sum(F('interest_portion') * F('exchange_rate')),
+                                                      principal=Sum(F('principal_portion') * F('exchange_rate'))):
             facts.interest[facts.index(row['date'])] += row['total'] or ZERO
+            facts.principal[facts.index(row['date'])] += row['principal'] or ZERO
 
     events = CapitalEvent.objects.filter(user=user, is_deleted=False, **window)
     if categories:
@@ -308,6 +338,9 @@ def load_facts(user, first: date, last: date, *, categories: Iterable[str] = (),
         if row['exclude_from_averages']:
             facts.capital_extra[i] += amount
             facts._add(facts.capital_cats_extra, i, key, amount)
+            if row['subtype'] in LOAN_CAPITAL_SUBTYPES:
+                facts.loan_capital[i] += amount
+                facts._add(facts.loan_capital_cats, i, key, amount)
         else:
             facts.capital_counted[i] += amount
             facts._add(facts.capital_cats_counted, i, key, amount)

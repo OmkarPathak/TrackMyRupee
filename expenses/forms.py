@@ -792,6 +792,11 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
         label=_('Salary Date'),
         required=True
     )
+    count_loan_payments_as_spending = forms.BooleanField(
+        required=False, label=_('Count all loan payments as spending'),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch'}),
+        help_text=_('Off: only the interest part of an EMI counts as spending, because the rest repays borrowed money and raises your net worth. '
+                    'On: the whole EMI, and loan prepayments and down payments, count as spending, so your savings are what is left after every loan payment.'))
 
     class Meta:
         model = User
@@ -801,6 +806,7 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['auth_email'].initial = self.instance.email
         self.fields['daily_reminder'].initial = self.instance.profile.daily_reminder
+        self.fields['count_loan_payments_as_spending'].initial = self.instance.profile.count_loan_payments_as_spending
         self.fields['salary_date'].initial = self.instance.profile.salary_date
         self.fields['auth_email'].widget.attrs.update({'class': 'form-control'})
 
@@ -848,6 +854,7 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
             profile = user.profile
             profile.daily_reminder = self.cleaned_data['daily_reminder']
             profile.salary_date = int(self.cleaned_data['salary_date'])
+            profile.count_loan_payments_as_spending = self.cleaned_data['count_loan_payments_as_spending']
             profile.save()
         return user
 
