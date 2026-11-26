@@ -194,6 +194,9 @@ class Account(models.Model):
 
     is_active = models.BooleanField(default=True)
     is_pinned = models.BooleanField(default=False, verbose_name=_('Is Pinned'))
+    include_in_available_cash = models.BooleanField(
+        default=True, verbose_name=_('Count in available cash'),
+        help_text=_('Turn off for a cash or bank account you keep apart from everyday spending (an investment pot, an emergency fund).'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -327,6 +330,18 @@ class Account(models.Model):
             else:
                 target_date = get_safe_date(today.year, today.month + 1, self.credit_card_billing_day)
         return target_date
+
+    @property
+    def counts_as_available_cash(self) -> bool:
+        """Whether this account's balance is part of "available cash": an active cash or bank account not set aside."""
+        from .account_types import available_cash_codes
+        return bool(self.is_active and self.include_in_available_cash and self.account_type in available_cash_codes())
+
+    @property
+    def is_set_aside(self) -> bool:
+        """A cash or bank account the person has kept out of available cash."""
+        from .account_types import available_cash_codes
+        return self.account_type in available_cash_codes() and not self.include_in_available_cash
 
     @property
     def has_credit_limit(self) -> bool:

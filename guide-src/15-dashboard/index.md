@@ -55,7 +55,7 @@ You can filter by category, payment method and account. Category and payment met
 
 ## 4. Net worth
 
-The **Net Worth** tile adds up what you hold and subtracts what you owe, including loans, credit cards and goals. The rules, such as how funds, deposits and loans are valued, are in [Accounts and Net Worth](../02-accounts/index.md#6-how-net-worth-is-calculated).
+The **Net Worth** tile adds up what you hold and subtracts what you owe, including loans, credit cards and goals. Under the figure, **Available cash** shows what you can spend today: your cash and bank accounts, without deposits, investments or accounts you have set aside ([how it works](../02-accounts/index.md#available-cash)). The rules, such as how funds, deposits and loans are valued, are in [Accounts and Net Worth](../02-accounts/index.md#6-how-net-worth-is-calculated).
 
 - **Change this month** is what you saved this month, the same figure as Saved.
 - The **allocation** chart splits what you hold by type (cash and bank, fixed income, investments and so on). Credit cards and loans are liabilities, so they never appear as a slice.

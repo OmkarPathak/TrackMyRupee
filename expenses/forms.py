@@ -1277,7 +1277,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Account
         fields = [
-            'name', 'account_type', 'balance', 'currency', 'is_pinned',
+            'name', 'account_type', 'balance', 'currency', 'is_pinned', 'include_in_available_cash',
             'linked_loan', 'linked_physical_asset',
             'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'deposit_payout', 'show_accrued_balance', 'record_maturity_income',
             'rd_installment_amount', 'rd_installment_day', 'credit_limit', 'credit_card_billing_day',
@@ -1291,6 +1291,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'balance': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'is_pinned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'include_in_available_cash': forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch'}),
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'record_maturity_income': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -1298,6 +1299,13 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'credit_limit': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'credit_card_billing_day': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '31'}),
         }
+
+    @property
+    def available_cash_types_json(self):
+        import json
+
+        from .account_types import available_cash_codes
+        return json.dumps(sorted(available_cash_codes()))
 
     @property
     def fields_by_type_json(self):

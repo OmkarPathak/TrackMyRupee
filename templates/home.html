@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static currency_filters i18n digit_filters expense_extras humanize filter_tags %}{% load help_tags %}
+{% load static currency_filters i18n digit_filters expense_extras humanize filter_tags bento_tags %}{% load help_tags %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'css/tmr_filter.css' %}?v=2.8">
@@ -312,6 +312,21 @@
         font-weight: 500;
         color: var(--bs-secondary-color, #6c757d);
     }
+    /* One short line under the change figure, never two: the cards must stay as short as before it was added */
+    .bento-available-cash {
+        font-size: 0.74rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-bottom: 0.3rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .bento-available-cash strong {
+        font-weight: 700;
+        color: var(--bs-body-color);
+    }
     .bento-sparkline-wrap {
         height: 48px;
         margin: auto -1rem -0px;
@@ -321,6 +336,11 @@
     }
     .bento-sparkline-wrap canvas {
         display: block;
+    }
+    /* The Net Worth chart gives up the height of the Available cash line above it, so the card (and the row it shares) is as
+       short as the others were before that line was added */
+    #bento-card-networth .bento-sparkline-wrap {
+        height: 29px;
     }
     /* Semantic value color variables */
     .bento-metric-value.income { color: var(--bento-income-color, #0F7657); }
@@ -1252,28 +1272,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="bento-metric-delta">
                     {% if prev_month_data %}
-                        {% if prev_month_data.income_diff_amount >= 0 %}
-                            <span class="text-success d-inline-flex align-items-center gap-1">
-                                <i class="bi bi-caret-up-fill"></i>
-                                {{ currency_symbol }}{{ prev_month_data.income_diff_amount|compact_amount:currency_symbol|translate_digits }}
-                            </span>
-                            {% if prev_month_data.income_pct %}
-                                {% if prev_month_data.income_pct > 999 %}
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">10x+</span>
-                                {% else %}
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ prev_month_data.income_pct|floatformat:1|translate_digits }}%</span>
-                                {% endif %}
-                            {% endif %}
-                        {% else %}
-                            <span class="text-danger d-inline-flex align-items-center gap-1">
-                                <i class="bi bi-caret-down-fill"></i>
-                                {{ currency_symbol }}{{ prev_month_data.income_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }}
-                            </span>
-                            {% if prev_month_data.income_pct %}
-                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">{{ prev_month_data.income_pct|floatformat:1|translate_digits }}%</span>
-                            {% endif %}
-                        {% endif %}
-                        <span class="bento-comparison-label">{{ comparison_label }}</span>
+                        {% bento_delta prev_month_data.income_diff_amount prev_month_data.income_pct comparison_label currency_symbol 'up' %}
                     {% else %}
                         <span class="bento-comparison-label">{% trans "No comparison" %}</span>
                     {% endif %}
@@ -1301,31 +1300,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="bento-metric-delta">
                     {% if prev_month_data %}
-                        {# For spent: positive diff_amount means MORE spent (bad) → show red; negative means LESS spent (good) → show green #}
-                        {% if prev_month_data.expense_diff_amount > 0 %}
-                            <span class="text-danger d-inline-flex align-items-center gap-1">
-                                <i class="bi bi-caret-up-fill"></i>
-                                {{ currency_symbol }}{{ prev_month_data.expense_diff_amount|compact_amount:currency_symbol|translate_digits }}
-                            </span>
-                            {% if prev_month_data.expense_pct %}
-                                {% if prev_month_data.expense_pct > 999 %}
-                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">10x+</span>
-                                {% else %}
-                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">+{{ prev_month_data.expense_pct|floatformat:1|translate_digits }}%</span>
-                                {% endif %}
-                            {% endif %}
-                        {% elif prev_month_data.expense_diff_amount < 0 %}
-                            <span class="text-success d-inline-flex align-items-center gap-1">
-                                <i class="bi bi-caret-down-fill"></i>
-                                {{ currency_symbol }}{{ prev_month_data.expense_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }}
-                            </span>
-                            {% if prev_month_data.expense_pct %}
-                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">{{ prev_month_data.expense_pct|floatformat:1|translate_digits }}%</span>
-                            {% endif %}
-                        {% else %}
-                            <span class="bento-comparison-label">{% trans "Same as before" %}</span>
-                        {% endif %}
-                        <span class="bento-comparison-label">{{ comparison_label }}</span>
+                        {% bento_delta prev_month_data.expense_diff_amount prev_month_data.expense_pct comparison_label currency_symbol 'down' %}
                     {% else %}
                         <span class="bento-comparison-label">{% trans "No comparison" %}</span>
                     {% endif %}
@@ -1357,28 +1332,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 {% endif %}
                 <div class="bento-metric-delta">
                     {% if prev_month_data %}
-                        {% if prev_month_data.investments_diff_amount >= 0 %}
-                            <span class="text-success d-inline-flex align-items-center gap-1">
-                                <i class="bi bi-caret-up-fill"></i>
-                                {{ currency_symbol }}{{ prev_month_data.investments_diff_amount|compact_amount:currency_symbol|translate_digits }}
-                            </span>
-                            {% if prev_month_data.investments_pct %}
-                                {% if prev_month_data.investments_pct > 999 %}
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">10x+</span>
-                                {% else %}
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">+{{ prev_month_data.investments_pct|floatformat:1|translate_digits }}%</span>
-                                {% endif %}
-                            {% endif %}
-                        {% else %}
-                            <span class="text-danger d-inline-flex align-items-center gap-1">
-                                <i class="bi bi-caret-down-fill"></i>
-                                {{ currency_symbol }}{{ prev_month_data.investments_diff_amount|abs_val|compact_amount:currency_symbol|translate_digits }}
-                            </span>
-                            {% if prev_month_data.investments_pct %}
-                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2">{{ prev_month_data.investments_pct|floatformat:1|translate_digits }}%</span>
-                            {% endif %}
-                        {% endif %}
-                        <span class="bento-comparison-label">{{ comparison_label }}</span>
+                        {% bento_delta prev_month_data.investments_diff_amount prev_month_data.investments_pct comparison_label currency_symbol 'up' %}
                     {% else %}
                         <span class="bento-comparison-label">{% trans "No comparison" %}</span>
                     {% endif %}

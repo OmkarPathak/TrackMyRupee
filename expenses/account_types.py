@@ -190,6 +190,12 @@ def liability_codes() -> frozenset[str]:
     )
 
 
+def available_cash_codes() -> frozenset[str]:
+    """The account types whose money can be spent: the Cash & Bank group (cash, savings, salary, current accounts and wallets).
+    Deposits, investments, cards and loans never count as available cash."""
+    return frozenset(code for group, choices in ACCOUNT_TYPES if group == 'Cash & Bank' for code, _label in choices)
+
+
 def asset_codes() -> frozenset[str]:
     """Return all account_type codes classified as assets."""
     return frozenset(

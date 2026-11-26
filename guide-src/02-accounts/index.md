@@ -172,6 +172,14 @@ The same toolbar as the other list pages sits above the table:
 
 Inactive (deleted) accounts are left out.
 
+### Available cash
+
+Under the net worth figure, the Accounts page and the Dashboard also show **Available cash**: the money you can spend today. It is the balance of your active **Cash and Bank** accounts (cash, savings, salary and current accounts, and wallets), and nothing else.
+
+Money you move into a fixed deposit, a mutual fund or any other investment leaves available cash the moment you move it, because it is no longer in your wallet, but it **still counts in your net worth**. Cards and loans are not subtracted from it either: what you owe does not change what you hold.
+
+If a savings account is really a pot you keep apart (an investment fund, an emergency fund), open it, go to **Edit** and turn off **Count in available cash**. It still counts in your net worth, is left out of available cash, and shows **Not in available cash** under its name in the list. The switch is on for every account by default, so nothing changes until you use it.
+
 ### Change this month and the trend
 
 The change shown on the Net Worth tile is what you **saved this month**: income minus spending, using the same definition as the savings rate. Repaying loan principal is not spending (your cash goes down and your debt goes down by the same amount), only the interest is. Big purchases count only when they are not excluded from averages.

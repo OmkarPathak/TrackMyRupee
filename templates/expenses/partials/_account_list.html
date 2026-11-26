@@ -62,6 +62,8 @@
     .acx-legend a b { color: var(--bs-body-color); font-weight: 700; }
     .acx-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .acx-foot { font-size: .8rem; color: var(--acx-muted); }
+    .acx-avail { font-size: .85rem; color: var(--acx-muted); margin-top: .15rem; }
+    .acx-avail strong { color: var(--bs-body-color); font-weight: 700; }
     /* The change figure sits under the amount (column 1) and the assets line under the chart (column 2), so
        the line starts exactly where the chart does */
     .acx-nw-meta { display: contents; }
@@ -313,6 +315,11 @@
         <div class="acx-nw-row">
             <span class="acx-nw-amount {% if overall_total < 0 %}is-negative{% endif %}">{% if overall_total < 0 %}&minus;{% endif %}{{ total_balance_currency }}{{ overall_total|abs_val|ind_comma:total_balance_currency|translate_digits }}</span>
         </div>
+        {% if available_cash is not None %}
+        <div class="acx-avail" id="acx-available-cash" title="{% trans 'Money in your cash and bank accounts that you can spend today. Deposits, investments and accounts you set aside are not counted.' %}">
+            {% trans "Available cash" %} <strong>{% if available_cash < 0 %}&minus;{% endif %}{{ total_balance_currency }}{{ available_cash|abs_val|ind_comma:total_balance_currency|translate_digits }}</strong>
+        </div>
+        {% endif %}
     </div>
     {% if overview_groups %}
     <div class="acx-nw-alloc">
@@ -460,6 +467,7 @@
                     {% elif account.deposit_maturity_date %}
                         <span class="acx-sub-maturity"><span class="acx-sep"></span>{% trans "Matures" %} {{ account.deposit_maturity_date|date:"j M Y" }}</span>
                     {% endif %}
+                    {% if account.is_set_aside %}<span class="acx-sub-aside"><span class="acx-sep"></span>{% trans "Not in available cash" %}</span>{% endif %}
                     {% if account.next_billing_date %}<span class="acx-sub-bill"><span class="acx-sep"></span>{% trans "Next Bill on: " %}{{ account.next_billing_date|date:"d M" }}</span>{% endif %}
 
                 </div>

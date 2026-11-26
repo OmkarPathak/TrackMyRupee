@@ -24721,3 +24721,31 @@ msgstr "प्राप्त लोन राशि"
 #: loan top-up
 msgid "Loan money paid into your accounts"
 msgstr "आपके खातों में आया लोन का पैसा"
+
+#: available cash
+msgid "Available cash"
+msgstr "उपलब्ध नकद"
+
+#: available cash
+msgid "Money in your cash and bank accounts that you can spend today. Deposits, investments and accounts you set aside are not counted."
+msgstr "आपके नकद और बैंक खातों में वह पैसा जो आप आज खर्च कर सकते हैं। जमा, निवेश और अलग रखे गए खाते गिने नहीं जाते।"
+
+#: available cash
+msgid "Not in available cash"
+msgstr "उपलब्ध नकद में नहीं"
+
+#: available cash
+msgid "Count in available cash"
+msgstr "उपलब्ध नकद में गिनें"
+
+#: available cash
+msgid "Turn off for a cash or bank account you keep apart from everyday spending (an investment pot, an emergency fund)."
+msgstr "रोज़ के खर्च से अलग रखे गए नकद या बैंक खाते के लिए बंद करें (निवेश का खाता, आपातकालीन निधि)।"
+
+#: available cash
+msgid "Turn off for an account you keep apart from everyday spending, such as an investment pot or an emergency fund. It still counts in your net worth."
+msgstr "रोज़ के खर्च से अलग रखे गए खाते के लिए बंद करें, जैसे निवेश का खाता या आपातकालीन निधि। यह फिर भी आपकी नेट वर्थ में गिना जाता है।"
+
+#: dashboard cards
+msgid "No change"
+msgstr "कोई बदलाव नहीं"

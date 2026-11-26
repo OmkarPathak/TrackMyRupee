@@ -24784,3 +24784,31 @@ msgstr "मिळालेली कर्ज रक्कम"
 #: loan top-up
 msgid "Loan money paid into your accounts"
 msgstr "तुमच्या खात्यांत आलेले कर्जाचे पैसे"
+
+#: available cash
+msgid "Available cash"
+msgstr "उपलब्ध रोख"
+
+#: available cash
+msgid "Money in your cash and bank accounts that you can spend today. Deposits, investments and accounts you set aside are not counted."
+msgstr "तुमच्या रोख आणि बँक खात्यांतील जे पैसे तुम्ही आज खर्च करू शकता. ठेवी, गुंतवणूक आणि बाजूला ठेवलेली खाती धरली जात नाहीत."
+
+#: available cash
+msgid "Not in available cash"
+msgstr "उपलब्ध रोखीत नाही"
+
+#: available cash
+msgid "Count in available cash"
+msgstr "उपलब्ध रोखीत धरा"
+
+#: available cash
+msgid "Turn off for a cash or bank account you keep apart from everyday spending (an investment pot, an emergency fund)."
+msgstr "रोजच्या खर्चापासून वेगळे ठेवलेल्या रोख किंवा बँक खात्यासाठी बंद करा (गुंतवणुकीचे खाते, आपत्कालीन निधी)."
+
+#: available cash
+msgid "Turn off for an account you keep apart from everyday spending, such as an investment pot or an emergency fund. It still counts in your net worth."
+msgstr "रोजच्या खर्चापासून वेगळे ठेवलेल्या खात्यासाठी बंद करा, जसे की गुंतवणुकीचे खाते किंवा आपत्कालीन निधी. ते तरीही तुमच्या नेट वर्थमध्ये धरले जाते."
+
+#: dashboard cards
+msgid "No change"
+msgstr "बदल नाही"

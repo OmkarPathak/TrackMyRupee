@@ -21,6 +21,7 @@ from django.utils.formats import date_format
 from django.views.decorators.http import require_GET
 
 from ..account_types import is_liability
+from ..available_cash import available_cash
 from ..ledger_read_service import LedgerReadService
 from ..models import Account
 from ..savings import monthly_parts, savings_for_period
@@ -28,7 +29,7 @@ from ..services import FinancialService, LoanService
 
 # What the page's context holds for a Net Worth card that is already worked out (tests and templates read these)
 NET_WORTH_KEYS = ('net_worth', 'net_worth_change', 'net_worth_percent', 'net_worth_trend', 'net_worth_labels',
-                  'forecast_index_start', 'asset_allocation', 'net_worth_before_liabilities')
+                  'forecast_index_start', 'asset_allocation', 'net_worth_before_liabilities', 'available_cash')
 
 NETWORTH_CACHE_SECONDS = 4 * 3600      # like the page's own cache; any change to a transaction or account retires it
 
@@ -148,6 +149,7 @@ def net_worth_card(user, *, currency_symbol, accounts=None, ledger_result=None, 
         'net_worth_labels': net_worth_labels,
         'forecast_index_start': forecast_index_start,
         'net_worth_before_liabilities': net_worth_before_liabilities,
+        'available_cash': available_cash(accounts, lambda account: account_base_balances.get(account.pk)),
         'asset_allocation': asset_allocation,
         'currency_symbol': currency_symbol,
         'language': translation.get_language(),
