@@ -1878,6 +1878,21 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
 
+    # Only when adding a loan (editing one never moves money): where the lender's money arrived
+    record_received = forms.BooleanField(
+        required=False, initial=True, label=_('Add the loan amount to an account'),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch'}),
+        help_text=_('Turn on if the lender paid the money into one of your accounts. It is added to that balance, not counted as income. Turn it off for a loan you took a while ago, if you have already recorded the money.'))
+    received_account = forms.ModelChoiceField(
+        required=False, queryset=Account.objects.none(), label=_('Received in account'),
+        widget=forms.Select(attrs={'class': 'form-select searchable-select'}))
+
+    def clean(self):
+        cleaned = super().clean()
+        if 'record_received' in self.fields and cleaned.get('record_received') and not cleaned.get('received_account'):
+            self.add_error('received_account', _('Select the account the loan amount was paid into.'))
+        return cleaned
+
     def clean_initial_principal(self):
         value = self.cleaned_data.get('initial_principal')
         if value is not None and value <= 0:
@@ -1903,6 +1918,21 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
         if user:
             self.fields['currency'].initial = user.profile.currency
         
+        if not self.instance.pk and user:
+            from .account_types import liability_codes
+            accounts = Account.objects.filter(user=user, is_active=True).exclude(account_type__in=liability_codes()).order_by('name')
+            self.fields['received_account'].queryset = accounts
+            if not self.is_bound:
+                from .form_defaults import CASH_AND_BANK_TYPES
+                start = (default_account(accounts, LoanDisbursement.objects.filter(loan__user=user).order_by('-date', '-id'), 'account_id')
+                         or accounts.filter(account_type__in=CASH_AND_BANK_TYPES).first() or accounts.first())
+                self.fields['received_account'].initial = start
+                if start is None:                       # (no account to put it in yet: the switch starts off)
+                    self.fields['record_received'].initial = False
+        elif self.instance.pk or not user:
+            del self.fields['record_received']
+            del self.fields['received_account']
+
         if self.instance.pk:
             self.fields['initial_principal'].help_text = _('The amount first borrowed. To borrow more on this loan, use Top up on the loan page instead.')
             latest_rate = self.instance.interest_rates.order_by('-effective_date').first()
