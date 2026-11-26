@@ -24832,3 +24832,151 @@ msgstr "सर्व कर्ज हप्ते खर्चात धरल�
 #: loan payments setting
 msgid "All loan payments count as spending here (change this in Settings → Profile)."
 msgstr "येथे सर्व कर्ज हप्ते खर्चात धरले जातात (हे सेटिंग्ज → प्रोफाइल मध्ये बदला)."
+
+#: investments page
+msgid "Everything you have invested, in one place: market holdings, deposits, schemes and SIPs."
+msgstr "तुमची सर्व गुंतवणूक एकाच ठिकाणी: बाजारातील होल्डिंग्ज, ठेवी, योजना आणि SIP."
+
+#: investments page
+msgid "Print report"
+msgstr "अहवाल प्रिंट करा"
+
+#: investments page
+msgid "Add investment"
+msgstr "गुंतवणूक जोडा"
+
+#: investments page
+msgid "What you put in"
+msgstr "तुम्ही जे गुंतवले"
+
+#: investments page
+msgid "Gain"
+msgstr "नफा"
+
+#: investments page
+msgid "on tracked investments"
+msgstr "ट्रॅक केलेल्या गुंतवणुकीवर"
+
+#: investments page
+msgid "Shown once a value is recorded"
+msgstr "मूल्य नोंदवल्यावर दिसेल"
+
+#: investments page
+msgid "Monthly SIPs"
+msgstr "मासिक SIP"
+
+#: investments page
+msgid "Where it is"
+msgstr "हे कुठे आहे"
+
+#: investments page
+msgid "as of today"
+msgstr "आजपर्यंत"
+
+#: investments page
+msgid "Market holdings"
+msgstr "बाजारातील होल्डिंग्ज"
+
+#: investments page
+msgid "across %(n)s investment"
+msgid_plural "across %(n)s investments"
+msgstr[0] "%(n)s गुंतवणुकीत"
+msgstr[1] "%(n)s गुंतवणुकींत"
+
+#: investments page
+msgid "%(n)s schedule"
+msgid_plural "%(n)s schedules"
+msgstr[0] "%(n)s शेड्यूल"
+msgstr[1] "%(n)s शेड्यूल"
+
+#: investments tabs
+msgid "Market"
+msgstr "बाजार"
+
+#: investments tabs
+msgid "Deposits"
+msgstr "ठेवी"
+
+#: investments tabs
+msgid "Schemes"
+msgstr "योजना"
+
+#: investments tabs
+msgid "%(name)s matures"
+msgstr "%(name)s परिपक्व होईल"
+
+#: investments tabs
+msgid "Rate"
+msgstr "दर"
+
+#: investments tabs
+msgid "Value today"
+msgstr "आजचे मूल्य"
+
+#: investments tabs
+msgid "Scheme"
+msgstr "योजना"
+
+#: investments tabs
+msgid "No deposits yet"
+msgstr "अजून ठेवी नाहीत"
+
+#: investments tabs
+msgid "Fixed and recurring deposits you add as accounts show up here with their rate, maturity and value."
+msgstr "खाती म्हणून जोडलेल्या मुदत व आवर्ती ठेवी दर, परिपक्वता आणि मूल्यासह येथे दिसतात."
+
+#: investments tabs
+msgid "Add a deposit"
+msgstr "ठेव जोडा"
+
+#: investments tabs
+msgid "No schemes yet"
+msgstr "अजून योजना नाहीत"
+
+#: investments tabs
+msgid "PPF, EPF, NPS, Sukanya Samriddhi and similar schemes you add as accounts show up here with their balance."
+msgstr "खाती म्हणून जोडलेल्या PPF, EPF, NPS, सुकन्या समृद्धी अशा योजना शिल्लकसह येथे दिसतात."
+
+#: investments tabs
+msgid "Add a scheme"
+msgstr "योजना जोडा"
+
+#: investments page
+msgid "return"
+msgstr "परतावा"
+
+#: investments sips
+msgid "SIPs"
+msgstr "SIP"
+
+#: investments sips
+msgid "SIP"
+msgstr "SIP"
+
+#: investments sips
+msgid "Next date"
+msgstr "पुढील तारीख"
+
+#: investments sips
+msgid "about %(cur)s%(amount)s a month"
+msgstr "सुमारे %(cur)s%(amount)s दरमहा"
+
+#: investments sips
+msgid "About %(cur)s%(amount)s a month across your SIPs, other frequencies counted as monthly."
+msgstr "तुमच्या SIP मध्ये सुमारे %(cur)s%(amount)s दरमहा, इतर वारंवारता मासिक धरल्या आहेत."
+
+#: investments sips
+msgid "next %(date)s"
+msgstr "पुढील %(date)s"
+
+#: investments sips
+msgid "No SIPs yet"
+msgstr "अजून SIP नाहीत"
+
+#: investments sips
+msgid "A recurring transfer into an investment account shows up here with its amount and next date."
+msgstr "गुंतवणूक खात्यातील आवर्ती हस्तांतरण रक्कम आणि पुढील तारखेसह येथे दिसते."
+
+#: investments sips
+msgid "Set up a SIP"
+msgstr "SIP सुरू करा"

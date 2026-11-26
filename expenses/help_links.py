@@ -35,7 +35,7 @@ PREFIXES = (
     ('loan', ('08-loans/', _('Loans'))),
     ('pay-emi', ('08-loans/', _('Loans'))),
     ('capital-event', ('09-capital-events/', _('Big purchases'))),
-    ('holding', ('02-accounts/holdings/', _('Holdings and mutual funds'))),
+    ('holding', ('02-accounts/holdings/', _('Investments'))),
     ('account', ('02-accounts/', _('Accounts & Net Worth'))),
     ('analytics', ('11-analytics-and-health/', _('Analytics'))),
     ('year_in_review', ('11-analytics-and-health/', _('Analytics'))),

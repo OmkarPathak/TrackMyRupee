@@ -1,18 +1,40 @@
-title: Investment Holdings and Mutual Fund Portfolio
-description: Learn how TrackMyRupee calculates holdings value, cost basis, and uninvested cash without double-counting transferred SIP funds.
-keywords: TrackMyRupee holdings, mutual fund valuation, SIP transfer, uninvested cash, cost basis, net worth
+title: Investments, Holdings and Mutual Fund Portfolio
+description: See all your investments on one page (market holdings, deposits, schemes and SIPs) and learn how TrackMyRupee calculates their value, cost basis and uninvested cash without double-counting transferred SIP funds.
+keywords: TrackMyRupee investments, holdings, mutual fund valuation, FD, PPF, SIP, uninvested cash, cost basis, net worth
 
-# Investment Holdings and Mutual Fund Portfolio
+# Investments, Holdings and Mutual Fund Portfolio
 
-Track your mutual funds, stocks, and asset valuations in real time with automated NAV synchronization, SIP transfer tracking, and precise portfolio calculations.
+See everything you have invested on one page: market holdings, deposits, schemes and SIPs. Track your mutual funds, stocks, and asset valuations in real time with automated NAV synchronization, SIP transfer tracking, and precise portfolio calculations.
 
 ---
 
 ## 1. Overview and Navigation
 
-Access your portfolio via **Sidebar → Net Worth → Holdings** on desktop or via **More → Holdings** on mobile (URL: `/holdings/`).
+Open your investments via **Sidebar → Net Worth → Investments** on desktop or via **More → Investments** on mobile (URL: `/holdings/`). This page used to be called Holdings.
 
-The Holdings page provides a consolidated dashboard of all active investments across your Mutual Fund, Demat, ETF, SGB, ULIP and Gold accounts. These are the accounts valued from their holdings, so they are the only ones that accept a holding. NPS, PPF, EPF and fixed or recurring deposits are valued from their own balance and interest, and holdings on them would never count in net worth.
+### What the page shows
+
+- **Four summary figures** at the top: **Current value** (and how many investments it covers), **Invested** (what you put in), **Gain** (current value against what you put in, with its percentage) and **Monthly SIPs** (how much your SIPs add up to in a month, with every frequency counted as monthly). The gain appears once a value is recorded for something you hold. On a phone the four figures are compact tiles, two to a row.
+- **Where it is**: a bar and a list showing how your assets divide between the account-type groups (Cash & Bank, Investments, Fixed-Income and so on), each with its amount and share. Loans and cards are not part of it.
+- **Coming up**: the next deposits and schemes to mature and the SIPs due in the next 30 days, soonest first. It is left out when there is nothing to show.
+- **Print report**: opens the printable summary report, which uses the same figures as this page and as your net worth.
+
+The figures on this page, the summary report and your net worth come from the same calculation, so they cannot disagree.
+
+![The Investments page](img/investments-desktop.webp){ loading=lazy }
+
+### The tabs
+
+- **Market**: your mutual funds, stocks and other holdings, with units, average cost, current value and gain, and the actions to buy, sell, rename or refresh a price (see the sections below). These are the accounts valued from their holdings (Mutual Fund, Demat, ETF, SGB, ULIP and Gold), so they are the only ones that accept a holding.
+- **Deposits**: your fixed and recurring deposits with their type, interest rate, maturity date, what you put in, and what they are worth today with the gain.
+- **Schemes**: PPF, EPF, VPF, NPS, Sukanya Samriddhi, Post Office schemes and similar, with the rate and maturity where you have set them, what you put in where it is known, and the balance. NPS, PPF, EPF and deposits are valued from their own balance and interest, and holdings on them would never count in net worth.
+- **SIPs**: every recurring transfer into an investment account, with the funds it buys, its account, how often it runs, its next date and its amount. A weekly or other non-monthly SIP also shows what it comes to in a month.
+
+![The Deposits tab](img/investments-deposits-desktop.webp){ loading=lazy }
+
+![The SIPs tab](img/investments-sips-desktop.webp){ loading=lazy }
+
+The tab you open is kept in the address (for example `/holdings/#deposits`), so a refresh or a shared link comes back to it. Each deposit, scheme and SIP opens its account.
 
 ---
 
@@ -147,7 +169,7 @@ Open the holding and click **Sell**. Enter the date and any two of **Units** sol
 
 ### Cash in an Investment Account
 
-The page of an investment account shows **Invested in holdings** (what its holdings cost) and **Uninvested cash** (the money in the account that no holding accounts for: a transfer you have not allocated yet, or the proceeds of a sale). The Holdings page adds the same cash for all your investment accounts under **Cash in your investment accounts**, so portfolio value plus cash matches what these accounts add to your net worth.
+The page of an investment account shows **Invested in holdings** (what its holdings cost) and **Uninvested cash** (the money in the account that no holding accounts for: a transfer you have not allocated yet, or the proceeds of a sale). The Investments page adds the same cash for all your investment accounts under **Cash in your investment accounts**, so portfolio value plus cash matches what these accounts add to your net worth.
 
 If the holdings cost **more** than the money recorded in the account, you will see a warning that a transfer into it may be missing: record that transfer so the account is not understated.
 
@@ -155,8 +177,8 @@ If the holdings cost **more** than the money recorded in the account, you will s
 
 ## 5. Responsive Interface Features
 
-- **Desktop view**: Full multi-column table displaying Fund Name, Account, Units, Average Cost, Current Valuation, NAV, and action buttons.
-- **Mobile view**: Single-card list with touch-friendly controls. Long scheme names such as "Parag Parikh Liquid Fund - Direct Plan - Growth" wrap onto multiple lines without clipping. Tap the three-dot menu on any holding row to Refresh NAV (fund holdings), Update value (holdings priced by hand) or Delete Holding.
+- **Desktop view**: Full multi-column table displaying Fund Name, Account, Units, Average Cost, Current Valuation, NAV, and action buttons. The Deposits, Schemes and SIPs tabs are tables too.
+- **Mobile view**: Compact summary tiles, then single-card lists (the Deposits, Schemes and SIPs tabs are lists of rows) with touch-friendly controls. Long scheme names such as "Parag Parikh Liquid Fund - Direct Plan - Growth" wrap onto multiple lines without clipping. Tap the three-dot menu on any holding row to Refresh NAV (fund holdings), Update value (holdings priced by hand) or Delete Holding.
 
 ---
 

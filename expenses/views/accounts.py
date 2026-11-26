@@ -38,6 +38,7 @@ from ..account_valuation import (
     premiums_paid_by_asset,
 )
 from ..forms import AccountForm, TransferForm
+from ..investments_overview import build_investments_overview
 from ..ledger_read_service import LedgerReadService, _compute_deposit_value
 from ..models import (
     Account,
@@ -2496,10 +2497,6 @@ class HoldingsListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         holdings = context['holdings']
-        
-        total_valuation = Decimal('0.00')
-        total_cost = Decimal('0.00')
-        
         user_currency = self.request.user.profile.currency
         rates = {}
 
@@ -2520,17 +2517,18 @@ class HoldingsListView(LoginRequiredMixin, ListView):
             h.has_gain = bool(val and h.cost_basis > 0)
             h.gain = h.current_value - h.cost_basis if h.has_gain else Decimal('0.00')
             h.gain_pct = (h.gain / h.cost_basis * Decimal('100')).quantize(Decimal('0.1')) if h.has_gain else Decimal('0.0')
-            total_valuation += to_user_currency(h.current_value, h.currency)
-            total_cost += to_user_currency(h.cost_basis, h.currency)
-            
-        unrealized_gain = total_valuation - total_cost
-        gain_pct = ((unrealized_gain / total_cost) * Decimal('100')).quantize(Decimal('0.1')) if total_cost > 0 else Decimal('0.0')
-        
-        context['total_valuation'] = total_valuation
-        context['total_cost'] = total_cost
-        context['unrealized_gain'] = unrealized_gain
-        context['gain_pct'] = gain_pct
-        context['user_currency'] = self.request.user.profile.currency
+
+        # The totals above the list come from the shared investments overview (the same figures as the summary report and
+        # net worth), not from a sum of the rows here.
+        overview = build_investments_overview(self.request.user)
+        context['overview'] = overview
+        context['investment_count'] = len(holdings) + len(overview['deposit_rows'])
+        market_total = sum((b['total'] for b in overview['holding_blocks']), Decimal('0.00'))
+        context['user_currency'] = user_currency
+        ph_capture(self.request.user, 'investments_viewed', {
+            'holdings': len(holdings), 'deposits': len(overview['deposits']), 'schemes': len(overview['schemes']),
+            'sips': len(overview['sip_schedules']), 'has_upcoming': bool(overview['upcoming']),
+        })
         cash_accounts = list(Account.objects.filter(
             user=self.request.user, is_active=True, account_type__in=holdings_codes()).order_by('name'))
         cash = holdings_cash_summary(cash_accounts)
@@ -2542,7 +2540,7 @@ class HoldingsListView(LoginRequiredMixin, ListView):
             total_cash += to_user_currency(info['uninvested'], acct.currency)
         context['cash_rows'] = cash_rows
         context['total_cash'] = total_cash
-        context['total_with_cash'] = total_valuation + total_cash
+        context['total_with_cash'] = market_total
         context['user_accounts'] = Account.objects.filter(
             user=self.request.user,
             is_active=True,

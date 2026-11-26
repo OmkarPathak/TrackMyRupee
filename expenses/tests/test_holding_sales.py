@@ -292,7 +292,8 @@ class CashSummaryTests(Base):
         self.sell()
         response = self.client.get(reverse('holding-list'))
         self.assertEqual(response.context['total_cash'], D('4800.00'))
-        self.assertEqual(response.context['total_with_cash'], response.context['total_valuation'] + D('4800.00'))
+        self.assertEqual(response.context['total_with_cash'], sum(b['total'] for b in response.context['overview']['holding_blocks']))
+        self.assertGreaterEqual(response.context['total_with_cash'], D('4800.00'))
         self.assertContains(response, 'id="uninvestedCash"')
         self.assertContains(response, 'Funds')
 

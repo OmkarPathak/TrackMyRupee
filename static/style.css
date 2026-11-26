@@ -4812,7 +4812,7 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
 /* The desktop top bar's actions (Add, Help): an outlined green icon and a bold label of one size, with a light chevron
    where there is a menu; the bell beside them carries no caret. */
 .navbar .tmr-topbar-action { font-size: 1.1rem; font-weight: 700; }
-.navbar .tmr-topbar-action > i { font-size: 1.35rem; line-height: 1; }
+.navbar .tmr-topbar-action > i { font-size: 1rem; line-height: 1; }      /* the same size as the notification bell */
 .navbar .tmr-topbar-action.dropdown-toggle::after {
   border: 0; margin-left: .15rem; vertical-align: 0; line-height: 1;
   font-family: "bootstrap-icons"; content: "\f282"; font-size: .7rem; font-weight: 400; color: var(--bs-secondary-color);

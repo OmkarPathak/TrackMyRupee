@@ -877,17 +877,18 @@ class TestHoldings(AccountBase):
         Valuation.objects.create(holding=valued, value=D('800'), as_of_date=today())
         self.make_holding(instrument_name='Unvalued', units=D('2'), avg_cost=D('100'))
         response = self.client.get(reverse('holding-list'))
-        self.assertEqual(response.context['total_valuation'], D('1000.00'))
-        self.assertEqual(response.context['total_cost'], D('700.00'))
-        self.assertEqual(response.context['unrealized_gain'], D('300.00'))
-        self.assertEqual(response.context['gain_pct'], D('42.9'))
+        overview = response.context['overview']
+        self.assertEqual(overview['investments_value'], D('1000.00'))
+        self.assertEqual(overview['invested'], D('700.00'))
+        self.assertEqual(overview['returns'], D('300.00'))
+        self.assertEqual(overview['returns_pct'], D('42.9'))
 
     def test_the_list_converts_other_currencies(self):
         self.seed_fx('80')
         dollars = self.acct('Dollar funds', 0, account_type='MUTUAL_FUND', currency='$')
         self.make_holding(dollars, currency='$', units=D('1'), avg_cost=D('10'))
         response = self.client.get(reverse('holding-list'))
-        self.assertEqual(response.context['total_cost'], D('800.00'))
+        self.assertEqual(response.context['overview']['invested'], D('800.00'))
 
     def test_the_list_hides_removed_holdings_and_other_users(self):
         self.make_holding(instrument_name='Gone', is_active=False)
