@@ -305,6 +305,28 @@ def get_baseline_deposit(account: Account, ledger_balance: Decimal | None = None
     return ledger_balance
 
 
+# Schemes people pay into year after year: a transfer in adds to the value, from its own date.
+_TOP_UP_SCHEMES = frozenset({'PPF', 'EPF', 'VPF', 'SSY', 'POST_OFFICE', 'APY', 'NPS'})
+
+
+def _top_ups_value(account: Account, start: date, end_date: date, today: date) -> Decimal:
+    """What the money transferred in after the deposit started is worth now, each from the day it went in."""
+    from .models import Transfer
+
+    if not account.pk:
+        return Decimal('0.00')
+    total = Decimal('0.00')
+    for paid_on, amount in Transfer.objects.filter(to_account=account, date__gt=start, date__lte=today).values_list('date', 'converted_amount'):
+        amount = Decimal(amount)
+        if account.deposit_payout:
+            total += amount
+            continue
+        total += _calculate_fd_current(
+            principal=amount, rate_pct=account.deposit_rate, start_date=paid_on, compounding=account.deposit_compounding,
+            maturity_date=account.deposit_maturity_date, closed_date=account.deposit_closed_date, today=today)
+    return total
+
+
 def _withdrawn_from(account: Account, as_of: date) -> Decimal:
     """Everything moved or spent out of the account up to `as_of`, in its own currency."""
     from django.db.models import Sum
@@ -370,9 +392,11 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
         )
     # Money taken out of the deposit (redeemed, or moved to another account) is no longer in it. Without this a
     # deposit redeemed into the bank is counted twice: once in the bank and once from its terms.
-    # (A ledger at or above the principal means nothing has left, so there is nothing to look up.)
-    if ledger_balance is not None and ledger_balance >= Decimal(principal):
+    # (A ledger equal to the principal means nothing has come in or gone out, so there is nothing to look up.)
+    if ledger_balance is not None and ledger_balance == Decimal(principal):
         return value
+    if account.account_type in _TOP_UP_SCHEMES:
+        value += _top_ups_value(account, start, end_date, eval_today)
     return max(Decimal('0.00'), value - _withdrawn_from(account, eval_today))
 
 

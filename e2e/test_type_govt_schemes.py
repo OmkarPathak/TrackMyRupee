@@ -3,7 +3,6 @@
 They share the deposit valuation with an FD, but differ in what the form asks (NPS has no fixed rate), how long they run
 (many have no maturity date, or one decades away) and in being topped up over the years.
 """
-import unittest
 from datetime import date
 from decimal import Decimal
 
@@ -90,11 +89,8 @@ class ValueTests(Base):
         page = self.new_page(self.user)
         self.assertEqual(net_worth(self, page), deposit_value(100000, '7.1', start, TODAY, 'ANNUAL') + D(50000))
 
-    @unittest.expectedFailure
-    def test_KNOWN_GAP_money_paid_into_the_scheme_later_is_part_of_its_value(self):
-        """A PPF, EPF or NPS is topped up every year. Today the value comes only from the principal typed in when the
-        account was made, so a transfer into it changes nothing (the value stays the same, and the money has left the
-        bank): net worth drops by the amount paid. Remove the decorator if transfers in start to count."""
+    def test_money_paid_into_the_scheme_later_is_part_of_its_value(self):
+        """A PPF, EPF or NPS is topped up every year: a transfer in raises its value by at least the amount paid."""
         from expenses.models import Transfer
         start = TODAY - relativedelta(years=2)
         ppf = self.scheme('PPF', start=start)
