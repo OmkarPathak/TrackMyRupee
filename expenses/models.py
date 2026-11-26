@@ -349,13 +349,14 @@ class Account(models.Model):
 
     @property
     def used_credit(self) -> Decimal:
-        """Amount of credit used (positive decimal balance)."""
+        """Amount of the limit in use: what is owed, never less than zero."""
         bal = getattr(self, 'display_balance', self.balance)
         if bal is None:
             return Decimal('0.00')
         try:
-            d_bal = Decimal(str(bal))
-            return abs(d_bal)
+            # What is owed is a negative balance. A positive one is credit in the holder's favour (an overpayment or
+            # refund), which uses none of the limit.
+            return max(Decimal('0.00'), -Decimal(str(bal)))
         except Exception:
             return Decimal('0.00')
 

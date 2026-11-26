@@ -3,7 +3,6 @@
 The balance is negative while money is owed. It lowers net worth, and the limit gives "available" and "% used".
 """
 import calendar
-import unittest
 from datetime import date
 from decimal import Decimal
 
@@ -127,11 +126,8 @@ class LimitTests(Base):
                 self.assertGreater(page.locator('a:has-text("Set Limit")').count(), 0)
                 self.assertNotIn('% used', page.inner_text('body'))
 
-    @unittest.expectedFailure
-    def test_KNOWN_BUG_a_card_in_credit_is_not_counted_as_used_credit(self):
-        """Overpaying a card leaves a positive balance (the bank owes you). The page works 'used' out from the size of
-        the balance whichever way it points, so a ₹500 credit on a ₹50,000 limit shows ₹49,500 available and 1.0% used,
-        instead of the full limit and 0% used."""
+    def test_a_card_in_credit_is_not_counted_as_used_credit(self):
+        """Overpaying a card leaves a positive balance (the bank owes you), which uses none of the limit."""
         card = self.card(limit=50000)
         self.spend(card, 1000)
         self.pay(card, 1500)
