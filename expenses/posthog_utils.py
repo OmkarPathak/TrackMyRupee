@@ -112,9 +112,19 @@ def ph_capture(user, event: str, properties: dict[str, Any] | None = None):
         return
 
     try:
-        client.capture(posthog_distinct_id(user), event=event, properties=_scrub(properties))
+        # Keywords only: the SDK's signature differs between versions (older ones take the person first, newer ones the
+        # event first), and a positional call fails on one or the other, silently, as this block swallows the error.
+        client.capture(distinct_id=posthog_distinct_id(user), event=event, properties=_scrub(properties))
     except Exception:
         logger.debug('PostHog capture failed for event %s', event, exc_info=True)
+
+
+def _set_person_properties(client, distinct_id, properties):
+    """Put properties on a person: newer SDKs replaced identify() with set(), older ones only have identify()."""
+    if hasattr(client, 'identify'):
+        client.identify(distinct_id=distinct_id, properties=properties)
+    else:
+        client.set(distinct_id=distinct_id, properties=properties)
 
 
 def ph_identify(user, extra_properties: dict[str, Any] | None = None):
@@ -132,6 +142,6 @@ def ph_identify(user, extra_properties: dict[str, Any] | None = None):
         profile = getattr(user, 'profile', None)
         props = {'tier': getattr(profile, 'active_tier', 'FREE') if profile else 'FREE'}
         props.update(_scrub(extra_properties))
-        client.identify(posthog_distinct_id(user), properties=props)
+        _set_person_properties(client, posthog_distinct_id(user), props)
     except Exception:
         logger.debug('PostHog identify failed', exc_info=True)
