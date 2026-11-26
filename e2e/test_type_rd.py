@@ -60,14 +60,11 @@ class FormTests(Base):
         self.assertEqual((rd.account_type, rd.rd_installment_amount, rd.rd_installment_day, rd.deposit_rate),
                          ('RD', D('5000.00'), 5, D('7.0000')))
 
-    def test_the_form_asks_for_a_principal_even_though_a_recurring_deposit_has_none(self):
-        """Today the form insists on 'Deposit principal' (Original amount invested) for an RD too, which has no single
-        starting amount; the schedule is what matters. Recorded as it behaves now: if the field stops being required
-        for RDs, change this test along with it."""
+    def test_a_recurring_deposit_is_saved_without_a_principal(self):
+        """An RD has no single starting amount, so the form does not ask for one."""
         from expenses.models import Account
         start = TODAY - relativedelta(months=3)
         page = self.new_page(self.user)
-        self.fill(page, start=start, maturity=start + relativedelta(months=12))
         self.open(page, reverse('account-create') + '?type=RD')
         page.fill('#id_name', 'No principal')
         page.click('#nextBtn')
@@ -76,9 +73,9 @@ class FormTests(Base):
                              ('deposit_start_date', start.isoformat()), ('deposit_maturity_date', (start + relativedelta(months=12)).isoformat())):
             page.fill(f'#id_{field}', value)
         page.locator('form button[type="submit"]:visible, form input[type="submit"]:visible').first.click()
-        page.wait_for_timeout(1200)
-        self.assertIn('Deposit principal is required', page.inner_text('body'))
-        self.assertFalse(Account.objects.filter(user=self.user, name='No principal').exists())
+        self.wait_until(lambda: Account.objects.filter(user=self.user, name='No principal').exists(), 'the RD was not saved', seconds=15)
+        page = self.new_page(self.user)
+        open_account(self, page, Account.objects.get(user=self.user, name='No principal'))
 
     def test_the_installment_day_must_be_between_1_and_28(self):
         from expenses.models import Account
