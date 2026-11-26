@@ -408,6 +408,7 @@ ALL_TRANSACTIONS_FILTERS = FilterSetConfig(
                 {"value": "INCOME", "label": "Income"},
                 {"value": "TRANSFER", "label": "Transfers"},
                 {"value": "LOAN", "label": "Loan Repayments"},
+                {"value": "LOAN_RECEIVED", "label": "Loan received"},
                 {"value": "CAPITAL_EVENT", "label": "Big purchases"},
             ],
         ),

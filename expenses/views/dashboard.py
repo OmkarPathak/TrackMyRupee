@@ -53,11 +53,13 @@ from ..refunds import net_sum
 from ..savings import (
     LINKED_REFUND,
     LINKED_TO_COUNTED,
+    LOAN_CAPITAL_SUBTYPES,
     calculate_savings,
     period_totals,
     savings_for_period,
     savings_from_querysets,
     totals_by_period,
+    user_counts_loan_payments,
 )
 from ..services import FinancialService, SalaryAnalysisService
 from ..dashboard_warm import dashboard_version, wait_for_warm
@@ -706,18 +708,28 @@ def home_view(request):
 
     # Include capital events that are NOT excluded from averages (i.e. exclude_from_averages=False)
     included_events_qs = CapitalEvent.objects.filter(user=request.user, exclude_from_averages=False)
+    # Loan prepayments and down payments kept out of averages: spending only when the person counts all loan payments as
+    # spending (Settings → Profile), so they are looked up only then. Same filters as the counted events.
+    count_loan_payments = user_counts_loan_payments(request.user)
+    loan_capital_qs = (CapitalEvent.objects.filter(user=request.user, exclude_from_averages=True, subtype__in=LOAN_CAPITAL_SUBTYPES)
+                       if count_loan_payments else CapitalEvent.objects.none())
     if selected_accounts:
         included_events_qs = included_events_qs.filter(account_id__in=selected_accounts)
+        loan_capital_qs = loan_capital_qs.filter(account_id__in=selected_accounts)
     if effective_start_date or effective_end_date:
         if effective_start_date:
             included_events_qs = included_events_qs.filter(date__gte=effective_start_date)
+            loan_capital_qs = loan_capital_qs.filter(date__gte=effective_start_date)
         if effective_end_date:
             included_events_qs = included_events_qs.filter(date__lte=effective_end_date)
+            loan_capital_qs = loan_capital_qs.filter(date__lte=effective_end_date)
     else:
         if selected_years:
             included_events_qs = included_events_qs.filter(date__year__in=selected_years)
+            loan_capital_qs = loan_capital_qs.filter(date__year__in=selected_years)
         if selected_months:
             included_events_qs = included_events_qs.filter(date__month__in=selected_months)
+            loan_capital_qs = loan_capital_qs.filter(date__month__in=selected_months)
 
     # --- NEW: Income vs Expenses Trend Data ---
     trunc_func = TruncDay if trend_is_daily else TruncMonth
@@ -731,6 +743,9 @@ def home_view(request):
         income=(incomes, Sum('base_amount')),
         interest=(loan_repayments_selected, Sum(F('interest_portion') * F('exchange_rate'))),
         capital=(included_events_qs, Sum('base_amount')),
+        principal=(loan_repayments_selected if count_loan_payments else LoanRepayment.objects.none(),
+                   Sum(F('principal_portion') * F('exchange_rate'))),
+        loan_capital=(loan_capital_qs, Sum('base_amount')),
         refunds=(incomes, Sum('base_amount', filter=LINKED_REFUND)),
         refunds_counted=(incomes, Sum('base_amount', filter=LINKED_TO_COUNTED)),
     )
@@ -763,6 +778,9 @@ def home_view(request):
     loan_periods = set(loan_map)
     invest_periods = set(invest_map.keys())
     cap_map = {normalize_period(p): float(v or 0) for p, v in _trend['capital'].items()}
+    for source in ('principal', 'loan_capital'):          # (empty unless all loan payments count as spending)
+        for p, v in _trend[source].items():
+            cap_map[normalize_period(p)] = cap_map.get(normalize_period(p), 0.0) + float(v or 0)
     for p, v in _trend['refunds_counted'].items():
         cap_map[normalize_period(p)] = cap_map.get(normalize_period(p), 0.0) - float(v or 0)
     all_periods_sorted = sorted(list(inc_periods.union(exp_periods_base).union(loan_periods).union(invest_periods).union(cap_map.keys())))
@@ -814,6 +832,7 @@ def home_view(request):
     _included_events_count = _cap_agg['count'] or 0
 
     total_expenses = total_expenses_base + total_loan_interest + included_capital_events_total
+    loan_capital_total = loan_capital_qs.aggregate(total=Sum('base_amount'))['total'] or Decimal('0.00') if count_loan_payments else Decimal('0.00')
     transaction_count = _expense_agg['count'] + loan_stats['repayment_count'] + _included_events_count
     
     # Savings and the savings rate are defined once, in expenses/savings.py
@@ -824,7 +843,11 @@ def home_view(request):
         operating_expenses=total_expenses_base,
         loan_interest=total_loan_interest,
         capital_events=included_capital_events_total,
+        loan_principal=_period['principal'],
+        loan_capital=loan_capital_total,
+        count_loan_payments=count_loan_payments,
     )
+    total_expenses = current_savings.spending          # (what the Spent card shows: with the setting on it holds the whole EMI too)
     savings = current_savings.savings
     savings_rate_denominator = current_savings.denominator
     
@@ -889,6 +912,9 @@ def home_view(request):
                 operating_expenses=prev_expenses_op,
                 loan_interest=prev_loan_interest,
                 capital_events=prev_cap_events,
+                loan_principal=_prev['principal'],
+                loan_capital=_prev['loan_capital'],
+                count_loan_payments=count_loan_payments,
             )
             prev_expenses_total = prev_result.spending
             prev_savings = prev_result.savings
@@ -2402,6 +2428,7 @@ def home_view(request):
         'year_in_review_year': year_in_review_year,
         'salary_breakdown': salary_breakdown,
         'hero_metrics': hero_metrics,
+        'counting_loan_payments': count_loan_payments,
         'smart_bullet_insights': smart_bullet_insights,
         'total_investments': total_investments,
         'invested_in': invested_in,

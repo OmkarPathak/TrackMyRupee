@@ -208,7 +208,14 @@ class LoanCreateView(LoginRequiredMixin, LoanFeatureGateMixin, CreateView):
                 interest_rate=form.cleaned_data['interest_rate'],
                 effective_date=self.object.start_date
             )
+            received_in = form.cleaned_data.get('received_account') if form.cleaned_data.get('record_received') else None
+            if received_in:
+                LoanDisbursement.objects.create(
+                    loan=self.object, account=received_in, amount=self.object.initial_principal,
+                    date=self.object.start_date, note=_('Loan amount received'))
         messages.success(self.request, _("Loan created successfully!"))
+        if received_in:
+            messages.info(self.request, _("The loan amount was added to %(account)s. It is not counted as income.") % {'account': received_in.name})
         ph_capture(self.request.user, 'loan_created', {'loan_type': getattr(self.object, 'loan_type', ''), 'currency': self.object.currency, 'tenure_months': self.object.duration_months})
         return redirect(self.success_url)
 
@@ -632,6 +639,14 @@ class LoanDisbursementDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDO
 
     def get(self, request, *args, **kwargs):
         return redirect('loan-detail', pk=self.get_object().loan.uuid)
+
+    def post(self, request, *args, **kwargs):
+        received = self.get_object()
+        if LoanTopUp.objects.filter(disbursement=received).exists():
+            # The money a top-up put into an account goes with the top-up, so the two cannot get out of step
+            messages.error(request, _("This amount came with a top-up. Delete the top-up on the loan page to take it out again."))
+            return redirect('loan-detail', pk=received.loan.uuid)
+        return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
         response = super().form_valid(form)

@@ -26,6 +26,7 @@ from expenses.views.utils import get_safe_redirect_url
 from finance_tracker.plans import get_limit
 
 from ..account_types import STRATEGY, deposit_codes, holdings_codes, strategy_for
+from ..available_cash import available_cash
 from ..account_valuation import (
     get_baseline,
     get_current,
@@ -640,6 +641,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             unlinked_loans_owed = LedgerReadService._loans_outstanding_base(request.user, user_currency, exclude_ids=linked_loan_ids)
         context['overall_total'] = (sum((a.base_value for a in all_accounts), Decimal('0.00')) - unlinked_loans_owed).quantize(Decimal('0.01'))
         context['overall_count'] = len(all_accounts)
+        # What can be spent today: cash and bank accounts not set aside (net worth, above, is a different figure)
+        context['available_cash'] = available_cash(all_accounts, lambda account: account.base_value) if current_status == 'active' else None
 
         # Tiles: one per group (what you hold, then what you owe); a click filters the list to it
         tiles = []

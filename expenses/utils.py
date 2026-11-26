@@ -138,7 +138,7 @@ def generate_year_in_review_data(user, year):
     
     # 1. Total Spend and Total Income (using base_amount to handle multi-currency)
     from .refunds import net_sum
-    from .savings import income_totals
+    from .savings import income_totals, user_counts_loan_payments
     # (spent is what the expenses really cost, net of refunds; earned leaves out the entries that pay back an
     # expense or a capital event: the same definitions as the savings figure)
     total_spent = expenses.aggregate(total=net_sum())['total'] or Decimal('0.00')
@@ -152,6 +152,7 @@ def generate_year_in_review_data(user, year):
         incomes, expenses,
         LoanRepayment.objects.filter(loan__user=user, **period),
         CapitalEvent.objects.filter(user=user, **period),
+        count_loan_payments=user_counts_loan_payments(user),
     )
     data['net_saved'] = savings.savings
     data['savings_rate'] = savings.rate_rounded(1)

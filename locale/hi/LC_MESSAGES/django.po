@@ -24721,3 +24721,51 @@ msgstr "प्राप्त लोन राशि"
 #: loan top-up
 msgid "Loan money paid into your accounts"
 msgstr "आपके खातों में आया लोन का पैसा"
+
+#: available cash
+msgid "Available cash"
+msgstr "उपलब्ध नकद"
+
+#: available cash
+msgid "Money in your cash and bank accounts that you can spend today. Deposits, investments and accounts you set aside are not counted."
+msgstr "आपके नकद और बैंक खातों में वह पैसा जो आप आज खर्च कर सकते हैं। जमा, निवेश और अलग रखे गए खाते गिने नहीं जाते।"
+
+#: available cash
+msgid "Not in available cash"
+msgstr "उपलब्ध नकद में नहीं"
+
+#: available cash
+msgid "Count in available cash"
+msgstr "उपलब्ध नकद में गिनें"
+
+#: available cash
+msgid "Turn off for a cash or bank account you keep apart from everyday spending (an investment pot, an emergency fund)."
+msgstr "रोज़ के खर्च से अलग रखे गए नकद या बैंक खाते के लिए बंद करें (निवेश का खाता, आपातकालीन निधि)।"
+
+#: available cash
+msgid "Turn off for an account you keep apart from everyday spending, such as an investment pot or an emergency fund. It still counts in your net worth."
+msgstr "रोज़ के खर्च से अलग रखे गए खाते के लिए बंद करें, जैसे निवेश का खाता या आपातकालीन निधि। यह फिर भी आपकी नेट वर्थ में गिना जाता है।"
+
+#: dashboard cards
+msgid "No change"
+msgstr "कोई बदलाव नहीं"
+
+#: loan received
+msgid "This amount came with a top-up. Delete the top-up on the loan page to take it out again."
+msgstr "यह राशि टॉप-अप के साथ आई थी। इसे फिर से निकालने के लिए ऋण पृष्ठ पर टॉप-अप हटाएँ।"
+
+#: loan payments setting
+msgid "Count all loan payments as spending"
+msgstr "सभी लोन भुगतान को खर्च में गिनें"
+
+#: loan payments setting
+msgid "Off: only the interest part of an EMI counts as spending, because the rest repays borrowed money and raises your net worth. On: the whole EMI, and loan prepayments and down payments, count as spending, so your savings are what is left after every loan payment."
+msgstr "बंद: EMI का सिर्फ़ ब्याज वाला हिस्सा खर्च गिना जाता है, क्योंकि बाकी उधार चुकाता है और आपकी निवल संपत्ति बढ़ाता है। चालू: पूरी EMI, और लोन का पूर्व-भुगतान और डाउन पेमेंट, खर्च गिने जाते हैं, इसलिए आपकी बचत हर लोन भुगतान के बाद बचा पैसा होती है।"
+
+#: loan payments setting
+msgid "Counting all loan payments as spending"
+msgstr "सभी लोन भुगतान खर्च में गिने जा रहे हैं"
+
+#: loan payments setting
+msgid "All loan payments count as spending here (change this in Settings → Profile)."
+msgstr "यहाँ सभी लोन भुगतान खर्च में गिने जाते हैं (इसे सेटिंग्स → प्रोफ़ाइल में बदलें)।"

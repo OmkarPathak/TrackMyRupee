@@ -24,8 +24,10 @@ from .savings import (
     counted_capital_refund_total,
     counted_capital_total,
     income_totals,
+    loan_capital_extra_total,
     loan_interest_total,
     monthly_savings,
+    user_counts_loan_payments,
 )
 from .utils import get_exchange_rate, get_safe_date
 
@@ -52,7 +54,8 @@ class FinancialService:
         on every dashboard load.
         """
         is_testing = getattr(settings, 'TESTING', False) or 'test' in sys.argv
-        cache_key = f'monthly_history_{user.id}_{months}' if not is_testing else None
+        counted = user_counts_loan_payments(user)
+        cache_key = f'monthly_history_{user.id}_{months}_{int(counted)}' if not is_testing else None
         if cache_key:
             cached = cache.get(cache_key)
             if cached is not None:
@@ -64,8 +67,9 @@ class FinancialService:
         start_date = _month_start_offset(today, months - 1)
 
         # Same definition as the dashboard's savings: repaying loan principal is not spending (only
-        # the interest is), and capital events count only when they are not kept out of averages.
-        by_month = monthly_savings(user, start_date, today)
+        # the interest is) unless the person counts all loan payments as spending, and capital events count only when
+        # they are not kept out of averages. 'net_saved' is the figure by the plain rule, which is what raises net worth.
+        by_month = monthly_savings(user, start_date, today, count_loan_payments=counted)
 
         curr = start_date
         for _ in range(months):
@@ -75,6 +79,7 @@ class FinancialService:
                 'income': float(result.income) if result else 0.0,
                 'expense': float(result.spending) if result else 0.0,
                 'savings': float(result.savings) if result else 0.0,
+                'net_saved': float(result.net_saved) if result else 0.0,
             })
             # Move to next month
             if curr.month == 12:
@@ -193,8 +198,8 @@ class FinancialService:
         # history[0] is the current month
         for i, m in enumerate(history):
             cumulative_history.append(running_nw)
-            # To get previous month's value, subtract current month's savings
-            running_nw -= m['savings']
+            # To get previous month's value, subtract what the month added to net worth (paying down debt is part of it)
+            running_nw -= m['net_saved']
             
         # Reverse back so it's oldest to newest
         cumulative_history.reverse()
@@ -655,7 +660,8 @@ class SalaryAnalysisService:
             date__lte=cycle_end
         )
         total_loan_interest = loan_interest_total(loan_repayments)
-        # Principal is reported for information only: repaying borrowed money is not spending.
+        # Principal is reported for information only (repaying borrowed money is not spending), unless the person counts
+        # all loan payments as spending: then it, and loan prepayments kept out of averages, come off their savings.
         total_loan_principal = Decimal('0')
         for repay in loan_repayments:
             total_loan_principal += (repay.base_amount or Decimal('0')) - (repay.interest_portion or Decimal('0')) * (repay.exchange_rate or Decimal('1'))
@@ -666,12 +672,17 @@ class SalaryAnalysisService:
         total_cap_events = counted_capital_total(
             CapitalEvent.objects.filter(user=user, date__gte=cycle_start, date__lte=cycle_end)
         ) - counted_capital_refund_total(income_list)
+        counted = user_counts_loan_payments(user)
         result = calculate_savings(
             income=income_total,
             cashback_refund=cashback_refund,
             operating_expenses=total_expenses,
             loan_interest=total_loan_interest,
             capital_events=total_cap_events,
+            loan_principal=total_loan_principal,
+            loan_capital=loan_capital_extra_total(
+                CapitalEvent.objects.filter(user=user, date__gte=cycle_start, date__lte=cycle_end)) if counted else 0,
+            count_loan_payments=counted,
         )
         total_income = result.income
         savings = result.savings

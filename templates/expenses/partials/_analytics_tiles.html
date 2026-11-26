@@ -13,6 +13,9 @@
     </div>
     {% endfor %}
 </div>
+{% if counting_loan_payments %}
+<p class="small text-muted mb-2" id="loan-payments-note"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>{% trans "All loan payments count as spending here (change this in Settings → Profile)." %}</p>
+{% endif %}
 {% if insight %}
 <p class="anx-insight d-flex align-items-start gap-2 mb-3 small"><i class="bi bi-lightbulb text-warning" aria-hidden="true"></i><span>{{ insight }}</span></p>
 {% endif %}

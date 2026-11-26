@@ -188,6 +188,7 @@ def build(page: Page) -> dict:
     return {
         'spend_line': spend_line(page),
         'tiles': page.tiles(),
+        'counting_loan_payments': page.summary.savings.count_loan_payments,
         'insight': page.insight(),
         'in_out': in_out_chart(page),
         'categories': category_rows(page),

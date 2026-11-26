@@ -194,6 +194,9 @@ class Account(models.Model):
 
     is_active = models.BooleanField(default=True)
     is_pinned = models.BooleanField(default=False, verbose_name=_('Is Pinned'))
+    include_in_available_cash = models.BooleanField(
+        default=True, verbose_name=_('Count in available cash'),
+        help_text=_('Turn off for a cash or bank account you keep apart from everyday spending (an investment pot, an emergency fund).'))
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -327,6 +330,18 @@ class Account(models.Model):
             else:
                 target_date = get_safe_date(today.year, today.month + 1, self.credit_card_billing_day)
         return target_date
+
+    @property
+    def counts_as_available_cash(self) -> bool:
+        """Whether this account's balance is part of "available cash": an active cash or bank account not set aside."""
+        from .account_types import available_cash_codes
+        return bool(self.is_active and self.include_in_available_cash and self.account_type in available_cash_codes())
+
+    @property
+    def is_set_aside(self) -> bool:
+        """A cash or bank account the person has kept out of available cash."""
+        from .account_types import available_cash_codes
+        return self.account_type in available_cash_codes() and not self.include_in_available_cash
 
     @property
     def has_credit_limit(self) -> bool:
@@ -2053,6 +2068,10 @@ class UserProfile(models.Model):
     daily_reminder = models.BooleanField(default=True, verbose_name=_('Daily Expense Reminder'))
     
     # Salary settings
+    count_loan_payments_as_spending = models.BooleanField(
+        default=False, verbose_name=_('Count all loan payments as spending'),
+        help_text=_('Off: only the interest part of an EMI counts as spending, because the rest repays borrowed money and raises your net worth. '
+                    'On: the whole EMI, and loan prepayments and down payments, count as spending, so your savings are what is left after every loan payment.'))
     salary_date = models.IntegerField(
         default=1,
         validators=[MinValueValidator(1), MaxValueValidator(31)],
@@ -3109,6 +3128,9 @@ class LoanDisbursement(models.Model):
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_disbursements',
                                 verbose_name=_('Received in account'))
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount received'))
+    # in the person's own currency, as on a repayment: what the Transactions list shows
+    exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
+    base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
     date = models.DateField(default=timezone.now, verbose_name=_('Date received'))
     note = models.CharField(max_length=120, blank=True, default='', verbose_name=_('Note'))
     created_at = models.DateTimeField(auto_now_add=True)
@@ -3148,6 +3170,13 @@ class LoanDisbursement(models.Model):
         self.full_clean()
         with transaction.atomic():
             is_new = self.pk is None
+            if is_new:
+                base_currency = self.loan.user.profile.currency
+                if self.loan.currency == base_currency:
+                    self.exchange_rate, self.base_amount = Decimal('1.0'), self.amount
+                else:
+                    self.exchange_rate = get_exchange_rate(self.loan.currency, base_currency)
+                    self.base_amount = (self.amount * self.exchange_rate).quantize(Decimal('0.01'))
             super().save(*args, **kwargs)
             if not is_new:
                 return                      # (only the date or the note can change: the account and the ledger stay as they are)

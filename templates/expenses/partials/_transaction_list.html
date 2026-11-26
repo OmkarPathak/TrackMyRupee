@@ -189,6 +189,7 @@
                                             {% if tx.type == 'EXPENSE' %}{% trans "Expense" %}
                                             {% elif tx.type == 'INCOME' %}{% trans "Income" %}
                                             {% elif tx.type == 'LOAN' %}{% trans "Loan Repayment" %}
+                                            {% elif tx.type == 'LOAN_RECEIVED' %}{% trans "Loan received" %}
                                             {% elif tx.type == 'CAPITAL_EVENT' %}{% trans "Big purchase" %}
                                             {% else %}{% trans "Transfer" %}{% endif %}
                                         </span>
@@ -208,6 +209,8 @@
                                             <span class="badge-soft badge-soft-success text-nowrap d-inline-block text-truncate" style="max-width: 180px;" title="{{ tx.cat }}"><i class="bi bi-wallet2 me-1"></i>{{ tx.cat }}</span>
                                         {% elif tx.type == 'LOAN' %}
                                             <span class="badge-soft badge-soft-warning text-nowrap d-inline-block text-truncate" style="max-width: 180px;" title="{{ tx.cat }}"><i class="bi bi-shield-lock me-1"></i>{{ tx.cat }}</span>
+                                        {% elif tx.type == 'LOAN_RECEIVED' %}
+                                            <span class="badge-soft badge-soft-warning text-nowrap d-inline-block text-truncate" style="max-width: 180px;" title="{{ tx.cat }}"><i class="bi bi-shield-lock me-1"></i>{{ tx.cat }}</span>
                                         {% elif tx.type == 'CAPITAL_EVENT' %}
                                             <span class="badge-soft badge-soft-danger text-nowrap d-inline-block text-truncate" style="max-width: 180px;" title="{{ tx.cat }}"><i class="bi bi-flag me-1"></i>{{ tx.cat }}</span>
                                         {% else %}
@@ -218,7 +221,7 @@
                                         <div class="text-truncate tx-account" title="{{ tx.acc }}">{% include 'expenses/partials/_tx_account.html' %}</div>
                                     </td>
                                     <td class="text-end fw-bold tmr-amount amount-{{ tx.type|lower }} signed-amount">
-                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}&minus;{% elif tx.type == 'INCOME' %}+{% endif %}
+                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}&minus;{% elif tx.type == 'INCOME' or tx.type == 'LOAN_RECEIVED' %}+{% endif %}
                                         {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
                                     </td>
                                     <td class="text-end pe-4">
@@ -245,6 +248,9 @@
                                                 {% elif tx.type == 'LOAN' %}
                                                     <li><a class="dropdown-item py-2" href="{% url 'loan-detail' tx.loan_pk %}"><i class="bi bi-eye me-2 text-primary"></i>{% trans "View Loan" %}</a></li>
                                                     <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-repayment-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this loan repayment?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
+                                                {% elif tx.type == 'LOAN_RECEIVED' %}
+                                                    <li><a class="dropdown-item py-2" href="{% url 'loan-detail' tx.loan_pk %}"><i class="bi bi-eye me-2 text-primary"></i>{% trans "View Loan" %}</a></li>
+                                                    <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-disbursement-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this? The amount will be taken out of your account balance again.' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
                                                 {% elif tx.type == 'CAPITAL_EVENT' %}
                                                     <li><a class="dropdown-item py-2" href="{% url 'capital-event-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
                                                     <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'capital-event-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this big purchase?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
@@ -284,6 +290,7 @@
                                     {% if tx.type == 'EXPENSE' %}<i class="bi {% category_icon tx.cat user %}"></i>
                                     {% elif tx.type == 'INCOME' %}<i class="bi bi-plus-circle"></i>
                                     {% elif tx.type == 'LOAN' %}<i class="bi bi-shield-lock"></i>
+                                    {% elif tx.type == 'LOAN_RECEIVED' %}<i class="bi bi-box-arrow-in-down"></i>
                                     {% elif tx.type == 'CAPITAL_EVENT' %}<i class="bi bi-flag"></i>
                                     {% else %}<i class="bi bi-arrow-left-right"></i>{% endif %}
                                 </div>
@@ -298,7 +305,7 @@
                                 </div>
                                 <div class="text-end d-flex align-items-center gap-2">
                                     <div class="fw-bold amount-{{ tx.type|lower }} signed-amount">
-                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}&minus;{% elif tx.type == 'INCOME' %}+{% endif %}
+                                        {% if tx.type == 'EXPENSE' or tx.type == 'LOAN' or tx.type == 'CAPITAL_EVENT' %}&minus;{% elif tx.type == 'INCOME' or tx.type == 'LOAN_RECEIVED' %}+{% endif %}
                                         {{ user.profile.currency }}{{ tx.unified_amount|compact_amount:user.profile.currency|translate_digits }}
                                     </div>
                                     <div class="dropdown">
@@ -324,6 +331,9 @@
                                             {% elif tx.type == 'LOAN' %}
                                                 <li><a class="dropdown-item py-2" href="{% url 'loan-detail' tx.loan_pk %}"><i class="bi bi-eye me-2 text-primary"></i>{% trans "View Loan" %}</a></li>
                                                 <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-repayment-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this loan repayment?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
+                                            {% elif tx.type == 'LOAN_RECEIVED' %}
+                                                <li><a class="dropdown-item py-2" href="{% url 'loan-detail' tx.loan_pk %}"><i class="bi bi-eye me-2 text-primary"></i>{% trans "View Loan" %}</a></li>
+                                                <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'loan-disbursement-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this? The amount will be taken out of your account balance again.' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>
                                             {% elif tx.type == 'CAPITAL_EVENT' %}
                                                 <li><a class="dropdown-item py-2" href="{% url 'capital-event-edit' tx.pk %}?next={{ request.get_full_path|urlencode }}"><i class="bi bi-pencil-square me-2 text-primary"></i>{% trans "Edit" %}</a></li>
                                                 <li><button class="dropdown-item py-2 text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-url="{% url 'capital-event-delete' tx.pk %}?next={{ request.get_full_path|urlencode }}" data-message="{% trans 'Are you sure you want to delete this big purchase?' %}"><i class="bi bi-trash me-2"></i>{% trans "Delete" %}</button></li>

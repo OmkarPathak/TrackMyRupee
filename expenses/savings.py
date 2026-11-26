@@ -7,6 +7,10 @@
 Notes on the choices (they match what the dashboard has always displayed):
   * Loan principal is NOT spending: it is repaying borrowed money, so only the interest of a
     repayment reduces savings.
+  * ...unless the person turns on "count all loan payments as spending" (Settings → Profile). Then the whole
+    EMI counts (the principal part too) and so do loan prepayments and down payments, even those kept out of
+    averages (never twice). `net_saved` is always the figure by the rule above: paying down debt raises net worth,
+    so net worth's monthly change is built from it, whatever the setting.
   * Capital events only count when they are not "excluded from averages" (the default is to
     exclude them, so a one-off purchase does not wreck the month). Callers that let the user
     opt in to see them (the Analytics toggle) pass the extra amount as ``extra_capital_events``.
@@ -28,6 +32,7 @@ from django.db.models.functions import TruncMonth
 from .refunds import net_sum
 
 CASHBACK_REFUND_TYPES = ('Cashback & Rewards', 'Refund / Reimbursement')
+LOAN_CAPITAL_SUBTYPES = ('loan_down_payment', 'loan_prepayment')       # big purchases that pay a loan down
 
 ZERO = Decimal('0')
 
@@ -57,15 +62,32 @@ class SavingsResult:
     operating_expenses: Decimal = ZERO
     loan_interest: Decimal = ZERO
     capital_events: Decimal = ZERO
+    # Loan principal repaid, and loan prepayments / down payments that capital_events does not already hold (the ones
+    # kept out of averages). They are spending only when the person asked for that: count_loan_payments.
+    loan_principal: Decimal = ZERO
+    loan_capital: Decimal = ZERO
+    count_loan_payments: bool = False
+
+    @property
+    def debt_repaid(self) -> Decimal:
+        """Borrowed money paid back this period: principal of the EMIs, and prepayments / down payments not counted already."""
+        return self.loan_principal + self.loan_capital
 
     @property
     def spending(self) -> Decimal:
         """Everything that counts as money spent (what the dashboard shows as "Spent")."""
-        return self.operating_expenses + self.loan_interest + self.capital_events
+        spent = self.operating_expenses + self.loan_interest + self.capital_events
+        return spent + self.debt_repaid if self.count_loan_payments else spent
 
     @property
     def savings(self) -> Decimal:
         return self.income - self.spending
+
+    @property
+    def net_saved(self) -> Decimal:
+        """Savings by the documented rule (loan principal is not spending), whatever the person's setting. This is what
+        raises net worth, so net worth's change is built from it."""
+        return self.savings + self.debt_repaid if self.count_loan_payments else self.savings
 
     @property
     def denominator(self) -> Decimal:
@@ -84,7 +106,8 @@ class SavingsResult:
 
 
 def calculate_savings(income=0, cashback_refund=0, operating_expenses=0, loan_interest=0,
-                      capital_events=0, extra_capital_events=0) -> SavingsResult:
+                      capital_events=0, extra_capital_events=0, loan_principal=0, loan_capital=0,
+                      count_loan_payments=False) -> SavingsResult:
     """Build a SavingsResult from already-aggregated base-currency amounts."""
     return SavingsResult(
         income=_dec(income),
@@ -92,7 +115,15 @@ def calculate_savings(income=0, cashback_refund=0, operating_expenses=0, loan_in
         operating_expenses=_dec(operating_expenses),
         loan_interest=_dec(loan_interest),
         capital_events=_dec(capital_events) + _dec(extra_capital_events),
+        loan_principal=_dec(loan_principal),
+        loan_capital=_dec(loan_capital),
+        count_loan_payments=bool(count_loan_payments),
     )
+
+
+def user_counts_loan_payments(user) -> bool:
+    """Whether this person asked for all loan payments to count as spending (Settings → Profile)."""
+    return bool(getattr(getattr(user, 'profile', None), 'count_loan_payments_as_spending', False))
 
 
 # ── Aggregation helpers (querysets stay with the caller so each screen keeps its own filters) ──
@@ -125,6 +156,13 @@ def loan_interest_total(repayment_qs) -> Decimal:
 def counted_capital_total(capital_qs) -> Decimal:
     """Capital events that count towards spending (those not excluded from averages)."""
     return _dec(capital_qs.filter(exclude_from_averages=False).aggregate(total=Sum('base_amount'))['total'])
+
+
+def loan_capital_extra_total(capital_qs) -> Decimal:
+    """Loan prepayments and down payments kept out of averages, in base currency. They are spending only when the person
+    counts all loan payments as spending (the ones already counted are in `counted_capital_total`)."""
+    return _dec(capital_qs.filter(exclude_from_averages=True, subtype__in=LOAN_CAPITAL_SUBTYPES)
+                .aggregate(total=Sum('base_amount'))['total'])
 
 
 def _zero():
@@ -170,9 +208,10 @@ def period_totals(income_qs, expense_qs, repayment_qs, capital_qs) -> dict:
         _one_row(expense_qs, 1, net_sum()),
         _one_row(repayment_qs, 2, Sum(F('interest_portion') * F('exchange_rate')), Sum('base_amount'), Count('id')),
         _one_row(capital_qs.filter(exclude_from_averages=False), 3, Sum('base_amount')),
+        _one_row(capital_qs.filter(exclude_from_averages=True, subtype__in=LOAN_CAPITAL_SUBTYPES), 4, Sum('base_amount')),
     ])
     out = {'income': ZERO, 'cashback_refund': ZERO, 'expenses': ZERO, 'interest': ZERO, 'emi': ZERO,
-           'repayments': 0, 'capital': ZERO, 'refund_capital': ZERO}
+           'repayments': 0, 'capital': ZERO, 'refund_capital': ZERO, 'loan_capital': ZERO}
     for kind, a, b, c, x0, x1, x2 in rows:
         if kind == 0:
             out['income'], out['cashback_refund'] = _dec(a) - _dec(x0), _dec(b) - _dec(x1)
@@ -181,13 +220,17 @@ def period_totals(income_qs, expense_qs, repayment_qs, capital_qs) -> dict:
             out['expenses'] = _dec(a)
         elif kind == 2:
             out['interest'], out['emi'], out['repayments'] = _dec(a), _dec(b), int(c or 0)
-        else:
+        elif kind == 3:
             out['capital'] = _dec(a)
+        else:
+            out['loan_capital'] = _dec(a)           # loan prepayments / down payments kept out of averages
     out['capital'] -= out['refund_capital']
+    out['principal'] = out['emi'] - out['interest']        # the principal part of the repayments
     return out
 
 
-def savings_from_querysets(income_qs, expense_qs, repayment_qs, capital_qs, extra_capital_events=0) -> SavingsResult:
+def savings_from_querysets(income_qs, expense_qs, repayment_qs, capital_qs, extra_capital_events=0,
+                           count_loan_payments=False) -> SavingsResult:
     t = period_totals(income_qs, expense_qs, repayment_qs, capital_qs)
     return calculate_savings(
         income=t['income'],
@@ -196,11 +239,15 @@ def savings_from_querysets(income_qs, expense_qs, repayment_qs, capital_qs, extr
         loan_interest=t['interest'],
         capital_events=t['capital'],
         extra_capital_events=extra_capital_events,
+        loan_principal=t['principal'],
+        loan_capital=t['loan_capital'],
+        count_loan_payments=count_loan_payments,
     )
 
 
-def savings_for_period(user, start: date, end: date) -> SavingsResult:
-    """Savings for ``user`` between two dates (inclusive)."""
+def savings_for_period(user, start: date, end: date, count_loan_payments: bool | None = None) -> SavingsResult:
+    """Savings for ``user`` between two dates (inclusive). Loan payments count as spending when the person asked for it
+    (``count_loan_payments`` None reads their setting)."""
     from .models import CapitalEvent, Expense, Income, LoanRepayment
 
     return savings_from_querysets(
@@ -208,6 +255,7 @@ def savings_for_period(user, start: date, end: date) -> SavingsResult:
         Expense.objects.filter(user=user, date__range=(start, end)),
         LoanRepayment.objects.filter(loan__user=user, date__range=(start, end)),
         CapitalEvent.objects.filter(user=user, date__range=(start, end)),
+        count_loan_payments=user_counts_loan_payments(user) if count_loan_payments is None else count_loan_payments,
     )
 
 
@@ -243,7 +291,7 @@ def monthly_parts(user, start: date, end: date | None = None) -> dict:
                                                 _l0=linked[0], _l1=linked[1], _l2=linked[2])
                 .values_list('_kind', '_m', '_a', '_b', '_l0', '_l1', '_l2'))
 
-    names = ('income', 'expenses', 'interest', 'capital')
+    names = ('income', 'expenses', 'interest', 'capital', 'principal', 'loan_capital')
     parts: dict = {}
     refunds: dict = {}
     for kind, month, a, b, l_total, l_cb_rf, l_counted in _fetch_together([
@@ -255,8 +303,10 @@ def monthly_parts(user, start: date, end: date | None = None) -> dict:
         by_month(Expense.objects.filter(user=user, **window), 1, net_sum()),
         by_month(LoanRepayment.objects.filter(loan__user=user, **window), 2, Sum(F('interest_portion') * F('exchange_rate'))),
         by_month(CapitalEvent.objects.filter(user=user, exclude_from_averages=False, **window), 3, Sum('base_amount')),
+        by_month(LoanRepayment.objects.filter(loan__user=user, **window), 4, Sum(F('principal_portion') * F('exchange_rate'))),
+        by_month(CapitalEvent.objects.filter(user=user, exclude_from_averages=True, subtype__in=LOAN_CAPITAL_SUBTYPES, **window), 5, Sum('base_amount')),
     ]):
-        slot = parts.setdefault(_month_key(month), {'income': ZERO, 'cb_rf': ZERO, 'expenses': ZERO, 'interest': ZERO, 'capital': ZERO})
+        slot = parts.setdefault(_month_key(month), _empty_month())
         slot[names[kind]] = _dec(a)
         if kind == 0:
             slot['cb_rf'] = _dec(b)
@@ -269,21 +319,28 @@ def monthly_parts(user, start: date, end: date | None = None) -> dict:
     return parts
 
 
-def monthly_savings(user, start: date, end: date, extra_capital_by_month=None) -> dict:
+def _empty_month() -> dict:
+    return {'income': ZERO, 'cb_rf': ZERO, 'expenses': ZERO, 'interest': ZERO, 'capital': ZERO, 'principal': ZERO, 'loan_capital': ZERO}
+
+
+def monthly_savings(user, start: date, end: date, extra_capital_by_month=None, count_loan_payments: bool | None = None) -> dict:
     """{(year, month): SavingsResult} for every month that has any activity, in one query.
 
     ``extra_capital_by_month`` maps (year, month) -> amount to count as spending on top
-    (used by the Analytics "include capital events" toggle).
+    (used by the Analytics "include capital events" toggle). Loan payments count as spending when the person asked for it
+    (``count_loan_payments`` None reads their setting).
     """
     parts = monthly_parts(user, start, end)
     extra = extra_capital_by_month or {}
     for key in extra:
-        parts.setdefault(key, {'income': ZERO, 'cb_rf': ZERO, 'expenses': ZERO, 'interest': ZERO, 'capital': ZERO})
+        parts.setdefault(key, _empty_month())
+    counted = user_counts_loan_payments(user) if count_loan_payments is None else count_loan_payments
 
     return {
         key: calculate_savings(
             income=p['income'], cashback_refund=p['cb_rf'], operating_expenses=p['expenses'],
             loan_interest=p['interest'], capital_events=p['capital'], extra_capital_events=extra.get(key, 0),
+            loan_principal=p.get('principal', ZERO), loan_capital=p.get('loan_capital', ZERO), count_loan_payments=counted,
         )
         for key, p in parts.items()
     }

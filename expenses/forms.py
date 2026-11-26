@@ -792,6 +792,11 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
         label=_('Salary Date'),
         required=True
     )
+    count_loan_payments_as_spending = forms.BooleanField(
+        required=False, label=_('Count all loan payments as spending'),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch'}),
+        help_text=_('Off: only the interest part of an EMI counts as spending, because the rest repays borrowed money and raises your net worth. '
+                    'On: the whole EMI, and loan prepayments and down payments, count as spending, so your savings are what is left after every loan payment.'))
 
     class Meta:
         model = User
@@ -801,6 +806,7 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['auth_email'].initial = self.instance.email
         self.fields['daily_reminder'].initial = self.instance.profile.daily_reminder
+        self.fields['count_loan_payments_as_spending'].initial = self.instance.profile.count_loan_payments_as_spending
         self.fields['salary_date'].initial = self.instance.profile.salary_date
         self.fields['auth_email'].widget.attrs.update({'class': 'form-control'})
 
@@ -848,6 +854,7 @@ class ProfileUpdateForm(SearchableSelectFormMixin, forms.ModelForm):
             profile = user.profile
             profile.daily_reminder = self.cleaned_data['daily_reminder']
             profile.salary_date = int(self.cleaned_data['salary_date'])
+            profile.count_loan_payments_as_spending = self.cleaned_data['count_loan_payments_as_spending']
             profile.save()
         return user
 
@@ -1277,7 +1284,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
     class Meta:
         model = Account
         fields = [
-            'name', 'account_type', 'balance', 'currency', 'is_pinned',
+            'name', 'account_type', 'balance', 'currency', 'is_pinned', 'include_in_available_cash',
             'linked_loan', 'linked_physical_asset',
             'deposit_principal', 'deposit_rate', 'deposit_start_date', 'deposit_maturity_date', 'deposit_closed_date', 'deposit_compounding', 'deposit_payout', 'show_accrued_balance', 'record_maturity_income',
             'rd_installment_amount', 'rd_installment_day', 'credit_limit', 'credit_card_billing_day',
@@ -1291,6 +1298,7 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'balance': PrimaryMoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'currency': forms.Select(attrs={'class': 'form-select'}),
             'is_pinned': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'include_in_available_cash': forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch'}),
             'linked_physical_asset': forms.Select(attrs={'class': 'form-select'}),
             'show_accrued_balance': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'record_maturity_income': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
@@ -1298,6 +1306,13 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
             'credit_limit': MoneyInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'credit_card_billing_day': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '1', 'max': '31'}),
         }
+
+    @property
+    def available_cash_types_json(self):
+        import json
+
+        from .account_types import available_cash_codes
+        return json.dumps(sorted(available_cash_codes()))
 
     @property
     def fields_by_type_json(self):
@@ -1870,6 +1885,21 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'})
     )
 
+    # Only when adding a loan (editing one never moves money): where the lender's money arrived
+    record_received = forms.BooleanField(
+        required=False, initial=True, label=_('Add the loan amount to an account'),
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input', 'role': 'switch'}),
+        help_text=_('Turn on if the lender paid the money into one of your accounts. It is added to that balance, not counted as income. Turn it off for a loan you took a while ago, if you have already recorded the money.'))
+    received_account = forms.ModelChoiceField(
+        required=False, queryset=Account.objects.none(), label=_('Received in account'),
+        widget=forms.Select(attrs={'class': 'form-select searchable-select'}))
+
+    def clean(self):
+        cleaned = super().clean()
+        if 'record_received' in self.fields and cleaned.get('record_received') and not cleaned.get('received_account'):
+            self.add_error('received_account', _('Select the account the loan amount was paid into.'))
+        return cleaned
+
     def clean_initial_principal(self):
         value = self.cleaned_data.get('initial_principal')
         if value is not None and value <= 0:
@@ -1895,6 +1925,21 @@ class LoanForm(SearchableSelectFormMixin, forms.ModelForm):
         if user:
             self.fields['currency'].initial = user.profile.currency
         
+        if not self.instance.pk and user:
+            from .account_types import liability_codes
+            accounts = Account.objects.filter(user=user, is_active=True).exclude(account_type__in=liability_codes()).order_by('name')
+            self.fields['received_account'].queryset = accounts
+            if not self.is_bound:
+                from .form_defaults import CASH_AND_BANK_TYPES
+                start = (default_account(accounts, LoanDisbursement.objects.filter(loan__user=user).order_by('-date', '-id'), 'account_id')
+                         or accounts.filter(account_type__in=CASH_AND_BANK_TYPES).first() or accounts.first())
+                self.fields['received_account'].initial = start
+                if start is None:                       # (no account to put it in yet: the switch starts off)
+                    self.fields['record_received'].initial = False
+        elif self.instance.pk or not user:
+            del self.fields['record_received']
+            del self.fields['received_account']
+
         if self.instance.pk:
             self.fields['initial_principal'].help_text = _('The amount first borrowed. To borrow more on this loan, use Top up on the loan page instead.')
             latest_rate = self.instance.interest_rates.order_by('-effective_date').first()

@@ -164,6 +164,7 @@
             accountType: '',
             createNewAsset: '{{ form.create_new_asset.value|default:"CREATE_NEW" }}',
             fieldsMap: {{ form.fields_by_type_json|safe }},
+            cashTypes: {{ form.available_cash_types_json|safe }},
             depositPrincipal: '{{ form.deposit_principal.value|default_if_none:"" }}',
             depositRate: '{{ form.deposit_rate.value|default_if_none:"" }}',
             depositStartDate: '{{ form.deposit_start_date.value|date:"Y-m-d"|default:"" }}',
@@ -447,6 +448,22 @@
                                 {% if form.balance.errors %}
                                     <div class="text-danger small mt-1">{{ form.balance.errors|first }}</div>
                                 {% endif %}
+                            </div>
+
+                            <div class="col-12" x-show="cashTypes.includes(accountType)" x-cloak id="available-cash-switch">
+                                <div class="form-check form-switch m-0 d-flex justify-content-between align-items-start gap-3 ps-0">
+                                    <div>
+                                        <label class="form-check-label fw-semibold cursor-pointer d-block mb-1" for="{{ form.include_in_available_cash.id_for_label }}">
+                                            {% trans "Count in available cash" %}
+                                        </label>
+                                        <div class="form-text mt-0">
+                                            {% trans "Turn off for an account you keep apart from everyday spending, such as an investment pot or an emergency fund. It still counts in your net worth." %}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        {{ form.include_in_available_cash }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

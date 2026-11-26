@@ -1,0 +1,3 @@
+{% load i18n digit_filters %}{# One comparison line of a Dashboard metric card: the same for every card (see templatetags/bento_tags.py). #}
+{% if same %}<span class="bento-comparison-label">{% trans "No change" %}</span>{% else %}<span class="text-{{ tone }} d-inline-flex align-items-center gap-1"><i class="bi bi-caret-{{ arrow }}-fill"></i><span>{{ currency }}{{ amount|compact_amount:currency|translate_digits }}</span></span>{% if pct_text %}<span class="badge bg-{{ tone }} bg-opacity-10 text-{{ tone }} rounded-pill px-2">{{ pct_text|translate_digits }}</span>{% endif %}{% endif %}
+<span class="bento-comparison-label">{{ label }}</span>

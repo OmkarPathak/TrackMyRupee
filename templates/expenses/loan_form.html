@@ -75,6 +75,23 @@
                         </div>
                     </div>
 
+                    {% if form.record_received %}
+                    <div class="mb-3" id="received-block">
+                        <div class="form-check form-switch m-0 d-flex justify-content-between align-items-start gap-3 ps-0">
+                            <div>
+                                <label class="form-check-label fw-semibold cursor-pointer d-block mb-1" for="{{ form.record_received.id_for_label }}">{% trans "Add the loan amount to an account" %}</label>
+                                <div class="form-text mt-0">{{ form.record_received.help_text }}</div>
+                            </div>
+                            <div>{{ form.record_received }}</div>
+                        </div>
+                        <div class="mt-3" id="received-account-row">
+                            <label class="form-label fw-bold small text-uppercase" for="{{ form.received_account.id_for_label }}">{% trans "Received in account" %}</label>
+                            {{ form.received_account }}
+                            {% if form.received_account.errors %}<div class="text-danger small">{{ form.received_account.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="emi-preview card border-0 rounded-3 mb-3">
                         <div class="card-body py-3 px-3">
                             <p class="fw-bold small text-uppercase text-muted mb-1">{% trans "Estimated Monthly EMI" %}</p>
@@ -118,6 +135,27 @@
     const currencySelect = document.getElementById('id_currency');
     const emiPreviewValue = document.getElementById('emi-preview-value');
     const emiPreviewHint = document.getElementById('emi-preview-hint');
+
+    // A loan taken a while ago: its money reached an account long ago, so the switch to add it starts off
+    const receivedSwitch = document.getElementById('id_record_received');
+    const startInput = document.getElementById('id_start_date');
+    const accountRow = document.getElementById('received-account-row');
+    if (receivedSwitch && startInput) {
+        let touched = false;
+        receivedSwitch.addEventListener('change', function () { touched = true; showAccount(); });
+        function showAccount() { if (accountRow) accountRow.style.display = receivedSwitch.checked ? '' : 'none'; }
+        function followStartDate() {
+            if (touched || !startInput.value) return;
+            const started = new Date(startInput.value + 'T00:00:00');
+            const days = (Date.now() - started.getTime()) / 86400000;
+            receivedSwitch.checked = days <= 45;
+            showAccount();
+        }
+        startInput.addEventListener('change', followStartDate);
+        startInput.addEventListener('input', followStartDate);
+        showAccount();
+        followStartDate();
+    }
 
     if (!principalInput || !rateInput || !durationInput || !emiPreviewValue || !emiPreviewHint) {
         return;

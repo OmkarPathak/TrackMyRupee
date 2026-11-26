@@ -96,10 +96,10 @@ class TestSavingsFormula(TestCase):
     def test_the_cashback_refund_types_are_the_two_documented_ones(self):
         self.assertEqual(set(CASHBACK_REFUND_TYPES), {'Cashback & Rewards', 'Refund / Reimbursement'})
 
-    def test_loan_principal_has_no_place_in_the_definition(self):
-        """There is deliberately no principal argument: repaying borrowed money is not spending."""
-        with self.assertRaises(TypeError):
-            calculate_savings(income=1, loan_principal=1)
+    def test_loan_principal_is_not_spending_unless_the_person_asks(self):
+        """Repaying borrowed money is not spending by default; only the Settings switch makes it count."""
+        self.assertEqual(calculate_savings(income=10, loan_principal=4).savings, D('10'))
+        self.assertEqual(calculate_savings(income=10, loan_principal=4, count_loan_payments=True).savings, D('6'))
 
 
 class SavingsDbBase(TestCase):

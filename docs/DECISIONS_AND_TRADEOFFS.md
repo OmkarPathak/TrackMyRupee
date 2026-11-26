@@ -78,7 +78,7 @@ parts).
 
 ### 3.3 One definition of "savings"
 - **Decision.** `expenses/savings.py` is the only place that defines savings and savings rate: income minus expenses,
-  minus loan interest, minus capital events counted in averages. Loan *principal* is not spending (it repays debt).
+  minus loan interest, minus capital events counted in averages. Loan *principal* is not spending (it repays debt). A Settings → Profile switch (off by default) counts the whole EMI and loan prepayments/down payments as spending instead; the Net Worth card's monthly change keeps the rule above.
   Cashback and refunds count as income but are left out of the rate's denominator.
 - **Why.** Several screens used to compute it differently and disagreed. A test asserts every screen lands on the same
   rate.

@@ -82,6 +82,20 @@
                 <div class="form-text text-muted small mt-2">{% trans "Your salary cycle for dashboard analysis will be calculated from this date to the next month's salary date. For example, if set to 15th, analysis will show transactions from 15th of one month to 14th of the next month." %}</div>
             </div>
 
+            <div class="mb-4" id="loan-payments-setting">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                    <div class="flex-grow-1">
+                        <label class="h6 mb-0 fw-bold d-block" for="{{ form.count_loan_payments_as_spending.id_for_label }}">
+                            {% trans "Count all loan payments as spending" %}
+                        </label>
+                        <div class="form-text text-muted small mt-1">{{ form.count_loan_payments_as_spending.help_text }}</div>
+                    </div>
+                    <div class="form-check form-switch p-0 m-0 flex-shrink-0">
+                        {{ form.count_loan_payments_as_spending }}
+                    </div>
+                </div>
+            </div>
+
             {% if show_year_in_review %}
             <div class="mb-4 p-3 bg-body-secondary rounded border border-primary border-opacity-25 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
                 <div>
