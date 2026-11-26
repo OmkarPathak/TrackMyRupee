@@ -13,7 +13,22 @@
     .iv-c3 { background: #c9dcd3; } .iv-c4 { background: #e1b869; } .iv-c5 { background: #c68b3c; }
     .iv-bar { display: flex; gap: 2px; height: 12px; border-radius: 99px; overflow: hidden; }
     .iv-bar span { display: block; height: 100%; min-width: 4px; }
+    .iv-br-row { display: flex; align-items: center; gap: .75rem; padding: .45rem 0; border-bottom: 1px solid var(--bs-border-color); font-size: .9rem; }
+    .iv-br-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .iv-br-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .iv-br-amt { flex: 0 0 auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .iv-br-pct { flex: 0 0 3.2rem; text-align: right; color: var(--bs-secondary-color); font-variant-numeric: tabular-nums; }
+    .iv-bar { margin-bottom: .6rem; }
     .iv-legend { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; }
+    .iv-up-row { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; padding: .65rem 0; border-bottom: 1px solid var(--bs-border-color); }
+    .iv-up-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .iv-up-main { flex: 1 1 auto; min-width: 0; }
+    .iv-up-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; font-size: .92rem; font-weight: 600; line-height: 1.3; color: var(--bs-body-color); text-decoration: none; }
+    .iv-up-sub { margin-top: .15rem; font-size: .78rem; color: var(--bs-secondary-color); display: flex; align-items: center; gap: .35rem; }
+    .iv-up-amt { flex: 0 0 auto; text-align: right; font-size: .95rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .iv-row { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; padding: .6rem 0; border-bottom: 1px solid var(--bs-border-color); }
+    .iv-row:last-child { border-bottom: 0; }
+    .iv-pill { font-size: .72rem; padding: .15rem .5rem; border-radius: 99px; background: var(--bs-secondary-bg); color: var(--bs-secondary-color); white-space: nowrap; }
     .iv-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: .4rem; }
 </style>
 <div>
@@ -37,7 +52,7 @@
     </div>
 
     <!-- Summary tiles: the figures of the shared investments overview -->
-    <div class="row g-3 mb-3" id="investments-overview">
+    <div class="row g-3 mb-3 d-none d-md-flex" id="investments-overview">
         <div class="col-12 col-md-3">
             <div class="card border-0 rounded-4 p-3 shadow-sm h-100" style="background-color: rgba(var(--bs-primary-rgb), 0.08); border: 1px solid rgba(15, 118, 87, 0.15) !important;">
                 <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Current value" %}</div>
@@ -73,18 +88,77 @@
         </div>
     </div>
 
-    {% if overview.allocation %}
-    <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-4" id="investments-allocation">
-        <div class="d-flex justify-content-between align-items-baseline mb-2">
-            <h2 class="h6 fw-bold mb-0">{% trans "Where it is" %}</h2>
-            <span class="small text-muted">{% trans "as of today" %}</span>
+    <!-- Phones: the same four figures as compact tiles, two to a row (the look of the Transactions summary) -->
+    <div class="row row-cols-2 g-2 mb-3 d-md-none" id="investments-overview-phone">
+        <div class="col"><div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+            <div class="tmr-stat-label">{% trans "Current value" %}</div>
+            <div class="tmr-stat-value text-truncate text-success" data-ivm="value">{{ user_currency }}{{ overview.investments_value|compact_amount:user_currency|translate_digits }}</div>
+            <div class="tmr-stat-note">{% blocktrans count n=investment_count %}across {{ n }} investment{% plural %}across {{ n }} investments{% endblocktrans %}</div>
+        </div></div>
+        <div class="col"><div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+            <div class="tmr-stat-label">{% trans "Invested" %}</div>
+            <div class="tmr-stat-value text-truncate" data-ivm="invested">{{ user_currency }}{{ overview.invested|compact_amount:user_currency|translate_digits }}</div>
+            <div class="tmr-stat-note">{% trans "What you put in" %}</div>
+        </div></div>
+        <div class="col"><div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+            <div class="tmr-stat-label">{% trans "Gain" %}</div>
+            {% if overview.returns is not None %}
+            <div class="tmr-stat-value text-truncate {% if overview.returns >= 0 %}text-success{% else %}text-danger{% endif %}" data-ivm="gain">{% if overview.returns >= 0 %}+{% endif %}{{ user_currency }}{{ overview.returns|compact_amount:user_currency|translate_digits }}</div>
+            <div class="tmr-stat-note fw-semibold {% if overview.returns >= 0 %}text-success{% else %}text-danger{% endif %}">{{ overview.returns_pct|translate_digits }}% {% trans "return" %}</div>
+            {% else %}
+            <div class="tmr-stat-value" data-ivm="gain">&ndash;</div>
+            <div class="tmr-stat-note">{% trans "Shown once a value is recorded" %}</div>
+            {% endif %}
+        </div></div>
+        <div class="col"><div class="tmr-edge tmr-stat-card card rounded-4 h-100">
+            <div class="tmr-stat-label">{% trans "Monthly SIPs" %}</div>
+            <div class="tmr-stat-value text-truncate" data-ivm="sip">{{ user_currency }}{{ overview.monthly_sip|compact_amount:user_currency|translate_digits }}</div>
+            <div class="tmr-stat-note">{% blocktrans count n=overview.sip_rows|length %}{{ n }} schedule{% plural %}{{ n }} schedules{% endblocktrans %}</div>
+        </div></div>
+    </div>
+
+    {% if overview.allocation or overview.upcoming %}
+    <div class="row g-3 mb-4">
+        {% if overview.allocation %}
+        <div class="col-12 {% if overview.upcoming %}col-lg-8{% endif %}">
+            <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 h-100" id="investments-allocation">
+                <div class="d-flex justify-content-between align-items-baseline mb-2">
+                    <h2 class="h6 fw-bold mb-0">{% trans "Where it is" %}</h2>
+                    <span class="small text-muted">{% trans "as of today" %}</span>
+                </div>
+                <div class="iv-bar mb-2" role="img" aria-label="{% trans 'Assets by type' %}">
+                    {% for item in overview.allocation %}<span class="iv-c{{ item.color }}" style="flex: {{ item.percent|stringformat:'s' }} 1 0;" title="{{ item.label }} {{ item.percent }}%"></span>{% endfor %}
+                </div>
+                <ul class="list-unstyled mb-0 iv-breakdown">
+                    {% for item in overview.allocation %}
+                    <li class="iv-br-row">
+                        <span class="iv-br-label"><i class="iv-dot iv-c{{ item.color }}"></i>{{ item.label }}</span>
+                        <span class="iv-br-amt">{{ user_currency }}{{ item.amount|ind_comma:user_currency|translate_digits }}</span>
+                        <span class="iv-br-pct">{{ item.percent|translate_digits }}%</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
-        <div class="iv-bar mb-2" role="img" aria-label="{% trans 'Assets by type' %}">
-            {% for item in overview.allocation %}<span class="iv-c{{ item.color }}" style="flex: {{ item.percent|stringformat:'s' }} 1 0;" title="{{ item.label }} {{ item.percent }}%"></span>{% endfor %}
+        {% endif %}
+        {% if overview.upcoming %}
+        <div class="col-12 {% if overview.allocation %}col-lg-4{% endif %}">
+            <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 h-100" id="investments-upcoming">
+                <h2 class="h6 fw-bold mb-2">{% trans "Coming up" %}</h2>
+                <ul class="list-unstyled mb-0 iv-upcoming">
+                    {% for item in overview.upcoming %}
+                    <li class="iv-up-row">
+                        <div class="iv-up-main">
+                            <a href="{% url 'account-detail' item.account_uuid %}" class="iv-up-name">{{ item.name }}</a>
+                            <div class="iv-up-sub"><i class="bi bi-calendar-event" aria-hidden="true"></i>{% trans "Matures" %} {{ item.date|date:"d M Y" }}</div>
+                        </div>
+                        <div class="iv-up-amt">{{ user_currency }}{{ item.value|ind_comma:user_currency|translate_digits }}</div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
-        <div class="iv-legend small text-body-secondary">
-            {% for item in overview.allocation %}<span><i class="iv-dot iv-c{{ item.color }}"></i>{{ item.label }} <b>{{ item.percent|translate_digits }}%</b></span>{% endfor %}
-        </div>
+        {% endif %}
     </div>
     {% endif %}
 
@@ -113,12 +187,17 @@
     <!-- Insights about holdings: one compact line each -->
     {% if INSIGHTS_ON %}<div hx-get="{% url 'insights-panel' %}?surface=module&modules=holdings&strip=1" hx-trigger="load" hx-swap="outerHTML"></div>{% endif %}
 
+    <div class="tmr-tabs" id="investmentTabs" role="tablist">
+        <button class="tmr-tab active" id="iv-tab-market" data-bs-toggle="tab" data-bs-target="#iv-pane-market" type="button" role="tab" aria-controls="iv-pane-market" aria-selected="true">{% trans "Market" %}</button>
+        <button class="tmr-tab" id="iv-tab-deposits" data-bs-toggle="tab" data-bs-target="#iv-pane-deposits" type="button" role="tab" aria-controls="iv-pane-deposits" aria-selected="false">{% trans "Deposits" %}</button>
+        <button class="tmr-tab" id="iv-tab-schemes" data-bs-toggle="tab" data-bs-target="#iv-pane-schemes" type="button" role="tab" aria-controls="iv-pane-schemes" aria-selected="false">{% trans "Schemes" %}</button>
+    </div>
+
     <!-- Main Holdings Card Container -->
     <div class="card rounded-4 border-0 shadow-sm hld-outer" style="border: 1px solid var(--hld-outer-border, rgba(0,0,0,0.07)) !important;">
-        <div class="card-header bg-transparent border-0 p-3 p-md-4 d-flex align-items-center justify-content-between">
-            <h2 class="h5 mb-0 fw-bold">{% trans "Market holdings" %}</h2>
-        </div>
         <div class="card-body p-0">
+          <div class="tab-content">
+           <div class="tab-pane fade show active" id="iv-pane-market" role="tabpanel" aria-labelledby="iv-tab-market" tabindex="0">
             {% if holdings %}
                 <!-- Desktop Table View -->
                 <div class="table-responsive d-none d-md-block">
@@ -344,6 +423,108 @@
                     {% endif %}
                 </div>
             {% endif %}
+           </div>
+
+           <div class="tab-pane fade" id="iv-pane-deposits" role="tabpanel" aria-labelledby="iv-tab-deposits" tabindex="0">
+            {% if overview.deposits %}
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0 tmr-table" id="iv-deposits-table">
+                    <thead><tr>
+                        <th class="ps-4">{% trans "Deposit" %}</th><th>{% trans "Type" %}</th><th>{% trans "Rate" %}</th><th>{% trans "Matures" %}</th>
+                        <th class="text-end">{% trans "Invested" %}</th><th class="text-end pe-4">{% trans "Value today" %}</th>
+                    </tr></thead>
+                    <tbody>
+                    {% for r in overview.deposits %}
+                    <tr>
+                        <td class="ps-4"><a href="{% url 'account-detail' r.account_uuid %}" class="fw-bold text-body-emphasis text-decoration-none tmr-truncate d-block">{{ r.name }}</a></td>
+                        <td><span class="iv-pill">{{ r.type_label }}</span></td>
+                        <td>{% if r.rate %}{{ r.rate.normalize|translate_digits }}%{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
+                        <td>{% if r.maturity %}{{ r.maturity|date:"d M Y" }}{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
+                        <td class="text-end tmr-amount">{% if r.invested is not None %}{{ user_currency }}{{ r.invested|ind_comma:user_currency|translate_digits }}{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
+                        <td class="text-end tmr-amount pe-4">
+                            <div class="fw-bold">{{ user_currency }}{{ r.value|ind_comma:user_currency|translate_digits }}</div>
+                            {% if r.gain is not None %}<div class="small {% if r.gain >= 0 %}text-success{% else %}text-danger{% endif %}">{% if r.gain >= 0 %}+{% else %}&minus;{% endif %}{{ user_currency }}{{ r.gain|abs_val|ind_comma:user_currency|translate_digits }}</div>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-md-none px-1 pb-2" id="iv-deposits-cards">
+                {% for r in overview.deposits %}
+                <a href="{% url 'account-detail' r.account_uuid %}" class="iv-row text-decoration-none text-body">
+                    <div style="min-width: 0; flex: 1 1 auto;">
+                        <div class="fw-bold text-truncate">{{ r.name }}</div>
+                        <div class="small text-muted">{{ r.type_label }}{% if r.rate %} · {{ r.rate.normalize|translate_digits }}%{% endif %}{% if r.maturity %} · {% blocktrans with date=r.maturity|date:"d M Y" %}matures {{ date }}{% endblocktrans %}{% endif %}</div>
+                    </div>
+                    <div class="text-end flex-shrink-0">
+                        <div class="fw-bold">{{ user_currency }}{{ r.value|ind_comma:user_currency|translate_digits }}</div>
+                        {% if r.gain is not None %}<div class="small {% if r.gain >= 0 %}text-success{% else %}text-danger{% endif %}">{% if r.gain >= 0 %}+{% else %}&minus;{% endif %}{{ user_currency }}{{ r.gain|abs_val|ind_comma:user_currency|translate_digits }}</div>{% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-5 text-center text-muted" id="iv-deposits-empty">
+                <i class="bi bi-bank fs-1 opacity-50 mb-3 d-block" aria-hidden="true"></i>
+                <div class="h5">{% trans "No deposits yet" %}</div>
+                <p class="mb-3 small">{% trans "Fixed and recurring deposits you add as accounts show up here with their rate, maturity and value." %}</p>
+                <a href="{% url 'account-create' %}" class="btn btn-sm btn-primary rounded-pill px-4">{% trans "Add a deposit" %}</a>
+            </div>
+            {% endif %}
+           </div>
+
+           <div class="tab-pane fade" id="iv-pane-schemes" role="tabpanel" aria-labelledby="iv-tab-schemes" tabindex="0">
+            {% if overview.schemes %}
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0 tmr-table" id="iv-schemes-table">
+                    <thead><tr>
+                        <th class="ps-4">{% trans "Scheme" %}</th><th>{% trans "Rate" %}</th><th>{% trans "Matures" %}</th>
+                        <th class="text-end">{% trans "Invested" %}</th><th class="text-end pe-4">{% trans "Balance" %}</th>
+                    </tr></thead>
+                    <tbody>
+                    {% for r in overview.schemes %}
+                    <tr>
+                        <td class="ps-4">
+                            <a href="{% url 'account-detail' r.account_uuid %}" class="fw-bold text-body-emphasis text-decoration-none tmr-truncate d-block">{{ r.name }}</a>
+                            <div class="small text-muted">{{ r.type_label }}</div>
+                        </td>
+                        <td>{% if r.rate %}{{ r.rate.normalize|translate_digits }}%{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
+                        <td>{% if r.maturity %}{{ r.maturity|date:"d M Y" }}{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
+                        <td class="text-end tmr-amount">{% if r.invested is not None %}{{ user_currency }}{{ r.invested|ind_comma:user_currency|translate_digits }}{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
+                        <td class="text-end tmr-amount pe-4">
+                            <div class="fw-bold">{{ user_currency }}{{ r.value|ind_comma:user_currency|translate_digits }}</div>
+                            {% if r.gain is not None %}<div class="small {% if r.gain >= 0 %}text-success{% else %}text-danger{% endif %}">{% if r.gain >= 0 %}+{% else %}&minus;{% endif %}{{ user_currency }}{{ r.gain|abs_val|ind_comma:user_currency|translate_digits }}</div>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-md-none px-1 pb-2" id="iv-schemes-cards">
+                {% for r in overview.schemes %}
+                <a href="{% url 'account-detail' r.account_uuid %}" class="iv-row text-decoration-none text-body">
+                    <div style="min-width: 0; flex: 1 1 auto;">
+                        <div class="fw-bold text-truncate">{{ r.name }}</div>
+                        <div class="small text-muted">{{ r.type_label }}{% if r.rate %} · {{ r.rate.normalize|translate_digits }}%{% endif %}{% if r.maturity %} · {% blocktrans with date=r.maturity|date:"d M Y" %}matures {{ date }}{% endblocktrans %}{% endif %}</div>
+                    </div>
+                    <div class="text-end flex-shrink-0">
+                        <div class="fw-bold">{{ user_currency }}{{ r.value|ind_comma:user_currency|translate_digits }}</div>
+                        {% if r.gain is not None %}<div class="small {% if r.gain >= 0 %}text-success{% else %}text-danger{% endif %}">{% if r.gain >= 0 %}+{% else %}&minus;{% endif %}{{ user_currency }}{{ r.gain|abs_val|ind_comma:user_currency|translate_digits }}</div>{% endif %}
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-5 text-center text-muted" id="iv-schemes-empty">
+                <i class="bi bi-piggy-bank fs-1 opacity-50 mb-3 d-block" aria-hidden="true"></i>
+                <div class="h5">{% trans "No schemes yet" %}</div>
+                <p class="mb-3 small">{% trans "PPF, EPF, NPS, Sukanya Samriddhi and similar schemes you add as accounts show up here with their balance." %}</p>
+                <a href="{% url 'account-create' %}" class="btn btn-sm btn-primary rounded-pill px-4">{% trans "Add a scheme" %}</a>
+            </div>
+            {% endif %}
+           </div>
+          </div>
         </div>
     </div>
 </div>
@@ -496,4 +677,17 @@
 </script>
 {% endif %}
 {% include 'expenses/partials/_holding_value_modal.html' %}
+<script>
+    // The open tab is kept in the address (#deposits), so a refresh or a shared link comes back to it
+    document.addEventListener('DOMContentLoaded', function () {
+        var bar = document.getElementById('investmentTabs');
+        if (!bar || !window.bootstrap) return;
+        var wanted = (window.location.hash || '').replace('#', '');
+        var button = wanted ? document.getElementById('iv-tab-' + wanted) : null;
+        if (button) window.bootstrap.Tab.getOrCreateInstance(button).show();
+        bar.addEventListener('shown.bs.tab', function (event) {
+            try { history.replaceState(null, '', '#' + event.target.id.replace('iv-tab-', '')); } catch (e) {}
+        });
+    });
+</script>
 {% endblock %}

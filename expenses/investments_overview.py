@@ -39,6 +39,10 @@ MONTHLY_FACTOR = {
     'YEARLY': Decimal(1) / Decimal(12),
 }
 
+# Account types listed under Deposits; the other deposit-strategy types (PPF, EPF, NPS, SSY...) are the Schemes
+DEPOSIT_TAB_TYPES = frozenset({'FD', 'RD', 'FIXED_DEPOSIT'})
+UPCOMING_LIMIT = 5
+
 # Colours of the allocation bar, in the order of the biggest group first (see portfolio_summary.html)
 PALETTE_SIZE = 6
 
@@ -141,7 +145,7 @@ def _deposit_rows(accounts, balances, rate_for, labels):
             subtitle = f'{subtitle} · {account.deposit_rate.normalize():f}%'
         if account.deposit_maturity_date and not account.deposit_closed_date:
             subtitle = f'{subtitle} · ' + _('matures %(date)s') % {'date': date_format(account.deposit_maturity_date, 'd M Y')}
-        gain_pct = None
+        gain_pct, baseline_base = None, None
         try:
             if account.account_type != 'RD' and account.deposit_principal and account.deposit_principal > 0:
                 baseline = account.deposit_principal.quantize(Decimal('0.01'))       # (what get_baseline_deposit gives, without its ledger query)
@@ -154,7 +158,17 @@ def _deposit_rows(accounts, balances, rate_for, labels):
             invested += baseline_base
             tracked_current += value
             gain_pct = _pct(value - baseline_base, baseline_base)
-        rows.append({'name': account.name, 'subtitle': subtitle, 'value': value, 'gain_pct': gain_pct})
+        rows.append({
+            'name': account.name, 'subtitle': subtitle, 'value': value, 'gain_pct': gain_pct,
+            # what the Deposits and Schemes tabs show
+            'type': account.account_type, 'type_label': labels.get(account.account_type, ''),
+            'rate': account.deposit_rate or None,
+            'start': account.deposit_start_date,
+            'maturity': None if account.deposit_closed_date else account.deposit_maturity_date,
+            'invested': baseline_base,
+            'gain': (value - baseline_base) if baseline_base is not None else None,
+            'account_uuid': account.uuid,
+        })
     rows.sort(key=lambda r: r['value'], reverse=True)
     return rows, invested, tracked_current
 
@@ -231,6 +245,14 @@ def allocation_by_group(accounts, balances) -> list[dict]:
     return allocation
 
 
+def upcoming_maturities(deposit_rows, today, limit=UPCOMING_LIMIT) -> list[dict]:
+    """The next deposits and schemes to mature, soonest first (matured and closed ones are not listed)."""
+    due = [r for r in deposit_rows if r.get('maturity') and r['maturity'] >= today]
+    due.sort(key=lambda r: (r['maturity'], r['name']))
+    return [{'kind': 'maturity', 'date': r['maturity'], 'name': r['name'], 'value': r['value'],
+             'account_uuid': r['account_uuid']} for r in due[:limit]]
+
+
 def build_investments_overview(user, today=None, *, accounts=None, balances=None, rate_for=None) -> dict:
     """Everything the investment screens show. ``accounts`` and ``balances`` (the net worth's own per-account figures)
     may be passed by a caller that already has them, so net worth (and each currency's rate) is worked out once."""
@@ -256,6 +278,9 @@ def build_investments_overview(user, today=None, *, accounts=None, balances=None
         'as_of': today,
         'holding_blocks': holding_blocks,
         'deposit_rows': deposit_rows,
+        'deposits': [r for r in deposit_rows if r['type'] in DEPOSIT_TAB_TYPES],
+        'schemes': [r for r in deposit_rows if r['type'] not in DEPOSIT_TAB_TYPES],
+        'upcoming': upcoming_maturities(deposit_rows, today),
         'other_accounts': other_accounts,
         'sip_rows': sip_rows,
         'monthly_sip': monthly_sip,

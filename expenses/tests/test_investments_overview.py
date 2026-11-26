@@ -128,3 +128,58 @@ class HelperTests(Base):
         card = self.account('Visa', 'CREDIT_CARD', balance='-20000')
         _nw, balances = LedgerReadService.get_net_worth(self.user)
         self.assertEqual(allocation_by_group([card], balances), [])
+
+
+class DepositsAndSchemesTests(Base):
+    def setUp(self):
+        super().setUp()
+        self.rd = self.account('Post Office RD', 'RD', balance='20000', deposit_rate=D('6.7'),
+                               deposit_maturity_date=self.today + timedelta(days=30))
+        self.ssy = self.account('SSY', 'SSY', balance='110000', deposit_rate=D('8.2'),
+                                deposit_maturity_date=self.today + timedelta(days=4000))
+
+    def test_deposits_are_the_fixed_and_recurring_ones_and_schemes_the_rest(self):
+        overview = build_investments_overview(self.user)
+        self.assertEqual({r['name'] for r in overview['deposits']}, {'Bank FD', 'Post Office RD'})
+        self.assertEqual({r['name'] for r in overview['schemes']}, {'PPF', 'SSY'})
+        self.assertEqual(len(overview['deposits']) + len(overview['schemes']), len(overview['deposit_rows']))
+
+    def test_a_row_carries_what_the_tabs_show(self):
+        fd = next(r for r in build_investments_overview(self.user)['deposits'] if r['name'] == 'Bank FD')
+        self.assertEqual(fd['type'], 'FD')
+        self.assertEqual(fd['rate'], D('7.1'))
+        self.assertEqual(fd['maturity'], self.today + timedelta(days=365))
+        self.assertEqual(fd['invested'], D('100000.00'))
+        self.assertEqual(fd['gain'], fd['value'] - D('100000.00'))
+        self.assertEqual(fd['account_uuid'], self.fd.uuid)
+
+    def test_a_scheme_without_a_recorded_cost_has_no_invested_or_gain(self):
+        ppf = next(r for r in build_investments_overview(self.user)['schemes'] if r['name'] == 'PPF')
+        self.assertIsNone(ppf['rate'])
+        self.assertIsNone(ppf['maturity'])
+
+    def test_a_closed_deposit_has_no_maturity(self):
+        self.fd.deposit_closed_date = self.today
+        self.fd.save()
+        fd = next((r for r in build_investments_overview(self.user)['deposit_rows'] if r['name'] == 'Bank FD'), None)
+        if fd:
+            self.assertIsNone(fd['maturity'])
+
+    def test_upcoming_lists_the_soonest_maturities_first(self):
+        upcoming = build_investments_overview(self.user)['upcoming']
+        self.assertEqual([u['name'] for u in upcoming], ['Post Office RD', 'Bank FD', 'SSY'])
+        self.assertTrue(all(u['kind'] == 'maturity' for u in upcoming))
+
+    def test_upcoming_leaves_out_past_maturities_and_is_limited(self):
+        self.rd.deposit_maturity_date = self.today - timedelta(days=1)
+        self.rd.save()
+        names = [u['name'] for u in build_investments_overview(self.user)['upcoming']]
+        self.assertNotIn('Post Office RD', names)
+        for n in range(8):
+            self.account(f'FD {n}', 'FD', balance='1000', deposit_maturity_date=self.today + timedelta(days=10 + n))
+        self.assertEqual(len(build_investments_overview(self.user)['upcoming']), 5)
+
+    def test_the_report_rows_keep_their_old_fields(self):
+        row = build_portfolio_summary(self.user)['blocks']
+        titles = [b['title'] for b in row]
+        self.assertIn('Deposits and schemes', titles)

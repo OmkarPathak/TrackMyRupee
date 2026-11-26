@@ -24825,3 +24825,59 @@ msgid "%(n)s schedule"
 msgid_plural "%(n)s schedules"
 msgstr[0] "%(n)s शेड्यूल"
 msgstr[1] "%(n)s शेड्यूल"
+
+#: investments tabs
+msgid "Market"
+msgstr "बाज़ार"
+
+#: investments tabs
+msgid "Deposits"
+msgstr "जमा"
+
+#: investments tabs
+msgid "Schemes"
+msgstr "योजनाएँ"
+
+#: investments tabs
+msgid "%(name)s matures"
+msgstr "%(name)s परिपक्व होगा"
+
+#: investments tabs
+msgid "Rate"
+msgstr "दर"
+
+#: investments tabs
+msgid "Value today"
+msgstr "आज का मूल्य"
+
+#: investments tabs
+msgid "Scheme"
+msgstr "योजना"
+
+#: investments tabs
+msgid "No deposits yet"
+msgstr "अभी कोई जमा नहीं"
+
+#: investments tabs
+msgid "Fixed and recurring deposits you add as accounts show up here with their rate, maturity and value."
+msgstr "खातों के रूप में जोड़ी गई सावधि और आवर्ती जमाएँ दर, परिपक्वता और मूल्य के साथ यहाँ दिखती हैं।"
+
+#: investments tabs
+msgid "Add a deposit"
+msgstr "जमा जोड़ें"
+
+#: investments tabs
+msgid "No schemes yet"
+msgstr "अभी कोई योजना नहीं"
+
+#: investments tabs
+msgid "PPF, EPF, NPS, Sukanya Samriddhi and similar schemes you add as accounts show up here with their balance."
+msgstr "खातों के रूप में जोड़ी गई PPF, EPF, NPS, सुकन्या समृद्धि जैसी योजनाएँ शेष के साथ यहाँ दिखती हैं।"
+
+#: investments tabs
+msgid "Add a scheme"
+msgstr "योजना जोड़ें"
+
+#: investments page
+msgid "return"
+msgstr "रिटर्न"

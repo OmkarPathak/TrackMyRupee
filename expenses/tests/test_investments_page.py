@@ -80,13 +80,18 @@ class PageTests(WithInvestments):
         for item in response.context['overview']['allocation']:
             self.assertContains(response, escape(item['label']))
 
+    def test_each_group_is_listed_with_its_amount_and_share(self):
+        response = self.page()
+        self.assertContains(response, 'iv-breakdown')
+        self.assertContains(response, 'class="iv-br-amt"', count=len(response.context['overview']['allocation']))
+
     def test_the_print_report_button_goes_to_the_summary(self):
         self.assertContains(self.page(), f'href="{reverse("portfolio-summary")}"')
 
     def test_the_market_holdings_table_is_still_there(self):
         response = self.page()
         self.assertContains(response, 'Winner Fund')
-        self.assertContains(response, 'Market holdings')
+        self.assertContains(response, 'id="iv-pane-market"')
 
     def test_the_cash_note_adds_up_with_the_holdings_accounts(self):
         self.funds.balance = D('500')
@@ -118,3 +123,75 @@ class EmptyTests(Base):
         response = self.page()
         self.assertEqual(response.context['overview']['investments_value'], D('0.00'))
         self.assertNotContains(response, 'Their Fund')
+
+
+class TabsTests(WithInvestments):
+    def setUp(self):
+        super().setUp()
+        self.account('PPF', 'PPF', balance='50000')
+        self.account('Post Office RD', 'RD', balance='20000', deposit_rate=D('6.7'),
+                     deposit_maturity_date=self.today + timedelta(days=30))
+
+    def test_the_tab_bar_has_market_deposits_and_schemes(self):
+        html = self.page().content.decode()
+        for tab in ('iv-tab-market', 'iv-tab-deposits', 'iv-tab-schemes', 'iv-pane-market', 'iv-pane-deposits', 'iv-pane-schemes'):
+            self.assertIn(f'id="{tab}"', html)
+
+    def test_the_deposits_tab_lists_fixed_and_recurring_deposits_with_links(self):
+        response = self.page()
+        self.assertContains(response, 'id="iv-deposits-table"')
+        self.assertContains(response, 'Bank FD')
+        self.assertContains(response, 'Post Office RD')
+        fd = Account.objects.get(user=self.user, name='Bank FD')
+        self.assertContains(response, reverse('account-detail', args=[fd.uuid]))
+        self.assertContains(response, '7%')
+
+    def test_the_schemes_tab_lists_schemes_not_deposits(self):
+        response = self.page()
+        html = response.content.decode()
+        schemes = html[html.index('id="iv-schemes-table"'):]
+        self.assertIn('PPF', schemes.split('</table>')[0])
+        self.assertNotIn('Bank FD', schemes.split('</table>')[0])
+
+    def test_the_tabs_sit_above_the_panes_like_the_other_pages(self):
+        html = self.page().content.decode()
+        self.assertIn('class="tmr-tabs" id="investmentTabs"', html)
+        self.assertLess(html.index('id="investmentTabs"'), html.index('id="iv-pane-market"'))
+        self.assertNotIn('iv-count', html)
+
+    def test_phones_get_compact_summary_tiles(self):
+        response = self.page()
+        self.assertContains(response, 'id="investments-overview-phone"')
+        self.assertContains(response, 'tmr-stat-card')
+        for key in ('value', 'invested', 'gain', 'sip'):
+            self.assertContains(response, f'data-ivm="{key}"')
+
+    def test_coming_up_lists_maturities_with_the_soonest_first(self):
+        response = self.page()
+        self.assertContains(response, 'id="investments-upcoming"')
+        html = response.content.decode()
+        block = html[html.index('id="investments-upcoming"'):]
+        self.assertLess(block.index('Post Office RD'), block.index('Bank FD'))
+        self.assertIn('Matures', block)
+
+    def test_the_phone_cards_are_there_too(self):
+        response = self.page()
+        self.assertContains(response, 'id="iv-deposits-cards"')
+        self.assertContains(response, 'id="iv-schemes-cards"')
+
+
+class EmptyTabsTests(Base):
+    def test_empty_deposits_and_schemes_invite_adding_one(self):
+        response = self.page()
+        self.assertContains(response, 'id="iv-deposits-empty"')
+        self.assertContains(response, 'id="iv-schemes-empty"')
+        self.assertContains(response, reverse('account-create'))
+
+    def test_no_coming_up_card_without_maturities(self):
+        self.assertNotContains(self.page(), 'id="investments-upcoming"')
+
+    def test_the_allocation_takes_the_full_width_without_coming_up(self):
+        self.account('HDFC Savings', balance='1000')
+        html = self.page().content.decode()
+        card = html[:html.index('id="investments-allocation"')]
+        self.assertNotIn('col-lg-8', card.split('class="row g-3 mb-4"')[-1])
