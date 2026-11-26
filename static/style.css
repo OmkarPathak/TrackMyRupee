@@ -4411,6 +4411,7 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
 .type-income { background-color: #E6F4EF; color: var(--color-success-text, #0F7657); }
 .type-transfer { background-color: #EBF3FC; color: var(--color-info-text, #1E65B5); }
 .type-loan { background-color: #FDF4E7; color: var(--color-warning-text, #9C5400); }
+.type-loan_received { background-color: #E6F4EF; color: var(--color-success-text, #0F7657); }
 .type-savings { background-color: #FDF4E7; color: var(--color-warning-text, #9C5400); }
 .type-capital_event { background-color: #FDE8ED; color: var(--color-danger-text, #B93822); }
 
@@ -4418,6 +4419,7 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
 [data-bs-theme="dark"] .type-income { background-color: rgba(93, 202, 165, 0.18); color: #5DCAA5; }
 [data-bs-theme="dark"] .type-transfer { background-color: rgba(133, 183, 235, 0.18); color: #85B7EB; }
 [data-bs-theme="dark"] .type-loan { background-color: rgba(244, 180, 78, 0.18); color: #F4B44E; }
+[data-bs-theme="dark"] .type-loan_received { background-color: rgba(93, 202, 165, 0.18); color: #5DCAA5; }
 [data-bs-theme="dark"] .type-savings { background-color: rgba(244, 180, 78, 0.18); color: #F4B44E; }
 [data-bs-theme="dark"] .type-capital_event { background-color: rgba(248, 113, 113, 0.18); color: #F49C8C; }
 
@@ -4425,6 +4427,7 @@ html body.has-sidebar .table-responsive .tmr-table.table > tbody > tr > td.tmr-a
 .amount-income { color: var(--color-success-text, #0F7657) !important; }
 .amount-transfer { color: var(--color-info-text, #1E65B5) !important; }
 .amount-loan { color: var(--color-warning-text, #9C5400) !important; }
+.amount-loan_received { color: var(--color-success-text, #0F7657) !important; }
 .amount-savings { color: var(--color-warning-text, #9C5400) !important; }
 .amount-capital_event { color: var(--color-danger-text, #B93822) !important; }
 .amount-neutral { color: var(--color-muted-text, var(--bs-secondary-color)) !important; }

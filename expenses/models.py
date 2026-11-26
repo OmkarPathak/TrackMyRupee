@@ -3124,6 +3124,9 @@ class LoanDisbursement(models.Model):
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_disbursements',
                                 verbose_name=_('Received in account'))
     amount = models.DecimalField(max_digits=15, decimal_places=2, verbose_name=_('Amount received'))
+    # in the person's own currency, as on a repayment: what the Transactions list shows
+    exchange_rate = models.DecimalField(max_digits=15, decimal_places=6, default=1.0, verbose_name=_('Exchange Rate'))
+    base_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.0, verbose_name=_('Amount in Base Currency'))
     date = models.DateField(default=timezone.now, verbose_name=_('Date received'))
     note = models.CharField(max_length=120, blank=True, default='', verbose_name=_('Note'))
     created_at = models.DateTimeField(auto_now_add=True)
@@ -3163,6 +3166,13 @@ class LoanDisbursement(models.Model):
         self.full_clean()
         with transaction.atomic():
             is_new = self.pk is None
+            if is_new:
+                base_currency = self.loan.user.profile.currency
+                if self.loan.currency == base_currency:
+                    self.exchange_rate, self.base_amount = Decimal('1.0'), self.amount
+                else:
+                    self.exchange_rate = get_exchange_rate(self.loan.currency, base_currency)
+                    self.base_amount = (self.amount * self.exchange_rate).quantize(Decimal('0.01'))
             super().save(*args, **kwargs)
             if not is_new:
                 return                      # (only the date or the note can change: the account and the ledger stay as they are)

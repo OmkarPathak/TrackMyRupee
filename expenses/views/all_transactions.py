@@ -18,7 +18,7 @@ from django.db.models.functions import Cast, Concat
 from django.views.generic import ListView
 
 from ..ledger_read_service import LedgerReadService
-from ..models import Account, CapitalEvent, Expense, Income, LoanRepayment, Transfer
+from ..models import Account, CapitalEvent, Expense, Income, LoanDisbursement, LoanRepayment, Transfer
 from ..refunds import net_sum
 from ..savings import LINKED_REFUND, savings_from_querysets
 from ..utils import get_exchange_rate
@@ -89,6 +89,19 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             target_account_id=Cast(Value(None), output_field=BigIntegerField()),
         )
 
+        # 4b. Loan amounts received: money in for an account that is neither income nor spending (never in the totals)
+        loan_received = LoanDisbursement.active.filter(loan__user=user).annotate(
+            uuid_str=Cast(F('uuid'), output_field=CharField()),
+            type=Cast(Value('LOAN_RECEIVED'), output_field=CharField()),
+            cat=Cast(F('loan__name'), output_field=CharField()),
+            acc=Cast(F('account__name'), output_field=CharField()),
+            unified_amount=Cast(F('base_amount'), output_field=DecimalField(max_digits=15, decimal_places=2)),
+            tx_description=Cast(Concat(Value('Loan received - '), F('loan__name'), output_field=CharField()), output_field=CharField()),
+            loan_pk=Cast(F('loan__uuid'), output_field=CharField()),
+            source_account_id=Cast(F('account_id'), output_field=BigIntegerField()),
+            target_account_id=Cast(Value(None), output_field=BigIntegerField()),
+        )
+
         # 5. Normalize Capital Events
         capital_events = CapitalEvent.objects.filter(user=user).annotate(
             uuid_str=Cast(F('uuid'), output_field=CharField()),
@@ -123,6 +136,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         incomes = apply_date_filters(incomes, self.request)
         transfers = apply_date_filters(transfers, self.request)
         loan_repayments = apply_date_filters(loan_repayments, self.request)
+        loan_received = apply_date_filters(loan_received, self.request)
         capital_events = apply_date_filters(capital_events, self.request)
 
         # Filter querysets individually before union if possible, or filter the union
@@ -132,6 +146,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             incomes = incomes.filter(Q(description__icontains=search_query) | Q(source__icontains=search_query) | Q(source_type__icontains=search_query))
             transfers = transfers.filter(description__icontains=search_query)
             loan_repayments = loan_repayments.filter(loan__name__icontains=search_query)
+            loan_received = loan_received.filter(Q(loan__name__icontains=search_query) | Q(note__icontains=search_query))
             capital_events = capital_events.filter(Q(note__icontains=search_query) | Q(subtype__icontains=search_query))
 
         if selected_accounts:
@@ -139,6 +154,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             incomes = incomes.filter(account_id__in=selected_accounts)
             transfers = transfers.filter(Q(from_account_id__in=selected_accounts) | Q(to_account_id__in=selected_accounts))
             loan_repayments = loan_repayments.filter(from_account_id__in=selected_accounts)
+            loan_received = loan_received.filter(account_id__in=selected_accounts)
             capital_events = capital_events.filter(account_id__in=selected_accounts)
 
         # Only expenses and capital events have a category, so a category filter leaves just those two
@@ -149,6 +165,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             incomes = incomes.none()
             transfers = transfers.none()
             loan_repayments = loan_repayments.none()
+            loan_received = loan_received.none()
 
         if selected_amounts:
             from ..filters.definitions import filter_amount_range
@@ -156,6 +173,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             incomes = filter_amount_range(incomes, selected_amounts)
             transfers = filter_amount_range(transfers, selected_amounts)
             loan_repayments = filter_amount_range(loan_repayments, selected_amounts)
+            loan_received = filter_amount_range(loan_received, selected_amounts)
             capital_events = filter_amount_range(capital_events, selected_amounts)
 
         return {
@@ -163,6 +181,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
             'incomes': incomes,
             'transfers': transfers,
             'loan_repayments': loan_repayments,
+            'loan_received': loan_received,
             'capital_events': capital_events,
         }
 
@@ -181,6 +200,7 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         incomes = filtered_qs['incomes']
         transfers = filtered_qs['transfers']
         loan_repayments = filtered_qs['loan_repayments']
+        loan_received = filtered_qs['loan_received']
         capital_events = filtered_qs['capital_events']
 
         selected_types = [t for t in self.request.GET.getlist('type') if t]
@@ -188,12 +208,13 @@ class AllTransactionsListView(HtmxPartialTemplateMixin, LoginRequiredMixin, List
         # Filter by Transaction Type
         active_qs = []
         if not selected_types:
-            active_qs = [expenses, incomes, transfers, loan_repayments, capital_events]
+            active_qs = [expenses, incomes, transfers, loan_repayments, loan_received, capital_events]
         else:
             if 'EXPENSE' in selected_types: active_qs.append(expenses)
             if 'INCOME' in selected_types: active_qs.append(incomes)
             if 'TRANSFER' in selected_types: active_qs.append(transfers)
             if 'LOAN' in selected_types: active_qs.append(loan_repayments)
+            if 'LOAN_RECEIVED' in selected_types: active_qs.append(loan_received)
             if 'CAPITAL_EVENT' in selected_types: active_qs.append(capital_events)
 
         if not active_qs:

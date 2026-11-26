@@ -640,6 +640,14 @@ class LoanDisbursementDeleteView(LoginRequiredMixin, LoanFeatureGateMixin, UUIDO
     def get(self, request, *args, **kwargs):
         return redirect('loan-detail', pk=self.get_object().loan.uuid)
 
+    def post(self, request, *args, **kwargs):
+        received = self.get_object()
+        if LoanTopUp.objects.filter(disbursement=received).exists():
+            # The money a top-up put into an account goes with the top-up, so the two cannot get out of step
+            messages.error(request, _("This amount came with a top-up. Delete the top-up on the loan page to take it out again."))
+            return redirect('loan-detail', pk=received.loan.uuid)
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
         response = super().form_valid(form)
         messages.success(self.request, _("Deleted. The amount was taken out of the account again."))

@@ -24749,3 +24749,7 @@ msgstr "रोज़ के खर्च से अलग रखे गए ख�
 #: dashboard cards
 msgid "No change"
 msgstr "कोई बदलाव नहीं"
+
+#: loan received
+msgid "This amount came with a top-up. Delete the top-up on the loan page to take it out again."
+msgstr "यह राशि टॉप-अप के साथ आई थी। इसे फिर से निकालने के लिए ऋण पृष्ठ पर टॉप-अप हटाएँ।"
