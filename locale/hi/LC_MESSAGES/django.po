@@ -24881,3 +24881,39 @@ msgstr "योजना जोड़ें"
 #: investments page
 msgid "return"
 msgstr "रिटर्न"
+
+#: investments sips
+msgid "SIPs"
+msgstr "SIP"
+
+#: investments sips
+msgid "SIP"
+msgstr "SIP"
+
+#: investments sips
+msgid "Next date"
+msgstr "अगली तारीख"
+
+#: investments sips
+msgid "about %(cur)s%(amount)s a month"
+msgstr "लगभग %(cur)s%(amount)s प्रति माह"
+
+#: investments sips
+msgid "About %(cur)s%(amount)s a month across your SIPs, other frequencies counted as monthly."
+msgstr "आपके SIP में लगभग %(cur)s%(amount)s प्रति माह, अन्य आवृत्तियाँ मासिक गिनी गई हैं।"
+
+#: investments sips
+msgid "next %(date)s"
+msgstr "अगली %(date)s"
+
+#: investments sips
+msgid "No SIPs yet"
+msgstr "अभी कोई SIP नहीं"
+
+#: investments sips
+msgid "A recurring transfer into an investment account shows up here with its amount and next date."
+msgstr "निवेश खाते में आवर्ती ट्रांसफ़र राशि और अगली तारीख के साथ यहाँ दिखता है।"
+
+#: investments sips
+msgid "Set up a SIP"
+msgstr "SIP शुरू करें"

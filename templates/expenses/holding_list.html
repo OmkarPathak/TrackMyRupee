@@ -150,7 +150,7 @@
                     <li class="iv-up-row">
                         <div class="iv-up-main">
                             <a href="{% url 'account-detail' item.account_uuid %}" class="iv-up-name">{{ item.name }}</a>
-                            <div class="iv-up-sub"><i class="bi bi-calendar-event" aria-hidden="true"></i>{% trans "Matures" %} {{ item.date|date:"d M Y" }}</div>
+                            <div class="iv-up-sub">{% if item.kind == 'sip' %}<i class="bi bi-arrow-repeat" aria-hidden="true"></i>{% trans "SIP" %} {{ item.date|date:"d M Y" }}{% else %}<i class="bi bi-calendar-event" aria-hidden="true"></i>{% trans "Matures" %} {{ item.date|date:"d M Y" }}{% endif %}</div>
                         </div>
                         <div class="iv-up-amt">{{ user_currency }}{{ item.value|ind_comma:user_currency|translate_digits }}</div>
                     </li>
@@ -191,6 +191,7 @@
         <button class="tmr-tab active" id="iv-tab-market" data-bs-toggle="tab" data-bs-target="#iv-pane-market" type="button" role="tab" aria-controls="iv-pane-market" aria-selected="true">{% trans "Market" %}</button>
         <button class="tmr-tab" id="iv-tab-deposits" data-bs-toggle="tab" data-bs-target="#iv-pane-deposits" type="button" role="tab" aria-controls="iv-pane-deposits" aria-selected="false">{% trans "Deposits" %}</button>
         <button class="tmr-tab" id="iv-tab-schemes" data-bs-toggle="tab" data-bs-target="#iv-pane-schemes" type="button" role="tab" aria-controls="iv-pane-schemes" aria-selected="false">{% trans "Schemes" %}</button>
+        <button class="tmr-tab" id="iv-tab-sips" data-bs-toggle="tab" data-bs-target="#iv-pane-sips" type="button" role="tab" aria-controls="iv-pane-sips" aria-selected="false">{% trans "SIPs" %}</button>
     </div>
 
     <!-- Main Holdings Card Container -->
@@ -521,6 +522,56 @@
                 <div class="h5">{% trans "No schemes yet" %}</div>
                 <p class="mb-3 small">{% trans "PPF, EPF, NPS, Sukanya Samriddhi and similar schemes you add as accounts show up here with their balance." %}</p>
                 <a href="{% url 'account-create' %}" class="btn btn-sm btn-primary rounded-pill px-4">{% trans "Add a scheme" %}</a>
+            </div>
+            {% endif %}
+           </div>
+
+           <div class="tab-pane fade" id="iv-pane-sips" role="tabpanel" aria-labelledby="iv-tab-sips" tabindex="0">
+            {% if overview.sip_schedules %}
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0 tmr-table" id="iv-sips-table">
+                    <thead><tr>
+                        <th class="ps-4">{% trans "SIP" %}</th><th>{% trans "Account" %}</th><th>{% trans "Frequency" %}</th><th>{% trans "Next date" %}</th>
+                        <th class="text-end pe-4">{% trans "Amount" %}</th>
+                    </tr></thead>
+                    <tbody>
+                    {% for r in overview.sip_schedules %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold">{{ r.name }}</div>
+                            {% if r.funds %}<div class="small text-muted">{% for f in r.funds %}{{ f.name }} {{ user_currency }}{{ f.amount|ind_comma:user_currency|translate_digits }}{% if not forloop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+                        </td>
+                        <td><a href="{% url 'account-detail' r.account_uuid %}" class="text-decoration-none text-body">{{ r.account }}</a></td>
+                        <td>{{ r.frequency }}</td>
+                        <td>{% if r.next_date %}{{ r.next_date|date:"d M Y" }}{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
+                        <td class="text-end tmr-amount pe-4">
+                            <div class="fw-bold">{{ user_currency }}{{ r.amount|ind_comma:user_currency|translate_digits }}</div>
+                            {% if r.frequency_code != 'MONTHLY' %}<div class="small text-muted">{% blocktrans with amount=r.monthly|ind_comma:user_currency cur=user_currency %}about {{ cur }}{{ amount }} a month{% endblocktrans %}</div>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div class="px-4 py-3 small text-muted border-top">{% blocktrans with amount=overview.monthly_sip|ind_comma:user_currency cur=user_currency %}About {{ cur }}{{ amount }} a month across your SIPs, other frequencies counted as monthly.{% endblocktrans %}</div>
+            </div>
+            <div class="d-md-none px-1 pb-2" id="iv-sips-cards">
+                {% for r in overview.sip_schedules %}
+                <a href="{% url 'account-detail' r.account_uuid %}" class="iv-row text-decoration-none text-body">
+                    <div style="min-width: 0; flex: 1 1 auto;">
+                        <div class="fw-bold text-truncate">{{ r.name }}</div>
+                        <div class="small text-muted">{{ r.account }} · {{ r.frequency }}{% if r.next_date %} · {% blocktrans with date=r.next_date|date:"d M" %}next {{ date }}{% endblocktrans %}{% endif %}</div>
+                    </div>
+                    <div class="fw-bold text-end flex-shrink-0">{{ user_currency }}{{ r.amount|ind_comma:user_currency|translate_digits }}</div>
+                </a>
+                {% endfor %}
+                <div class="small text-muted pt-2">{% blocktrans with amount=overview.monthly_sip|ind_comma:user_currency cur=user_currency %}About {{ cur }}{{ amount }} a month across your SIPs, other frequencies counted as monthly.{% endblocktrans %}</div>
+            </div>
+            {% else %}
+            <div class="p-5 text-center text-muted" id="iv-sips-empty">
+                <i class="bi bi-arrow-repeat fs-1 opacity-50 mb-3 d-block" aria-hidden="true"></i>
+                <div class="h5">{% trans "No SIPs yet" %}</div>
+                <p class="mb-3 small">{% trans "A recurring transfer into an investment account shows up here with its amount and next date." %}</p>
+                <a href="{% url 'recurring-create' %}" class="btn btn-sm btn-primary rounded-pill px-4">{% trans "Set up a SIP" %}</a>
             </div>
             {% endif %}
            </div>

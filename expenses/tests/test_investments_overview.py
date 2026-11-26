@@ -183,3 +183,91 @@ class DepositsAndSchemesTests(Base):
         row = build_portfolio_summary(self.user)['blocks']
         titles = [b['title'] for b in row]
         self.assertIn('Deposits and schemes', titles)
+
+
+class SipScheduleTests(Base):
+    def setUp(self):
+        super().setUp()
+        self.soon = self.today + timedelta(days=5)
+
+    def sip_due(self, amount, due, frequency='MONTHLY', to=None, description='SIP'):
+        schedule = self.sip(amount, frequency, to=to)
+        RecurringTransaction.objects.filter(pk=schedule.pk).update(next_due_date=due, description=description)
+        return schedule
+
+    def test_a_schedule_carries_what_the_tab_shows(self):
+        self.sip_due('5000', self.soon, description='Flexi cap SIP')
+        row = build_investments_overview(self.user)['sip_schedules'][0]
+        self.assertEqual((row['name'], row['account'], row['frequency'], row['amount'], row['monthly'], row['next_date']),
+                         ('Flexi cap SIP', 'Mutual Funds', 'Monthly', D('5000.00'), D('5000.00'), self.soon))
+        self.assertEqual(row['account_uuid'], self.funds.uuid)
+
+    def test_a_weekly_schedule_shows_its_instalment_and_its_monthly_equivalent(self):
+        self.sip_due('1000', self.soon, 'WEEKLY')
+        row = build_investments_overview(self.user)['sip_schedules'][0]
+        self.assertEqual(row['amount'], D('1000.00'))
+        self.assertEqual(row['monthly'], (D('1000') * D(52) / D(12)).quantize(D('0.01')))
+
+    def test_a_split_schedule_lists_its_funds(self):
+        from expenses.models import RecurringFundSplit
+        schedule = self.sip_due('5000', self.soon)
+        winner = Holding.objects.get(instrument_name='Winner Fund')
+        RecurringFundSplit.objects.create(recurring=schedule, holding=winner, amount=D('3000'))
+        funds = build_investments_overview(self.user)['sip_schedules'][0]['funds']
+        self.assertEqual([(f['name'], f['amount']) for f in funds], [('Winner Fund', D('3000.00'))])
+
+    def test_schedules_are_ordered_by_next_date_with_undated_last(self):
+        self.sip_due('100', self.today + timedelta(days=20), description='Later')
+        self.sip_due('200', self.soon, description='Sooner')
+        undated = self.sip('300')
+        RecurringTransaction.objects.filter(pk=undated.pk).update(next_due_date=None, description='Undated')
+        names = [r['name'] for r in build_investments_overview(self.user)['sip_schedules']]
+        self.assertEqual(names, ['Sooner', 'Later', 'Undated'])
+
+    def test_an_ended_or_paused_sip_is_not_listed(self):
+        ended = self.sip_due('100', self.soon, description='Ended')
+        RecurringTransaction.objects.filter(pk=ended.pk).update(end_date=self.today - timedelta(days=1))
+        paused = self.sip_due('100', self.soon, description='Paused')
+        RecurringTransaction.objects.filter(pk=paused.pk).update(is_active=False)
+        self.assertEqual(build_investments_overview(self.user)['sip_schedules'], [])
+
+    def test_the_schedule_count_matches_the_monthly_total_source(self):
+        self.sip_due('5000', self.soon)
+        self.sip_due('1000', self.soon, 'WEEKLY', to=self.demat)
+        overview = build_investments_overview(self.user)
+        self.assertEqual(sum(r['monthly'] for r in overview['sip_schedules']), overview['monthly_sip'])
+
+
+class UpcomingEventsTests(Base):
+    def setUp(self):
+        super().setUp()
+        self.account('Post Office RD', 'RD', balance='20000', deposit_maturity_date=self.today + timedelta(days=30))
+
+    def due(self, name, days, amount='100'):
+        schedule = self.sip(amount)
+        RecurringTransaction.objects.filter(pk=schedule.pk).update(next_due_date=self.today + timedelta(days=days), description=name)
+
+    def test_sips_and_maturities_are_mixed_soonest_first(self):
+        self.due('Flexi cap SIP', 5)
+        self.due('Index SIP', 12)
+        events = build_investments_overview(self.user)['upcoming']
+        self.assertEqual([(e['kind'], e['name']) for e in events],
+                         [('sip', 'Flexi cap SIP'), ('sip', 'Index SIP'), ('maturity', 'Post Office RD'), ('maturity', 'Bank FD')])
+
+    def test_a_sip_further_away_than_the_window_is_left_out(self):
+        self.due('Far SIP', 60)
+        self.assertNotIn('Far SIP', [e['name'] for e in build_investments_overview(self.user)['upcoming']])
+
+    def test_an_overdue_sip_is_left_out(self):
+        self.due('Missed SIP', -3)
+        self.assertNotIn('Missed SIP', [e['name'] for e in build_investments_overview(self.user)['upcoming']])
+
+    def test_the_list_is_limited(self):
+        for n in range(8):
+            self.due(f'SIP {n}', n + 1)
+        self.assertEqual(len(build_investments_overview(self.user)['upcoming']), 5)
+
+    def test_a_sip_event_carries_the_instalment_amount_and_the_account(self):
+        self.due('Flexi cap SIP', 5, amount='7500')
+        event = build_investments_overview(self.user)['upcoming'][0]
+        self.assertEqual((event['value'], event['account_uuid']), (D('7500.00'), self.funds.uuid))

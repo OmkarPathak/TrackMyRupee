@@ -24944,3 +24944,39 @@ msgstr "योजना जोडा"
 #: investments page
 msgid "return"
 msgstr "परतावा"
+
+#: investments sips
+msgid "SIPs"
+msgstr "SIP"
+
+#: investments sips
+msgid "SIP"
+msgstr "SIP"
+
+#: investments sips
+msgid "Next date"
+msgstr "पुढील तारीख"
+
+#: investments sips
+msgid "about %(cur)s%(amount)s a month"
+msgstr "सुमारे %(cur)s%(amount)s दरमहा"
+
+#: investments sips
+msgid "About %(cur)s%(amount)s a month across your SIPs, other frequencies counted as monthly."
+msgstr "तुमच्या SIP मध्ये सुमारे %(cur)s%(amount)s दरमहा, इतर वारंवारता मासिक धरल्या आहेत."
+
+#: investments sips
+msgid "next %(date)s"
+msgstr "पुढील %(date)s"
+
+#: investments sips
+msgid "No SIPs yet"
+msgstr "अजून SIP नाहीत"
+
+#: investments sips
+msgid "A recurring transfer into an investment account shows up here with its amount and next date."
+msgstr "गुंतवणूक खात्यातील आवर्ती हस्तांतरण रक्कम आणि पुढील तारखेसह येथे दिसते."
+
+#: investments sips
+msgid "Set up a SIP"
+msgstr "SIP सुरू करा"

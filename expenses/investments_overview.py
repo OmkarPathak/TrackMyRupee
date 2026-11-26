@@ -14,6 +14,7 @@ disagree with the net worth card:
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import timedelta
 from decimal import Decimal
 
 from django.utils import timezone
@@ -42,6 +43,7 @@ MONTHLY_FACTOR = {
 # Account types listed under Deposits; the other deposit-strategy types (PPF, EPF, NPS, SSY...) are the Schemes
 DEPOSIT_TAB_TYPES = frozenset({'FD', 'RD', 'FIXED_DEPOSIT'})
 UPCOMING_LIMIT = 5
+SIP_WINDOW_DAYS = 30           # SIPs due within this many days are listed under Coming up
 
 # Colours of the allocation bar, in the order of the biggest group first (see portfolio_summary.html)
 PALETTE_SIZE = 6
@@ -174,18 +176,31 @@ def _deposit_rows(accounts, balances, rate_for, labels):
 
 
 def _sip_rows(user, today, base_rate):
+    """(rows for the report, the monthly total, one entry per schedule for the SIPs tab)."""
     schedules = (RecurringTransaction.objects
                  .filter(user=user, is_active=True, transaction_type='TRANSFER',
                          to_account__is_active=True, to_account__account_type__in=investment_codes())
                  .exclude(end_date__lt=today)
                  .select_related('to_account').prefetch_related('fund_splits__holding'))
-    rows, total = [], ZERO
+    rows, total, listing = [], ZERO, []
     for schedule in schedules:
         factor = MONTHLY_FACTOR.get(schedule.frequency, Decimal(1))
         rate = base_rate(schedule.currency)
         monthly = (schedule.amount * rate * factor).quantize(Decimal('0.01'))
         total += monthly
         splits = list(schedule.fund_splits.all())
+        funds = [{'name': split.holding.instrument_name, 'amount': (split.amount * rate).quantize(Decimal('0.01'))} for split in splits]
+        listing.append({
+            'name': schedule.description or schedule.to_account.name,
+            'account': schedule.to_account.name,
+            'account_uuid': schedule.to_account.uuid,
+            'frequency': schedule.get_frequency_display(),
+            'frequency_code': schedule.frequency,
+            'amount': (schedule.amount * rate).quantize(Decimal('0.01')),
+            'monthly': monthly,
+            'next_date': schedule.next_due_date,
+            'funds': funds,
+        })
         if splits:
             fund_rows = [{'name': split.holding.instrument_name, 'subtitle': schedule.to_account.name,
                           'value': (split.amount * rate * factor).quantize(Decimal('0.01'))} for split in splits]
@@ -199,7 +214,8 @@ def _sip_rows(user, today, base_rate):
             rows.append({'name': schedule.description or schedule.to_account.name, 'subtitle': schedule.to_account.name,
                          'value': monthly})
     rows.sort(key=lambda r: r['value'], reverse=True)
-    return rows, total
+    listing.sort(key=lambda r: (r['next_date'] is None, r['next_date'] or today, r['name']))
+    return rows, total, listing
 
 
 def active_accounts(user):
@@ -245,12 +261,16 @@ def allocation_by_group(accounts, balances) -> list[dict]:
     return allocation
 
 
-def upcoming_maturities(deposit_rows, today, limit=UPCOMING_LIMIT) -> list[dict]:
-    """The next deposits and schemes to mature, soonest first (matured and closed ones are not listed)."""
-    due = [r for r in deposit_rows if r.get('maturity') and r['maturity'] >= today]
-    due.sort(key=lambda r: (r['maturity'], r['name']))
-    return [{'kind': 'maturity', 'date': r['maturity'], 'name': r['name'], 'value': r['value'],
-             'account_uuid': r['account_uuid']} for r in due[:limit]]
+def upcoming_events(deposit_rows, sip_schedules, today, limit=UPCOMING_LIMIT, sip_days=SIP_WINDOW_DAYS) -> list[dict]:
+    """What is next on the person's investments, soonest first: deposits and schemes about to mature, and the SIPs due in
+    the next few weeks (matured and closed deposits are not listed)."""
+    events = [{'kind': 'maturity', 'date': r['maturity'], 'name': r['name'], 'value': r['value'], 'account_uuid': r['account_uuid']}
+              for r in deposit_rows if r.get('maturity') and r['maturity'] >= today]
+    window_end = today + timedelta(days=sip_days)
+    events += [{'kind': 'sip', 'date': r['next_date'], 'name': r['name'], 'value': r['amount'], 'account_uuid': r['account_uuid']}
+               for r in sip_schedules if r.get('next_date') and today <= r['next_date'] <= window_end]
+    events.sort(key=lambda e: (e['date'], e['kind'], e['name']))
+    return events[:limit]
 
 
 def build_investments_overview(user, today=None, *, accounts=None, balances=None, rate_for=None) -> dict:
@@ -267,7 +287,7 @@ def build_investments_overview(user, today=None, *, accounts=None, balances=None
 
     holding_blocks, holdings_invested, holdings_current = _holding_rows(user, holdings_accounts, balances, rate_for)
     deposit_rows, deposits_invested, deposits_current = _deposit_rows(deposit_accounts, balances, rate_for, labels)
-    sip_rows, monthly_sip = _sip_rows(user, today, rate_for)
+    sip_rows, monthly_sip, sip_schedules = _sip_rows(user, today, rate_for)
 
     invested = holdings_invested + deposits_invested
     tracked_current = holdings_current + deposits_current
@@ -280,7 +300,8 @@ def build_investments_overview(user, today=None, *, accounts=None, balances=None
         'deposit_rows': deposit_rows,
         'deposits': [r for r in deposit_rows if r['type'] in DEPOSIT_TAB_TYPES],
         'schemes': [r for r in deposit_rows if r['type'] not in DEPOSIT_TAB_TYPES],
-        'upcoming': upcoming_maturities(deposit_rows, today),
+        'upcoming': upcoming_events(deposit_rows, sip_schedules, today),
+        'sip_schedules': sip_schedules,
         'other_accounts': other_accounts,
         'sip_rows': sip_rows,
         'monthly_sip': monthly_sip,

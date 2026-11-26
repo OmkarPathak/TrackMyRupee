@@ -179,3 +179,74 @@ class PhoneTabsTests(Base):
         self.assertFalse(page.is_visible('#iv-deposits-table'))
         self.assertIn('Bank FD', page.inner_text('#iv-deposits-cards'))
         self.assertEqual(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1'), True)
+
+
+class SipBase(Base):
+    def setUp(self):
+        super().setUp()
+        from expenses.models import RecurringTransaction
+        today = timezone.localdate()
+        RecurringTransaction.objects.filter(user=self.user).update(next_due_date=today + timedelta(days=4), description='Flexi cap SIP')
+        weekly = RecurringTransaction.objects.create(
+            user=self.user, transaction_type='TRANSFER', amount=D('1000'), currency='₹', base_amount=D('1000'),
+            description='Weekly SIP', frequency='WEEKLY', start_date=today, from_account=self.bank, to_account=self.funds)
+        RecurringTransaction.objects.filter(pk=weekly.pk).update(next_due_date=today + timedelta(days=2))
+
+    def go(self, page, tab):
+        page.click(f'#iv-tab-{tab}')
+        page.wait_for_selector(f'#iv-pane-{tab}.active.show')
+
+
+class SipsTests(SipBase):
+    def test_the_sips_tab_lists_each_schedule_with_its_next_date(self):
+        page = self.open_page()
+        self.go(page, 'sips')
+        text = page.inner_text('#iv-sips-table')
+        self.assertIn('Flexi cap SIP', text)
+        self.assertIn('Weekly SIP', text)
+        self.assertLess(text.index('Weekly SIP'), text.index('Flexi cap SIP'))       # the sooner one first
+        self.assertIn('a month', text)
+
+    def test_the_monthly_total_matches_the_tile(self):
+        page = self.open_page()
+        tile = page.inner_text('[data-iv=sip]').strip()
+        self.go(page, 'sips')
+        self.assertIn(tile.replace('₹', ''), page.inner_text('#iv-pane-sips'))
+
+    def test_the_tab_is_kept_in_the_address(self):
+        page = self.open_page()
+        self.go(page, 'sips')
+        self.assertTrue(page.url.endswith('#sips'))
+        page.reload()
+        page.wait_for_selector('#iv-pane-sips.active.show')
+
+    def test_coming_up_lists_the_sips_due_soon_among_the_maturities(self):
+        page = self.open_page()
+        text = page.inner_text('#investments-upcoming')
+        self.assertIn('Weekly SIP', text)
+        self.assertIn('Bank FD', text)
+        self.assertLess(text.index('Weekly SIP'), text.index('Bank FD'))
+
+    def test_a_schedule_row_opens_its_account(self):
+        page = self.open_page()
+        self.go(page, 'sips')
+        page.click('#iv-sips-table >> text=Mutual Funds >> nth=0')
+        page.wait_for_url('**/accounts/**')
+
+    def test_an_empty_tab_invites_setting_one_up(self):
+        from expenses.models import RecurringTransaction
+        RecurringTransaction.objects.filter(user=self.user).delete()
+        page = self.open_page()
+        self.go(page, 'sips')
+        self.assertTrue(page.is_visible('#iv-sips-empty'))
+
+
+class PhoneSipsTests(SipBase):
+    def test_the_sips_are_cards_on_a_phone(self):
+        page = self.open_page(phone=True)
+        page.click('#iv-tab-sips')
+        page.wait_for_selector('#iv-pane-sips.active.show')
+        self.assertTrue(page.is_visible('#iv-sips-cards'))
+        self.assertFalse(page.is_visible('#iv-sips-table'))
+        self.assertIn('Weekly SIP', page.inner_text('#iv-sips-cards'))
+        self.assertEqual(page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1'), True)

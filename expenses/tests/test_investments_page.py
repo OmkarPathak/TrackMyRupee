@@ -195,3 +195,49 @@ class EmptyTabsTests(Base):
         html = self.page().content.decode()
         card = html[:html.index('id="investments-allocation"')]
         self.assertNotIn('col-lg-8', card.split('class="row g-3 mb-4"')[-1])
+
+
+class SipTabTests(WithInvestments):
+    def setUp(self):
+        super().setUp()
+        schedule = RecurringTransaction.objects.get(user=self.user)
+        RecurringTransaction.objects.filter(pk=schedule.pk).update(next_due_date=self.today + timedelta(days=4), description='Flexi cap SIP')
+        self.weekly = RecurringTransaction.objects.create(
+            user=self.user, transaction_type='TRANSFER', amount=D('1000'), currency='₹', base_amount=D('1000'),
+            description='Weekly SIP', frequency='WEEKLY', start_date=self.today, from_account=self.bank, to_account=self.funds)
+        RecurringTransaction.objects.filter(pk=self.weekly.pk).update(next_due_date=self.today + timedelta(days=2))
+
+    def test_the_tab_and_pane_are_there(self):
+        html = self.page().content.decode()
+        for key in ('iv-tab-sips', 'iv-pane-sips', 'iv-sips-table', 'iv-sips-cards'):
+            self.assertIn(f'id="{key}"', html)
+
+    def test_each_schedule_is_listed_soonest_first(self):
+        html = self.page().content.decode()
+        table = html[html.index('id="iv-sips-table"'):].split('</table>')[0]
+        self.assertLess(table.index('Weekly SIP'), table.index('Flexi cap SIP'))
+        self.assertIn('Mutual Funds', table)
+
+    def test_a_weekly_schedule_shows_its_monthly_equivalent(self):
+        html = self.page().content.decode()
+        table = html[html.index('id="iv-sips-table"'):].split('</table>')[0]
+        self.assertIn('a month', table)
+        self.assertEqual(table.count('a month'), 1)         # the monthly one needs none
+
+    def test_the_monthly_total_is_stated(self):
+        self.assertContains(self.page(), 'a month across your SIPs')
+
+    def test_coming_up_includes_the_sips_due_soon(self):
+        response = self.page()
+        html = response.content.decode()
+        block = html[html.index('id="investments-upcoming"'):]
+        self.assertIn('Weekly SIP', block)
+        self.assertIn('SIP ', block.split('Weekly SIP')[1][:400])
+        self.assertLess(block.index('Weekly SIP'), block.index('Bank FD'))
+
+
+class EmptySipTests(Base):
+    def test_no_sips_invites_setting_one_up(self):
+        response = self.page()
+        self.assertContains(response, 'id="iv-sips-empty"')
+        self.assertContains(response, reverse('recurring-create'))
