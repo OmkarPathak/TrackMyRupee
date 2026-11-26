@@ -37,8 +37,9 @@ class ServerSideAnalyticsConsentTests(TestCase):
 
     def test_events_are_pseudonymous_and_scrubbed_with_consent(self):
         self._run(True)
-        distinct_id, = self.client_mock.capture.call_args.args
+        self.assertEqual(self.client_mock.capture.call_args.args, ())
         kwargs = self.client_mock.capture.call_args.kwargs
+        distinct_id = kwargs['distinct_id']
         self.assertNotEqual(distinct_id, str(self.user.id))
         self.assertNotIn('private', distinct_id)
         self.assertEqual(kwargs['properties'], {'currency': 'INR'})
@@ -49,7 +50,7 @@ class ServerSideAnalyticsConsentTests(TestCase):
         self.assertNotIn('username', props)
         self.assertNotIn('date_joined', props)
         self.assertEqual(set(props), {'tier', 'signup_method'})
-        self.assertEqual(identify_args.args[0], distinct_id)
+        self.assertEqual(identify_args.kwargs['distinct_id'], distinct_id)
 
     def test_middleware_reads_consent_cookie(self):
         seen = {}
