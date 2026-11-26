@@ -305,6 +305,19 @@ def get_baseline_deposit(account: Account, ledger_balance: Decimal | None = None
     return ledger_balance
 
 
+def _withdrawn_from(account: Account, as_of: date) -> Decimal:
+    """Everything moved or spent out of the account up to `as_of`, in its own currency."""
+    from django.db.models import Sum
+
+    from .models import Expense, Transfer
+
+    if not account.pk:
+        return Decimal('0.00')
+    moved = Transfer.objects.filter(from_account=account, date__lte=as_of).aggregate(t=Sum('amount'))['t'] or Decimal('0.00')
+    spent = Expense.objects.filter(account=account, date__lte=as_of).aggregate(t=Sum('amount'))['t'] or Decimal('0.00')
+    return (moved + spent).quantize(Decimal('0.01'))
+
+
 def get_current_deposit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
     """
     Current accrued value for DEPOSIT strategy:
@@ -344,17 +357,23 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
     if account.deposit_payout:
         # The interest is paid out to another account as it falls due, so the deposit itself stays at its principal.
         # Accruing it here as well would count the same interest twice in net worth.
-        return Decimal(principal).quantize(Decimal('0.01'))
-
-    return _calculate_fd_current(
-        principal=principal,
-        rate_pct=account.deposit_rate,
-        start_date=start,
-        compounding=account.deposit_compounding,
-        maturity_date=account.deposit_maturity_date,
-        closed_date=account.deposit_closed_date,
-        today=eval_today,
-    )
+        value = Decimal(principal).quantize(Decimal('0.01'))
+    else:
+        value = _calculate_fd_current(
+            principal=principal,
+            rate_pct=account.deposit_rate,
+            start_date=start,
+            compounding=account.deposit_compounding,
+            maturity_date=account.deposit_maturity_date,
+            closed_date=account.deposit_closed_date,
+            today=eval_today,
+        )
+    # Money taken out of the deposit (redeemed, or moved to another account) is no longer in it. Without this a
+    # deposit redeemed into the bank is counted twice: once in the bank and once from its terms.
+    # (A ledger at or above the principal means nothing has left, so there is nothing to look up.)
+    if ledger_balance is not None and ledger_balance >= Decimal(principal):
+        return value
+    return max(Decimal('0.00'), value - _withdrawn_from(account, eval_today))
 
 
 def get_baseline_holdings(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:

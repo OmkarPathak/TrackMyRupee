@@ -290,12 +290,9 @@ class MaturityAndClosingTests(Base):
         total = deposit_value(100000, 7, start, maturity, 'SIMPLE') + deposit_value(50000, 7, start, maturity, 'SIMPLE')
         self.assertIn(f'{int(total):,}', card.inner_text().replace(',', '').replace(f'{int(total)}', f'{int(total):,}') + f'{int(total):,}')
 
-    @unittest.expectedFailure
-    def test_KNOWN_BUG_a_redeemed_deposit_must_not_keep_counting_in_net_worth(self):
+    def test_a_redeemed_deposit_does_not_keep_counting_in_net_worth(self):
         """After the interest is added and the money moved out at maturity, the money is in the bank and the deposit
-        holds nothing. Net worth should be ₹1,07,000. Today the deposit is still valued from its principal and
-        terms, so the same money is counted twice (₹2,14,000), whether or not a closed date is set. Remove the
-        decorator when that is fixed: the test then passes and tells you so."""
+        holds nothing: net worth is ₹1,07,000, not ₹2,14,000."""
         from expenses.models import Income, Transfer
         fd = self.fd('Redeemed')
         Income.objects.create(user=self.user, account=fd, amount=D('7000'), base_amount=D('7000'), currency='₹',
