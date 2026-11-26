@@ -96,3 +96,18 @@ def monthly_dates(start: date, day: int, count: int):
         if month == 13:
             year, month = year + 1, 1
     return dates
+
+
+def net_worth(test, page) -> Decimal:
+    """The net worth shown at the top of the accounts page."""
+    test.open(page, reverse('account-list'))
+    page.wait_for_selector('.acx-nw-amount')
+    return exact_in(page.locator('.acx-nw-amount').first)
+
+
+def save_account_form(page):
+    """Finish the add-account form: on to the last step if there is one, then save."""
+    next_button = page.locator('#nextBtn')
+    if next_button.is_visible():
+        next_button.click()
+    page.locator('form button[type="submit"]:visible, form input[type="submit"]:visible').first.click()

@@ -17,6 +17,7 @@ from e2e.type_helpers import (
     deposit_value,
     labelled,
     money,
+    net_worth,
     open_account,
 )
 
@@ -42,10 +43,7 @@ class Base(E2ETestCase):
         return balance_on(page)
 
     def net_worth(self, page):
-        self.open(page, reverse('account-list'))
-        card = page.locator('xpath=//*[normalize-space()="Net worth"]/following::*[@data-exact][1]').first
-        card.wait_for(state='attached')
-        return money(card.get_attribute('data-exact'))
+        return net_worth(self, page)
 
 
 class CreationTests(Base):
