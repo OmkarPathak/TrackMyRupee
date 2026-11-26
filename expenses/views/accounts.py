@@ -261,8 +261,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                     account.has_accrued_value = False
 
                 if account.deposit_maturity_date and account.deposit_rate is not None:
-                    from ..account_valuation import get_current_deposit
-                    account.maturity_value = get_current_deposit(account, ledger_balance=Decimal(str(account.display_balance)), today=account.deposit_maturity_date)
+                    from ..account_valuation import get_maturity_value
+                    account.maturity_value = get_maturity_value(account, ledger_balance=Decimal(str(account.display_balance)))
                     account.has_maturity_value = True
                 else:
                     account.has_maturity_value = False
@@ -561,8 +561,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             value = native
             if acc.deposit_rate is not None:
                 try:
-                    from ..account_valuation import get_current_deposit
-                    value = get_current_deposit(acc, ledger_balance=native, today=acc.deposit_maturity_date)
+                    from ..account_valuation import get_maturity_value
+                    value = get_maturity_value(acc, ledger_balance=native)
                 except Exception:
                     value = native
             maturing.append((acc.deposit_maturity_date, acc, Decimal(str(value))))
@@ -1345,9 +1345,12 @@ class AccountDetailView(LoginRequiredMixin, View):
                 account.has_accrued_value = False
 
             if account.deposit_maturity_date and account.deposit_rate is not None:
-                from ..account_valuation import get_current_deposit
-                account.maturity_value = get_current_deposit(account, ledger_balance=Decimal(str(account.display_balance)), today=account.deposit_maturity_date)
+                from ..account_valuation import get_maturity_value, get_rd_plan
+                account.maturity_value = get_maturity_value(account, ledger_balance=Decimal(str(account.display_balance)))
                 account.has_maturity_value = True
+                account.rd_plan = get_rd_plan(account)       # installments paid and still to come (RD only)
+                if account.rd_plan and getattr(account, 'has_accrued_value', False):
+                    account.effective_principal = account.rd_plan['paid_total']     # an RD's principal is what has gone in
             else:
                 account.has_maturity_value = False
         else:

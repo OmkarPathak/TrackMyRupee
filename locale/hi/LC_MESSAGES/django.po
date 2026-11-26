@@ -24917,3 +24917,45 @@ msgstr "निवेश खाते में आवर्ती ट्रा�
 #: investments sips
 msgid "Set up a SIP"
 msgstr "SIP शुरू करें"
+
+msgid "Installments"
+msgstr "किस्तें"
+
+msgid "%(paid)s of %(total)s paid"
+msgstr "%(total)s में से %(paid)s किस्तें भरी गईं"
+
+msgid "Paid so far"
+msgstr "अब तक भरा"
+
+msgid "Still to come"
+msgstr "आगे आनी बाकी"
+
+msgid "In total"
+msgstr "कुल"
+
+msgid "Expected on %(date)s: <strong>%(currency_symbol)s%(value)s</strong>, including %(currency_symbol)s%(interest)s interest."
+msgstr "%(date)s को अपेक्षित: <strong>%(currency_symbol)s%(value)s</strong>, जिसमें %(currency_symbol)s%(interest)s ब्याज शामिल है।"
+
+msgid "Expected"
+msgstr "अपेक्षित"
+
+msgid "Recorded"
+msgstr "दर्ज"
+
+msgid "Expected installments come from this deposit's schedule. Each one is counted for real once its transfer is recorded."
+msgstr "अपेक्षित किस्तें इस डिपॉज़िट के शेड्यूल से ली गई हैं। हर किस्त का ट्रांसफ़र दर्ज होते ही उसे असल में गिना जाता है।"
+
+msgid "No installments are still to come."
+msgstr "कोई किस्त बाकी नहीं है।"
+
+msgid "Installments:"
+msgstr "किस्तें:"
+
+msgid "Expected at maturity:"
+msgstr "परिपक्वता पर अपेक्षित:"
+
+msgid "Matured on %(date)s: <strong>%(currency_symbol)s%(value)s</strong>, including %(currency_symbol)s%(interest)s interest."
+msgstr "%(date)s को परिपक्व हुई: <strong>%(currency_symbol)s%(value)s</strong>, जिसमें %(currency_symbol)s%(interest)s ब्याज शामिल है।"
+
+msgid "At maturity:"
+msgstr "परिपक्वता पर:"

@@ -125,6 +125,18 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
       expected schedule.
     - For months from the first recorded transfer onwards where no transfer was posted,
       treats as skipped.
+    - An installment never falls on the maturity date itself: a 12-month RD takes 12 installments, and
+      the date it matures on is when the money comes back, not another payment.
+    """
+    return [(d, amount) for d, amount, _expected in _rd_installment_rows(account, end_date)]
+
+
+def _rd_installment_rows(account: Account, end_date: date, today: date | None = None) -> list[tuple[date, Decimal, bool]]:
+    """(date, amount, expected) for each installment of an RD up to end_date.
+
+    With `today` given, a month after today with no transfer posted yet is an *expected* installment (the
+    schedule says it is still to come), not a skipped one. A month that has already passed without a transfer
+    stays skipped, as before. Without `today` nothing is expected: this is what has actually been paid.
     """
     import calendar
 
@@ -133,6 +145,7 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
     start_date = account.deposit_start_date
     if not start_date:
         return []
+    maturity = account.deposit_maturity_date
 
     inst_amount = account.rd_installment_amount or Decimal('0.00')
     inst_day = account.rd_installment_day or start_date.day
@@ -159,7 +172,7 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
                 transfers_by_month[key] = []
             transfers_by_month[key].append(t)
 
-    installments: list[tuple[date, Decimal]] = []
+    installments: list[tuple[date, Decimal, bool]] = []
     current_year = start_date.year
     current_month = start_date.month
 
@@ -170,15 +183,18 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
         key = (current_year, current_month)
         if key in transfers_by_month:
             for t in transfers_by_month[key]:
-                installments.append((t.date, _in_account_currency(t, account)))
-        else:
-            is_before_tracking = (first_tx_month is None) or (key < first_tx_month)
-            if is_before_tracking and inst_amount > Decimal('0.00'):
-                last_day = calendar.monthrange(current_year, current_month)[1]
-                day_i = min(inst_day, last_day)
-                d_i = date(current_year, current_month, day_i)
-                if start_date <= d_i <= end_date:
-                    installments.append((d_i, inst_amount))
+                installments.append((t.date, _in_account_currency(t, account), False))
+        elif inst_amount > Decimal('0.00'):
+            last_day = calendar.monthrange(current_year, current_month)[1]
+            d_i = date(current_year, current_month, min(inst_day, last_day))
+            in_range = start_date <= d_i <= end_date and (maturity is None or d_i < maturity)
+            if in_range:
+                is_before_tracking = (first_tx_month is None) or (key < first_tx_month)
+                still_to_come = today is not None and d_i > today
+                if is_before_tracking and not still_to_come:
+                    installments.append((d_i, inst_amount, False))
+                elif still_to_come:
+                    installments.append((d_i, inst_amount, True))
 
         if current_month == 12:
             current_month = 1
@@ -187,6 +203,76 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
             current_month += 1
 
     return installments
+
+
+def _rd_accrued_value(account: Account, installments, end_date: date) -> Decimal:
+    """What the installments are worth on `end_date`: each one grown from its own date at the deposit's rate."""
+    rate = account.deposit_rate / Decimal('100')
+    comp_freq = account.deposit_compounding or 'QUARTERLY'
+    total_val = Decimal('0.00')
+    for d_i, amt_i in installments:
+        years_i = _years_between(d_i, end_date)
+
+        if comp_freq == 'SIMPLE':
+            val_i = amt_i * (Decimal('1') + rate * years_i)
+        elif comp_freq == 'QUARTERLY':
+            n = Decimal('4')
+            val_i = amt_i * ((Decimal('1') + rate / n) ** (n * years_i))
+        elif comp_freq == 'MONTHLY':
+            n = Decimal('12')
+            val_i = amt_i * ((Decimal('1') + rate / n) ** (n * years_i))
+        else:  # ANNUAL
+            val_i = amt_i * ((Decimal('1') + rate) ** years_i)
+
+        total_val += val_i
+    return total_val.quantize(Decimal('0.01'))
+
+
+def get_rd_plan(account: Account, today: date | None = None) -> dict | None:
+    """Where a running Recurring Deposit stands and where it is going, or None when there is nothing to project.
+
+    Needs a start date and a maturity (or closed) date. `paid` is what has gone in so far, `upcoming` the
+    installments still to come: ones already recorded with a later date, and ones the schedule expects but that
+    have not been recorded yet. `maturity_value` is what the whole schedule is worth on the maturity date.
+    """
+    if account.account_type != 'RD' or not account.deposit_start_date:
+        return None
+    horizon = min((d for d in (account.deposit_maturity_date, account.deposit_closed_date) if d), default=None)
+    if horizon is None:
+        return None
+    today = today or timezone.localdate()
+
+    rows = _rd_installment_rows(account, horizon, today=today)
+    paid = [(d, amt) for d, amt, _expected in rows if d <= today]
+    upcoming = [{'date': d, 'amount': amt, 'expected': expected} for d, amt, expected in rows if d > today]
+    paid_total = sum((amt for _, amt in paid), Decimal('0.00')).quantize(Decimal('0.01'))
+    upcoming_total = sum((u['amount'] for u in upcoming), Decimal('0.00')).quantize(Decimal('0.01'))
+    planned_total = paid_total + upcoming_total
+
+    maturity_value = None
+    if account.deposit_rate is not None and rows:
+        maturity_value = _rd_accrued_value(account, [(d, amt) for d, amt, _e in rows], horizon)
+    return {
+        'paid_count': len(paid), 'paid_total': paid_total,
+        'upcoming': upcoming, 'upcoming_count': len(upcoming), 'upcoming_total': upcoming_total,
+        'planned_count': len(rows), 'planned_total': planned_total,
+        'maturity_value': maturity_value,
+        'interest_at_maturity': (maturity_value - planned_total).quantize(Decimal('0.01')) if maturity_value is not None else None,
+        'maturity_date': horizon,
+        'matured': horizon <= today,             # the date has come: what follows is the value it reached, not a forecast
+    }
+
+
+def get_maturity_value(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
+    """What a deposit is worth on its maturity date. For a running RD that includes the installments still to
+    come, so it matches what the bank will pay if the schedule is kept."""
+    if not account.deposit_maturity_date or account.deposit_rate is None:
+        return None
+    if account.account_type == 'RD':
+        plan = get_rd_plan(account, today=today)
+        if plan and plan['maturity_value'] is not None:
+            return plan['maturity_value']
+    return get_current_deposit(account, ledger_balance=ledger_balance, today=account.deposit_maturity_date)
 
 
 def get_baseline_deposit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
@@ -248,28 +334,7 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
         if not installments:
             return ledger_balance
 
-        rate_pct = account.deposit_rate
-        comp_freq = account.deposit_compounding or 'QUARTERLY'
-        rate = rate_pct / Decimal('100')
-
-        total_val = Decimal('0.00')
-        for d_i, amt_i in installments:
-            years_i = _years_between(d_i, end_date)
-
-            if comp_freq == 'SIMPLE':
-                val_i = amt_i * (Decimal('1') + rate * years_i)
-            elif comp_freq == 'QUARTERLY':
-                n = Decimal('4')
-                val_i = amt_i * ((Decimal('1') + rate / n) ** (n * years_i))
-            elif comp_freq == 'MONTHLY':
-                n = Decimal('12')
-                val_i = amt_i * ((Decimal('1') + rate / n) ** (n * years_i))
-            else:  # ANNUAL
-                val_i = amt_i * ((Decimal('1') + rate) ** years_i)
-
-            total_val += val_i
-
-        return total_val.quantize(Decimal('0.01'))
+        return _rd_accrued_value(account, installments, end_date)
 
     # FD / lump-sum deposits
     principal = account.deposit_principal if account.deposit_principal is not None else ledger_balance

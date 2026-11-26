@@ -286,9 +286,15 @@
                                         </a>
                                     </div>
                                 {% endif %}
+                                {% if account.rd_plan %}
+                                    <div>
+                                        <span>{% trans "Installments:" %}</span>
+                                        <span class="fw-semibold text-body-emphasis ms-1">{% blocktrans with paid=account.rd_plan.paid_count|translate_digits total=account.rd_plan.planned_count|translate_digits %}{{ paid }} of {{ total }} paid{% endblocktrans %}</span>
+                                    </div>
+                                {% endif %}
                                 {% if account.has_maturity_value %}
                                     <div>
-                                        <span>{% trans "Expected:" %}</span>
+                                        <span>{% if account.rd_plan and account.rd_plan.matured %}{% trans "At maturity:" %}{% elif account.rd_plan %}{% trans "Expected at maturity:" %}{% else %}{% trans "Expected:" %}{% endif %}</span>
                                         <strong class="text-success ms-1">{{ currency_symbol }}{{ account.maturity_value|ind_comma:currency_symbol|translate_digits }}</strong>
                                     </div>
                                 {% endif %}
@@ -316,6 +322,7 @@
         {% endif %}
     </div>
 
+    {% if account.rd_plan %}{% include 'expenses/partials/_rd_installments_card.html' %}{% endif %}
     {% if account.is_deposit_type and not account.deposit_closed_date %}{% include 'expenses/partials/_maturity_card.html' %}{% endif %}
 
     <!-- Transaction History -->

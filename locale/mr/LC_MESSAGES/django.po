@@ -24980,3 +24980,45 @@ msgstr "गुंतवणूक खात्यातील आवर्ती 
 #: investments sips
 msgid "Set up a SIP"
 msgstr "SIP सुरू करा"
+
+msgid "Installments"
+msgstr "हप्ते"
+
+msgid "%(paid)s of %(total)s paid"
+msgstr "%(total)s पैकी %(paid)s हप्ते भरले"
+
+msgid "Paid so far"
+msgstr "आतापर्यंत भरले"
+
+msgid "Still to come"
+msgstr "पुढे येणारे"
+
+msgid "In total"
+msgstr "एकूण"
+
+msgid "Expected on %(date)s: <strong>%(currency_symbol)s%(value)s</strong>, including %(currency_symbol)s%(interest)s interest."
+msgstr "%(date)s रोजी अपेक्षित: <strong>%(currency_symbol)s%(value)s</strong>, त्यात %(currency_symbol)s%(interest)s व्याज समाविष्ट."
+
+msgid "Expected"
+msgstr "अपेक्षित"
+
+msgid "Recorded"
+msgstr "नोंदवलेले"
+
+msgid "Expected installments come from this deposit's schedule. Each one is counted for real once its transfer is recorded."
+msgstr "अपेक्षित हप्ते या डिपॉझिटच्या वेळापत्रकातून घेतले आहेत. प्रत्येक हप्त्याचे ट्रान्सफर नोंदवले की तो प्रत्यक्षात मोजला जातो."
+
+msgid "No installments are still to come."
+msgstr "कोणताही हप्ता बाकी नाही."
+
+msgid "Installments:"
+msgstr "हप्ते:"
+
+msgid "Expected at maturity:"
+msgstr "मॅच्युरिटीवर अपेक्षित:"
+
+msgid "Matured on %(date)s: <strong>%(currency_symbol)s%(value)s</strong>, including %(currency_symbol)s%(interest)s interest."
+msgstr "%(date)s रोजी मॅच्युर झाली: <strong>%(currency_symbol)s%(value)s</strong>, त्यात %(currency_symbol)s%(interest)s व्याज समाविष्ट."
+
+msgid "At maturity:"
+msgstr "मॅच्युरिटीवर:"

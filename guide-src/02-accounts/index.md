@@ -78,7 +78,9 @@ Account names must be unique among your active accounts (capital letters do not 
 | Health / Medical Insurance | Health cover |
 
 !!! info "Note on Recurring Deposits (RD)"
-    RD valuation is not treated like a single lump-sum FD from day one. Each installment accrues from its own deposit date, and only installments that were actually posted are counted. If a month is skipped, that installment is not assumed automatically.
+    RD valuation is not treated like a single lump-sum FD from day one. Each installment accrues from its own deposit date, and only installments that were actually posted are counted in today's value. If a month is skipped, that installment is not assumed automatically.
+
+    The **Installments** card on an RD's page shows where the deposit is going. It lists what has been **paid so far**, the installments **still to come** (each marked *Expected* until its transfer is recorded), and what the whole schedule is worth on the maturity date. A 12-month RD has 12 installments: the day it matures is when the money comes back, not another payment. The maturity amount is only as accurate as the **interest rate and compounding** you entered, so copy them from your bank's receipt.
 
 !!! info "How a deposit's interest is counted"
     Time is counted the way a bank does it: whole years from the start date, then the extra days over 365. A one-year deposit is therefore exactly one year, even across 29 February, so a deposit that has reached its maturity date shows the maturity amount your bank quotes (for example, ₹1,00,000 at 7% compounded quarterly for one year is **₹1,07,185.90**). Accrual stops at the maturity date, or at the closing date if you closed it early. An RD installment paid from an account in another currency is counted in the RD's own currency.

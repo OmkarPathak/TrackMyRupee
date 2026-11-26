@@ -1,0 +1,45 @@
+{% load i18n digit_filters %}
+{# A Recurring Deposit's installments: what has gone in, what is still to come, and what it is worth at maturity. #}
+{% with plan=account.rd_plan %}
+<section class="tmr-installments mb-3" id="rd-installments" aria-labelledby="rd-installments-title">
+    <header class="tmr-installments__head">
+        <h2 class="tmr-installments__title" id="rd-installments-title"><i class="bi bi-calendar2-check" aria-hidden="true"></i> {% trans "Installments" %}</h2>
+        <span class="tmr-installments__count">{% blocktrans with paid=plan.paid_count|translate_digits total=plan.planned_count|translate_digits %}{{ paid }} of {{ total }} paid{% endblocktrans %}</span>
+    </header>
+    <div class="tmr-installments__bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ plan.planned_count }}" aria-valuenow="{{ plan.paid_count }}">
+        <i style="width: {% widthratio plan.paid_count plan.planned_count 100 %}%"></i>
+    </div>
+
+    <dl class="tmr-installments__sums">
+        <div><dt>{% trans "Paid so far" %}</dt><dd>{{ currency_symbol }}{{ plan.paid_total|ind_comma:currency_symbol|translate_digits }}</dd></div>
+        <div><dt>{% trans "Still to come" %}</dt><dd>{{ currency_symbol }}{{ plan.upcoming_total|ind_comma:currency_symbol|translate_digits }}</dd></div>
+        <div><dt>{% trans "In total" %}</dt><dd>{{ currency_symbol }}{{ plan.planned_total|ind_comma:currency_symbol|translate_digits }}</dd></div>
+    </dl>
+
+    {% if plan.maturity_value is not None %}
+    <p class="tmr-installments__maturity">
+        {% if plan.matured %}
+        {% blocktrans with value=plan.maturity_value|ind_comma:currency_symbol|translate_digits interest=plan.interest_at_maturity|ind_comma:currency_symbol|translate_digits date=plan.maturity_date|date:"d M Y"|translate_digits %}Matured on {{ date }}: <strong>{{ currency_symbol }}{{ value }}</strong>, including {{ currency_symbol }}{{ interest }} interest.{% endblocktrans %}
+        {% else %}
+        {% blocktrans with value=plan.maturity_value|ind_comma:currency_symbol|translate_digits interest=plan.interest_at_maturity|ind_comma:currency_symbol|translate_digits date=plan.maturity_date|date:"d M Y"|translate_digits %}Expected on {{ date }}: <strong>{{ currency_symbol }}{{ value }}</strong>, including {{ currency_symbol }}{{ interest }} interest.{% endblocktrans %}
+        {% endif %}
+    </p>
+    {% endif %}
+
+    {% if plan.upcoming %}
+    <h3 class="tmr-installments__sub">{% trans "Coming up" %}</h3>
+    <ul class="tmr-installments__list" id="rd-upcoming">
+        {% for item in plan.upcoming %}
+        <li>
+            <span class="tmr-installments__date">{{ item.date|date:"d M Y"|translate_digits }}</span>
+            <span class="tmr-installments__amount">{{ currency_symbol }}{{ item.amount|ind_comma:currency_symbol|translate_digits }}</span>
+            <span class="tmr-installments__tag {% if item.expected %}is-expected{% endif %}">{% if item.expected %}{% trans "Expected" %}{% else %}{% trans "Recorded" %}{% endif %}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    <p class="tmr-installments__note">{% trans "Expected installments come from this deposit's schedule. Each one is counted for real once its transfer is recorded." %}</p>
+    {% elif plan.paid_count %}
+    <p class="tmr-installments__note">{% trans "No installments are still to come." %}</p>
+    {% endif %}
+</section>
+{% endwith %}
