@@ -24769,3 +24769,59 @@ msgstr "सभी लोन भुगतान खर्च में गिन�
 #: loan payments setting
 msgid "All loan payments count as spending here (change this in Settings → Profile)."
 msgstr "यहाँ सभी लोन भुगतान खर्च में गिने जाते हैं (इसे सेटिंग्स → प्रोफ़ाइल में बदलें)।"
+
+#: investments page
+msgid "Everything you have invested, in one place: market holdings, deposits, schemes and SIPs."
+msgstr "आपका सारा निवेश एक जगह: बाज़ार होल्डिंग्स, जमा, योजनाएँ और SIP।"
+
+#: investments page
+msgid "Print report"
+msgstr "रिपोर्ट प्रिंट करें"
+
+#: investments page
+msgid "Add investment"
+msgstr "निवेश जोड़ें"
+
+#: investments page
+msgid "What you put in"
+msgstr "आपने जो लगाया"
+
+#: investments page
+msgid "Gain"
+msgstr "लाभ"
+
+#: investments page
+msgid "on tracked investments"
+msgstr "ट्रैक किए गए निवेश पर"
+
+#: investments page
+msgid "Shown once a value is recorded"
+msgstr "मूल्य दर्ज होने पर दिखेगा"
+
+#: investments page
+msgid "Monthly SIPs"
+msgstr "मासिक SIP"
+
+#: investments page
+msgid "Where it is"
+msgstr "यह कहाँ है"
+
+#: investments page
+msgid "as of today"
+msgstr "आज तक"
+
+#: investments page
+msgid "Market holdings"
+msgstr "बाज़ार होल्डिंग्स"
+
+#: investments page
+msgid "across %(n)s investment"
+msgid_plural "across %(n)s investments"
+msgstr[0] "%(n)s निवेश में"
+msgstr[1] "%(n)s निवेशों में"
+
+#: investments page
+msgid "%(n)s schedule"
+msgid_plural "%(n)s schedules"
+msgstr[0] "%(n)s शेड्यूल"
+msgstr[1] "%(n)s शेड्यूल"

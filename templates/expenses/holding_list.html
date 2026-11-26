@@ -9,49 +9,84 @@
     .table-responsive .dropdown-menu {
         z-index: 1065 !important;
     }
+    .iv-c0 { background: #1d4e63; } .iv-c1 { background: #3f8a8d; } .iv-c2 { background: #8fc1b5; }
+    .iv-c3 { background: #c9dcd3; } .iv-c4 { background: #e1b869; } .iv-c5 { background: #c68b3c; }
+    .iv-bar { display: flex; gap: 2px; height: 12px; border-radius: 99px; overflow: hidden; }
+    .iv-bar span { display: block; height: 100%; min-width: 4px; }
+    .iv-legend { display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; }
+    .iv-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: .4rem; }
 </style>
 <div>
     <!-- Header Row -->
     <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
         <div>
-            <h1 class="h3 fw-bold mb-1">{% trans "Investment & Holdings Portfolio" %}</h1>
-            <p class="text-muted small mb-0">{% trans "Track your mutual funds, stocks, and asset valuations across all accounts in real-time." %}</p>
+            <h1 class="h3 fw-bold mb-1">{% trans "Investments" %}</h1>
+            <p class="text-muted small mb-0">{% trans "Everything you have invested, in one place: market holdings, deposits, schemes and SIPs." %}</p>
         </div>
-        {% if user_accounts %}
-        <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-semibold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addHoldingModal" aria-label="{% trans 'Add Holding' %}">
-            <i class="bi bi-plus-lg" aria-hidden="true"></i>
-            <span>{% trans "Add Holding" %}</span>
-        </button>
-        {% endif %}
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'portfolio-summary' %}" class="btn-action-outline text-decoration-none" id="investments-print-report">
+                <i class="bi bi-printer me-1" aria-hidden="true"></i>{% trans "Print report" %}
+            </a>
+            {% if user_accounts %}
+            <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-semibold d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addHoldingModal" aria-label="{% trans 'Add investment' %}">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                <span>{% trans "Add investment" %}</span>
+            </button>
+            {% endif %}
+        </div>
     </div>
 
-    <!-- Summary Hero Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-md-4">
+    <!-- Summary tiles: the figures of the shared investments overview -->
+    <div class="row g-3 mb-3" id="investments-overview">
+        <div class="col-12 col-md-3">
             <div class="card border-0 rounded-4 p-3 shadow-sm h-100" style="background-color: rgba(var(--bs-primary-rgb), 0.08); border: 1px solid rgba(15, 118, 87, 0.15) !important;">
-                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Total Portfolio Value" %}</div>
-                <div class="fs-3 fw-bold text-success mb-1">{{ user_currency }}{{ total_valuation|ind_comma:user_currency|translate_digits }}</div>
-                <div class="small text-muted">{{ holdings.count|translate_digits }} {% trans "active holdings" %}</div>
+                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Current value" %}</div>
+                <div class="fs-3 fw-bold text-success mb-1" data-iv="value">{{ user_currency }}{{ overview.investments_value|ind_comma:user_currency|translate_digits }}</div>
+                <div class="small text-muted">{% blocktrans count n=investment_count %}across {{ n }} investment{% plural %}across {{ n }} investments{% endblocktrans %}</div>
             </div>
         </div>
-        <div class="col-6 col-md-4">
+        <div class="col-6 col-md-3">
             <div class="card border-0 rounded-4 p-3 shadow-sm h-100 bg-body-tertiary">
-                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Total Invested (Cost)" %}</div>
-                <div class="fs-4 fw-bold text-body-emphasis mb-1">{{ user_currency }}{{ total_cost|ind_comma:user_currency|translate_digits }}</div>
-                <div class="small text-muted">{% trans "Baseline purchase cost" %}</div>
+                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Invested" %}</div>
+                <div class="fs-4 fw-bold text-body-emphasis mb-1" data-iv="invested">{{ user_currency }}{{ overview.invested|ind_comma:user_currency|translate_digits }}</div>
+                <div class="small text-muted">{% trans "What you put in" %}</div>
             </div>
         </div>
-        <div class="col-6 col-md-4">
+        <div class="col-6 col-md-3">
             <div class="card border-0 rounded-4 p-3 shadow-sm h-100 bg-body-tertiary">
-                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Unrealized Gain / Loss" %}</div>
-                <div class="fs-4 fw-bold {% if unrealized_gain >= 0 %}text-success{% else %}text-danger{% endif %} mb-1">
-                    {% if unrealized_gain >= 0 %}+{% endif %}{{ user_currency }}{{ unrealized_gain|ind_comma:user_currency|translate_digits }}
-                    <span class="fs-6 fw-semibold ms-1">({{ gain_pct|translate_digits }}%)</span>
-                </div>
-                <div class="small text-muted">{% trans "Net portfolio growth" %}</div>
+                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Gain" %}</div>
+                {% if overview.returns is not None %}
+                <div class="fs-4 fw-bold text-nowrap {% if overview.returns >= 0 %}text-success{% else %}text-danger{% endif %} mb-1" data-iv="gain">{% if overview.returns >= 0 %}+{% endif %}{{ user_currency }}{{ overview.returns|ind_comma:user_currency|translate_digits }}</div>
+                <div class="small fw-semibold {% if overview.returns >= 0 %}text-success{% else %}text-danger{% endif %}">{{ overview.returns_pct|translate_digits }}% {% trans "on tracked investments" %}</div>
+                {% else %}
+                <div class="fs-4 fw-bold text-body-emphasis mb-1" data-iv="gain">&ndash;</div>
+                <div class="small text-muted">{% trans "Shown once a value is recorded" %}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            <div class="card border-0 rounded-4 p-3 shadow-sm h-100 bg-body-tertiary">
+                <div class="text-uppercase small fw-bold text-muted mb-1" style="font-size: 0.72rem; letter-spacing: 0.8px;">{% trans "Monthly SIPs" %}</div>
+                <div class="fs-4 fw-bold text-body-emphasis mb-1" data-iv="sip">{{ user_currency }}{{ overview.monthly_sip|ind_comma:user_currency|translate_digits }}</div>
+                <div class="small text-muted">{% blocktrans count n=overview.sip_rows|length %}{{ n }} schedule{% plural %}{{ n }} schedules{% endblocktrans %}</div>
             </div>
         </div>
     </div>
+
+    {% if overview.allocation %}
+    <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-4" id="investments-allocation">
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+            <h2 class="h6 fw-bold mb-0">{% trans "Where it is" %}</h2>
+            <span class="small text-muted">{% trans "as of today" %}</span>
+        </div>
+        <div class="iv-bar mb-2" role="img" aria-label="{% trans 'Assets by type' %}">
+            {% for item in overview.allocation %}<span class="iv-c{{ item.color }}" style="flex: {{ item.percent|stringformat:'s' }} 1 0;" title="{{ item.label }} {{ item.percent }}%"></span>{% endfor %}
+        </div>
+        <div class="iv-legend small text-body-secondary">
+            {% for item in overview.allocation %}<span><i class="iv-dot iv-c{{ item.color }}"></i>{{ item.label }} <b>{{ item.percent|translate_digits }}%</b></span>{% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     {% if cash_rows %}
     <div class="card border-0 rounded-4 shadow-sm p-3 p-md-4 mb-4" id="uninvestedCash">
@@ -81,7 +116,7 @@
     <!-- Main Holdings Card Container -->
     <div class="card rounded-4 border-0 shadow-sm hld-outer" style="border: 1px solid var(--hld-outer-border, rgba(0,0,0,0.07)) !important;">
         <div class="card-header bg-transparent border-0 p-3 p-md-4 d-flex align-items-center justify-content-between">
-            <h2 class="h5 mb-0 fw-bold">{% trans "All Holdings" %}</h2>
+            <h2 class="h5 mb-0 fw-bold">{% trans "Market holdings" %}</h2>
         </div>
         <div class="card-body p-0">
             {% if holdings %}

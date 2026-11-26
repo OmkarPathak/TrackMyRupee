@@ -297,6 +297,6 @@ class NAVIntegrationTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertTemplateUsed(resp, 'expenses/holding_list.html')
         self.assertIn('holdings', resp.context)
-        self.assertIn('total_valuation', resp.context)
+        self.assertIn('overview', resp.context)
         self.assertContains(resp, 'HDFC Top 100 Fund')
 
