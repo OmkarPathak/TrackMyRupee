@@ -243,6 +243,8 @@ def get_rd_plan(account: Account, today: date | None = None) -> dict | None:
     today = today or timezone.localdate()
 
     rows = _rd_installment_rows(account, horizon, today=today)
+    if not rows:
+        return None             # no installment amount and none recorded: there is no plan to show
     paid = [(d, amt) for d, amt, _expected in rows if d <= today]
     upcoming = [{'date': d, 'amount': amt, 'expected': expected} for d, amt, expected in rows if d > today]
     paid_total = sum((amt for _, amt in paid), Decimal('0.00')).quantize(Decimal('0.01'))
@@ -359,8 +361,18 @@ class DepositMovements:
             self._into[account_id] = []
         for account_id, paid_on, amount in Transfer.objects.filter(from_account_id__in=ids).values_list('from_account_id', 'date', 'amount'):
             self._out[account_id].append((paid_on, Decimal(amount)))
-        for account_id, paid_on, amount in Expense.objects.filter(account_id__in=ids).values_list('account_id', 'date', 'amount'):
-            self._out[account_id].append((paid_on, Decimal(amount)))
+        currencies = {a.pk: a.currency for a in accounts}
+        rates: dict[tuple[str, str], Decimal] = {}
+        for account_id, paid_on, amount, spent_in in Expense.objects.filter(account_id__in=ids).values_list('account_id', 'date', 'amount', 'currency'):
+            amount = Decimal(amount)
+            own = currencies[account_id]
+            if spent_in and own and spent_in != own:
+                # An expense is in its own currency, which need not be the account's: count it in the account's
+                if (spent_in, own) not in rates:
+                    from .utils import get_exchange_rate
+                    rates[(spent_in, own)] = Decimal(str(get_exchange_rate(spent_in, own)))
+                amount = (amount * rates[(spent_in, own)]).quantize(Decimal('0.01'))
+            self._out[account_id].append((paid_on, amount))
         top_up_accounts = {a.pk: a for a in accounts if a.account_type in _TOP_UP_SCHEMES}
         if top_up_accounts:
             # In the deposit's own currency: a transfer's amount is in the sending account's (see _in_account_currency)
@@ -454,9 +466,8 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
         return value
     # Money taken out of the deposit (redeemed, or moved to another account) is no longer in it. Without this a
     # deposit redeemed into the bank is counted twice: once in the bank and once from its terms.
-    # (A ledger equal to the principal means nothing has come in or gone out, so there is nothing to look up.)
-    if ledger_balance is not None and ledger_balance == Decimal(principal):
-        return value
+    # (The ledger cannot say it: a balance equal to the principal can also be money in matching money out, such as
+    # interest credited and a part withdrawn. The movements are loaded once for all deposits, so looking is cheap.)
     movements = movements or DepositMovements()
     withdrawn = movements.withdrawn(account, eval_today)
     if withdrawn > 0 and account.deposit_closed_date and account.deposit_closed_date <= eval_today:

@@ -1,3 +1,4 @@
+import logging
 import re
 import sys
 from collections import defaultdict
@@ -92,6 +93,7 @@ def _group_id_for(account_type):
             return re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
     return account_type
 
+logger = logging.getLogger(__name__)
 
 class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
     model = Account
@@ -1349,7 +1351,8 @@ class AccountDetailView(LoginRequiredMixin, View):
                 value = get_current(account)
                 account.display_balance = -abs(value) if strategy_for(account.account_type) == STRATEGY.LOAN_OUTSTANDING else value
             except Exception:
-                pass
+                # The page still shows the ledger's balance, but a figure that cannot be worked out should be noticed
+                logger.warning('Could not value %s account %s', account.account_type, account.pk, exc_info=True)
 
         if account.account_type in deposit_codes():
             accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))

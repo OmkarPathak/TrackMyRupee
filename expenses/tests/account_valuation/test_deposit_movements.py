@@ -59,7 +59,7 @@ class TopUpsInTheDepositsCurrencyTests(Base):
         transfer = self.move(self.bank, self.ppf, '8000', when)
         self.assertEqual(transfer.converted_amount, D('100.00'))             # (in dollars, the person's currency)
         with_top_up = get_current_deposit(self.ppf, ledger_balance=D('108000'))
-        without = get_current_deposit(self.ppf, ledger_balance=D('100000'))
+        without = get_current_deposit(self.ppf, ledger_balance=D('100000'), adjust=False)         # (the terms alone)
         added = with_top_up - without
         self.assertGreaterEqual(added, D('8000'))              # eight thousand rupees went in, not a hundred
         self.assertLess(added, D('8100'))                      # and ten days' interest on it is small
@@ -68,7 +68,7 @@ class TopUpsInTheDepositsCurrencyTests(Base):
         UserProfile.objects.filter(user=self.user).update(currency='₹')
         self.user = User.objects.get(pk=self.user.pk)
         self.move(self.bank, self.ppf, '8000', self.today - timedelta(days=10))
-        added = get_current_deposit(self.ppf, ledger_balance=D('108000')) - get_current_deposit(self.ppf, ledger_balance=D('100000'))
+        added = get_current_deposit(self.ppf, ledger_balance=D('108000')) - get_current_deposit(self.ppf, ledger_balance=D('100000'), adjust=False)
         self.assertGreaterEqual(added, D('8000'))
         self.assertLess(added, D('8100'))
 
@@ -183,13 +183,12 @@ class BatchedMovementsTests(Base):
             self.value_all(movements)
         self.assertEqual(len(queries), 0)
 
-    def test_deposits_that_need_no_lookup_cost_no_queries_at_all(self):
-        """A deposit whose ledger equals its principal has had nothing in or out, so nothing is loaded for it."""
+    def test_a_ledger_equal_to_the_principal_is_still_looked_into_in_the_same_few_queries(self):
         movements = DepositMovements.load(self.deposits)
         with CaptureQueriesContext(connection) as queries:
             for account in self.deposits:
                 get_current_deposit(account, ledger_balance=account.deposit_principal, movements=movements)
-        self.assertEqual(len(queries), 0)
+        self.assertLessEqual(len(queries), 3)
 
     def test_one_account_at_a_time_costs_queries_for_each_account_so_batching_is_what_keeps_it_flat(self):
         with CaptureQueriesContext(connection) as one_by_one:
@@ -232,3 +231,54 @@ class BatchedMovementsTests(Base):
         with patch('expenses.account_valuation.get_rd_plan') as rebuilt:
             get_maturity_value(fd, ledger_balance=D('100000'), plan=None)
         rebuilt.assert_not_called()
+
+
+class MovementEdgeTests(Base):
+    def test_money_in_matching_money_out_does_not_hide_the_withdrawal(self):
+        """The ledger equals the principal (interest credited, part withdrawn), yet ₹5,000 has left the deposit."""
+        fd = self.deposit(start=self.today - timedelta(days=100), maturity=self.today + timedelta(days=265))
+        untouched = get_current_deposit(fd, ledger_balance=D('100000'))
+        self.move(fd, self.bank, '5000', self.today - timedelta(days=3))
+        self.assertEqual(get_current_deposit(fd, ledger_balance=D('100000')), (untouched - D('5000')).quantize(D('0.01')))
+
+    def test_an_expense_in_another_currency_is_counted_in_the_accounts_own(self):
+        from expenses.models import Expense
+        for (src, dst), rate in {('USD', 'INR'): '80', ('INR', 'USD'): '0.0125'}.items():
+            FXRate.objects.update_or_create(from_currency=src, to_currency=dst, as_of_date=self.today, defaults={'rate': D(rate), 'source': 'test'})
+        cache.clear()
+        fd = self.deposit(start=self.today - timedelta(days=100), maturity=self.today + timedelta(days=265))
+        untouched = get_current_deposit(fd, ledger_balance=D('100000'))
+        Expense.objects.create(user=self.user, account=fd, amount=D('100'), currency='$', category='Fees', description='x', date=self.today - timedelta(days=2))
+        self.assertEqual(DepositMovements().withdrawn(fd, self.today), D('8000.00'))          # a hundred dollars, in rupees
+        self.assertEqual(get_current_deposit(fd, ledger_balance=D('100000')), (untouched - D('8000')).quantize(D('0.01')))
+
+    def test_an_expense_in_the_accounts_own_currency_is_counted_as_it_is(self):
+        from expenses.models import Expense
+        fd = self.deposit(start=self.today - timedelta(days=100), maturity=self.today + timedelta(days=265))
+        Expense.objects.create(user=self.user, account=fd, amount=D('250'), currency='₹', category='Fees', description='x', date=self.today - timedelta(days=2))
+        self.assertEqual(DepositMovements().withdrawn(fd, self.today), D('250.00'))
+
+    def test_money_paid_into_a_scheme_after_it_matured_counts_but_earns_nothing(self):
+        start = self.today - timedelta(days=400)
+        matured = self.today - timedelta(days=30)
+        ppf = self.deposit('PPF', 'PPF', principal='100000', rate='7.1', start=start, maturity=matured)
+        before = get_current_deposit(ppf, ledger_balance=D('100000'))
+        self.move(self.bank, ppf, '5000', self.today - timedelta(days=10))
+        self.assertEqual(get_current_deposit(ppf, ledger_balance=D('105000')), (before + D('5000')).quantize(D('0.01')))
+
+    def test_an_rd_with_nothing_scheduled_or_paid_has_no_plan(self):
+        rd = Account.objects.create(
+            user=self.user, name='Empty RD', account_type='RD', balance=D('0'), currency='₹', deposit_rate=D('7'), deposit_compounding='SIMPLE',
+            deposit_start_date=self.today - timedelta(days=90), deposit_maturity_date=self.today + timedelta(days=275))
+        self.assertIsNone(get_rd_plan(rd))
+
+    def test_a_deposit_that_cannot_be_valued_on_its_page_is_logged(self):
+        from django.urls import reverse
+        UserProfile.objects.filter(user=self.user).update(has_seen_tutorial=True, consent_granted=True)
+        self.client.force_login(User.objects.get(pk=self.user.pk))
+        asset = Account.objects.create(user=self.user, name='Flat', account_type='REAL_ESTATE', balance=D('0'), currency='₹')
+        with patch('expenses.views.accounts.get_current', side_effect=ValueError('no valuation')):
+            with self.assertLogs('expenses.views.accounts', level='WARNING') as logged:
+                response = self.client.get(reverse('account-detail', kwargs={'pk': asset.uuid}))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(any('Could not value' in line for line in logged.output))
