@@ -85,6 +85,18 @@ Account names must be unique among your active accounts (capital letters do not 
 !!! info "How a deposit's interest is counted"
     Time is counted the way a bank does it: whole years from the start date, then the extra days over 365. A one-year deposit is therefore exactly one year, even across 29 February, so a deposit that has reached its maturity date shows the maturity amount your bank quotes (for example, ₹1,00,000 at 7% compounded quarterly for one year is **₹1,07,185.90**). Accrual stops at the maturity date, or at the closing date if you closed it early. An RD installment paid from an account in another currency is counted in the RD's own currency.
 
+!!! info "Money paid into and out of a deposit"
+    A deposit is worth what its terms say **less the money that has left it**. A transfer out of an FD or a scheme (a redemption, a move to your bank) or an expense on it is taken off, so the same money is not counted twice: once in the bank and once in the deposit. Expenses in another currency are counted in the deposit's own currency.
+
+    For the schemes people keep paying into (**PPF, EPF, VPF, SSY, Post Office, APY and NPS**), money you transfer in after the start date is **added** and earns interest from the day it went in, counted in the scheme's own currency. Money paid in after the maturity date counts at face value and earns nothing more.
+
+    **Closing a deposit** (set its closed date) means it holds nothing: once money has been paid out of a closed deposit its value is zero, even if the bank paid less than the accrued amount (tax deducted at source, for instance). A deposit that has matured but is not closed keeps whatever was not paid out, so close it when you have collected the money.
+
+    The **Expected** amount at maturity is worked out from the deposit's terms alone. Money already taken out does not change it.
+
+!!! info "Recurring Deposits do not ask for a principal"
+    An RD has no single starting amount, so its form asks for the installment, the day, the rate and the dates, but not a principal. An RD with no installment amount and no transfers recorded shows no Installments card.
+
 !!! info "Exchange rates"
     Amounts in another currency are converted at a rate fetched from a live exchange-rate service, once a day per currency pair. If the service cannot be reached, the most recent rate we already have is used instead, so your pages keep working. The rate used for a transaction is saved with it. Net worth for a past date uses the rate on or before that date.
 

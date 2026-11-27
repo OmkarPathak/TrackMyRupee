@@ -41,6 +41,7 @@ Complete the following required fields:
 5. **Interest Rate (%)**: The annual interest rate, from 0 to 100.
 6. **Duration (Months)**: The total repayment tenure, from 1 to 600 months.
 7. **Start Date**: The date the loan was disbursed.
+8. **Add the loan amount to an account** (on by default): the account the lender paid the loan into (**Received in account**, which starts on the account you use most). The amount is added to that account's balance as money received. It is not income. Switch it off if you have already entered the money by hand.
 
 As you fill in the numbers, the form shows a live **Estimated Monthly EMI** preview at the bottom.
 
@@ -88,6 +89,24 @@ A lump sum, such as a down payment or a prepayment, is recorded as a [big purcha
 When the lender pays the loan into your account, the loan page has a **Money received** card with a **Record amount received** button. Choose the account it arrived in, the amount (it starts as the loan amount you have not recorded yet) and the date. The amount is added to that account's balance, and the loan's balance in the ledger grows with it. It is **not income**, so your income and savings figures do not change.
 
 New loans set up through [Guided Setup](../13-tmr-flows/debt.md) record this for you. **Loans you added earlier are left as they are**, because many people already entered the money by hand: if yours is not in the account's balance yet, use **Record amount received** once. To undo it, delete the entry from the card or from the account's activity list, and the amount is taken out of the account again. To change an amount, delete it and record it again.
+
+
+### Topping up a loan
+
+If you borrow more on a loan you already have, use **Top up** at the top of the loan's page. Fill in:
+
+- **Amount added** and **Date**: the extra amount is added to what you owe from that date.
+- **Received in account** (optional): if the lender paid it into one of your accounts, it is added to that balance and is not counted as income.
+- **Months added to the term** and **New interest rate (%)** (both optional): when the top-up also lengthens the loan or changes its rate.
+- **Note** (optional).
+
+Before you save, the form shows what you **would owe** and what the **EMI would be about**. The EMI is only a suggestion: you decide whether to update your repayment schedule. After saving, the loan's total amount and remaining balance include the top-up, and the same suggestion is shown again.
+
+To undo a top-up, delete it from the loan's page: the amount that came with it is taken out of the account again. An amount received that came with a top-up cannot be deleted on its own, only together with the top-up.
+
+### Where the money you received shows
+
+Every amount you record as received also appears in the main **Transactions** list as **Loan received**, with the loan's name, the account and the amount, in green with a plus sign. It is money in that is neither income nor spending, so it is left out of every total, including your savings rate. You can find it with the **Loan received** type filter or by searching for the loan's name, and delete it from there like the entry on the loan's page.
 
 ---
 
