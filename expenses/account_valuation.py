@@ -263,16 +263,24 @@ def get_rd_plan(account: Account, today: date | None = None) -> dict | None:
     }
 
 
-def get_maturity_value(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
-    """What a deposit is worth on its maturity date. For a running RD that includes the installments still to
-    come, so it matches what the bank will pay if the schedule is kept."""
+_NO_PLAN = object()
+
+
+def get_maturity_value(account: Account, ledger_balance: Decimal | None = None, today: date | None = None,
+                       plan=_NO_PLAN) -> Decimal | None:
+    """What a deposit is worth on its maturity date, from its terms alone. For a running RD that includes the
+    installments still to come, so it matches what the bank will pay if the schedule is kept. Money already taken out
+    does not change it (an FD redeemed on its maturity day still matured for what the terms say).
+
+    A caller that has already worked out the RD's plan (get_rd_plan) passes it in rather than have it built again."""
     if not account.deposit_maturity_date or account.deposit_rate is None:
         return None
     if account.account_type == 'RD':
-        plan = get_rd_plan(account, today=today)
+        if plan is _NO_PLAN:
+            plan = get_rd_plan(account, today=today)
         if plan and plan['maturity_value'] is not None:
             return plan['maturity_value']
-    return get_current_deposit(account, ledger_balance=ledger_balance, today=account.deposit_maturity_date)
+    return get_current_deposit(account, ledger_balance=ledger_balance, today=account.deposit_maturity_date, adjust=False)
 
 
 def get_baseline_deposit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
@@ -309,15 +317,75 @@ def get_baseline_deposit(account: Account, ledger_balance: Decimal | None = None
 _TOP_UP_SCHEMES = frozenset({'PPF', 'EPF', 'VPF', 'SSY', 'POST_OFFICE', 'APY', 'NPS'})
 
 
-def _top_ups_value(account: Account, start: date, end_date: date, today: date) -> Decimal:
-    """What the money transferred in after the deposit started is worth now, each from the day it went in."""
-    from .models import Transfer
+class DepositMovements:
+    """Money moved into and out of deposit-type accounts, loaded for many accounts in a few queries.
 
-    if not account.pk:
-        return Decimal('0.00')
+    A deposit's value depends on what was paid out of it (a redemption, a transfer to another account) and, for the
+    schemes people keep paying into, on what was paid in after it started. Looking that up account by account costs
+    two or three queries each time a deposit is valued, and net worth, the Accounts list and the account page value
+    every deposit. Register them once with `DepositMovements.load(accounts)` and hand the result to
+    `get_current_deposit`: nothing is queried until a deposit actually needs its movements (many never do, see
+    get_current_deposit), and then all the registered accounts are loaded together. Without it, an account's
+    movements are loaded the first time they are asked for.
+    """
+
+    def __init__(self):
+        self._out: dict[int, list[tuple[date, Decimal]]] = {}
+        self._into: dict[int, list[tuple[date, Decimal]]] = {}
+        self._pending: list[Account] = []
+
+    @classmethod
+    def load(cls, accounts) -> 'DepositMovements':
+        movements = cls()
+        movements._pending = [a for a in accounts if a.pk]
+        return movements
+
+    def _ensure(self, account: Account) -> None:
+        if account.pk in self._out:
+            return
+        self._fill([account] + self._pending)
+        self._pending = []
+
+    def _fill(self, accounts) -> None:
+        from .models import Expense, Transfer
+
+        seen = set()
+        accounts = [a for a in accounts if a.pk not in self._out and not (a.pk in seen or seen.add(a.pk))]
+        if not accounts:
+            return
+        ids = [a.pk for a in accounts]
+        for account_id in ids:
+            self._out[account_id] = []
+            self._into[account_id] = []
+        for account_id, paid_on, amount in Transfer.objects.filter(from_account_id__in=ids).values_list('from_account_id', 'date', 'amount'):
+            self._out[account_id].append((paid_on, Decimal(amount)))
+        for account_id, paid_on, amount in Expense.objects.filter(account_id__in=ids).values_list('account_id', 'date', 'amount'):
+            self._out[account_id].append((paid_on, Decimal(amount)))
+        top_up_accounts = {a.pk: a for a in accounts if a.account_type in _TOP_UP_SCHEMES}
+        if top_up_accounts:
+            # In the deposit's own currency: a transfer's amount is in the sending account's (see _in_account_currency)
+            for transfer in Transfer.objects.filter(to_account_id__in=list(top_up_accounts)).select_related('from_account'):
+                self._into[transfer.to_account_id].append((transfer.date, _in_account_currency(transfer, top_up_accounts[transfer.to_account_id])))
+
+    def withdrawn(self, account: Account, as_of: date) -> Decimal:
+        """Everything moved or spent out of the account up to `as_of`, in its own currency."""
+        if not account.pk:
+            return Decimal('0.00')
+        self._ensure(account)
+        return sum((amount for paid_on, amount in self._out[account.pk] if paid_on <= as_of), Decimal('0.00')).quantize(Decimal('0.01'))
+
+    def top_ups(self, account: Account, start: date, as_of: date) -> list[tuple[date, Decimal]]:
+        """What went into the account after `start`, up to `as_of`, as (date, amount) in its own currency."""
+        if not account.pk:
+            return []
+        self._ensure(account)
+        return [(paid_on, amount) for paid_on, amount in self._into[account.pk] if start < paid_on <= as_of]
+
+
+def _top_ups_value(account: Account, movements: DepositMovements, start: date, today: date) -> Decimal:
+    """What the money transferred in after the deposit started is worth now, each from the day it went in."""
     total = Decimal('0.00')
-    for paid_on, amount in Transfer.objects.filter(to_account=account, date__gt=start, date__lte=today).values_list('date', 'converted_amount'):
-        amount = Decimal(amount)
+    for paid_on, amount in movements.top_ups(account, start, today):
         if account.deposit_payout:
             total += amount
             continue
@@ -327,24 +395,16 @@ def _top_ups_value(account: Account, start: date, end_date: date, today: date) -
     return total
 
 
-def _withdrawn_from(account: Account, as_of: date) -> Decimal:
-    """Everything moved or spent out of the account up to `as_of`, in its own currency."""
-    from django.db.models import Sum
-
-    from .models import Expense, Transfer
-
-    if not account.pk:
-        return Decimal('0.00')
-    moved = Transfer.objects.filter(from_account=account, date__lte=as_of).aggregate(t=Sum('amount'))['t'] or Decimal('0.00')
-    spent = Expense.objects.filter(account=account, date__lte=as_of).aggregate(t=Sum('amount'))['t'] or Decimal('0.00')
-    return (moved + spent).quantize(Decimal('0.01'))
-
-
-def get_current_deposit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
+def get_current_deposit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None,
+                        movements: DepositMovements | None = None, adjust: bool = True) -> Decimal:
     """
     Current accrued value for DEPOSIT strategy:
     For RD: sum of accrued future value for each installment (annuity formula).
     For FD/lump-sum: compound interest capped at maturity_date or closed_date.
+
+    `adjust` (the default) then takes into account the money that has moved in and out of the deposit; a projection of
+    what the terms alone will be worth (see get_maturity_value) passes False. `movements` carries those movements when
+    the caller has loaded them for many accounts at once.
     """
     if ledger_balance is None:
         ledger_balance = _get_account_ledger_balance(account)
@@ -390,14 +450,22 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
             closed_date=account.deposit_closed_date,
             today=eval_today,
         )
+    if not adjust:
+        return value
     # Money taken out of the deposit (redeemed, or moved to another account) is no longer in it. Without this a
     # deposit redeemed into the bank is counted twice: once in the bank and once from its terms.
     # (A ledger equal to the principal means nothing has come in or gone out, so there is nothing to look up.)
     if ledger_balance is not None and ledger_balance == Decimal(principal):
         return value
+    movements = movements or DepositMovements()
+    withdrawn = movements.withdrawn(account, eval_today)
+    if withdrawn > 0 and account.deposit_closed_date and account.deposit_closed_date <= eval_today:
+        # A closed deposit holds nothing: what the bank paid out can be less than the accrued value (tax deducted at
+        # source, rounding), and that difference is not still sitting in the deposit.
+        return Decimal('0.00')
     if account.account_type in _TOP_UP_SCHEMES:
-        value += _top_ups_value(account, start, end_date, eval_today)
-    return max(Decimal('0.00'), value - _withdrawn_from(account, eval_today))
+        value += _top_ups_value(account, movements, start, eval_today)
+    return max(Decimal('0.00'), value - withdrawn)
 
 
 def get_baseline_holdings(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:

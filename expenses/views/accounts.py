@@ -227,6 +227,10 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         for rec in AccountReconciliation.objects.filter(account__in=all_accounts).order_by('-statement_date', '-created_at'):
             last_reconciliation.setdefault(rec.account_id, rec)
 
+        # What moved in and out of the deposits, loaded once for all of them
+        from ..account_valuation import DepositMovements
+        deposit_movements = DepositMovements.load([a for a in all_accounts if a.account_type in _deposit_codes])
+
         for account in all_accounts:
             try:
                 rate = cached_rate(account.currency, user_currency)
@@ -250,7 +254,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
             # Compute accrued value for fixed-income / deposit accounts
             if account.account_type in _deposit_codes:
-                accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))
+                accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)), movements=deposit_movements)
                 deposit_principal = account.deposit_principal if account.deposit_principal is not None else Decimal(str(account.display_balance))
                 if getattr(account, 'show_accrued_balance', True) and (accrued != deposit_principal or account.deposit_rate is not None):
                     account.accrued_value = accrued
@@ -1359,9 +1363,9 @@ class AccountDetailView(LoginRequiredMixin, View):
 
             if account.deposit_maturity_date and account.deposit_rate is not None:
                 from ..account_valuation import get_maturity_value, get_rd_plan
-                account.maturity_value = get_maturity_value(account, ledger_balance=Decimal(str(account.display_balance)))
-                account.has_maturity_value = True
                 account.rd_plan = get_rd_plan(account)       # installments paid and still to come (RD only)
+                account.maturity_value = get_maturity_value(account, ledger_balance=Decimal(str(account.display_balance)), plan=account.rd_plan)
+                account.has_maturity_value = True
                 if account.rd_plan and getattr(account, 'has_accrued_value', False):
                     account.effective_principal = account.rd_plan['paid_total']     # an RD's principal is what has gone in
             else:

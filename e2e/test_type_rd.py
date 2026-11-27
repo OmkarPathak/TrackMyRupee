@@ -44,7 +44,7 @@ class FormTests(Base):
         page.fill('#id_name', name)
         page.click('#nextBtn')
         page.wait_for_selector('#id_rd_installment_amount', state='visible')
-        for field, value in (('deposit_principal', '5000'), ('rd_installment_amount', amount), ('rd_installment_day', day), ('deposit_rate', rate),
+        for field, value in (('rd_installment_amount', amount), ('rd_installment_day', day), ('deposit_rate', rate),
                              ('deposit_start_date', start), ('deposit_maturity_date', maturity)):
             if value is not None:
                 page.fill(f'#id_{field}', value if isinstance(value, str) else value.isoformat())
@@ -59,6 +59,19 @@ class FormTests(Base):
         rd = Account.objects.get(user=self.user, name='Edge RD')
         self.assertEqual((rd.account_type, rd.rd_installment_amount, rd.rd_installment_day, rd.deposit_rate),
                          ('RD', D('5000.00'), 5, D('7.0000')))
+
+    def test_the_form_has_no_principal_field_for_an_rd_but_has_one_for_an_fd(self):
+        page = self.new_page(self.user)
+        self.open(page, reverse('account-create') + '?type=RD')
+        page.fill('#id_name', 'Principal check')
+        page.click('#nextBtn')
+        page.wait_for_selector('#id_rd_installment_amount', state='visible')
+        self.assertFalse(page.is_visible('#id_deposit_principal'))
+        self.assertTrue(page.is_visible('#id_deposit_rate'))
+        self.open(page, reverse('account-create') + '?type=FD')
+        page.fill('#id_name', 'FD principal check')
+        page.click('#nextBtn')
+        page.wait_for_selector('#id_deposit_principal', state='visible')
 
     def test_a_recurring_deposit_is_saved_without_a_principal(self):
         """An RD has no single starting amount, so the form does not ask for one."""

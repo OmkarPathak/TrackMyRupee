@@ -149,7 +149,7 @@ class BillDateTests(Base):
 
     def test_the_next_bill_date_is_this_month_or_next_for_every_day_of_the_month(self):
         page = self.new_page(self.user)
-        for day in (1, 15, 28, 29, 30, 31, TODAY.day, max(1, TODAY.day - 1), min(31, TODAY.day + 1)):
+        for day in dict.fromkeys((1, 15, 28, 29, 30, 31, TODAY.day, max(1, TODAY.day - 1), min(31, TODAY.day + 1))):      # (each day once: two of them coincide on some dates)
             with self.subTest(day=day):
                 card = self.card(name=f'Bill day {day}', billing_day=day)
                 open_account(self, page, card)

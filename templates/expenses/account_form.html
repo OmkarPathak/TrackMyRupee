@@ -489,7 +489,8 @@
                                 <span>{% trans "Configure principal, interest rates, compounding schedule, and yield options." %}</span>
                             </div>
                             <div class="row g-3">
-                                <div class="col-12 col-sm-6">
+                                {# A recurring deposit has no single starting amount: its installments are what it is made of #}
+                                <div class="col-12 col-sm-6" x-show="accountType !== 'RD'" x-cloak>
                                     <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.deposit_principal.id_for_label }}">{% trans "Deposit Principal" %}</label>
                                     {{ form.deposit_principal }}
                                     <div class="form-text">{% trans "Original amount invested." %}</div>
