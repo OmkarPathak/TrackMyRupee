@@ -1459,8 +1459,12 @@ class AccountForm(SearchableSelectFormMixin, forms.ModelForm):
         # Validation for DEPOSIT strategy
         if strategy == STRATEGY.DEPOSIT:
             deposit_principal = cleaned_data.get('deposit_principal')
-            if deposit_principal is None and (not self.instance.pk or self.instance.account_type != account_type):
+            # A recurring deposit has no single starting amount: its installments are what it is made of.
+            if deposit_principal is None and account_type != 'RD' and (not self.instance.pk or self.instance.account_type != account_type):
                 self.add_error('deposit_principal', _('Deposit principal is required for deposit accounts.'))
+            if account_type == 'RD':
+                # ...so a figure left in the (now hidden) field would never be used: valuation reads the installments
+                cleaned_data['deposit_principal'] = None
 
             start_date = cleaned_data.get('deposit_start_date')
             if account_type == 'NPS':

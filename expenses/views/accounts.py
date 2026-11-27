@@ -1,3 +1,4 @@
+import logging
 import re
 import sys
 from collections import defaultdict
@@ -92,6 +93,7 @@ def _group_id_for(account_type):
             return re.sub(r'[^A-Z0-9_]', '_', group_name.upper())
     return account_type
 
+logger = logging.getLogger(__name__)
 
 class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
     model = Account
@@ -227,6 +229,10 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
         for rec in AccountReconciliation.objects.filter(account__in=all_accounts).order_by('-statement_date', '-created_at'):
             last_reconciliation.setdefault(rec.account_id, rec)
 
+        # What moved in and out of the deposits, loaded once for all of them
+        from ..account_valuation import DepositMovements
+        deposit_movements = DepositMovements.load([a for a in all_accounts if a.account_type in _deposit_codes])
+
         for account in all_accounts:
             try:
                 rate = cached_rate(account.currency, user_currency)
@@ -250,7 +256,7 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
 
             # Compute accrued value for fixed-income / deposit accounts
             if account.account_type in _deposit_codes:
-                accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))
+                accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)), movements=deposit_movements)
                 deposit_principal = account.deposit_principal if account.deposit_principal is not None else Decimal(str(account.display_balance))
                 if getattr(account, 'show_accrued_balance', True) and (accrued != deposit_principal or account.deposit_rate is not None):
                     account.accrued_value = accrued
@@ -261,8 +267,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
                     account.has_accrued_value = False
 
                 if account.deposit_maturity_date and account.deposit_rate is not None:
-                    from ..account_valuation import get_current_deposit
-                    account.maturity_value = get_current_deposit(account, ledger_balance=Decimal(str(account.display_balance)), today=account.deposit_maturity_date)
+                    from ..account_valuation import get_maturity_value
+                    account.maturity_value = get_maturity_value(account, ledger_balance=Decimal(str(account.display_balance)))
                     account.has_maturity_value = True
                 else:
                     account.has_maturity_value = False
@@ -561,8 +567,8 @@ class AccountListView(HtmxPartialTemplateMixin, LoginRequiredMixin, ListView):
             value = native
             if acc.deposit_rate is not None:
                 try:
-                    from ..account_valuation import get_current_deposit
-                    value = get_current_deposit(acc, ledger_balance=native, today=acc.deposit_maturity_date)
+                    from ..account_valuation import get_maturity_value
+                    value = get_maturity_value(acc, ledger_balance=native)
                 except Exception:
                     value = native
             maturing.append((acc.deposit_maturity_date, acc, Decimal(str(value))))
@@ -787,6 +793,10 @@ class AccountCreateView(LoginRequiredMixin, CreateView):
         initial = super().get_initial()
         if self._preset_type():
             initial['account_type'] = self._preset_type()
+            if self._preset_type() == 'HEALTH_INSURANCE':
+                # Health cover pays nothing back, so it starts as pure protection (choosing the type from the list does
+                # the same in the page).
+                initial['policy_type'] = 'PROTECTION'
         return initial
 
     def get_context_data(self, **kwargs):
@@ -1334,6 +1344,16 @@ class AccountDetailView(LoginRequiredMixin, View):
         else:
             account.display_balance = account.balance
 
+        # A loan or a property keeps nothing in the ledger: what it is worth comes from the loan's schedule or the
+        # asset's valuations, the same figure the accounts list and net worth use.
+        if account.is_active and strategy_for(account.account_type) in (STRATEGY.LOAN_OUTSTANDING, STRATEGY.PHYSICAL_VALUATION):
+            try:
+                value = get_current(account)
+                account.display_balance = -abs(value) if strategy_for(account.account_type) == STRATEGY.LOAN_OUTSTANDING else value
+            except Exception:
+                # The page still shows the ledger's balance, but a figure that cannot be worked out should be noticed
+                logger.warning('Could not value %s account %s', account.account_type, account.pk, exc_info=True)
+
         if account.account_type in deposit_codes():
             accrued = _compute_deposit_value(account, Decimal(str(account.display_balance)))
             deposit_principal = account.deposit_principal if account.deposit_principal is not None else Decimal(str(account.display_balance))
@@ -1345,9 +1365,12 @@ class AccountDetailView(LoginRequiredMixin, View):
                 account.has_accrued_value = False
 
             if account.deposit_maturity_date and account.deposit_rate is not None:
-                from ..account_valuation import get_current_deposit
-                account.maturity_value = get_current_deposit(account, ledger_balance=Decimal(str(account.display_balance)), today=account.deposit_maturity_date)
+                from ..account_valuation import get_maturity_value, get_rd_plan
+                account.rd_plan = get_rd_plan(account)       # installments paid and still to come (RD only)
+                account.maturity_value = get_maturity_value(account, ledger_balance=Decimal(str(account.display_balance)), plan=account.rd_plan)
                 account.has_maturity_value = True
+                if account.rd_plan and getattr(account, 'has_accrued_value', False):
+                    account.effective_principal = account.rd_plan['paid_total']     # an RD's principal is what has gone in
             else:
                 account.has_maturity_value = False
         else:

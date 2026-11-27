@@ -125,6 +125,18 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
       expected schedule.
     - For months from the first recorded transfer onwards where no transfer was posted,
       treats as skipped.
+    - An installment never falls on the maturity date itself: a 12-month RD takes 12 installments, and
+      the date it matures on is when the money comes back, not another payment.
+    """
+    return [(d, amount) for d, amount, _expected in _rd_installment_rows(account, end_date)]
+
+
+def _rd_installment_rows(account: Account, end_date: date, today: date | None = None) -> list[tuple[date, Decimal, bool]]:
+    """(date, amount, expected) for each installment of an RD up to end_date.
+
+    With `today` given, a month after today with no transfer posted yet is an *expected* installment (the
+    schedule says it is still to come), not a skipped one. A month that has already passed without a transfer
+    stays skipped, as before. Without `today` nothing is expected: this is what has actually been paid.
     """
     import calendar
 
@@ -133,6 +145,7 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
     start_date = account.deposit_start_date
     if not start_date:
         return []
+    maturity = account.deposit_maturity_date
 
     inst_amount = account.rd_installment_amount or Decimal('0.00')
     inst_day = account.rd_installment_day or start_date.day
@@ -159,7 +172,7 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
                 transfers_by_month[key] = []
             transfers_by_month[key].append(t)
 
-    installments: list[tuple[date, Decimal]] = []
+    installments: list[tuple[date, Decimal, bool]] = []
     current_year = start_date.year
     current_month = start_date.month
 
@@ -170,15 +183,18 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
         key = (current_year, current_month)
         if key in transfers_by_month:
             for t in transfers_by_month[key]:
-                installments.append((t.date, _in_account_currency(t, account)))
-        else:
-            is_before_tracking = (first_tx_month is None) or (key < first_tx_month)
-            if is_before_tracking and inst_amount > Decimal('0.00'):
-                last_day = calendar.monthrange(current_year, current_month)[1]
-                day_i = min(inst_day, last_day)
-                d_i = date(current_year, current_month, day_i)
-                if start_date <= d_i <= end_date:
-                    installments.append((d_i, inst_amount))
+                installments.append((t.date, _in_account_currency(t, account), False))
+        elif inst_amount > Decimal('0.00'):
+            last_day = calendar.monthrange(current_year, current_month)[1]
+            d_i = date(current_year, current_month, min(inst_day, last_day))
+            in_range = start_date <= d_i <= end_date and (maturity is None or d_i < maturity)
+            if in_range:
+                is_before_tracking = (first_tx_month is None) or (key < first_tx_month)
+                still_to_come = today is not None and d_i > today
+                if is_before_tracking and not still_to_come:
+                    installments.append((d_i, inst_amount, False))
+                elif still_to_come:
+                    installments.append((d_i, inst_amount, True))
 
         if current_month == 12:
             current_month = 1
@@ -187,6 +203,86 @@ def _get_rd_installments(account: Account, end_date: date) -> list[tuple[date, D
             current_month += 1
 
     return installments
+
+
+def _rd_accrued_value(account: Account, installments, end_date: date) -> Decimal:
+    """What the installments are worth on `end_date`: each one grown from its own date at the deposit's rate."""
+    rate = account.deposit_rate / Decimal('100')
+    comp_freq = account.deposit_compounding or 'QUARTERLY'
+    total_val = Decimal('0.00')
+    for d_i, amt_i in installments:
+        years_i = _years_between(d_i, end_date)
+
+        if comp_freq == 'SIMPLE':
+            val_i = amt_i * (Decimal('1') + rate * years_i)
+        elif comp_freq == 'QUARTERLY':
+            n = Decimal('4')
+            val_i = amt_i * ((Decimal('1') + rate / n) ** (n * years_i))
+        elif comp_freq == 'MONTHLY':
+            n = Decimal('12')
+            val_i = amt_i * ((Decimal('1') + rate / n) ** (n * years_i))
+        else:  # ANNUAL
+            val_i = amt_i * ((Decimal('1') + rate) ** years_i)
+
+        total_val += val_i
+    return total_val.quantize(Decimal('0.01'))
+
+
+def get_rd_plan(account: Account, today: date | None = None) -> dict | None:
+    """Where a running Recurring Deposit stands and where it is going, or None when there is nothing to project.
+
+    Needs a start date and a maturity (or closed) date. `paid` is what has gone in so far, `upcoming` the
+    installments still to come: ones already recorded with a later date, and ones the schedule expects but that
+    have not been recorded yet. `maturity_value` is what the whole schedule is worth on the maturity date.
+    """
+    if account.account_type != 'RD' or not account.deposit_start_date:
+        return None
+    horizon = min((d for d in (account.deposit_maturity_date, account.deposit_closed_date) if d), default=None)
+    if horizon is None:
+        return None
+    today = today or timezone.localdate()
+
+    rows = _rd_installment_rows(account, horizon, today=today)
+    if not rows:
+        return None             # no installment amount and none recorded: there is no plan to show
+    paid = [(d, amt) for d, amt, _expected in rows if d <= today]
+    upcoming = [{'date': d, 'amount': amt, 'expected': expected} for d, amt, expected in rows if d > today]
+    paid_total = sum((amt for _, amt in paid), Decimal('0.00')).quantize(Decimal('0.01'))
+    upcoming_total = sum((u['amount'] for u in upcoming), Decimal('0.00')).quantize(Decimal('0.01'))
+    planned_total = paid_total + upcoming_total
+
+    maturity_value = None
+    if account.deposit_rate is not None and rows:
+        maturity_value = _rd_accrued_value(account, [(d, amt) for d, amt, _e in rows], horizon)
+    return {
+        'paid_count': len(paid), 'paid_total': paid_total,
+        'upcoming': upcoming, 'upcoming_count': len(upcoming), 'upcoming_total': upcoming_total,
+        'planned_count': len(rows), 'planned_total': planned_total,
+        'maturity_value': maturity_value,
+        'interest_at_maturity': (maturity_value - planned_total).quantize(Decimal('0.01')) if maturity_value is not None else None,
+        'maturity_date': horizon,
+        'matured': horizon <= today,             # the date has come: what follows is the value it reached, not a forecast
+    }
+
+
+_NO_PLAN = object()
+
+
+def get_maturity_value(account: Account, ledger_balance: Decimal | None = None, today: date | None = None,
+                       plan=_NO_PLAN) -> Decimal | None:
+    """What a deposit is worth on its maturity date, from its terms alone. For a running RD that includes the
+    installments still to come, so it matches what the bank will pay if the schedule is kept. Money already taken out
+    does not change it (an FD redeemed on its maturity day still matured for what the terms say).
+
+    A caller that has already worked out the RD's plan (get_rd_plan) passes it in rather than have it built again."""
+    if not account.deposit_maturity_date or account.deposit_rate is None:
+        return None
+    if account.account_type == 'RD':
+        if plan is _NO_PLAN:
+            plan = get_rd_plan(account, today=today)
+        if plan and plan['maturity_value'] is not None:
+            return plan['maturity_value']
+    return get_current_deposit(account, ledger_balance=ledger_balance, today=account.deposit_maturity_date, adjust=False)
 
 
 def get_baseline_deposit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:
@@ -219,11 +315,108 @@ def get_baseline_deposit(account: Account, ledger_balance: Decimal | None = None
     return ledger_balance
 
 
-def get_current_deposit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal:
+# Schemes people pay into year after year: a transfer in adds to the value, from its own date.
+_TOP_UP_SCHEMES = frozenset({'PPF', 'EPF', 'VPF', 'SSY', 'POST_OFFICE', 'APY', 'NPS'})
+
+
+class DepositMovements:
+    """Money moved into and out of deposit-type accounts, loaded for many accounts in a few queries.
+
+    A deposit's value depends on what was paid out of it (a redemption, a transfer to another account) and, for the
+    schemes people keep paying into, on what was paid in after it started. Looking that up account by account costs
+    two or three queries each time a deposit is valued, and net worth, the Accounts list and the account page value
+    every deposit. Register them once with `DepositMovements.load(accounts)` and hand the result to
+    `get_current_deposit`: nothing is queried until a deposit actually needs its movements (many never do, see
+    get_current_deposit), and then all the registered accounts are loaded together. Without it, an account's
+    movements are loaded the first time they are asked for.
+    """
+
+    def __init__(self):
+        self._out: dict[int, list[tuple[date, Decimal]]] = {}
+        self._into: dict[int, list[tuple[date, Decimal]]] = {}
+        self._pending: list[Account] = []
+
+    @classmethod
+    def load(cls, accounts) -> 'DepositMovements':
+        movements = cls()
+        movements._pending = [a for a in accounts if a.pk]
+        return movements
+
+    def _ensure(self, account: Account) -> None:
+        if account.pk in self._out:
+            return
+        self._fill([account] + self._pending)
+        self._pending = []
+
+    def _fill(self, accounts) -> None:
+        from .models import Expense, Transfer
+
+        seen = set()
+        accounts = [a for a in accounts if a.pk not in self._out and not (a.pk in seen or seen.add(a.pk))]
+        if not accounts:
+            return
+        ids = [a.pk for a in accounts]
+        for account_id in ids:
+            self._out[account_id] = []
+            self._into[account_id] = []
+        for account_id, paid_on, amount in Transfer.objects.filter(from_account_id__in=ids).values_list('from_account_id', 'date', 'amount'):
+            self._out[account_id].append((paid_on, Decimal(amount)))
+        currencies = {a.pk: a.currency for a in accounts}
+        rates: dict[tuple[str, str], Decimal] = {}
+        for account_id, paid_on, amount, spent_in in Expense.objects.filter(account_id__in=ids).values_list('account_id', 'date', 'amount', 'currency'):
+            amount = Decimal(amount)
+            own = currencies[account_id]
+            if spent_in and own and spent_in != own:
+                # An expense is in its own currency, which need not be the account's: count it in the account's
+                if (spent_in, own) not in rates:
+                    from .utils import get_exchange_rate
+                    rates[(spent_in, own)] = Decimal(str(get_exchange_rate(spent_in, own)))
+                amount = (amount * rates[(spent_in, own)]).quantize(Decimal('0.01'))
+            self._out[account_id].append((paid_on, amount))
+        top_up_accounts = {a.pk: a for a in accounts if a.account_type in _TOP_UP_SCHEMES}
+        if top_up_accounts:
+            # In the deposit's own currency: a transfer's amount is in the sending account's (see _in_account_currency)
+            for transfer in Transfer.objects.filter(to_account_id__in=list(top_up_accounts)).select_related('from_account'):
+                self._into[transfer.to_account_id].append((transfer.date, _in_account_currency(transfer, top_up_accounts[transfer.to_account_id])))
+
+    def withdrawn(self, account: Account, as_of: date) -> Decimal:
+        """Everything moved or spent out of the account up to `as_of`, in its own currency."""
+        if not account.pk:
+            return Decimal('0.00')
+        self._ensure(account)
+        return sum((amount for paid_on, amount in self._out[account.pk] if paid_on <= as_of), Decimal('0.00')).quantize(Decimal('0.01'))
+
+    def top_ups(self, account: Account, start: date, as_of: date) -> list[tuple[date, Decimal]]:
+        """What went into the account after `start`, up to `as_of`, as (date, amount) in its own currency."""
+        if not account.pk:
+            return []
+        self._ensure(account)
+        return [(paid_on, amount) for paid_on, amount in self._into[account.pk] if start < paid_on <= as_of]
+
+
+def _top_ups_value(account: Account, movements: DepositMovements, start: date, today: date) -> Decimal:
+    """What the money transferred in after the deposit started is worth now, each from the day it went in."""
+    total = Decimal('0.00')
+    for paid_on, amount in movements.top_ups(account, start, today):
+        if account.deposit_payout:
+            total += amount
+            continue
+        total += _calculate_fd_current(
+            principal=amount, rate_pct=account.deposit_rate, start_date=paid_on, compounding=account.deposit_compounding,
+            maturity_date=account.deposit_maturity_date, closed_date=account.deposit_closed_date, today=today)
+    return total
+
+
+def get_current_deposit(account: Account, ledger_balance: Decimal | None = None, today: date | None = None,
+                        movements: DepositMovements | None = None, adjust: bool = True) -> Decimal:
     """
     Current accrued value for DEPOSIT strategy:
     For RD: sum of accrued future value for each installment (annuity formula).
     For FD/lump-sum: compound interest capped at maturity_date or closed_date.
+
+    `adjust` (the default) then takes into account the money that has moved in and out of the deposit; a projection of
+    what the terms alone will be worth (see get_maturity_value) passes False. `movements` carries those movements when
+    the caller has loaded them for many accounts at once.
     """
     if ledger_balance is None:
         ledger_balance = _get_account_ledger_balance(account)
@@ -248,28 +441,7 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
         if not installments:
             return ledger_balance
 
-        rate_pct = account.deposit_rate
-        comp_freq = account.deposit_compounding or 'QUARTERLY'
-        rate = rate_pct / Decimal('100')
-
-        total_val = Decimal('0.00')
-        for d_i, amt_i in installments:
-            years_i = _years_between(d_i, end_date)
-
-            if comp_freq == 'SIMPLE':
-                val_i = amt_i * (Decimal('1') + rate * years_i)
-            elif comp_freq == 'QUARTERLY':
-                n = Decimal('4')
-                val_i = amt_i * ((Decimal('1') + rate / n) ** (n * years_i))
-            elif comp_freq == 'MONTHLY':
-                n = Decimal('12')
-                val_i = amt_i * ((Decimal('1') + rate / n) ** (n * years_i))
-            else:  # ANNUAL
-                val_i = amt_i * ((Decimal('1') + rate) ** years_i)
-
-            total_val += val_i
-
-        return total_val.quantize(Decimal('0.01'))
+        return _rd_accrued_value(account, installments, end_date)
 
     # FD / lump-sum deposits
     principal = account.deposit_principal if account.deposit_principal is not None else ledger_balance
@@ -279,17 +451,32 @@ def get_current_deposit(account: Account, ledger_balance: Decimal | None = None,
     if account.deposit_payout:
         # The interest is paid out to another account as it falls due, so the deposit itself stays at its principal.
         # Accruing it here as well would count the same interest twice in net worth.
-        return Decimal(principal).quantize(Decimal('0.01'))
-
-    return _calculate_fd_current(
-        principal=principal,
-        rate_pct=account.deposit_rate,
-        start_date=start,
-        compounding=account.deposit_compounding,
-        maturity_date=account.deposit_maturity_date,
-        closed_date=account.deposit_closed_date,
-        today=eval_today,
-    )
+        value = Decimal(principal).quantize(Decimal('0.01'))
+    else:
+        value = _calculate_fd_current(
+            principal=principal,
+            rate_pct=account.deposit_rate,
+            start_date=start,
+            compounding=account.deposit_compounding,
+            maturity_date=account.deposit_maturity_date,
+            closed_date=account.deposit_closed_date,
+            today=eval_today,
+        )
+    if not adjust:
+        return value
+    # Money taken out of the deposit (redeemed, or moved to another account) is no longer in it. Without this a
+    # deposit redeemed into the bank is counted twice: once in the bank and once from its terms.
+    # (The ledger cannot say it: a balance equal to the principal can also be money in matching money out, such as
+    # interest credited and a part withdrawn. The movements are loaded once for all deposits, so looking is cheap.)
+    movements = movements or DepositMovements()
+    withdrawn = movements.withdrawn(account, eval_today)
+    if withdrawn > 0 and account.deposit_closed_date and account.deposit_closed_date <= eval_today:
+        # A closed deposit holds nothing: what the bank paid out can be less than the accrued value (tax deducted at
+        # source, rounding), and that difference is not still sitting in the deposit.
+        return Decimal('0.00')
+    if account.account_type in _TOP_UP_SCHEMES:
+        value += _top_ups_value(account, movements, start, eval_today)
+    return max(Decimal('0.00'), value - withdrawn)
 
 
 def get_baseline_holdings(account: Account, ledger_balance: Decimal | None = None, today: date | None = None) -> Decimal | None:

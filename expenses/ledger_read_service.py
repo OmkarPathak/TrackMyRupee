@@ -66,14 +66,14 @@ from .utils import get_exchange_rate
 logger = logging.getLogger(__name__)
 
 
-def _compute_deposit_value(account, ledger_balance: Decimal, as_of=None) -> Decimal:
+def _compute_deposit_value(account, ledger_balance: Decimal, as_of=None, movements=None) -> Decimal:
     """
     Compute accrued DEPOSIT value for an account.
     Delegates to expenses.account_valuation.get_current_deposit(account)
     for unified FD and RD accrual math (including maturity/closed date caps).
     """
     from .account_valuation import get_current_deposit
-    return get_current_deposit(account, ledger_balance=ledger_balance, today=as_of)
+    return get_current_deposit(account, ledger_balance=ledger_balance, today=as_of, movements=movements)
 
 
 class LedgerReadService:
@@ -731,6 +731,10 @@ class LedgerReadService:
         total_liabilities = Decimal("0.00")
         account_base_balances: dict = {}
 
+        # What moved in and out of the deposits, for all of them in a few queries rather than a few for each
+        from .account_valuation import DepositMovements
+        deposit_movements = DepositMovements.load([a for a in accounts if classify(a.account_type)[1] == STRATEGY.DEPOSIT])
+
         for account in accounts:
             kind, strategy = classify(account.account_type)
             ledger_bal = ledger_balances[account.id]
@@ -806,7 +810,7 @@ class LedgerReadService:
             elif strategy == STRATEGY.DEPOSIT:
                 # Accrual if deposit fields set and show_accrued_balance is True, else baseline deposit
                 if is_accrued:
-                    native_val = _compute_deposit_value(account, ledger_bal, as_of_cut)
+                    native_val = _compute_deposit_value(account, ledger_bal, as_of_cut, movements=deposit_movements)
                 else:
                     from .account_valuation import get_baseline_deposit
                     native_val = get_baseline_deposit(account, ledger_balance=ledger_bal, today=as_of_cut) or ledger_bal

@@ -195,7 +195,9 @@ class AccountFormTests(Base):
         page.wait_for_timeout(300)
         paying = page.inner_text('.maturity-estimate-card')
         self.assertIn('1,00,000.00', paying)
-        self.assertIn('7,99', paying)                                        # 7,994.52 of interest over the year, paid out
+        # 8,000.00 of interest over the year, paid out: the form counts a year the way the account page does (exactly one
+        # year from 1 Jan to 1 Jan), not as 365 / 365.25 of one, which gave 7,994.52
+        self.assertIn('8,000.00', paying)
 
 
 class ClosingTheDepositTests(Base):

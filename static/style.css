@@ -4827,3 +4827,27 @@ p.tmr-ic { display: flex; justify-content: flex-start; }
 /* the figures are written the way the Accounts page writes its amounts (.acx-tile-amount): heavy, tightly spaced, tabular digits */
 .tmr-stat-value { font-size: clamp(1.15rem, 3vw, 1.45rem); font-weight: 800; line-height: 1.15; letter-spacing: -.03em; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--bs-body-color); }
 .tmr-stat-note { font-size: .74rem; color: var(--bs-secondary-color); line-height: 1.2; }
+
+/* ── A Recurring Deposit's installments (the account page): paid, still to come, and the maturity value ── */
+.tmr-installments { border: 1px solid var(--bs-border-color); border-radius: 1rem; background: var(--bs-body-bg); padding: 1rem 1.1rem; }
+.tmr-installments__head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.tmr-installments__title { margin: 0; font-size: .95rem; font-weight: 700; }
+.tmr-installments__title .bi { color: var(--color-secondary, #0F7657); margin-right: .35rem; }
+.tmr-installments__count { font-size: .8rem; font-weight: 700; color: var(--color-secondary, #0F7657); background: color-mix(in srgb, var(--color-secondary, #0F7657) 12%, var(--bs-body-bg)); padding: .15rem .65rem; border-radius: 99px; white-space: nowrap; }
+.tmr-installments__bar { height: 6px; border-radius: 99px; margin: .75rem 0; background: var(--bs-tertiary-bg); overflow: hidden; }
+.tmr-installments__bar i { display: block; height: 100%; background: var(--color-secondary, #0F7657); border-radius: 99px; }
+.tmr-installments__sums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: 0 0 .75rem; }
+.tmr-installments__sums dt { font-size: .72rem; font-weight: 600; letter-spacing: .03em; color: var(--color-muted-text, var(--bs-secondary-color)); }
+.tmr-installments__sums dd { margin: .1rem 0 0; font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tmr-installments__maturity { margin: 0 0 .75rem; font-size: .88rem; }
+.tmr-installments__maturity strong { color: var(--color-success-text, var(--color-secondary, #0F7657)); }
+.tmr-installments__sub { margin: .25rem 0 .35rem; font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--color-muted-text, var(--bs-secondary-color)); }
+.tmr-installments__list { list-style: none; margin: 0; padding: 0; }
+.tmr-installments__list li { display: flex; align-items: center; gap: .75rem; padding: .45rem 0; border-top: 1px solid var(--bs-border-color); font-size: .9rem; }
+.tmr-installments__list li:first-child { border-top: 0; }
+.tmr-installments__date { flex: 1; color: var(--bs-body-color); }
+.tmr-installments__amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tmr-installments__tag { min-width: 4.8rem; text-align: center; font-size: .7rem; font-weight: 700; padding: .1rem .55rem; border-radius: 99px; color: var(--color-muted-text, var(--bs-secondary-color)); background: var(--bs-tertiary-bg); }
+.tmr-installments__tag.is-expected { color: var(--color-warning-text, #8a5200); background: color-mix(in srgb, var(--color-warning, #D4831A) 16%, var(--bs-body-bg)); }
+.tmr-installments__note { margin: .5rem 0 0; font-size: .76rem; color: var(--color-muted-text, var(--bs-secondary-color)); }
+@media (max-width: 575.98px) { .tmr-installments__sums dd { font-size: .95rem; } }

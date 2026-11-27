@@ -221,7 +221,16 @@
                 const diffDays = Math.round((maturity.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
                 if (diffDays <= 0) return null;
 
-                const years = diffDays / 365.25;
+                // Time the way the account page counts it: whole calendar years, then the odd days over 365.
+                const addYears = (d, n) => {
+                    const r = new Date(Date.UTC(d.getUTCFullYear() + n, d.getUTCMonth(), d.getUTCDate()));
+                    if (r.getUTCMonth() !== d.getUTCMonth()) r.setUTCDate(0);      // 29 February in a year without one
+                    return r;
+                };
+                let wholeYears = maturity.getUTCFullYear() - start.getUTCFullYear();
+                if (addYears(start, wholeYears) > maturity) wholeYears -= 1;
+                const leftoverDays = Math.round((maturity.getTime() - addYears(start, wholeYears).getTime()) / (1000 * 60 * 60 * 24));
+                const years = wholeYears + leftoverDays / 365;
                 const rate = ratePct / 100;
                 const comp = this.depositCompounding || 'QUARTERLY';
 
@@ -480,7 +489,8 @@
                                 <span>{% trans "Configure principal, interest rates, compounding schedule, and yield options." %}</span>
                             </div>
                             <div class="row g-3">
-                                <div class="col-12 col-sm-6">
+                                {# A recurring deposit has no single starting amount: its installments are what it is made of #}
+                                <div class="col-12 col-sm-6" x-show="accountType !== 'RD'" x-cloak>
                                     <label class="form-label text-muted small text-uppercase fw-bold" for="{{ form.deposit_principal.id_for_label }}">{% trans "Deposit Principal" %}</label>
                                     {{ form.deposit_principal }}
                                     <div class="form-text">{% trans "Original amount invested." %}</div>

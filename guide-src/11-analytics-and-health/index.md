@@ -97,7 +97,7 @@ Every place in TrackMyRupee that shows a savings rate uses the same formula: the
 
 A few rules sit behind that:
 
-- **Loan principal is not spending.** When you pay an EMI, only the **interest** part counts as money spent. The principal part is you repaying money you borrowed, so it does not reduce your savings.
+- **Loan principal is not spending, by default.** When you pay an EMI, only the **interest** part counts as money spent. The principal part is you repaying money you borrowed, so it does not reduce your savings. If you would rather count every rupee that goes to a lender, turn on **Settings → Profile → Count all loan payments as spending** (see *Counting all loan payments as spending* below).
 - **Big purchases count only if you chose so.** A big purchase is left out by default (its **Exclude from Averages & Trends** setting is on), so one big purchase does not wreck the month. Turn that setting off on an event and it counts as spending. The **big purchases** filter on the Analytics page temporarily adds the excluded ones.
 - **Cashback and Refunds are money in, but not part of the base.** Cashback and Rewards and Refund / Reimbursement income is added to your savings (the money really is yours), but it is left out of the amount your rate is measured against. Your rate is measured against what you *earned*, so a refund can only improve it, never dilute it.
 - **No income, no rate.** If the base is zero or less, the rate shows 0 instead of a misleading number. Spending more than you earn gives a negative rate.
@@ -109,6 +109,16 @@ A few rules sit behind that:
     - Savings = 51,000 − 20,000 − 2,000 = **Rs. 29,000** (the Rs. 6,000 of principal is not counted)
     - Base = 51,000 − 1,000 = 50,000
     - Savings rate = 29,000 ÷ 50,000 = **58%**
+
+
+### Counting all loan payments as spending
+
+By default only the **interest** part of an EMI counts as spending, because the rest repays borrowed money and raises your net worth. That can make your savings rate look high while a large EMI leaves little in the bank. **Settings → Profile → Count all loan payments as spending** changes that:
+
+- **Off (the default):** only the interest counts, as described above.
+- **On:** the whole EMI counts as spending, and so do **loan prepayments** and **down payments** that you recorded as big purchases. Your savings are then what is left after every loan payment.
+
+When it is on, **Spent** and the **savings rate** on the Dashboard, the Analytics pages, the **Net Remaining** tile on Transactions, the salary-cycle view, Year in Review and the monthly email all follow it, and a short note on the Dashboard and Analytics says so. Your **net worth** and its monthly change do not: paying back a loan still raises your net worth, whichever way you count it.
 
 ---
 
